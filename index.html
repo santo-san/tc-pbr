@@ -120,22 +120,70 @@
   /* Modal */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(10,26,63,.45); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
   .overlay.show { display: flex; }
-  .modal { background: #fff; border-radius: 10px; width: 640px; max-width: 100%; max-height: 90vh; overflow: auto; }
-  .modal-h { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
-  .modal-h h3 { margin: 0; font-size: 14px; }
-  .modal-h button { background: none; border: 0; font-size: 20px; color: var(--muted); }
-  .modal-b { padding: 16px 20px; }
-  .info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-bottom: 16px; }
-  .info div small { display: block; color: var(--muted); font-size: 10px; }
-  .info div b { font-size: 11.5px; }
-  .timeline { border-left: 2px solid var(--line); margin-left: 6px; padding-left: 16px; }
-  .tl { position: relative; padding-bottom: 12px; }
-  .tl::before { content: ""; position: absolute; left: -22px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: #d1d5db; }
-  .tl.done::before { background: var(--green); }
-  .tl.prog::before { background: var(--yellow); }
-  .modal-f { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--line); }
-  .btn-red { background: var(--red); color: #fff; border: 0; border-radius: 5px; height: 32px; padding: 0 14px; font-size: 11px; font-weight: 600; }
-  .btn-red:disabled, .btn-green:disabled { opacity: .45; cursor: default; }
+  .modal { background: #fff; border-radius: 8px; width: 910px; max-width: 100%; max-height: 92vh; overflow: auto; }
+  .modal-h { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; z-index: 2; }
+  .modal-h h3 { margin: 0; font-size: 12.5px; font-weight: 700; }
+  .modal-h button { background: #fff; border: 1px solid #6b7280; border-radius: 2px; width: 14px; height: 18px; padding: 0; font-size: 11px; line-height: 1; color: #111; }
+  .modal-b { padding: 18px 20px 6px; }
+
+  /* Order detail: cycle accordion */
+  .cyc { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+  .cyc-h { display: flex; justify-content: space-between; align-items: center; width: 100%; background: #f7f8fa; border: 0; border-bottom: 1px solid var(--line); padding: 14px 16px; color: var(--blue); font-size: 11px; font-weight: 500; }
+  .cyc-h svg { width: 12px; height: 12px; stroke: var(--blue); fill: none; stroke-width: 2; transition: transform .2s; }
+  .cyc.closed .cyc-h { border-bottom: 0; }
+  .cyc.closed .cyc-h svg { transform: rotate(180deg); }
+  .cyc.closed .cyc-b { display: none; }
+  .cyc-b { display: grid; grid-template-columns: 1.55fr .85fr .8fr; gap: 16px; padding: 14px 16px; }
+  .cyc-empty { padding: 18px 16px; color: var(--muted); font-size: 11px; }
+  .fields { display: flex; gap: 10px; }
+  .field { display: flex; gap: 10px; flex: 1; min-width: 0; }
+  .field .ic { width: 26px; height: 26px; border-radius: 5px; background: #f3f4f6; display: grid; place-items: center; flex-shrink: 0; margin-top: 6px; }
+  .field .ic svg { width: 13px; height: 13px; fill: none; stroke-width: 1.7; }
+  .field small { display: block; color: #a3a9b4; font-size: 9.5px; line-height: 1.6; }
+  .field b { display: block; font-size: 10.5px; line-height: 1.6; }
+  .route { display: flex; align-items: flex-start; gap: 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 12px 0; padding: 12px 0 10px; font-size: 11.5px; line-height: 1.55; }
+  .route span { flex: 1; }
+  .route svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sec-title { font-size: 13px; font-weight: 700; margin: 0 0 12px; }
+  .acts { position: relative; }
+  .act-i { position: relative; padding: 0 0 12px 26px; }
+  .act-i::after { content: ""; position: absolute; left: 6px; top: 22px; bottom: 0; border-left: 1px dashed #c7ccd4; }
+  .act-i:last-child::after { display: none; }
+  .act-i svg { position: absolute; left: 0; top: 10px; width: 13px; height: 13px; fill: none; stroke-width: 1.8; }
+  .act-i small { display: block; color: #a3a9b4; font-size: 10px; }
+  .act-i b { display: block; font-size: 10.5px; line-height: 1.7; }
+  .act-i span { color: var(--muted); font-size: 10px; }
+  .act-i.pending b { color: #c0c5cd; font-weight: 500; }
+  .files { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 10px; }
+  .files th { background: #fff; text-align: left; padding: 10px 8px; border: 1px solid var(--line); }
+  .files td { text-align: left; padding: 8px; border: 1px solid var(--line); }
+  .files td:first-child { text-align: center; width: 64px; }
+  .btn-view { font-size: 9.5px; border: 1px solid #555; background: #f3f3f3; border-radius: 2px; padding: 1px 4px; }
+  .btn-view:hover:not(:disabled) { background: #e2e2e2; }
+  .btn-view:disabled { color: #aaa; border-color: #ccc; cursor: default; }
+  .file-btns { display: flex; gap: 4px; justify-content: flex-end; }
+  .btn-sm-blue { background: var(--blue); color: #fff; border: 0; border-radius: 5px; height: 27px; padding: 0 12px; font-size: 9.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-sm-blue:hover:not(:disabled) { background: #2a7be0; }
+  .btn-sm-blue:disabled { opacity: .45; cursor: default; }
+  .btn-sm-blue svg { width: 12px; height: 12px; fill: currentColor; }
+
+  /* Preview (photo / surat jalan) */
+  #preview { z-index: 55; }
+  .pv { background: #fff; border-radius: 8px; width: 620px; max-width: 100%; max-height: 92vh; overflow: auto; }
+  .pv-b { padding: 16px 20px 20px; }
+  .pv-b img { width: 100%; border-radius: 6px; display: block; }
+  .pv-f { display: flex; justify-content: flex-end; gap: 6px; padding: 0 20px 16px; }
+  .sj { border: 1px solid #cfd4dc; padding: 18px 20px; font-size: 11px; }
+  .sj h4 { margin: 0; text-align: center; font-size: 15px; letter-spacing: 1px; }
+  .sj .no { text-align: center; color: var(--muted); margin: 4px 0 14px; }
+  .sj table { font-size: 11px; margin-bottom: 12px; }
+  .sj td { border: 0; text-align: left; padding: 3px 8px 3px 0; vertical-align: top; }
+  .sj .sign { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-top: 28px; gap: 10px; }
+  .sj .sign div { padding-top: 46px; border-bottom: 1px solid #9aa3b2; }
+  .sj .sign small { display: block; margin-top: 4px; }
+
+  @media (max-width: 760px) { .cyc-b { grid-template-columns: 1fr; } .fields { flex-wrap: wrap; } }
+  .btn-green:disabled { opacity: .45; cursor: default; }
 
   /* Toast */
   .toast { position: fixed; right: 20px; bottom: 20px; background: var(--navy-dark); color: #fff; padding: 10px 16px; border-radius: 6px; font-size: 11px; opacity: 0; transform: translateY(10px); transition: .25s; z-index: 60; pointer-events: none; }
@@ -304,14 +352,17 @@
 </div>
 
 <div class="overlay" id="overlay">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-h"><h3 id="mTitle">Detail Order</h3><button id="mClose" aria-label="Tutup">&times;</button></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-h"><h3 id="mTitle">Order Detail</h3><button id="mClose" aria-label="Tutup">&times;</button></div>
     <div class="modal-b" id="mBody"></div>
-    <div class="modal-f">
-      <button class="btn-red" id="mCancel">Cancel Order</button>
-      <button class="btn-green" id="mNext" style="height:32px">Update Next Cycle</button>
-      <button class="btn-dark" id="mClose2" style="height:32px">Tutup</button>
-    </div>
+  </div>
+</div>
+
+<div class="overlay" id="preview">
+  <div class="pv" role="dialog" aria-modal="true" aria-labelledby="pvTitle">
+    <div class="modal-h"><h3 id="pvTitle"></h3><button id="pvClose" aria-label="Tutup">&times;</button></div>
+    <div class="pv-b" id="pvBody"></div>
+    <div class="pv-f" id="pvFoot"></div>
   </div>
 </div>
 
@@ -338,7 +389,7 @@ function makeOrder(i) {
   const r = rand();
   const done = r < 0.45 ? planned : r < 0.9 ? Math.floor(rand() * planned) : 0;
   const cancelled = rand() < 0.05;
-  let hour = Math.floor(rand() * 24);
+  let hour = Math.floor(rand() * 8);
   const cycles = [];
   for (let c = 0; c < 5; c++) {
     if (c >= planned) { cycles.push(null); continue; }
@@ -590,51 +641,169 @@ $('pager').addEventListener('click', e => {
 });
 $('pageSize').addEventListener('change', e => { state.size = +e.target.value; state.page = 1; render(); });
 
-// Detail modal
+// ---------- Order detail ----------
+const DRIVERS = ['ASEP SUKIRNO', 'BUDI SANTOSO', 'DEDI KURNIAWAN', 'EKO PRASETYO', 'HENDRA WIJAYA', 'JOKO SUSILO', 'RUDI HARTONO'];
+const LOC = {
+  D3: 'RD3 - Depo Cakung Marunda (PBR)', S1E: 'S1E - (Empty) CY TMMIN Sunter 1', A1: 'A1 - TMMIN Sunter 2 Plant',
+  K3: 'K3 - TMMIN Karawang 3 Plant', S2: 'S2 - CY TMMIN Sunter 2', K1E: 'K1E - (Empty) CY TMMIN Karawang', X3: 'X3 - CY External Sunter (CY219X)',
+};
+const hash = str => [...str].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261);
+const addMin = (t, m) => { const d = new Date(t.replace(' ', 'T')); d.setMinutes(d.getMinutes() + m); return d; };
+const fmtDT = d => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+// Stable per-order/per-cycle details derived from the order number
+function cycleDetail(o, i) {
+  const c = o.cycles[i], r = rng(hash(o.orderNo + i));
+  const [route = '', cont = ''] = (c.container || '').match(/^(\S+) \[(.+)\]$/)?.slice(1) || [];
+  const [a, b] = route.split('-');
+  const start = c.time ? new Date(c.time.replace(' ', 'T')) : null;
+  const pickup = start && addMin(c.time, 1 + Math.floor(r() * 20));
+  const finish = pickup && new Date(pickup.getTime() + (1 + Math.floor(r() * 40)) * 60000);
+  return {
+    driver: DRIVERS[Math.abs(hash(o.orderNo)) % DRIVERS.length],
+    from: LOC[a] || a || '-', to: LOC[b] || b || '-', container: cont || '-',
+    cycleNo: `${o.orderNo.slice(0, 8)}PBM${pad(100 + Math.floor(r() * 900), 3)}`,
+    acts: [
+      ['Start Cycle', start, '#22c55e', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
+      ['Pick Up', c.state === 'wait' ? null : pickup, '#eab308', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
+      ['Finish Cycle', c.state === 'done' ? finish : null, '#3b8ef3', 'M12 21s-6-5.6-6-10a6 6 0 0 1 12 0c0 4.4-6 10-6 10zM12 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0'],
+    ],
+  };
+}
+
+const IC = {
+  police: '<svg viewBox="0 0 24 24" stroke="#b45309"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M9 6V4h6v2"/><circle cx="12" cy="13" r="2.5"/></svg>',
+  person: '<svg viewBox="0 0 24 24" stroke="#9aa3b2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  personRed: '<svg viewBox="0 0 24 24" stroke="#dc6b6b"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  rocket: '<svg viewBox="0 0 24 24" stroke="#6b7280"><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2M9 15l-3-3 3-5c3-4 8-5 12-4 1 4 0 9-4 12l-5 3z"/><circle cx="15" cy="9" r="1.5"/></svg>',
+};
+const field = (icon, label, value) => `<div class="field"><div class="ic">${icon}</div><div><small>${label}</small><b>${value}</b></div></div>`;
+
 let current = null;
 function openDetail(no) {
   current = DATA.find(o => o.orderNo === no);
-  const o = current, st = orderStatus(o);
-  $('mTitle').textContent = `Detail Order ${o.orderNo}`;
-  const info = [['Date', fmtDate(o.date)], ['Type', o.type], ['Trucking Comp.', o.trucking], ['License Plate', o.plate],
-    ['DTP Loc. From', o.from], ['DTP Loc. To', o.to], ['Renban', o.renban], ['Shift', o.shift], ['Planned Cycle', o.planned], ['Order Status', statusBadge(st)]];
-  $('mBody').innerHTML = `<div class="info">${info.map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>
-    <b style="font-size:12px">Cycle Timeline</b>
-    <div class="timeline" style="margin-top:10px">${o.cycles.slice(0, o.planned).map((c, i) => `
-      <div class="tl ${c.state}">
-        <b>Cycle ${i + 1}</b> — ${c.state === 'done' ? 'Finish' : c.state === 'prog' ? 'On Progress' : 'Waiting'}<br>
-        <span style="color:var(--muted)">${c.time || '-'} ${c.container ? '· ' + c.container : ''}</span>
-      </div>`).join('')}</div>`;
-  const finished = st === 'Finish Daily Order' || st === 'Cancelled';
-  $('mCancel').disabled = finished;
-  $('mNext').disabled = finished;
+  const o = current;
+  $('mTitle').textContent = 'Order Detail';
+  $('mBody').innerHTML = o.cycles.slice(0, o.planned).map((c, i) => {
+    const head = `<button class="cyc-h" data-toggle>CYCLE ${i + 1}<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`;
+    if (c.state === 'wait') return `<div class="cyc">${head}<div class="cyc-b" style="display:block"><div class="cyc-empty">Cycle ini belum dimulai.</div></div></div>`;
+    const d = cycleDetail(o, i);
+    return `<div class="cyc" data-cycle="${i}">${head}
+      <div class="cyc-b">
+        <div>
+          <div class="fields">
+            ${field(IC.police, 'Police No', o.plate)}
+            ${field(IC.person, 'Driver', d.driver)}
+            ${field(IC.rocket, 'Trucking Company', o.trucking)}
+          </div>
+          <div class="route"><span>${d.from}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3b8ef3" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M13 8l4 4-4 4"/></svg>
+            <span>${d.to}</span></div>
+          <div class="fields">
+            ${field(IC.person, 'Container No', d.container)}
+            ${field(IC.personRed, 'Order No', d.cycleNo)}
+          </div>
+        </div>
+        <div>
+          <p class="sec-title">Activity List</p>
+          <div class="acts">${d.acts.map(([label, t, color, path]) => `
+            <div class="act-i ${t ? '' : 'pending'}">
+              <svg viewBox="0 0 24 24" stroke="${color}"><circle cx="12" cy="12" r="9"/><path d="${path}"/></svg>
+              <small>${label}</small><b>${t ? fmtDT(t) : 'Belum dilakukan'}</b><span>-</span>
+            </div>`).join('')}</div>
+        </div>
+        <div>
+          <p class="sec-title">Files</p>
+          <table class="files">
+            <tr><th>Action</th><th>File Type</th></tr>
+            <tr><td><button class="btn-view" data-view="sj" ${d.acts[1][1] ? '' : 'disabled'}>View</button></td><td>Foto Surat Jalan</td></tr>
+            <tr><td><button class="btn-view" data-view="finish" ${c.state === 'done' ? '' : 'disabled'}>View</button></td><td>Finish Cycle Foto</td></tr>
+          </table>
+          <div class="file-btns">
+            <button class="btn-sm-blue" data-sj><svg viewBox="0 0 24 24"><path d="M12 5C6 5 2 12 2 12s4 7 10 7 10-7 10-7-4-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>Surat Jalan ELIPS</button>
+            <button class="btn-sm-blue" data-pdf><svg viewBox="0 0 24 24"><path d="M6 2h12v5H6zM4 8h16a2 2 0 0 1 2 2v7h-4v5H6v-5H2v-7a2 2 0 0 1 2-2zm4 9v3h8v-3z"/></svg>PDF</button>
+          </div>
+        </div>
+      </div></div>`;
+  }).join('');
   $('overlay').classList.add('show');
+  $('mBody').scrollTop = 0;
 }
+
+// Mock photo as an SVG data URI
+function photo(title, d, color) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="380"><rect width="600" height="380" fill="${color}"/>
+    <rect x="150" y="60" width="300" height="230" rx="8" fill="#fff" opacity=".92"/>
+    <text x="300" y="110" font-family="Arial" font-size="20" font-weight="bold" text-anchor="middle" fill="#0b2b5c">${title}</text>
+    <text x="300" y="150" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">${d.cycleNo}</text>
+    <text x="300" y="180" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">Container ${d.container}</text>
+    <text x="300" y="210" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">${current.plate} · ${d.driver}</text>
+    <text x="300" y="260" font-family="Arial" font-size="12" text-anchor="middle" fill="#888">(foto contoh / mock-up)</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function suratJalan(o, i, d) {
+  return `<div class="sj">
+    <h4>SURAT JALAN</h4><div class="no">No. ${d.cycleNo} · ELIPS</div>
+    <table>
+      <tr><td>Tanggal</td><td>: ${fmtDate(o.date)}</td></tr>
+      <tr><td>No. Order</td><td>: ${o.orderNo} (Cycle ${i + 1})</td></tr>
+      <tr><td>Trucking Company</td><td>: ${o.trucking}</td></tr>
+      <tr><td>Police No / Driver</td><td>: ${o.plate} / ${d.driver}</td></tr>
+      <tr><td>Container No</td><td>: ${d.container}</td></tr>
+      <tr><td>Dari</td><td>: ${d.from}</td></tr>
+      <tr><td>Tujuan</td><td>: ${d.to}</td></tr>
+      ${d.acts.map(([l, t]) => `<tr><td>${l}</td><td>: ${t ? fmtDT(t) : '-'}</td></tr>`).join('')}
+    </table>
+    <div class="sign"><div></div><div></div><div></div></div>
+    <div class="sign" style="margin-top:0"><small>Driver</small><small>Security</small><small>Penerima</small></div>
+  </div>`;
+}
+
+function showPreview(title, body, foot = '') {
+  $('pvTitle').textContent = title; $('pvBody').innerHTML = body; $('pvFoot').innerHTML = foot;
+  $('preview').classList.add('show');
+}
+function printSuratJalan(o, i, d) {
+  const css = [...document.styleSheets[document.styleSheets.length - 1].cssRules].filter(r => r.selectorText?.startsWith('.sj')).map(r => r.cssText).join('\n');
+  const w = window.open('', '_blank');
+  if (!w) { toast('Pop-up diblokir browser, izinkan pop-up untuk export PDF'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><title>Surat Jalan ${d.cycleNo}</title>
+    <style>body{font-family:Inter,Arial,sans-serif;padding:30px;color:#1f2937}table{border-collapse:collapse}${css}</style></head>
+    <body>${suratJalan(o, i, d)}<script>onload=()=>{print()}<\/script></body></html>`);
+  w.document.close();
+}
+
+$('mBody').addEventListener('click', e => {
+  const t = e.target.closest('[data-toggle]');
+  if (t) { t.parentElement.classList.toggle('closed'); return; }
+  const box = e.target.closest('[data-cycle]'); if (!box) return;
+  const i = +box.dataset.cycle, d = cycleDetail(current, i);
+  const v = e.target.closest('[data-view]');
+  if (v && !v.disabled) {
+    const isSj = v.dataset.view === 'sj';
+    const title = isSj ? 'Foto Surat Jalan' : 'Finish Cycle Foto';
+    showPreview(`${title} - Cycle ${i + 1}`, `<img alt="${title}" src="${photo(title, d, isSj ? '#7a8ba8' : '#5fa77f')}">`,
+      `<a class="btn-sm-blue" style="text-decoration:none" download="${title.replace(/ /g, '_')}_${d.cycleNo}.svg" href="${photo(title, d, isSj ? '#7a8ba8' : '#5fa77f')}">Download</a>`);
+  }
+  if (e.target.closest('[data-sj]')) {
+    showPreview(`Surat Jalan ELIPS - Cycle ${i + 1}`, suratJalan(current, i, d),
+      `<button class="btn-sm-blue" id="pvPrint">PDF</button>`);
+    $('pvPrint').onclick = () => printSuratJalan(current, i, d);
+  }
+  if (e.target.closest('[data-pdf]')) printSuratJalan(current, i, d);
+});
+
 const closeDetail = () => $('overlay').classList.remove('show');
+const closePreview = () => $('preview').classList.remove('show');
 $('tbody').addEventListener('click', e => { const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order); });
 $('mClose').addEventListener('click', closeDetail);
-$('mClose2').addEventListener('click', closeDetail);
+$('pvClose').addEventListener('click', closePreview);
 $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) closeDetail(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
-
-$('mCancel').addEventListener('click', () => {
-  if (!confirm(`Cancel order ${current.orderNo}?`)) return;
-  current.cancelled = true;
-  current.cycles.forEach(c => { if (c && c.state === 'prog') c.state = 'wait'; });
-  openDetail(current.orderNo); render(); toast('Order dibatalkan');
-});
-$('mNext').addEventListener('click', () => {
-  const o = current, now = new Date();
-  const time = `${o.date} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  const prog = o.cycles.findIndex(c => c && c.state === 'prog');
-  if (prog >= 0) o.cycles[prog].state = 'done';
-  const next = o.cycles.findIndex(c => c && c.state === 'wait');
-  if (next >= 0) {
-    o.cycles[next].state = 'prog';
-    o.cycles[next].time = time;
-    o.cycles[next].container = `${pick(ROUTES)} [${pick(PREFIX)}${pad(Math.floor(Math.random() * 1e7), 7)}]`;
-  }
-  openDetail(o.orderNo); render(); toast(`Order ${o.orderNo}: ${orderStatus(o)}`);
+$('preview').addEventListener('click', e => { if (e.target === $('preview')) closePreview(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  $('preview').classList.contains('show') ? closePreview() : closeDetail();
 });
 
 // Sidebar & top buttons
