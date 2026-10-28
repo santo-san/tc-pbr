@@ -578,12 +578,10 @@ function suratJalan(o, i, d) {
   </div>`;
 }
 function printSuratJalan(o, i, d) {
-  const sheet = [...document.styleSheets].find(s => { try { return s.cssRules && !s.href; } catch { return false; } });
-  const css = [...sheet.cssRules].filter(r => r.selectorText?.startsWith('.sj')).map(r => r.cssText).join('\n');
   const w = window.open('', '_blank');
   if (!w) { toast('Pop-up diblokir browser, izinkan pop-up untuk export PDF'); return; }
   w.document.write(`<!DOCTYPE html><html><head><title>Surat Jalan ${d.cycleNo}</title>
-    <style>body{font-family:Inter,Arial,sans-serif;padding:30px;color:#1f2937}table{border-collapse:collapse}${css}</style></head>
+    <link rel="stylesheet" href="${new URL('styles.css', location.href)}"><style>body{padding:30px}</style></head>
     <body>${suratJalan(o, i, d)}<script>onload=()=>{print()}<\/script></body></html>`);
   w.document.close();
 }

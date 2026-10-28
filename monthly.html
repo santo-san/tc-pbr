@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELIPS - Monthly PR / PO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .nav a.menu-active { background: var(--navy-dark); color: #fff; }
+  .nav a.menu-active svg { stroke: #fff; }
+  .nav a.menu-active svg text { fill: #fff; }
+  .filter-card { display: grid; grid-template-columns: 1fr 340px; gap: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.07); padding: 18px 20px; margin-bottom: 14px; }
+  .mfilters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 8px; align-items: end; }
+  .mfilters label { font-weight: 600; font-size: 11px; display: block; margin-bottom: 6px; }
+  .mfilters input, .mfilters select { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 8px; font-size: 10px; font-family: inherit; color: var(--text); background: #fff; }
+  .mfilter-btns { display: flex; gap: 8px; margin-top: 18px; }
+  .btn-search { background: var(--navy-dark); color: #fff; border: 0; border-radius: 4px; height: 36px; padding: 0 14px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-clear { background: #f3f4f6; color: #6b7280; border: 0; border-radius: 4px; height: 36px; padding: 0 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
+  .legend { background: #fef7d9; border-radius: 6px; padding: 10px 12px; font-size: 10px; }
+  .legend > b { display: block; margin-bottom: 10px; }
+  .legend .row { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid #f3e6ad; }
+  .legend .info { margin-top: 10px; color: #6b5a12; line-height: 1.5; }
+  .lg { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 500; }
+  .lg-pending { background: var(--yellow); color: #fff; }
+  .lg-approved { background: var(--green); color: #fff; }
+  .lg-rejected { background: #f43f5e; color: #fff; }
+  .lg-skip { background: #e8edf6; color: #6b7fa8; }
+  .lg-auto { background: #14b8a6; color: #fff; }
+  .lg-none { background: #f3f4f6; color: #9ca3af; }
+  .dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+  .dot.Pending { background: var(--yellow); } .dot.Approved { background: var(--green); } .dot.Rejected { background: #f43f5e; }
+  .dot.Skip { background: #e8edf6; border: 1px solid #b8c4da; } .dot.none { background: #fff; border: 1px dashed #c7ccd4; }
+  .doc-link { color: var(--blue); font-weight: 600; text-decoration: none; cursor: pointer; }
+  .doc-link:hover { text-decoration: underline; }
+  .dl { border: 0; background: var(--blue); color: #fff; border-radius: 4px; width: 28px; height: 16px; font-size: 10px; margin-left: 2px; vertical-align: middle; }
+  td.c-pct { background: #a9cdf5; } td.c-qty { background: #fde68a; } td.c-price { background: #a7e8c3; text-align: right; }
+  td.rel small { display: block; }
+  td.chk, th.chk { width: 30px; }
+  .notice { background: #eef5ff; border: 1px solid #cfe0fb; color: #1e4f9a; border-radius: 6px; padding: 8px 12px; font-size: 10.5px; margin-bottom: 12px; }
+  .bulk { display: flex; gap: 8px; align-items: center; }
+  .btn-red2 { background: #f43f5e; color: #fff; border: 0; border-radius: 5px; height: 35px; padding: 0 16px; font-size: 11px; font-weight: 700; }
+  .btn-red2:hover { background: #e11d48; }
+  .btn-red2:disabled { opacity: .45; cursor: default; }
+  .countdown { display: block; font-size: 9px; color: #b45309; }
+  .countdown.late { color: var(--red); }
+  .empty-page { text-align: center; padding: 80px 20px; color: var(--muted); }
+  .empty-page h3 { color: var(--text); margin-bottom: 6px; }
+  /* Detail modal */
+  .md { width: 900px; }
+  .md .modal-b { padding: 16px 0 6px; }
+  .md .tools { display: flex; justify-content: flex-end; gap: 6px; padding: 0 16px 0; margin-bottom: 0; }
+  .rt td { text-align: center; }
+  .rt td.rcell { text-align: left; }
+  .rt td.rcell b { color: var(--blue); display: block; font-size: 10.5px; }
+  .rt td.rcell span { color: #8b9bb7; font-size: 9.5px; }
+  .rt td.num { text-align: right; }
+  .rt td.tq, .rt td.tp { background: #fef9e7; }
+  .rt tfoot td { background: #fef9e7; font-weight: 600; font-size: 10px; white-space: nowrap; }
+  .pill { background: #c9f1dc; color: #0d7a43; border-radius: 4px; padding: 3px 8px; font-weight: 700; }
+  .md .foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; font-size: 10px; color: #4b5563; }
+  .md .pager { margin-top: 0; }
+  .md .hist { margin: 6px 16px 12px; }
+  .apv-list { max-height: 160px; overflow: auto; border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; margin-bottom: 12px; font-size: 10.5px; }
+  .apv-list div { padding: 2px 0; }
+  .apv-list .bad { color: var(--red); }
+  @media (max-width: 1100px) { .filter-card { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .mfilters { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <svg width="52" height="48" viewBox="0 0 52 48" aria-hidden="true">
+        <path d="M22 2 L30 2 L26 20 Z" fill="#0b2b5c"/>
+        <path d="M2 22 L20 18 L20 26 Z" fill="#1c6fb8"/>
+        <path d="M50 26 L32 30 L32 22 Z" fill="#1c6fb8"/>
+        <path d="M30 46 L22 46 L26 28 Z" fill="#0b2b5c"/>
+        <path d="M8 8 L22 16 L16 22 Z" fill="#1c6fb8"/>
+        <path d="M44 40 L30 32 L36 26 Z" fill="#0b2b5c"/>
+      </svg>
+      <span>ELIPS</span>
+    </div>
+    <nav class="nav">
+      <a href="#" data-page="Dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</a>
+      <a href="#" data-page="Master"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18"/></svg>Master</a>
+      <a href="index.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="1.5"/><path d="M3 9h18M8 2v4M16 2v4M7 14h2M11 14h2"/></svg>Daily</a>
+      <a href="#" id="monthlyToggle" class="menu-active"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="1.5"/><path d="M3 9h18"/><text x="6" y="18" font-size="6" stroke="none" fill="#0b2b5c">Aug</text></svg>Monthly</a>
+      <div class="sub" id="monthlySub">
+        <a href="#pr-creation" data-view="pr-creation">PR Creation</a>
+        <a href="#pr-approval" data-view="pr-approval">PR Approval</a>
+        <a href="#po-approval" data-view="po-approval">PO Approval</a>
+        <a href="#pr-inquiry" data-view="pr-inquiry">PR Inquiry</a>
+        <a href="#po-inquiry" data-view="po-inquiry">PO Inquiry</a>
+      </div>
+      <a href="#" data-page="Service Acceptance"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 12l2 2 4-4"/></svg>Service Acceptance</a>
+    </nav>
+    <div class="user">
+      <div class="avatar" id="userAvatar">AI</div>
+      <div><small>Hello</small><b id="userName">Admin IELP</b><small id="userRole">IP Admin</small></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="btn-light" id="btnDriverApp">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        Download Driver App
+      </button>
+      <div class="top-right">
+        <label class="role" for="roleSel">Login sebagai
+          <select id="roleSel">
+            <option value="ip">IP Admin - ielp1</option>
+            <option value="ap:SH">SH VPLD - farid.fadillah</option>
+            <option value="ap:DpH">DpH VPLD - bahauddin</option>
+            <option value="ap:DH">DH VPLD - risa</option>
+            <option value="sup:PBM">Supplier - PT. Pusaka Bahari Mandiri</option>
+            <option value="sup:SRL">Supplier - PT. Serasi Logistics</option>
+          </select>
+        </label>
+        <a class="btn-light" style="text-decoration:none" href="https://github.com/santo-san/tc-pbr/blob/main/docs/monthly-pr-po-rules.md" target="_blank" rel="noopener">Aturan PR / PO</a>
+        <button class="btn-light" id="btnLanding">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V11l4-3v13M9 21V6l6-3v18M15 21V9l4 2v10"/></svg>
+          Landing Page
+        </button>
+      </div>
+    </div>
+
+    <h1 id="pageTitle">PR Inquiry</h1>
+    <div class="crumb" id="crumb">PR/PO &nbsp;-&nbsp; PR Inquiry</div>
+
+    <div id="emptyPage" class="card empty-page" style="display:none">
+      <h3>PR Creation</h3>
+      <p>Menu ini belum dibuat di mock-up (menyusul).</p>
+    </div>
+
+    <div id="content">
+      <section class="filter-card">
+        <div>
+          <div class="mfilters">
+            <div><label for="fNo" id="fNoLabel">PR Number</label><input type="text" id="fNo"></div>
+            <div><label for="fFrom">Prod. Month From</label><input type="month" id="fFrom"></div>
+            <div><label for="fTo">Prod. Month To</label><input type="month" id="fTo"></div>
+            <div><label for="fStatus">Status</label><select id="fStatus"></select></div>
+          </div>
+          <div class="mfilter-btns">
+            <button class="btn-search" id="btnSearch">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Search
+            </button>
+            <button class="btn-clear" id="btnClear">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Clear
+            </button>
+          </div>
+        </div>
+        <div class="legend">
+          <b>&#9744; Status Legend</b>
+          <div class="row" id="legendRow"></div>
+          <div class="info" id="legendInfo"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div id="notice" class="notice" style="display:none"></div>
+        <div class="list-head">
+          <div class="bulk" id="bulk"></div>
+          <span class="spacer"></span>
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input type="text" id="search" placeholder="Search">
+          </div>
+          <div class="dd" id="ddKolom">
+            <button class="btn-blue">
+              <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
+              Kolom <span style="font-size:8px">▼</span>
+            </button>
+            <div class="dd-menu" id="kolomMenu"></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+        </div>
+        <div class="table-foot">
+          <span id="info"></span>
+          <span class="page-size">Tampilkan
+            <select id="pageSize"><option>10</option><option>25</option><option>50</option></select>
+            baris
+          </span>
+        </div>
+        <div class="pager" id="pager"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal md" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-h"><h3 id="mTitle"></h3><button id="mClose" aria-label="Tutup">&times;</button></div>
+    <div class="modal-b">
+      <div class="tools">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input type="text" id="rSearch" placeholder="Search">
+        </div>
+        <div class="dd" id="ddRKolom">
+          <button class="btn-blue">
+            <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
+            Kolom <span style="font-size:8px">▼</span>
+          </button>
+          <div class="dd-menu" id="rKolomMenu"></div>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="rt" id="routeTable"></table></div>
+      <div class="foot"><span id="rInfo"></span><div class="pager" id="rPager"></div></div>
+      <div class="hist" id="docHistory"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="preview">
+  <div class="pv" role="dialog" aria-modal="true" aria-labelledby="pvTitle">
+    <div class="modal-h"><h3 id="pvTitle"></h3><button id="pvClose" aria-label="Tutup">&times;</button></div>
+    <div class="pv-b" id="pvBody"></div>
+    <div class="pv-f" id="pvFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="monthly-workflow.js"></script>
+<script src="monthly.js"></script>
+</body>
+</html>
