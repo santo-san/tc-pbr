@@ -17,7 +17,7 @@ function toast(msg) {
 }
 
 // ---------- Master data ----------
-const MASTER = { poAutoApproveHours: 72, approvers: { SH: 'farid.fadillah', DpH: 'bahauddin', DH: 'risa' }, division: 'VPLD' };
+const MASTER = { poAutoApproveDays: 1, approvers: { SH: 'farid.fadillah', DpH: 'bahauddin', DH: 'risa' }, division: 'VPLD' };
 const SUPPLIERS = [
   ['DNX', 'PT. Dunia Express Transindo', 6, 1002881622], ['JMP', 'PT. EMKL Jakarta Maju Pusaka', 5, 1002831622],
   ['PBM', 'PT. Pusaka Bahari Mandiri', 21, 1000031622], ['PNJ', 'PT. Puninar Jaya', 7, 993664142],
@@ -62,26 +62,26 @@ function makeRoutes(code, ym, target) {
 }
 
 const PRS = [], POS = [];
-const CTX = { master: MASTER, pos: POS };
+const CTX = { master: MASTER, pos: POS, prs: PRS };
 const IP = { role: 'IP_ADMIN', userId: 'ielp1', name: 'Admin IELP' };
 const approver = lv => ({ role: 'APPROVER', level: lv, division: MASTER.division, userId: MASTER.approvers[lv] });
 const supplier = code => ({ role: 'SUPPLIER', supplierCode: code, userId: `${code.toLowerCase()}.admin`, name: SUP[code] });
+const GA = { role: 'GA', userId: 'ga.staff', name: 'General Affair Dept' };
 // PR running number per production month (Oct 2026 starts at 1152 as on the reference screen)
 const SEQ = { '2026-08': 952, '2026-09': 1052, '2026-10': 1152, '2026-11': 1252 };
 
-function seedPR(code, ym, rev, prDate, steps = [], skip = []) {
+function seedPR(code, ym, rev, prDate, steps = []) {
   const s = SUPPLIERS.find(x => x[0] === code);
   const [y, m] = ym.split('-');
   const routes = makeRoutes(code, ym, ym === '2026-10' && rev === 1 && s[3] ? s[3] : 990000000 + Math.round(rng(SEQ[ym] * 31 + rev)() * 20000000));
   const pr = {
     prNo: `${code}${y.slice(2)}${m}${SEQ[ym]++}`, ym, rev, prodMonth: `${m}/${y}-${rev}`, supplierCode: code, supplierName: s[1],
     percentage: s[2], routes, qty: routes.reduce((a, x) => a + x.q20 + x.q40, 0), price: routes.reduce((a, x) => a + x.q20 * x.p20 + x.q40 * x.p40, 0),
-    prDate, createdBy: 'ielp1', approval: M.newApproval(skip), history: [],
+    prDate, createdBy: 'ielp1', approval: M.newApproval(), history: [],
   };
-  pr.history.push({ at: prDate, user: 'ielp1', role: 'IP Admin', action: 'PR Creation', from: '-', to: M.prStatus(pr), reason: '', note: skip.length ? `Skip ${skip.join(', ')} (System Master)` : '' });
+  pr.history.push({ at: prDate, user: 'ielp1', role: 'IP Admin', action: 'PR Creation', from: '-', to: M.prStatus(pr), reason: '', note: '' });
   PRS.push(pr);
   for (const [act, lv, at, reason] of steps) {
-    if (pr.approval[lv].status === AP.SKIP) continue;
     if (act === 'A') M.approvePR(pr, approver(lv), at, CTX); else M.rejectPR(pr, approver(lv), reason, at);
   }
   return pr;
@@ -97,22 +97,25 @@ SUPPLIERS.slice(0, 10).forEach(([code]) => seedPR(code, '2026-10', 1, new Date(2
 seedPR('SRL', '2026-10', 1, new Date(2026, 8, 30, 9), [['A', 'SH', new Date(2026, 8, 30, 16)]]);
 seedPR('TFL', '2026-10', 1, new Date(2026, 8, 30, 9), [['A', 'SH', new Date(2026, 8, 30, 16)], ['R', 'DpH', new Date(2026, 9, 1, 9), 'Persentase sharing tidak sesuai kontrak']]);
 seedPR('TFL', '2026-10', 2, new Date(2026, 9, 3, 9));
-// Nov 2026 (relative to now): POs still waiting supplier approval, one about to be auto approved
+// Nov 2026 (relative to now): POs still waiting General Affair approval, one about to be auto approved (Day + 1)
 const NOW = Date.now();
 const ago = h => new Date(NOW - h * HOUR);
-const nov = (code, steps, skip) => seedPR(code, '2026-11', 1, ago(120), steps, skip);
+const nov = (code, steps) => seedPR(code, '2026-11', 1, ago(120), steps);
 nov('PBM', [['A', 'SH', ago(100)], ['A', 'DpH', ago(90)], ['A', 'DH', ago(10)]]);
-nov('SRL', [['A', 'SH', ago(100)], ['A', 'DpH', ago(90)], ['A', 'DH', ago(MASTER.poAutoApproveHours - 2 / 60)]]);
-nov('DNX', [['A', 'SH', ago(100)], ['A', 'DpH', ago(90)], ['A', 'DH', ago(70)]]);
+nov('SRL', [['A', 'SH', ago(100)], ['A', 'DpH', ago(90)], ['A', 'DH', ago(MASTER.poAutoApproveDays * 24 - 2 / 60)]]);
+nov('DNX', [['A', 'SH', ago(100)], ['A', 'DpH', ago(90)], ['A', 'DH', ago(22)]]);
 nov('JMP', [['A', 'SH', ago(60)], ['A', 'DpH', ago(30)]]);
-nov('GIB', [['A', 'SH', ago(50)]]);
-nov('PLI', [['A', 'SH', ago(50)]], ['DpH']);
+nov('GIB', [['A', 'DpH', ago(50)]]);           // DpH approves directly: SH Skip
+nov('PLI', [['A', 'DH', ago(6)]]);             // DH approves directly: SH and DpH Skip
 nov('PNJ', []);
 nov('AGR', []);
-// Supplier approves part of the older POs; the rest are approved by the scheduled job at their deadline
+// General Affair approves part of the older POs, rejects one (its PR goes back to PR Creation);
+// the rest are approved by the scheduled job at their deadline
 POS.forEach((po, i) => {
   if (po.deadline.getTime() > NOW) return;
-  if (i % 3 !== 2) M.approvePO(po, supplier(po.supplierCode), new Date(po.poDate.getTime() + (6 + i % 40) * HOUR));
+  const at = new Date(po.poDate.getTime() + (2 + i % 20) * HOUR);
+  if (po.prNo === 'IBT26091059') M.rejectPO(po, GA, 'Harga route tidak sesuai kontrak terbaru', at, CTX);
+  else if (i % 3 !== 2) M.approvePO(po, GA, at);
   else M.runAutoApprove([po], po.deadline);
 });
 
@@ -124,14 +127,15 @@ const VIEWS = {
   'pr-inquiry': { title: 'PR Inquiry', doc: 'pr' },
   'po-inquiry': { title: 'PO Inquiry', doc: 'po' },
 };
-const PR_STATUS_OPT = [['', ''], ['pending', 'Pending (all levels)'], ['Waiting SH', 'Waiting SH'], ['Waiting DpH', 'Waiting DpH'], ['Waiting DH', 'Waiting DH'], [PR.APPROVED, 'Approved'], [PR.REJECTED, 'Rejected']];
+const PR_STATUS_OPT = [['', ''], ['mylevel', 'Perlu approval saya'], ['pending', 'Pending (all levels)'], ['Waiting SH', 'Waiting SH'], ['Waiting DpH', 'Waiting DpH'], ['Waiting DH', 'Waiting DH'],
+  [PR.APPROVED, 'Approved'], [PR.REJECTED, 'Rejected'], [PR.RETURNED, 'Returned (perlu submit ulang)']];
 const PO_STATUS_OPT = [['', ''], [PO.PENDING, 'Pending'], [PO.APPROVED, 'Approved'], [PO.AUTO, 'Auto Approved'], [PO.REJECTED, 'Rejected']];
 
 const state = { view: 'pr-inquiry', actor: IP, f: { no: '', from: '2026-10', to: '', status: '' }, search: '', sortKey: 'prodMonth', sortDir: 1, page: 1, size: 10, hidden: new Set(), selected: new Set() };
 
 const dot = s => `<span class="dot ${s === AP.NONE ? 'none' : s}" title="${s === AP.NONE ? 'Belum sampai' : s}"></span>`;
 const poBadge = s => `<span class="lg ${s === PO.PENDING ? 'lg-pending' : s === PO.REJECTED ? 'lg-rejected' : s === PO.AUTO ? 'lg-auto' : 'lg-approved'}">${s}</span>`;
-const prBadge = s => `<span class="lg ${s === PR.APPROVED ? 'lg-approved' : s === PR.REJECTED ? 'lg-rejected' : 'lg-pending'}">${s}</span>`;
+const prBadge = s => `<span class="lg ${s === PR.APPROVED ? 'lg-approved' : s === PR.REJECTED ? 'lg-rejected' : s === PR.RETURNED ? 'lg-returned' : 'lg-pending'}">${s}</span>`;
 function countdown(po) {
   if (po.status !== PO.PENDING) return '';
   const ms = po.deadline.getTime() - Date.now();
@@ -150,9 +154,9 @@ const COLS = {
       <tr>${LEVELS.map(l => `<th data-col="status">${l}</th>`).join('')}<th data-col="trucking">Code</th><th data-col="trucking" style="min-width:170px">Name</th>
       <th data-col="sharing">Percentage</th><th data-col="sharing">Qty</th><th data-col="sharing">Total Price</th>${LEVELS.map(l => `<th data-col="released">${l}</th>`).join('')}</tr>`,
     row: d => `<td data-col="prodMonth">${d.prodMonth}</td>
-      <td data-col="no"><a class="doc-link" data-open="${d.prNo}">${d.prNo}</a><button class="dl" data-dl="${d.prNo}" title="Download">&#11015;</button></td>
+      <td data-col="no"><a class="doc-link" data-open="${d.prNo}">${d.prNo}</a><button class="dl" data-dl="${d.prNo}" title="Download">&#11015;</button>${[PR.REJECTED, PR.RETURNED].includes(M.prStatus(d)) ? `<span class="sub-info">${prBadge(M.prStatus(d))}${d.returned ? ' perlu submit ulang' : ''}</span>` : ''}</td>
       ${LEVELS.map(l => `<td data-col="status">${dot(d.approval[l].status)}</td>`).join('')}
-      <td data-col="pic">${M.currentPic(d, MASTER)}</td><td data-col="date">${fmtD(d.prDate)}</td>${trucking(d)}${prSharing(d)}
+      <td data-col="pic">${M.currentPic(d)}</td><td data-col="date">${fmtD(d.prDate)}</td>${trucking(d)}${prSharing(d)}
       ${LEVELS.map(l => { const a = d.approval[l]; return `<td data-col="released" class="rel">${a.by && a.status === AP.APPROVED ? `${a.by}<small>${fmtD(a.at)}</small>` : a.status === AP.REJECTED ? `<span class="lg lg-rejected">Rejected</span><small>${a.by} ${fmtD(a.at)}</small>` : a.status === AP.SKIP ? '<span class="lg lg-skip">Skip</span>' : '-'}</td>`; }).join('')}`,
     kolom: [['prodMonth', 'Production Month'], ['no', 'PR Number'], ['status', 'Status'], ['pic', 'Current PIC'], ['date', 'PR date'], ['trucking', 'Trucking'], ['sharing', 'Order Sharing'], ['released', 'Released By']],
     status: d => M.prStatus(d),
@@ -188,7 +192,7 @@ function filtered() {
     return M.canView(state.actor, d) &&
       (!f.no || docNo(d).toLowerCase().includes(f.no.toLowerCase().trim())) &&
       (!f.from || d.ym >= f.from) && (!f.to || d.ym <= f.to) &&
-      (!f.status || (f.status === 'pending' ? M.isPending(d) : st === f.status)) &&
+      (!f.status || (f.status === 'pending' ? M.isPending(d) : f.status === 'mylevel' ? M.needsMe(d, state.actor) : st === f.status)) &&
       (!q || [d.prodMonth, docNo(d), d.prNo, d.supplierCode, d.supplierName, st, d.percentage + '%', d.qty, num(d.price)].join(' ').toLowerCase().includes(q));
   });
   const k = state.sortKey;
@@ -229,8 +233,8 @@ function render() {
     else notice = 'PR Approval hanya untuk approver VPLD (SH, DpH, DH). Ganti "Login sebagai" untuk mencoba approve.';
   }
   if (v.approval && v.doc === 'po') {
-    if (a.role === 'SUPPLIER') bulk = `<button class="btn-green" data-bulk="approve" ${sel.length ? '' : 'disabled'}>Approve (${sel.length})</button><button class="btn-red2" data-bulk="reject" ${sel.length ? '' : 'disabled'}>Reject (${sel.length})</button>`;
-    else notice = 'PO Approval dilakukan oleh supplier (trucking) pemilik PO. Jika tidak di-approve sampai batas waktu, PO di-auto approve oleh sistem.';
+    if (a.role === 'GA') bulk = `<button class="btn-green" data-bulk="approve" ${sel.length ? '' : 'disabled'}>Approve (${sel.length})</button><button class="btn-red2" data-bulk="reject" ${sel.length ? '' : 'disabled'}>Reject (${sel.length})</button>`;
+    else notice = `PO di-auto approve oleh sistem pada Day + ${MASTER.poAutoApproveDays}. Approve / reject manual sebelum batas waktu dilakukan oleh General Affair Department.`;
     if (a.role === 'IP_ADMIN') bulk = '<button class="btn-blue" data-bulk="auto">Jalankan Auto Approve sekarang</button>';
   }
   $('bulk').innerHTML = bulk;
@@ -252,7 +256,7 @@ function setupView() {
   $('fNoLabel').textContent = isPo ? 'PO Number' : 'PR Number';
   $('fStatus').innerHTML = (isPo ? PO_STATUS_OPT : PR_STATUS_OPT).map(([val, l]) => `<option value="${val}">${l}</option>`).join('');
   const a = state.actor;
-  const defStatus = v.approval ? (isPo ? PO.PENDING : a.role === 'APPROVER' ? `Waiting ${a.level}` : 'pending') : '';
+  const defStatus = v.approval ? (isPo ? PO.PENDING : a.role === 'APPROVER' ? 'mylevel' : 'pending') : '';
   state.f = { no: '', from: v.approval ? '' : '2026-10', to: '', status: defStatus };
   $('fNo').value = ''; $('fFrom').value = state.f.from; $('fTo').value = ''; $('fStatus').value = defStatus;
   state.search = ''; $('search').value = ''; state.page = 1; state.selected.clear(); state.hidden.clear();
@@ -260,10 +264,10 @@ function setupView() {
   $('kolomMenu').innerHTML = COLS[v.doc].kolom.map(([k, l]) => `<label><input type="checkbox" data-k="${k}" checked> ${l}</label>`).join('');
   $('legendRow').innerHTML = isPo
     ? '<span class="lg lg-pending">Pending</span><span class="lg lg-approved">Approved</span><span class="lg lg-auto">Auto Approved</span><span class="lg lg-rejected">Rejected</span>'
-    : '<span class="lg lg-pending">Pending</span><span class="lg lg-approved">Approved</span><span class="lg lg-rejected">Rejected</span><span class="lg lg-skip">Skip</span><span class="lg lg-none">- Belum sampai</span>';
+    : '<span class="lg lg-pending">Pending</span><span class="lg lg-approved">Approved</span><span class="lg lg-rejected">Rejected</span><span class="lg lg-skip">Skip</span><span class="lg lg-returned">Returned</span><span class="lg lg-none">- Belum ada</span>';
   $('legendInfo').innerHTML = isPo
-    ? `PO dibuat otomatis setelah PR di-approve DH. Supplier dapat approve / reject sebelum batas waktu; setelah <b>${MASTER.poAutoApproveHours} jam</b> (System Master) PO di-auto approve oleh sistem.`
-    : `Approval PR berurutan oleh divisi <b>${MASTER.division}</b>: SH &rarr; DpH &rarr; DH. Reject di level mana pun mengembalikan PR ke PR Creation untuk revisi.`;
+    ? `PO dibuat otomatis setelah PR Approved dan di-auto approve sistem pada <b>Day + ${MASTER.poAutoApproveDays}</b> (System Master). Sebelum itu General Affair dapat approve / reject manual. PO Rejected mengembalikan PR ke PR Creation untuk submit ulang.`
+    : `Approval PR oleh divisi <b>${MASTER.division}</b>: SH, DpH, DH. Level lebih tinggi boleh approve langsung; level di bawahnya menjadi <b>Skip</b>. Current PIC = pembuat PR.`;
   render();
 }
 
@@ -313,7 +317,7 @@ document.addEventListener('click', () => document.querySelectorAll('.dd').forEac
 
 $('roleSel').addEventListener('change', () => {
   const [kind, val] = $('roleSel').value.split(':');
-  state.actor = kind === 'ip' ? IP : kind === 'ap' ? approver(val) : supplier(val);
+  state.actor = kind === 'ip' ? IP : kind === 'ga' ? GA : kind === 'ap' ? approver(val) : supplier(val);
   const a = state.actor;
   $('userName').textContent = a.userId;
   $('userRole').textContent = M.roleLabel(a) + (a.role === 'SUPPLIER' ? ` · ${a.name}` : '');
@@ -345,7 +349,7 @@ $('bulk').addEventListener('click', e => {
       <p style="margin:0 0 8px;font-size:11px">${list.length} ${what} dipilih:</p>
       <div class="apv-list">${list.map(d => `<div data-r="${docNo(d)}">${docNo(d)} · ${esc(d.supplierName)} · ${num(d.price)}</div>`).join('')}</div>
       ${reject ? `<div class="form-row" data-f="reason"><label>Reason <span class="req">*</span></label><textarea name="reason" placeholder="Minimal ${M.REASON_MIN} karakter"></textarea></div>`
-        : `<p style="font-size:11px;margin:0">${isPo ? 'Approve PO ini?' : `Approve sebagai <b>${state.actor.level}</b>? ${state.actor.level === 'DH' ? 'PO akan dibuat otomatis untuk PR yang sudah lengkap approval-nya.' : ''}`}</p>`}
+        : `<p style="font-size:11px;margin:0">${isPo ? 'Approve PO ini?' : `Approve sebagai <b>${state.actor.level}</b>?${skipNote(list)}${state.actor.level === 'DH' ? ' PO akan dibuat otomatis.' : ''}`}</p>`}
     </form>`,
     `<button class="btn-outline" id="apvCancel">Batal</button><button class="${reject ? 'btn-red2' : 'btn-green'}" style="height:30px" id="apvSubmit">${reject ? 'Reject' : 'Approve'}</button>`);
   $('apvCancel').onclick = closePreview;
@@ -357,10 +361,11 @@ $('bulk').addEventListener('click', e => {
       const err = !reason.trim() ? 'Reason wajib diisi' : reason.trim().length < M.REASON_MIN ? `Reason minimal ${M.REASON_MIN} karakter` : null;
       if (err) { row.classList.add('err'); row.insertAdjacentHTML('beforeend', `<div class="msg">${err}</div>`); return; }
     }
-    const now = new Date(), fails = [], pos = [];
+    const now = new Date(), fails = [], pos = [], returned = [];
     for (const d of list) {
-      const res = isPo ? (reject ? M.rejectPO(d, state.actor, reason, now) : M.approvePO(d, state.actor, now))
+      const res = isPo ? (reject ? M.rejectPO(d, state.actor, reason, now, CTX) : M.approvePO(d, state.actor, now))
         : (reject ? M.rejectPR(d, state.actor, reason, now) : M.approvePR(d, state.actor, now, CTX));
+      if (res.pr) returned.push(res.pr.prNo);
       if (!res.ok) fails.push(`${docNo(d)}: ${res.error || Object.values(res.errors).join(', ')}`);
       if (res.po) pos.push(res.po.poNo);
       state.selected.delete(docNo(d));
@@ -370,9 +375,15 @@ $('bulk').addEventListener('click', e => {
       $('apvSubmit').disabled = true;
     } else closePreview();
     render();
-    toast(`${list.length - fails.length} ${what} ${reject ? 'di-reject' : 'di-approve'}${pos.length ? ` · PO dibuat: ${pos.join(', ')}` : ''}`);
+    toast(`${list.length - fails.length} ${what} ${reject ? 'di-reject' : 'di-approve'}${pos.length ? ` · PO dibuat: ${pos.join(', ')}` : ''}${returned.length ? ` · PR dikembalikan ke PR Creation: ${returned.join(', ')}` : ''}`);
   };
 });
+
+function skipNote(list) {
+  const lv = state.actor.level, lower = M.LEVELS.slice(0, M.LEVELS.indexOf(lv));
+  const n = list.filter(d => lower.some(l => d.approval[l].status === AP.PENDING)).length;
+  return n ? ` Level di bawahnya yang masih Pending (${lower.join(', ')}) akan menjadi <b>Skip</b> pada ${n} PR.` : '';
+}
 
 // ---------- Detail modal (routes) ----------
 const RCOLS = [['pct', 'Route Percentage'], ['qty', 'Qty'], ['price', 'Price']];
