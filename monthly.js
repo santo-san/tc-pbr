@@ -227,15 +227,17 @@ function render() {
 
   // Bulk actions and notice per view / role
   const a = state.actor;
+  // Approve / Reject are always shown on approval screens; enabled only for the allowed role with a selection
   let bulk = '', notice = '';
-  if (v.approval && v.doc === 'pr') {
-    if (a.role === 'APPROVER') bulk = `<button class="btn-green" data-bulk="approve" ${sel.length ? '' : 'disabled'}>Approve (${sel.length})</button><button class="btn-red2" data-bulk="reject" ${sel.length ? '' : 'disabled'}>Reject (${sel.length})</button>`;
-    else notice = 'PR Approval hanya untuk approver VPLD (SH, DpH, DH). Ganti "Login sebagai" untuk mencoba approve.';
-  }
-  if (v.approval && v.doc === 'po') {
-    if (a.role === 'GA') bulk = `<button class="btn-green" data-bulk="approve" ${sel.length ? '' : 'disabled'}>Approve (${sel.length})</button><button class="btn-red2" data-bulk="reject" ${sel.length ? '' : 'disabled'}>Reject (${sel.length})</button>`;
-    else notice = `PO di-auto approve oleh sistem pada Day + ${MASTER.poAutoApproveDays}. Approve / reject manual sebelum batas waktu dilakukan oleh General Affair Department.`;
-    if (a.role === 'IP_ADMIN') bulk = '<button class="btn-blue" data-bulk="auto">Jalankan Auto Approve sekarang</button>';
+  if (v.approval) {
+    const allowed = v.doc === 'pr' ? a.role === 'APPROVER' : a.role === 'GA';
+    const why = v.doc === 'pr' ? 'Hanya approver VPLD (SH, DpH, DH)' : 'Hanya General Affair Department';
+    const dis = !allowed || !sel.length ? 'disabled' : '';
+    const tip = allowed ? 'Centang dokumen terlebih dahulu' : why;
+    bulk = `<button class="btn-green" data-bulk="approve" ${dis} title="${dis ? tip : ''}">Approve (${allowed ? sel.length : 0})</button><button class="btn-red2" data-bulk="reject" ${dis} title="${dis ? tip : ''}">Reject (${allowed ? sel.length : 0})</button>`;
+    if (!allowed) notice = v.doc === 'pr' ? 'Approve / Reject PR hanya untuk approver VPLD (SH, DpH, DH). Ganti "Login sebagai" untuk mencoba.'
+      : `PO di-auto approve oleh sistem pada Day + ${MASTER.poAutoApproveDays}. Approve / Reject manual sebelum batas waktu dilakukan oleh General Affair Department.`;
+    if (v.doc === 'po' && a.role === 'IP_ADMIN') bulk += '<button class="btn-blue" data-bulk="auto">Jalankan Auto Approve sekarang</button>';
   }
   $('bulk').innerHTML = bulk;
   $('notice').style.display = notice ? '' : 'none'; $('notice').textContent = notice;
@@ -340,9 +342,14 @@ $('bulk').addEventListener('click', e => {
     render(); toast(done.length ? `${done.length} PO di-auto approve: ${done.map(p => p.poNo).join(', ')}` : 'Tidak ada PO yang melewati batas waktu');
     return;
   }
-  const isPo = VIEWS[state.view].doc === 'po', reject = b.dataset.bulk === 'reject';
   const list = docs().filter(d => state.selected.has(docNo(d)) && selectable(d));
-  if (!list.length) { toast(`Pilih minimal satu ${isPo ? 'PO' : 'PR'}`); return; }
+  if (!list.length) { toast(`Pilih minimal satu ${VIEWS[state.view].doc === 'po' ? 'PO' : 'PR'}`); return; }
+  openApproval(list, b.dataset.bulk === 'reject');
+});
+
+// Approve / reject confirmation for one or more documents (from the list or from the detail modal)
+function openApproval(list, reject) {
+  const isPo = VIEWS[state.view].doc === 'po';
   const what = isPo ? 'PO' : 'PR';
   showPreview(`${reject ? 'Reject' : 'Approve'} ${what}${isPo ? '' : ` - ${state.actor.level} ${MASTER.division}`}`,
     `<form id="apvForm" onsubmit="return false">
@@ -375,9 +382,10 @@ $('bulk').addEventListener('click', e => {
       $('apvSubmit').disabled = true;
     } else closePreview();
     render();
+    if ($('overlay').classList.contains('show')) openDetail(docNo(rs.doc));
     toast(`${list.length - fails.length} ${what} ${reject ? 'di-reject' : 'di-approve'}${pos.length ? ` · PO dibuat: ${pos.join(', ')}` : ''}${returned.length ? ` · PR dikembalikan ke PR Creation: ${returned.join(', ')}` : ''}`);
   };
-});
+}
 
 function skipNote(list) {
   const lv = state.actor.level, lower = M.LEVELS.slice(0, M.LEVELS.indexOf(lv));
@@ -397,6 +405,11 @@ function openDetail(no) {
   Object.assign(rs, { doc: d, search: '', page: 1, sortDir: 1 });
   $('rSearch').value = '';
   $('mTitle').textContent = `Detail ${d.poNo ? 'PO' : 'PR'} for #${no}`;
+  const v = VIEWS[state.view], onApproval = v.approval && (v.doc === 'po') === !!d.poNo;
+  const can = onApproval && selectable(d);
+  const why = !onApproval ? '' : d.poNo ? M.poBlock(d, state.actor, new Date()) : M.prBlock(d, state.actor);
+  $('docActions').innerHTML = onApproval ? `<button class="btn-green" data-doc="approve" ${can ? '' : 'disabled'} title="${esc(why || '')}">Approve</button>
+    <button class="btn-red2" data-doc="reject" ${can ? '' : 'disabled'} title="${esc(why || '')}">Reject</button>${why ? `<span class="sub-info" style="align-self:center">${esc(why)}</span>` : ''}` : '';
   const h = d.history.slice().reverse();
   $('docHistory').innerHTML = `<p class="sec-title">Riwayat Approval</p><div class="table-wrap"><table>
     <tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Dari</th><th>Ke</th><th>Reason / Catatan</th></tr>
@@ -424,6 +437,9 @@ function renderRoutes() {
   $('rInfo').textContent = rows.length ? `Showing ${start + 1} to ${start + view.length} of ${rows.length} records` : 'Showing 0 to 0 of 0 records';
   $('rPager').innerHTML = pagerHtml(rs.page, pages);
 }
+$('docActions').addEventListener('click', e => {
+  const b = e.target.closest('[data-doc]'); if (b && !b.disabled) openApproval([rs.doc], b.dataset.doc === 'reject');
+});
 $('routeTable').addEventListener('click', e => { if (e.target.closest('#rSort')) { rs.sortDir = -rs.sortDir; renderRoutes(); } });
 $('rSearch').addEventListener('input', e => { rs.search = e.target.value; rs.page = 1; renderRoutes(); });
 $('rPager').addEventListener('click', e => { const b = e.target.closest('button[data-p]'); if (b && !b.disabled) { rs.page = +b.dataset.p; renderRoutes(); } });
