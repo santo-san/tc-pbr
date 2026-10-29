@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
   .mcard { border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.07); padding: 22px 28px 30px; }
   .mform { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 10px; }
@@ -45,6 +46,52 @@
   .list-title { font-size: 13px; margin: 0; }
   .empty-page { text-align: center; padding: 80px 20px; color: var(--muted); }
   .empty-page h3 { color: var(--text); margin-bottom: 6px; }
+  /* Master Location */
+  .loc-top { display: grid; grid-template-columns: 1fr 1.25fr; gap: 22px; }
+  .lform .f { margin-bottom: 10px; position: relative; }
+  .lform label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 6px; }
+  .lform label .req { color: var(--red); }
+  .lform input, .lform select { width: 100%; height: 32px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 10px; font-family: inherit; font-size: 10.5px; color: var(--text); background: #fff; }
+  .lform input[readonly] { background: #f3f4f6; color: var(--muted); }
+  .lform .row3 { display: grid; grid-template-columns: .7fr 1.15fr 1.15fr; gap: 8px; }
+  .lform .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .lform .err input, .lform .err select { border-color: var(--red); }
+  .lform .msg { color: var(--red); font-size: 10px; margin-top: 3px; }
+  .lform .hint { color: var(--muted); font-size: 9.5px; margin-top: 3px; }
+  .suggest { position: absolute; left: 0; right: 0; top: 56px; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,.12); z-index: 1100; max-height: 220px; overflow: auto; display: none; }
+  .suggest.show { display: block; }
+  .suggest div { padding: 7px 10px; font-size: 10.5px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+  .suggest div:hover { background: #f3f7fe; }
+  .suggest .muted { color: var(--muted); cursor: default; }
+  #map { height: 430px; border-radius: 8px; border: 1px solid var(--line); background: #e8eef4; }
+  .map-note { font-size: 9.5px; color: var(--muted); margin-top: 6px; }
+  .map-off { height: 430px; border-radius: 8px; border: 1px dashed #c7ccd4; display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 11px; padding: 20px; }
+  .reg-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .reg-head h2 { font-size: 13px; font-weight: 500; margin: 0; }
+  #locTable td, #locTable th { text-align: left; padding: 8px 6px; }
+  #locTable th { white-space: normal; }
+  #locTable td.nw { white-space: nowrap; }
+  #locTable td.addr { min-width: 200px; }
+  #locTable tr.editing td { background: #fffbeb; }
+  #locTable tr.inactive td { color: #9ca3af; }
+  .opsi { position: relative; }
+  .opsi > button { background: #e8f1fd; color: var(--blue); border: 0; border-radius: 4px; height: 26px; padding: 0 10px; font-size: 10px; white-space: nowrap; }
+  .opsi-menu { display: none; position: absolute; left: 0; top: 30px; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,.12); z-index: 30; min-width: 130px; padding: 4px; }
+  .opsi.open .opsi-menu { display: block; }
+  .opsi-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 7px 8px; font-size: 10.5px; border-radius: 4px; }
+  .opsi-menu button:hover:not(:disabled) { background: #f3f5f8; }
+  .opsi-menu button:disabled { color: #c0c5cd; cursor: default; }
+  .opsi-menu button.danger { color: #e11d48; }
+  .st { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; }
+  .st.ACTIVE { background: #dcfce7; color: #15803d; } .st.INACTIVE { background: #f3f4f6; color: #6b7280; }
+  .geo { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .geo .row2 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+  .geo input { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 8px; font-size: 10.5px; }
+  .geo-res { margin-top: 10px; font-size: 11px; padding: 8px 10px; border-radius: 5px; }
+  .geo-res.in { background: #ecfdf5; color: #047857; } .geo-res.out { background: #fff7ed; color: #b45309; }
+  .kv { display: grid; grid-template-columns: 150px 1fr; gap: 4px 10px; font-size: 11px; }
+  .kv span { color: var(--muted); }
+  @media (max-width: 1100px) { .loc-top { grid-template-columns: 1fr; } }
   @media (max-width: 1000px) { .mform { grid-template-columns: 1fr 1fr; } .mform .f.wide { grid-column: span 2; } }
   @media (max-width: 600px) { .mform { grid-template-columns: 1fr; } .mform .f.wide { grid-column: span 1; } }
 </style>
@@ -159,6 +206,72 @@
       </div>
       <div class="pager" id="pager"></div>
     </section>
+    <div id="locContent" style="display:none">
+      <section class="mcard" style="margin-bottom:16px">
+        <div class="loc-top">
+          <form id="lForm" class="lform" onsubmit="return false" novalidate autocomplete="off">
+            <div class="f" data-f="name"><label for="lName">Location Name <span class="req">*</span></label><input id="lName" name="name" maxlength="100"></div>
+            <div class="f" data-f="code"><label for="lCode">Location Alias <span class="req">*</span></label><input id="lCode" name="code" maxlength="10">
+              <div class="hint">Kode unik lokasi untuk transaksi TC-PBR, contoh A1, A2, K1E.</div></div>
+            <div class="f" data-f="gmapAddress"><label for="lGmap">Location Address Google Map</label><input id="lGmap" name="gmapAddress" placeholder="Enter a location">
+              <div class="suggest" id="suggest"></div></div>
+            <div class="f" data-f="physicalAddress"><label for="lPhys">Physical Location Address</label><input id="lPhys" name="physicalAddress" maxlength="300"></div>
+            <div class="f" data-f="subArea"><label for="lSub">Location Sub Area</label><select id="lSub" name="subArea"></select></div>
+            <div class="row3">
+              <div class="f" data-f="radius"><label for="lRadius">Radius (m) <span class="req">*</span></label><input id="lRadius" name="radius" inputmode="decimal"></div>
+              <div class="f" data-f="autoFinish"><label for="lAutoFinish">Auto Finish Order <span class="req">*</span></label><select id="lAutoFinish" name="autoFinish"><option value="">Select an option</option><option>Yes</option><option>No</option></select></div>
+              <div class="f" data-f="autoCycle"><label for="lAutoCycle">Auto Generate Cycle</label><select id="lAutoCycle" name="autoCycle"><option>No</option><option>Yes</option></select></div>
+            </div>
+            <div class="row2">
+              <div class="f" data-f="lat"><label for="lLat">Latitude <span class="req">*</span></label><input id="lLat" name="lat" inputmode="decimal" placeholder="-6.4201668"></div>
+              <div class="f" data-f="lng"><label for="lLng">Longitude <span class="req">*</span></label><input id="lLng" name="lng" inputmode="decimal" placeholder="107.3328415"></div>
+            </div>
+            <div class="f" data-f="coord"></div>
+            <div class="form-actions" style="margin-bottom:0">
+              <button class="btn-save" id="lSave" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>Save
+              </button>
+              <button class="btn-cancel" id="lCancel" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel
+              </button>
+              <span class="mode" id="lMode">Mode: <b>Add</b> lokasi baru</span>
+            </div>
+          </form>
+          <div>
+            <div id="map"></div>
+            <div class="map-note">Cari alamat, klik peta, atau geser marker untuk menentukan titik. Lingkaran biru = radius geofence. Peta mock-up memakai OpenStreetMap (Leaflet); aplikasi asli memakai Google Maps.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mcard">
+        <div class="reg-head">
+          <h2>Location Registrations</h2>
+          <span class="spacer"></span>
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input type="text" id="lSearch" placeholder="Search">
+          </div>
+          <div class="dd" id="ddLKolom">
+            <button class="btn-blue">
+              <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
+              Kolom <span style="font-size:8px">▼</span>
+            </button>
+            <div class="dd-menu" id="lKolomMenu"></div>
+          </div>
+          <button class="btn-xls" id="lExport">&#11015; Export .xls</button>
+        </div>
+        <div class="table-wrap"><table id="locTable"><thead id="lThead"></thead><tbody id="lTbody"></tbody></table></div>
+        <div class="table-foot">
+          <span id="lInfo"></span>
+          <span class="page-size">Tampilkan
+            <select id="lPageSize"><option>10</option><option>25</option><option>50</option></select>
+            baris
+          </span>
+        </div>
+        <div class="pager" id="lPager"></div>
+      </section>
+    </div>
   </main>
 </div>
 
@@ -172,7 +285,10 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="vendor/leaflet/leaflet.js"></script>
 <script src="master-trucking.js"></script>
+<script src="master-location.js"></script>
 <script src="master.js"></script>
+<script src="location.js"></script>
 </body>
 </html>

@@ -46,15 +46,18 @@ const VIEWS = {
   'trucking-company': 'Trucking Company', mileage: 'Mileage', price: 'Price', 'location-code': 'Location Code',
   priority: 'Priority', renban: 'Renban', kpi: 'KPI', 'route-percentage': 'Route Percentage',
 };
+// Built pages per submenu; the others show a placeholder
+const PAGES = { 'trucking-company': 'content', 'location-code': 'locContent' };
+const TITLES = { 'location-code': 'Location' };
 function go(view) {
   if (!VIEWS[view]) view = 'trucking-company';
   document.querySelectorAll('#masterSub a').forEach(a => a.classList.toggle('active', a.dataset.view === view));
-  $('pageTitle').textContent = `Master ${VIEWS[view]}`;
-  $('crumb').innerHTML = `Master &nbsp;-&nbsp; ${VIEWS[view]}`;
-  const ready = view === 'trucking-company';
-  $('content').style.display = ready ? '' : 'none';
-  $('emptyPage').style.display = ready ? 'none' : '';
+  $('pageTitle').textContent = `Master ${TITLES[view] || VIEWS[view]}`;
+  $('crumb').innerHTML = `Master &nbsp;-&nbsp; ${TITLES[view] || VIEWS[view]}`;
+  Object.entries(PAGES).forEach(([v, id]) => { $(id).style.display = v === view ? '' : 'none'; });
+  $('emptyPage').style.display = PAGES[view] ? 'none' : '';
   $('emptyTitle').textContent = `Master ${VIEWS[view]}`;
+  document.dispatchEvent(new CustomEvent('masterview', { detail: view }));
 }
 window.addEventListener('hashchange', () => go(location.hash.slice(1)));
 $('masterToggle').addEventListener('click', e => { e.preventDefault(); $('masterSub').classList.toggle('collapsed'); });
