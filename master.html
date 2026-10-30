@@ -6,7 +6,7 @@
 <title>ELIPS - Master</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261030a">
+<link rel="stylesheet" href="styles.css?v=20261030b">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
   .mcard { border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.07); padding: 22px 28px 30px; }
@@ -114,6 +114,34 @@
   #milTable tbody tr { cursor: pointer; }
   #milTable tr.editing td { background: #fffbeb; }
   @media (max-width: 900px) { .mil-grid { grid-template-columns: 1fr; } }
+  /* Master Price (Pricing Data) */
+  .prc-filter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 24px; }
+  .prc-filter label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 8px; }
+  .prc-filter input, .prc-filter select { width: 100%; height: 34px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 10.5px; color: var(--text); background: #fff; }
+  .prc-btns { display: flex; gap: 8px; margin-top: 18px; }
+  .prc-sum { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+  .tile { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: #fff; }
+  .tile small { display: block; color: var(--muted); font-size: 9.5px; margin-bottom: 4px; }
+  .tile b { font-size: 18px; color: var(--navy); }
+  .tile span { display: block; font-size: 9.5px; color: var(--muted); margin-top: 2px; }
+  .tile.warn b { color: #b45309; }
+  .prc-tools { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  #prcTable td, #prcTable th { text-align: left; padding: 10px 8px; }
+  #prcTable td.num { text-align: right; white-space: nowrap; }
+  #prcTable td.nw { white-space: nowrap; }
+  .cmp { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9.5px; font-weight: 600; }
+  .cmp.FIX { background: #e0ecff; color: #1e4f9a; } .cmp.KM { background: #fef3c7; color: #92400e; }
+  .cmp-sub { display: block; color: var(--muted); font-size: 9px; margin-top: 2px; }
+  .unit { color: var(--muted); font-size: 9px; }
+  .pst { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 9px; font-weight: 600; }
+  .pst.Active { background: #dcfce7; color: #15803d; } .pst.Expired { background: #f3f4f6; color: #6b7280; } .pst.Future { background: #e0f2fe; color: #0369a1; }
+  .prc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 10px; color: #4b5563; flex-wrap: wrap; gap: 10px; }
+  .prc-pager { display: flex; align-items: center; gap: 6px; }
+  .prc-pager select { height: 32px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 8px; font-size: 10.5px; }
+  .prc-pager button { min-width: 32px; height: 32px; border: 1px solid #d5d9e0; background: #fff; border-radius: 6px; font-size: 12px; color: var(--navy); }
+  .prc-pager button.cur { background: var(--navy-dark); color: #fff; border-color: var(--navy-dark); font-weight: 600; }
+  .prc-pager button:disabled { opacity: .4; cursor: default; }
+  @media (max-width: 1000px) { .prc-filter { grid-template-columns: 1fr 1fr; } .prc-sum { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 1100px) { .loc-top { grid-template-columns: 1fr; } }
   @media (max-width: 1000px) { .mform { grid-template-columns: 1fr 1fr; } .mform .f.wide { grid-column: span 2; } }
   @media (max-width: 600px) { .mform { grid-template-columns: 1fr; } .mform .f.wide { grid-column: span 1; } }
@@ -339,6 +367,53 @@
       </div>
       <div class="pager" id="mPager"></div>
     </section>
+    <div id="prcContent" style="display:none">
+      <section class="mcard" style="margin-bottom:0">
+        <div class="prc-filter">
+          <div><label for="pPeriod">Periode</label><input type="text" id="pPeriod" placeholder="Select Month" onfocus="this.type='month'" onblur="if(!this.value)this.type='text'"></div>
+          <div><label>Trucking Company</label><div class="combo" id="pPartner"></div></div>
+          <div><label for="pComp">Component</label><select id="pComp"><option value="">Select Component</option><option value="FIX">Fix Cost (Monthly Price)</option><option value="KM">Mileage (Price per KM)</option></select></div>
+          <div><label for="pStatus">Status</label><select id="pStatus"><option value="">All Status</option><option>Active</option><option>Expired</option><option>Future</option></select></div>
+        </div>
+        <div class="prc-btns">
+          <button class="btn-save" id="pSearch">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Search
+          </button>
+          <button class="btn-cancel" id="pCancel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel
+          </button>
+        </div>
+      </section>
+
+      <div class="prc-sum" id="pSummary"></div>
+
+      <section class="mcard">
+        <div class="prc-tools">
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input type="text" id="pQuick" placeholder="Search">
+          </div>
+          <div class="dd" id="ddPView">
+            <button class="btn-blue">
+              <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
+              Table View <span style="font-size:8px">▼</span>
+            </button>
+            <div class="dd-menu" id="pViewMenu"></div>
+          </div>
+          <button class="btn-xls" id="pExport">&#11015; Export .xls</button>
+        </div>
+        <div class="table-wrap" id="pTableBox"><table id="prcTable"><thead id="pThead"></thead><tbody id="pTbody"></tbody></table></div>
+        <div class="prc-foot">
+          <span id="pInfo"></span>
+          <div class="prc-pager">
+            <select id="pSize"><option>10</option><option>25</option><option>50</option></select><span>per page</span>
+            <button data-pg="first" aria-label="First page">&laquo;</button><button data-pg="prev" aria-label="Previous page">&lsaquo;</button>
+            <span id="pPages"></span>
+            <button data-pg="next" aria-label="Next page">&rsaquo;</button><button data-pg="last" aria-label="Last page">&raquo;</button>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 </div>
 
@@ -353,11 +428,13 @@
 <div class="toast" id="toast"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="master-trucking.js?v=20261030a"></script>
-<script src="master-location.js?v=20261030a"></script>
-<script src="master-mileage.js?v=20261030a"></script>
-<script src="master.js?v=20261030a"></script>
-<script src="location.js?v=20261030a"></script>
-<script src="mileage.js?v=20261030a"></script>
+<script src="master-trucking.js?v=20261030b"></script>
+<script src="master-location.js?v=20261030b"></script>
+<script src="master-mileage.js?v=20261030b"></script>
+<script src="master-price.js?v=20261030b"></script>
+<script src="master.js?v=20261030b"></script>
+<script src="location.js?v=20261030b"></script>
+<script src="mileage.js?v=20261030b"></script>
+<script src="price.js?v=20261030b"></script>
 </body>
 </html>
