@@ -91,58 +91,29 @@
   .geo-res.in { background: #ecfdf5; color: #047857; } .geo-res.out { background: #fff7ed; color: #b45309; }
   .kv { display: grid; grid-template-columns: 150px 1fr; gap: 4px 10px; font-size: 11px; }
   .kv span { color: var(--muted); }
-  /* Master Mileage */
-  .mil-top { display: flex; align-items: center; margin-bottom: 12px; }
-  .mil-grid { display: grid; grid-template-columns: 1fr 1fr 1fr .5fr; gap: 10px; }
-  .mil-filter { display: grid; grid-template-columns: 1fr 1fr .6fr auto; gap: 10px; align-items: end; background: #f7f8fa; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
-  .mil-filter label, .mil-form label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 6px; }
-  .mil-filter select, .mil-form select { width: 100%; height: 32px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 8px; font-family: inherit; font-size: 10.5px; background: #fff; }
+  /* Master Mileage (Route Mileage) */
+  .mil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 24px; }
+  .mil-form .f { margin-bottom: 10px; }
+  .mil-form label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 8px; }
+  .mil-form .msg { color: var(--red); font-size: 10px; margin-top: 4px; }
+  .mil-form .err input { border-color: var(--red); }
+  .mil-form > .mil-grid input, .combo input { width: 100%; height: 34px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 10.5px; color: var(--text); background: #fff; }
   .combo { position: relative; }
-  .combo input { width: 100%; height: 32px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 28px 0 10px; font-family: inherit; font-size: 10.5px; background: #fff; }
-  .combo::after { content: "\25BE"; position: absolute; right: 10px; top: 8px; font-size: 10px; color: var(--muted); pointer-events: none; }
-  .combo input:disabled { background: #f3f4f6; color: var(--muted); }
-  .combo-list { display: none; position: absolute; left: 0; right: 0; top: 34px; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,.12); z-index: 70; max-height: 220px; overflow: auto; }
+  .combo input { padding-right: 30px; cursor: pointer; }
+  .combo::after { content: ""; position: absolute; right: 13px; top: 12px; width: 6px; height: 6px; border-right: 1.5px solid #6b7280; border-bottom: 1.5px solid #6b7280; transform: rotate(45deg); pointer-events: none; }
+  .combo input:disabled { background: #f3f4f6; color: var(--muted); cursor: default; }
+  .combo-list { display: none; position: absolute; left: 0; right: 0; top: 36px; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,.12); z-index: 70; max-height: 220px; overflow: auto; }
   .combo.open .combo-list { display: block; }
   .combo-list div { padding: 7px 10px; font-size: 10.5px; cursor: pointer; }
   .combo-list div:hover, .combo-list div.hl { background: #f3f7fe; }
   .combo-list div.sel { font-weight: 600; color: var(--blue); }
   .combo-list .none { color: var(--muted); cursor: default; }
-  .mil-actions { display: flex; gap: 8px; }
-  .mil-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .mil-head h2 { font-size: 13px; margin: 0; }
-  .mil-head .total { color: var(--muted); font-size: 10.5px; }
-  #milTable td, #milTable th { padding: 8px 6px; }
-  #milTable td.l { text-align: left; }
-  #milTable tr.editing td { background: #fffbeb; }
-  #milTable td.r { text-align: right; white-space: nowrap; }
-  .badge-st { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 9px; font-weight: 600; }
-  .badge-st.Active { background: #dcfce7; color: #15803d; } .badge-st.Inactive { background: #f3f4f6; color: #6b7280; }
-  .btn-sm { border: 0; border-radius: 4px; height: 26px; padding: 0 10px; font-size: 9.5px; font-weight: 600; margin: 0 2px; }
-  .btn-sm.edit { background: #fef3c7; color: #d97706; } .btn-sm.deact { background: #ffe4e6; color: #e11d48; } .btn-sm.act { background: #dcfce7; color: #15803d; }
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 11.5px; }
-  .empty-state button { margin-top: 12px; }
-  .loading { position: relative; min-height: 80px; }
-  .loading::after { content: "Loading..."; position: absolute; inset: 0; background: rgba(255,255,255,.75); display: grid; place-items: center; font-size: 11px; color: var(--navy); font-weight: 600; }
-  .mil-form .f { margin-bottom: 12px; }
-  .mil-form .req { color: var(--red); }
-  .mil-form .msg { color: var(--red); font-size: 10px; margin-top: 4px; }
-  .mil-form .err input, .mil-form .err select { border-color: var(--red); }
-  .km { position: relative; }
-  .km input { width: 100%; height: 32px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 40px 0 10px; font-family: inherit; font-size: 10.5px; }
-  .km span { position: absolute; right: 10px; top: 8px; font-size: 10.5px; color: var(--muted); font-weight: 600; }
-  .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer; }
-  .switch input { width: 34px; height: 18px; appearance: none; background: #d1d5db; border-radius: 10px; position: relative; cursor: pointer; transition: .2s; }
-  .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: .2s; }
-  .switch input:checked { background: var(--green); } .switch input:checked::after { left: 18px; }
   .form-alert-m { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 5px; padding: 8px 10px; font-size: 10.5px; margin-bottom: 12px; }
   .btn-busy { opacity: .6; cursor: wait; }
-  .sim { margin-bottom: 14px; }
-  .sim summary { cursor: pointer; font-weight: 600; font-size: 11.5px; color: var(--navy); }
-  .sim-grid { display: grid; grid-template-columns: 1fr 1fr .7fr auto; gap: 10px; align-items: end; margin-top: 12px; }
-  .sim-grid label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 6px; }
-  .sim-res { margin-top: 10px; font-size: 11px; padding: 8px 10px; border-radius: 5px; }
-  .sim-res.ok { background: #ecfdf5; color: #047857; } .sim-res.bad { background: #fff7ed; color: #b45309; }
-  @media (max-width: 900px) { .mil-filter, .sim-grid, .mil-grid { grid-template-columns: 1fr 1fr; } }
+  #milTable td, #milTable th { text-align: left; padding: 10px 8px; }
+  #milTable tbody tr { cursor: pointer; }
+  #milTable tr.editing td { background: #fffbeb; }
+  @media (max-width: 900px) { .mil-grid { grid-template-columns: 1fr; } }
   @media (max-width: 1100px) { .loc-top { grid-template-columns: 1fr; } }
   @media (max-width: 1000px) { .mform { grid-template-columns: 1fr 1fr; } .mform .f.wide { grid-column: span 2; } }
   @media (max-width: 600px) { .mform { grid-template-columns: 1fr; } .mform .f.wide { grid-column: span 1; } }
@@ -324,85 +295,50 @@
         <div class="pager" id="lPager"></div>
       </section>
     </div>
-    <div id="milContent" style="display:none">
-      <section class="mcard" style="margin-bottom:16px">
-        <div class="mil-top"><span class="mode" id="mfMode">Mode: <b>Add</b> mileage baru</span><span class="spacer"></span><button class="btn-blue" id="mAdd">+ Add Mileage</button></div>
-        <form id="mForm" class="mil-form" onsubmit="return false" novalidate autocomplete="off">
-          <div id="mfAlert"></div>
-          <div class="mil-grid">
-            <div class="f" data-f="from"><label>From <span class="req">*</span></label><div class="combo" id="mfFrom"></div></div>
-            <div class="f" data-f="to"><label>To <span class="req">*</span></label><div class="combo" id="mfTo"></div></div>
-            <div class="f" data-f="mileage"><label for="mfMileage">Mileage (Km) <span class="req">*</span></label><div class="km"><input id="mfMileage" name="mileage" inputmode="decimal" placeholder="Mileage"><span>KM</span></div></div>
-            <div class="f" data-f="status"><label>Status</label><label class="switch" style="height:32px"><input type="checkbox" id="mfStatus" checked> <span id="mfStatusLbl">Active</span></label></div>
-          </div>
-        </form>
-        <div class="form-actions" style="margin-bottom:0">
-          <button class="btn-save" id="mfSave">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg><span id="mfSaveLbl">Save</span>
-          </button>
-          <button class="btn-cancel" id="mfCancel">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel
-          </button>
+    <section class="mcard" id="milContent" style="display:none">
+      <form id="mForm" class="mil-form" onsubmit="return false" novalidate autocomplete="off">
+        <div id="mfAlert"></div>
+        <div class="mil-grid">
+          <div class="f" data-f="from"><label>From</label><div class="combo" id="mfFrom"></div></div>
+          <div class="f" data-f="to"><label>To</label><div class="combo" id="mfTo"></div></div>
+          <div class="f" data-f="mileage"><label for="mfMileage">Mileage (Km)</label><input id="mfMileage" name="mileage" inputmode="decimal" placeholder="Mileage"></div>
         </div>
-      </section>
+      </form>
+      <div class="form-actions">
+        <button class="btn-save" id="mfSave">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg><span id="mfSaveLbl">Save</span>
+        </button>
+        <button class="btn-cancel" id="mfCancel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel
+        </button>
+      </div>
 
-      <section class="mcard sim" style="margin-bottom:16px">
-        <details>
-          <summary>Variable Cost Simulation (how TC-PBR uses Master Mileage)</summary>
-          <div class="sim-grid">
-            <div><label>Delivery From</label><div class="combo" id="sFrom"></div></div>
-            <div><label>Delivery To</label><div class="combo" id="sTo"></div></div>
-            <div><label for="sPrice">Price per KM (IDR)</label><div class="km"><input id="sPrice" value="5000" inputmode="decimal"><span>IDR</span></div></div>
-            <button class="btn-blue" style="height:32px" id="sCalc">Calculate</button>
-          </div>
-          <div id="sRes"></div>
-        </details>
-      </section>
-
-      <section class="mcard">
-        <div class="mil-head">
-          <h2>Route Mileage List</h2><span class="total" id="mTotal"></span>
-          <span class="spacer"></span>
-          <div class="search">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-            <input type="text" id="mQuick" placeholder="Search">
-          </div>
-          <div class="dd" id="ddMView">
-            <button class="btn-blue">
-              <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
-              Table View <span style="font-size:8px">▼</span>
-            </button>
-            <div class="dd-menu" id="mViewMenu"></div>
-          </div>
-          <button class="btn-xls" id="mExport">&#11015; Export .xls</button>
+      <div class="list-head">
+        <h2 class="list-title">Route Mileage List</h2>
+        <span class="spacer"></span>
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input type="text" id="mQuick" placeholder="Search">
         </div>
-        <div class="mil-filter">
-          <div><label>Location From</label><div class="combo" id="fFrom"></div></div>
-          <div><label>Location To</label><div class="combo" id="fTo"></div></div>
-          <div><label for="fMStatus">Status</label><select id="fMStatus"><option value="">All</option><option>Active</option><option>Inactive</option></select></div>
-          <div class="mil-actions">
-            <button class="btn-save" id="mSearch">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Search
-            </button>
-            <button class="btn-cancel" id="mReset">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Reset
-            </button>
-          </div>
+        <div class="dd" id="ddMView">
+          <button class="btn-blue">
+            <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
+            Table View <span style="font-size:8px">▼</span>
+          </button>
+          <div class="dd-menu" id="mViewMenu"></div>
         </div>
-        <div id="mTableBox">
-          <div class="table-wrap"><table id="milTable"><thead id="mThead"></thead><tbody id="mTbody"></tbody></table></div>
-        </div>
-        <div id="mEmpty" class="empty-state" style="display:none"></div>
-        <div class="table-foot" id="mFoot">
-          <span id="mInfo"></span>
-          <span class="page-size">Tampilkan
-            <select id="mPageSize"><option>10</option><option>25</option><option>50</option></select>
-            baris
-          </span>
-        </div>
-        <div class="pager" id="mPager"></div>
-      </section>
-    </div>
+        <button class="btn-xls" id="mExport">&#11015; Export .xls</button>
+      </div>
+      <div class="table-wrap"><table id="milTable"><thead id="mThead"></thead><tbody id="mTbody"></tbody></table></div>
+      <div class="table-foot" id="mFoot">
+        <span id="mInfo"></span>
+        <span class="page-size">Tampilkan
+          <select id="mPageSize"><option>10</option><option>25</option><option>50</option></select>
+          baris
+        </span>
+      </div>
+      <div class="pager" id="mPager"></div>
+    </section>
   </main>
 </div>
 

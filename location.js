@@ -25,6 +25,12 @@ const locSeedAt = new Date(2026, 1, 3, 10, 0);
   ['KARAWANG', 'KRW', 'KARAWANG', -6.3227300, 107.3375900, 100, 'No', 'Karawang, Jawa Barat', true],
   ['CIKARANG', 'CKR', 'CIKARANG', -6.2611500, 107.1529200, 100, 'No', 'Cikarang, Kabupaten Bekasi, Jawa Barat', false],
   ['BEKASI', 'BKS', 'CIKARANG', -6.2382700, 106.9755700, 100, 'No', 'Bekasi, Jawa Barat', false],
+  ['DEPO CAKUNG/MARUNDA', 'DPCMR', 'DEPO', -6.1335100, 106.9512400, 50, 'No', 'Jl. Cakung Cilincing Raya, Marunda, Jakarta Utara', true],
+  ['DEPO SUNTER', 'DPSTR', 'DEPO', -6.1488200, 106.8701300, 50, 'No', 'Jl. Danau Sunter Utara, Jakarta Utara', true],
+  ['PORT TANJUNG PRIOK', 'PRTGP', 'PORT AREA', -6.1043500, 106.8854200, 50, 'No', 'Pelabuhan Tanjung Priok, Jakarta Utara', true],
+  ['WAREHOUSE CIKARANG', 'WHCKR', 'CIKARANG', -6.2905400, 107.1498700, 50, 'No', 'Kawasan Industri Jababeka, Cikarang Utara, Bekasi', true],
+  ['TMMIN PLANT KARAWANG 1', 'KRWP1', 'KARAWANG', -6.3609800, 107.2869100, 50, 'No', 'Kawasan Industri KIIC, Teluk Jambe Timur, Karawang', true],
+  ['CY INTERNAL SUNTER', 'CYSTR', 'SUNTER', -6.1462500, 106.8796400, 75, 'No', 'Jl. Yos Sudarso, Sunter II, Jakarta Utara', true],
 ].forEach(([name, code, subArea, lat, lng, radius, autoFinish, addr, used, status = 'ACTIVE']) => LOCATIONS.push({
   name, code, subArea, lat, lng, radius, autoFinish, autoCycle: 'No', cycleToArea: '-', gmapAddress: addr, physicalAddress: addr,
   status, usedInDelivery: used, createdBy: 'ielp1', createdAt: locSeedAt, updatedBy: 'ielp1', updatedAt: locSeedAt, version: 1,

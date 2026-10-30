@@ -48,11 +48,13 @@ const VIEWS = {
 };
 // Built pages per submenu; the others show a placeholder
 const PAGES = { 'trucking-company': 'content', 'location-code': 'locContent', mileage: 'milContent' };
-const TITLES = { 'location-code': 'Location' };
+const TITLES = { 'location-code': 'Location', mileage: 'Route Mileage' };
+// Pages whose heading does not start with "Master" (as on the existing screen)
+const HEADINGS = { mileage: 'Route Mileage' };
 function go(view) {
   if (!VIEWS[view]) view = 'trucking-company';
   document.querySelectorAll('#masterSub a').forEach(a => a.classList.toggle('active', a.dataset.view === view));
-  $('pageTitle').textContent = `Master ${TITLES[view] || VIEWS[view]}`;
+  $('pageTitle').textContent = HEADINGS[view] || `Master ${TITLES[view] || VIEWS[view]}`;
   $('crumb').innerHTML = `Master &nbsp;-&nbsp; ${TITLES[view] || VIEWS[view]}`;
   Object.entries(PAGES).forEach(([v, id]) => { $(id).style.display = v === view ? '' : 'none'; });
   $('emptyPage').style.display = PAGES[view] ? 'none' : '';
