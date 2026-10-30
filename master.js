@@ -47,7 +47,7 @@ const VIEWS = {
   priority: 'Priority', renban: 'Renban', kpi: 'KPI', 'route-percentage': 'Route Percentage',
 };
 // Built pages per submenu; the others show a placeholder
-const PAGES = { 'trucking-company': 'content', 'location-code': 'locContent' };
+const PAGES = { 'trucking-company': 'content', 'location-code': 'locContent', mileage: 'milContent' };
 const TITLES = { 'location-code': 'Location' };
 function go(view) {
   if (!VIEWS[view]) view = 'trucking-company';

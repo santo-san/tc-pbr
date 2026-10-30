@@ -21,6 +21,10 @@ const locSeedAt = new Date(2026, 1, 3, 10, 0);
   ['DEPO SUNTER', 'D1', 'DEPO', -6.1490330, 106.8690122, 50, 'No', 'Jl. Danau Sunter Utara, Jakarta Utara', false],
   ['DEPO CIKARANG', 'D2', 'DEPO', -6.3200417, 107.1700306, 50, 'No', 'Jl. Industri Selatan, Cikarang, Bekasi', false],
   ['OLD DEPO PLUMPANG', 'D9', 'DEPO', -6.1312200, 106.8975500, 50, 'No', 'Jl. Plumpang Semper, Jakarta Utara', true, 'INACTIVE'],
+  ['SUNTER', 'SNT', 'SUNTER', -6.1452010, 106.8754120, 100, 'No', 'Sunter, Tanjung Priok, Jakarta Utara', true],
+  ['KARAWANG', 'KRW', 'KARAWANG', -6.3227300, 107.3375900, 100, 'No', 'Karawang, Jawa Barat', true],
+  ['CIKARANG', 'CKR', 'CIKARANG', -6.2611500, 107.1529200, 100, 'No', 'Cikarang, Kabupaten Bekasi, Jawa Barat', false],
+  ['BEKASI', 'BKS', 'CIKARANG', -6.2382700, 106.9755700, 100, 'No', 'Bekasi, Jawa Barat', false],
 ].forEach(([name, code, subArea, lat, lng, radius, autoFinish, addr, used, status = 'ACTIVE']) => LOCATIONS.push({
   name, code, subArea, lat, lng, radius, autoFinish, autoCycle: 'No', cycleToArea: '-', gmapAddress: addr, physicalAddress: addr,
   status, usedInDelivery: used, createdBy: 'ielp1', createdAt: locSeedAt, updatedBy: 'ielp1', updatedAt: locSeedAt, version: 1,
