@@ -16,8 +16,7 @@ Mock-up: `master.html#price` (Master > Price, title "Pricing Data", following th
 | Section | Content |
 |---|---|
 | Filter | Periode (month), Trucking Company (searchable, Master Trucking Company), Component, Status (Active / Expired / Future). Search, Cancel |
-| Summary | Active Monthly Price, Active Price per KM, Future (not yet active), Expired, Partners without an active price (per component) |
-| List | Search, Table View, Export .xls. Columns: Periode, Trucking Company, Component (with Monthly Price / Price per KM), Price (with unit), Effective Start, Effective End, Status, Created By, Created Dt, Changed By, Changed Dt; Vehicle Type and Source via Table View |
+| List | Search, Table View, Export .xls. Columns: Periode, Trucking Company, Component (with Monthly Price / Price per KM), Price (number only, no unit), Effective Start, Effective End, Status, Created By, Created Dt, Changed By, Changed Dt; Vehicle Type and Source via Table View |
 | Paging | Per page 10 / 25 / 50, first / previous / pages / next / last, "Showing x to y of z entries" |
 
 ## 3. Rules
@@ -30,9 +29,8 @@ Mock-up: `master.html#price` (Master > Price, title "Pricing Data", following th
 | MP-04 | Expired prices are never used for a new PR Monthly: "Monthly Price / Price per KM for {partner} period {YYYYMM} is expired and cannot be used for a new PR Monthly." |
 | MP-05 | No price for the period: PR Monthly is not generated for that partner/component and the user is informed ("No ... found in Master Price for {partner} period {YYYYMM}.") |
 | MP-06 | More than one valid price for the same partner / component / vehicle type and period is a data error ("More than one valid ..."); overlaps are counted in the data check |
-| MP-07 | Summary is calculated on all data (not on the filter) and lists partners without an active price per component |
 | MP-08 | Periode filter shows prices whose effective period overlaps the selected month |
-| MP-09 | Search is free text over the visible values and the partner name; Export .xls exports all filtered rows (Price as number + unit column) |
+| MP-09 | Search is free text over the visible values and the partner name; Export .xls exports all filtered rows (Price as number) |
 
 ## 4. Open questions
 

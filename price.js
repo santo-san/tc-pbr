@@ -47,21 +47,6 @@ $('pCancel').addEventListener('click', () => {
 });
 $('pQuick').addEventListener('input', e => { pState.q = e.target.value; pState.page = 1; pRender(); });
 
-// ---------- Summary of the Master Price data (independent of the filter) ----------
-function pSummary() {
-  // Partners published in eCatalogue (have at least one price record)
-  const s = MP.summary(PRICES, [...new Set(PRICES.map(p => p.partner))], TODAY);
-  const miss = [['Monthly Price', s.missing.FIX], ['Price per KM', s.missing.KM]].filter(([, l]) => l.length);
-  const missCount = new Set([...s.missing.FIX, ...s.missing.KM]).size;
-  $('pSummary').innerHTML = [
-    ['Active Monthly Price', s.activeFix, 'Fix Cost · SPK GAD, per month'],
-    ['Active Price per KM', s.activeKm, 'Mileage · maintenance, per KM'],
-    ['Future (not yet active)', s[MP.STATUS.FUTURE], 'Effective start after today'],
-    ['Expired', s[MP.STATUS.EXPIRED], 'Not used for new PR Monthly'],
-  ].map(([l, v, sub]) => `<div class="tile"><small>${l}</small><b>${v}</b><span>${sub}</span></div>`).join('') +
-    `<div class="tile ${missCount ? 'warn' : ''}"><small>Partners without active price</small><b>${missCount}</b><span>${miss.length ? miss.map(([c, l]) => `${c}: ${l.join(', ')}`).join(' · ') : 'All partners covered'}</span></div>`;
-}
-
 // ---------- Table ----------
 // [key, label, shown by default]
 const PCOLS = [['period', 'Periode', 1], ['partner', 'Trucking Company', 1], ['vehicleType', 'Vehicle Type', 0], ['component', 'Component', 1], ['price', 'Price', 1],
@@ -71,7 +56,7 @@ $('pViewMenu').innerHTML = PCOLS.map(([k, l]) => `<label><input type="checkbox" 
 $('pViewMenu').addEventListener('change', e => { const k = e.target.dataset.k; e.target.checked ? pState.hidden.delete(k) : pState.hidden.add(k); pRender(); });
 
 const pText = (r, k) => k === 'component' ? `${MP.COMPONENT[r.component].label} (${MP.COMPONENT[r.component].meaning})`
-  : k === 'price' ? `${money(r.price)} / ${MP.COMPONENT[r.component].unit}`
+  : k === 'price' ? money(r.price)
   : k === 'status' ? priceStatus(r) : k === 'createdAt' || k === 'changedAt' ? fmtDTs(r[k]) : k === 'changedBy' ? r.changedBy || '-' : r[k];
 function pFiltered() {
   const f = pState.f, q = pState.q.trim().toLowerCase();
@@ -82,14 +67,13 @@ function pFiltered() {
   return rows.sort((a, b) => b.period.localeCompare(a.period) || (a.component === 'KM' ? -1 : 1) - (b.component === 'KM' ? -1 : 1) || a.partner.localeCompare(b.partner));
 }
 function pRender() {
-  pSummary();
   const rows = pFiltered(), pages = Math.max(1, Math.ceil(rows.length / pState.size));
   pState.page = Math.min(pState.page, pages);
   const start = (pState.page - 1) * pState.size, view = rows.slice(start, start + pState.size);
   const cols = PCOLS.filter(([k]) => !pState.hidden.has(k));
   $('pThead').innerHTML = `<tr>${cols.map(([, l]) => `<th>${l}</th>`).join('')}</tr>`;
   const cell = (r, k) => k === 'component' ? `<span class="cmp ${r.component}">${MP.COMPONENT[r.component].label}</span><span class="cmp-sub">${MP.COMPONENT[r.component].meaning}</span>`
-    : k === 'price' ? `${money(r.price)} <span class="unit">/ ${MP.COMPONENT[r.component].unit}</span>`
+    : k === 'price' ? money(r.price)
     : k === 'status' ? `<span class="pst ${priceStatus(r)}">${priceStatus(r) === 'Future' ? 'Future / Not Yet Active' : priceStatus(r)}</span>`
     : k === 'partner' ? `<span title="${esc(partnerName(r.partner))}">${r.partner}</span>` : esc(pText(r, k));
   $('pTbody').innerHTML = view.length ? view.map(r => `<tr>${cols.map(([k]) => `<td class="${k === 'price' ? 'num' : k.startsWith('eff') || k.endsWith('At') ? 'nw' : ''}">${cell(r, k)}</td>`).join('')}</tr>`).join('')
@@ -119,8 +103,8 @@ $('pExport').addEventListener('click', () => {
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
 <Styles><Style ss:ID="h"><Font ss:Bold="1"/><Interior ss:Color="#DFE4EC" ss:Pattern="Solid"/></Style></Styles>
 <Worksheet ss:Name="Pricing Data"><Table>
-<Row>${cols.map(([, l]) => `<Cell ss:StyleID="h"><Data ss:Type="String">${x(l)}</Data></Cell>`).join('')}${cols.some(c => c[0] === 'price') ? '<Cell ss:StyleID="h"><Data ss:Type="String">Unit</Data></Cell>' : ''}</Row>
-${rows.map(r => `<Row>${cols.map(([k]) => k === 'price' ? `<Cell><Data ss:Type="Number">${r.price}</Data></Cell>` : `<Cell><Data ss:Type="String">${x(pText(r, k))}</Data></Cell>`).join('')}${cols.some(c => c[0] === 'price') ? `<Cell><Data ss:Type="String">per ${MP.COMPONENT[r.component].unit}</Data></Cell>` : ''}</Row>`).join('\n')}
+<Row>${cols.map(([, l]) => `<Cell ss:StyleID="h"><Data ss:Type="String">${x(l)}</Data></Cell>`).join('')}</Row>
+${rows.map(r => `<Row>${cols.map(([k]) => k === 'price' ? `<Cell><Data ss:Type="Number">${r.price}</Data></Cell>` : `<Cell><Data ss:Type="String">${x(pText(r, k))}</Data></Cell>`).join('')}</Row>`).join('\n')}
 </Table></Worksheet></Workbook>`;
   const a = document.createElement('a'), d = new Date();
   a.href = URL.createObjectURL(new Blob([xml], { type: 'application/vnd.ms-excel' }));

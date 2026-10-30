@@ -119,12 +119,6 @@
   .prc-filter label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 8px; }
   .prc-filter input, .prc-filter select { width: 100%; height: 34px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 10.5px; color: var(--text); background: #fff; }
   .prc-btns { display: flex; gap: 8px; margin-top: 18px; }
-  .prc-sum { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
-  .tile { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: #fff; }
-  .tile small { display: block; color: var(--muted); font-size: 9.5px; margin-bottom: 4px; }
-  .tile b { font-size: 18px; color: var(--navy); }
-  .tile span { display: block; font-size: 9.5px; color: var(--muted); margin-top: 2px; }
-  .tile.warn b { color: #b45309; }
   .prc-tools { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
   #prcTable td, #prcTable th { text-align: left; padding: 10px 8px; }
   #prcTable td.num { text-align: right; white-space: nowrap; }
@@ -132,7 +126,6 @@
   .cmp { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9.5px; font-weight: 600; }
   .cmp.FIX { background: #e0ecff; color: #1e4f9a; } .cmp.KM { background: #fef3c7; color: #92400e; }
   .cmp-sub { display: block; color: var(--muted); font-size: 9px; margin-top: 2px; }
-  .unit { color: var(--muted); font-size: 9px; }
   .pst { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 9px; font-weight: 600; }
   .pst.Active { background: #dcfce7; color: #15803d; } .pst.Expired { background: #f3f4f6; color: #6b7280; } .pst.Future { background: #e0f2fe; color: #0369a1; }
   .prc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 10px; color: #4b5563; flex-wrap: wrap; gap: 10px; }
@@ -141,7 +134,7 @@
   .prc-pager button { min-width: 32px; height: 32px; border: 1px solid #d5d9e0; background: #fff; border-radius: 6px; font-size: 12px; color: var(--navy); }
   .prc-pager button.cur { background: var(--navy-dark); color: #fff; border-color: var(--navy-dark); font-weight: 600; }
   .prc-pager button:disabled { opacity: .4; cursor: default; }
-  @media (max-width: 1000px) { .prc-filter { grid-template-columns: 1fr 1fr; } .prc-sum { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 1000px) { .prc-filter { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 1100px) { .loc-top { grid-template-columns: 1fr; } }
   @media (max-width: 1000px) { .mform { grid-template-columns: 1fr 1fr; } .mform .f.wide { grid-column: span 2; } }
   @media (max-width: 600px) { .mform { grid-template-columns: 1fr; } .mform .f.wide { grid-column: span 1; } }
@@ -385,7 +378,7 @@
         </div>
       </section>
 
-      <div class="prc-sum" id="pSummary"></div>
+      <div style="height:16px"></div>
 
       <section class="mcard">
         <div class="prc-tools">
@@ -435,6 +428,6 @@
 <script src="master.js?v=20261030b"></script>
 <script src="location.js?v=20261030b"></script>
 <script src="mileage.js?v=20261030b"></script>
-<script src="price.js?v=20261030b"></script>
+<script src="price.js?v=20261030c"></script>
 </body>
 </html>
