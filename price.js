@@ -42,7 +42,7 @@ $('pSearch').addEventListener('click', () => {
   pState.page = 1; pLoad(pRender);
 });
 $('pCancel').addEventListener('click', () => {
-  $('pPeriod').value = ''; pPartner.set(''); $('pComp').value = ''; $('pStatus').value = ''; $('pQuick').value = '';
+  $('pPeriod').value = ''; $('pPeriod').type = 'text'; pPartner.set(''); $('pComp').value = ''; $('pStatus').value = ''; $('pQuick').value = '';
   pState.f = { period: '', partner: '', comp: '', status: '' }; pState.q = ''; pState.page = 1; pLoad(pRender);
 });
 $('pQuick').addEventListener('input', e => { pState.q = e.target.value; pState.page = 1; pRender(); });

@@ -2,7 +2,7 @@
 
 Master Price monitors the price data sourced from **eCatalogue** for each Logistic Partner (trucking company). It is the price reference when PR Monthly is generated. The screen is **read only**: prices are maintained in eCatalogue and synchronised to ELIPS (`createdBy = SYSTEM`).
 
-Mock-up: `master.html#price` (Master > Price, title "Pricing Data", following the existing screen). Rules: [`master-price.js`](../master-price.js).
+Mock-up: `master.html#price` (Master > Price, title "Pricing Data", following the existing screen). Rules: [`master-price.js`](../master-price.js). UISS: [`docs/uiss/UISS_Screen_Master_Price.xlsx`](uiss/UISS_Screen_Master_Price.xlsx).
 
 ## 1. Price components
 
