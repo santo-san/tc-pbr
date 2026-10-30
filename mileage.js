@@ -12,6 +12,9 @@ const milSeedAt = new Date(2026, 7, 22, 15, 0);
 [
   ['DPCMR', 'CYSTR', 16], ['DPSTR', 'CYSTR', 8], ['PRTGP', 'CYSTR', 11], ['WHCKR', 'CYSTR', 59], ['KRWP1', 'CYSTR', 64],
   ['SNT', 'KRW', 65], ['SNT', 'CKR', 42], ['CKR', 'KRW', 28], ['KRW', 'SNT', 68],
+  // Routes used in Master Priority
+  ['DPCMR', 'CYKRW', 57], ['PRTGP', 'WHCKR', 61], ['PRTGP', 'CYKRW', 67], ['DPCMR', 'EKRWP', 76], ['CYKRW', 'EKRWP', 25],
+  ['CYSTR', 'PRTGP', 11], ['CYSTR', 'CYEDN', 6], ['CYEDN', 'PRTGP', 8], ['CYEJM', 'PRTGP', 4],
 ].forEach(([from, to, mileage]) => MILEAGES.push({
   from, to, mileage, status: MM.STATUS.ACTIVE, createdBy: 'ielp1', createdAt: milSeedAt, updatedBy: 'ielp1', updatedAt: milSeedAt, version: 1,
 }));

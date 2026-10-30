@@ -31,6 +31,10 @@ const locSeedAt = new Date(2026, 1, 3, 10, 0);
   ['WAREHOUSE CIKARANG', 'WHCKR', 'CIKARANG', -6.2905400, 107.1498700, 50, 'No', 'Kawasan Industri Jababeka, Cikarang Utara, Bekasi', true],
   ['TMMIN PLANT KARAWANG 1', 'KRWP1', 'KARAWANG', -6.3609800, 107.2869100, 50, 'No', 'Kawasan Industri KIIC, Teluk Jambe Timur, Karawang', true],
   ['CY INTERNAL SUNTER', 'CYSTR', 'SUNTER', -6.1462500, 106.8796400, 75, 'No', 'Jl. Yos Sudarso, Sunter II, Jakarta Utara', true],
+  ['CY INTERNAL KARAWANG', 'CYKRW', 'KARAWANG', -6.3634500, 107.2905200, 75, 'No', 'Kawasan Industri KIIC, Teluk Jambe Timur, Karawang', true],
+  ['ELC KAWASAN RAWABUAYA', 'EKRWP', 'CY EXTERNAL', -6.1640200, 106.7339800, 50, 'No', 'Rawa Buaya, Cengkareng, Jakarta Barat', true],
+  ['CY INTERNAL EDN', 'CYEDN', 'SUNTER', -6.1415300, 106.8835600, 75, 'No', 'Jl. Yos Sudarso, Sunter Jaya, Jakarta Utara', true],
+  ['CY INTERNAL EJIP', 'CYEJM', 'CIKARANG', -6.2948100, 107.1637400, 75, 'No', 'Kawasan Industri EJIP, Cikarang Selatan, Bekasi', true],
 ].forEach(([name, code, subArea, lat, lng, radius, autoFinish, addr, used, status = 'ACTIVE']) => LOCATIONS.push({
   name, code, subArea, lat, lng, radius, autoFinish, autoCycle: 'No', cycleToArea: '-', gmapAddress: addr, physicalAddress: addr,
   status, usedInDelivery: used, createdBy: 'ielp1', createdAt: locSeedAt, updatedBy: 'ielp1', updatedAt: locSeedAt, version: 1,

@@ -135,6 +135,35 @@
   .prc-pager button.cur { background: var(--navy-dark); color: #fff; border-color: var(--navy-dark); font-weight: 600; }
   .prc-pager button:disabled { opacity: .4; cursor: default; }
   @media (max-width: 1000px) { .prc-filter { grid-template-columns: 1fr 1fr; } }
+  /* Master Priority */
+  .pri-bar { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .pri-bar .f { width: 150px; position: relative; }
+  .pri-bar .f.sm { width: 115px; }
+  .pri-bar label { display: block; font-size: 10px; color: #4b5563; margin-bottom: 6px; }
+  .pri-bar .f > input { width: 100%; height: 34px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 10px; font-family: inherit; font-size: 10.5px; color: var(--text); }
+  .pri-bar .err input { border-color: var(--red); }
+  .pri-bar .msg { position: absolute; top: 100%; left: 0; width: 220px; color: var(--red); font-size: 9.5px; margin-top: 2px; }
+  .pri-bar .spacer { flex: 1; }
+  .pri-bar .btn-save, .pri-bar .btn-cancel { height: 34px; }
+  .pri-bar .btn-xls2 { height: 35px; border: 1px solid #d5d9e0; background: #fff; border-radius: 6px; padding: 0 12px; font-size: 10.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+  .pri-bar .btn-kolom { height: 35px; border: 1px solid #d5d9e0; background: #fff; border-radius: 6px; padding: 0 12px; font-size: 10.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+  .pri-bar .search input { background: #fff; border: 1px solid #d5d9e0; width: 160px; }
+  #priTable th, #priTable td { text-align: center; padding: 8px 6px; font-size: 10px; }
+  #priTable td.desc { text-align: left; }
+  #priTable th.pcol, #priTable td.pcol { background: #fef9c3; }
+  #priTable td.pcol { font-weight: 700; font-size: 12px; }
+  #priTable tr.editing td { background: #eff6ff; } #priTable tr.editing td.pcol { background: #fde68a; }
+  #priTable tr.flash td { animation: priFlash 1.2s; }
+  @keyframes priFlash { from { background: #bbf7d0; } }
+  .pact { display: flex; gap: 4px; justify-content: center; }
+  .pact button { width: 26px; height: 26px; border: 1px solid #d5d9e0; background: #fff; border-radius: 5px; color: var(--blue); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .pact button.del { color: #e11d48; }
+  .pact button:disabled { opacity: .35; cursor: default; }
+  .pri-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 10px; color: #4b5563; }
+  .pri-pager { display: flex; gap: 6px; }
+  .pri-pager button { min-width: 30px; height: 30px; border: 1px solid #d5d9e0; background: #fff; border-radius: 6px; font-size: 12px; color: var(--navy); }
+  .pri-pager button.cur { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+  .pri-pager button:disabled { opacity: .4; cursor: default; }
   @media (max-width: 1100px) { .loc-top { grid-template-columns: 1fr; } }
   @media (max-width: 1000px) { .mform { grid-template-columns: 1fr 1fr; } .mform .f.wide { grid-column: span 2; } }
   @media (max-width: 600px) { .mform { grid-template-columns: 1fr; } .mform .f.wide { grid-column: span 1; } }
@@ -407,6 +436,38 @@
         </div>
       </section>
     </div>
+    <section class="mcard" id="priContent" style="display:none">
+      <div id="qAlert"></div>
+      <div class="pri-bar" id="qForm">
+        <div class="f" data-f="from"><label>From</label><div class="combo" id="qFrom"></div></div>
+        <div class="f" data-f="to"><label>To</label><div class="combo" id="qTo"></div></div>
+        <div class="f sm" data-f="priority"><label for="qPriority">Priority</label><input type="number" id="qPriority" min="1" step="1" placeholder="Enter Priority"></div>
+        <button class="btn-cancel" id="qCancel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel
+        </button>
+        <button class="btn-save" id="qSave">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg><span id="qSaveLbl">Save</span>
+        </button>
+        <span class="spacer"></span>
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input type="text" id="qQuick" placeholder="Search">
+        </div>
+        <div class="dd" id="ddQView">
+          <button class="btn-kolom">
+            <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M8 1v18M16 1v18"/></svg>
+            Kolom <span style="font-size:8px">▼</span>
+          </button>
+          <div class="dd-menu" id="qViewMenu"></div>
+        </div>
+        <button class="btn-xls2" id="qExport"><span style="background:#16a34a;color:#fff;border-radius:3px;font-size:9px;padding:1px 3px;font-weight:700">X</span> Export XLS</button>
+      </div>
+      <div class="table-wrap"><table id="priTable"><thead id="qThead"></thead><tbody id="qTbody"></tbody></table></div>
+      <div class="pri-foot">
+        <span id="qInfo"></span>
+        <div class="pri-pager" id="qPager"></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -422,12 +483,14 @@
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="master-trucking.js?v=20261030b"></script>
-<script src="master-location.js?v=20261030b"></script>
-<script src="master-mileage.js?v=20261030b"></script>
+<script src="master-location.js?v=20261030c"></script>
+<script src="master-mileage.js?v=20261030c"></script>
 <script src="master-price.js?v=20261030b"></script>
-<script src="master.js?v=20261030b"></script>
-<script src="location.js?v=20261030b"></script>
-<script src="mileage.js?v=20261030b"></script>
+<script src="master-priority.js?v=20261030a"></script>
+<script src="master.js?v=20261030c"></script>
+<script src="location.js?v=20261030c"></script>
+<script src="mileage.js?v=20261030c"></script>
 <script src="price.js?v=20261030d"></script>
+<script src="priority.js?v=20261030a"></script>
 </body>
 </html>
