@@ -47,10 +47,10 @@ const VIEWS = {
   priority: 'Priority', renban: 'Renban', kpi: 'KPI', 'route-percentage': 'Route Percentage',
 };
 // Built pages per submenu; the others show a placeholder
-const PAGES = { 'trucking-company': 'content', 'location-code': 'locContent', mileage: 'milContent', price: 'prcContent', priority: 'priContent' };
-const TITLES = { 'location-code': 'Location', mileage: 'Route Mileage', price: 'Pricing Data', priority: 'Master Priority' };
+const PAGES = { 'trucking-company': 'content', 'location-code': 'locContent', mileage: 'milContent', price: 'prcContent', priority: 'priContent', kpi: 'kpiContent' };
+const TITLES = { 'location-code': 'Location', mileage: 'Route Mileage', price: 'Pricing Data', priority: 'Master Priority', kpi: 'Master KPI' };
 // Pages whose heading does not start with "Master" (as on the existing screen)
-const HEADINGS = { mileage: 'Route Mileage', price: 'Pricing Data', priority: 'Master Priority' };
+const HEADINGS = { mileage: 'Route Mileage', price: 'Pricing Data', priority: 'Master Priority', kpi: 'Master KPI' };
 function go(view) {
   if (!VIEWS[view]) view = 'trucking-company';
   document.querySelectorAll('#masterSub a').forEach(a => a.classList.toggle('active', a.dataset.view === view));

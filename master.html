@@ -135,6 +135,44 @@
   .prc-pager button.cur { background: var(--navy-dark); color: #fff; border-color: var(--navy-dark); font-weight: 600; }
   .prc-pager button:disabled { opacity: .4; cursor: default; }
   @media (max-width: 1000px) { .prc-filter { grid-template-columns: 1fr 1fr; } }
+  /* Master KPI */
+  .kpi-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .kpi-bar > input, .kpi-bar .combo input { height: 35px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 10.5px; }
+  .kpi-bar > input { width: 180px; }
+  .kpi-bar .combo { width: 175px; }
+  .kpi-bar .spacer { flex: 1; }
+  .kpi-bar .search input { background: #fff; border: 1px solid #d5d9e0; width: 140px; }
+  .kpi-bar .btn-add { height: 35px; background: var(--blue); color: #fff; border: 0; border-radius: 6px; padding: 0 16px; font-size: 11px; font-weight: 700; }
+  .kpi-bar .btn-add2 { height: 35px; background: #fff; color: var(--blue); border: 1px solid var(--blue); border-radius: 6px; padding: 0 12px; font-size: 10.5px; font-weight: 700; }
+  .kpi-bar .btn-kolom, .kpi-bar .btn-xls2 { height: 35px; border: 1px solid #d5d9e0; background: #fff; border-radius: 6px; padding: 0 12px; font-size: 10.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+  #kpiTable th, #kpiTable td { text-align: center; padding: 8px 4px; font-size: 9.5px; }
+  #kpiTable th { font-size: 9px; white-space: normal; }
+  #kpiTable td.left { min-width: 110px; }
+  #kpiTable th.osh { max-width: 48px; white-space: normal; }
+  #kpiTable td.dt { max-width: 62px; }
+  #kpiTable td.left { text-align: left; }
+  #kpiTable th.item { color: #fff; position: relative; min-width: 32px; }
+  #kpiTable th.item .kdel { display: none; position: absolute; top: 1px; right: 1px; width: 14px; height: 14px; border: 0; border-radius: 3px; background: rgba(0,0,0,.35); color: #fff; font-size: 9px; line-height: 14px; padding: 0; }
+  #kpiTable th.item:hover .kdel { display: block; }
+  #kpiTable th.tot { background: #3f3f46; color: #fff; }
+  #kpiTable td.tot { font-weight: 700; }
+  #kpiTable th.osh, #kpiTable td.osh { background: #fef9c3; }
+  #kpiTable td.osh { font-weight: 700; font-size: 13px; }
+  #kpiTable td.ed { cursor: text; }
+  #kpiTable tr.editing td { background: #eff6ff; } #kpiTable tr.editing td.osh { background: #fde68a; }
+  #kpiTable td input { width: 100%; min-width: 28px; max-width: 46px; box-sizing: border-box; padding: 0 2px; height: 26px; border: 1px solid #93c5fd; border-radius: 4px; text-align: center; font-family: inherit; font-size: 10px; }
+  #kpiTable td.err input { border-color: var(--red); background: #fef2f2; }
+  #kpiTable tr.flash td { animation: priFlash 1.2s; }
+  .grade { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 8.5px; font-weight: 700; color: #fff; }
+  .grade.GOLD { background: #e08a12; } .grade.SILVER { background: #94a3b8; } .grade.BRONZE { background: #a16207; }
+  .kact { display: flex; gap: 4px; justify-content: center; }
+  .kact button { width: 26px; height: 26px; border: 1px solid #d5d9e0; background: #fff; border-radius: 5px; color: var(--blue); font-size: 12px; }
+  .kact button.del { color: #e11d48; } .kact button.ok { color: #16a34a; }
+  .kpi-foot { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14px; font-size: 10px; color: #4b5563; gap: 12px; flex-wrap: wrap; }
+  .kpi-foot .right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
+  .kpi-tbr b { font-size: 15px; margin-right: 110px; }
+  #kAlert .form-alert-m { margin-bottom: 12px; }
   /* Master Priority */
   .pri-bar { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
   .pri-bar .f { width: 150px; position: relative; }
@@ -436,6 +474,36 @@
         </div>
       </section>
     </div>
+    <section class="mcard" id="kpiContent" style="display:none">
+      <div id="kAlert"></div>
+      <div class="kpi-bar">
+        <input type="text" id="kNewKpi" placeholder="Enter New KPI" maxlength="15">
+        <button class="btn-add" id="kAddKpi">Add New</button>
+        <div class="combo" id="kPartner"></div>
+        <button class="btn-add2" id="kAddPartner">+ Add Company</button>
+        <span class="spacer"></span>
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input type="text" id="kQuick" placeholder="Search">
+        </div>
+        <div class="dd" id="ddKView">
+          <button class="btn-kolom">
+            <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M8 1v18M16 1v18"/></svg>
+            Kolom <span style="font-size:8px">▼</span>
+          </button>
+          <div class="dd-menu" id="kViewMenu"></div>
+        </div>
+        <button class="btn-xls2" id="kExport"><span style="background:#16a34a;color:#fff;border-radius:3px;font-size:9px;padding:1px 3px;font-weight:700">X</span> Export XLS</button>
+      </div>
+      <div class="table-wrap"><table id="kpiTable"><thead id="kThead"></thead><tbody id="kTbody"></tbody></table></div>
+      <div class="kpi-foot">
+        <span id="kInfo"></span>
+        <div class="right">
+          <div class="kpi-tbr"><span>Total By Resource</span><b id="kTbr">0</b></div>
+          <div class="pri-pager" id="kPager"></div>
+        </div>
+      </div>
+    </section>
     <section class="mcard" id="priContent" style="display:none">
       <div id="qAlert"></div>
       <div class="pri-bar" id="qForm">
@@ -484,13 +552,15 @@
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="master-trucking.js?v=20261030b"></script>
 <script src="master-location.js?v=20261030c"></script>
-<script src="master-mileage.js?v=20261030c"></script>
+<script src="master-mileage.js?v=20261030d"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
-<script src="master.js?v=20261030c"></script>
+<script src="master-kpi.js?v=20261030a"></script>
+<script src="master.js?v=20261030d"></script>
 <script src="location.js?v=20261030c"></script>
-<script src="mileage.js?v=20261030c"></script>
-<script src="price.js?v=20261030d"></script>
+<script src="mileage.js?v=20261030d"></script>
+<script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
+<script src="kpi.js?v=20261030a"></script>
 </body>
 </html>

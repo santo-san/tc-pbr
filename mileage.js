@@ -20,7 +20,7 @@ const milSeedAt = new Date(2026, 7, 22, 15, 0);
 }));
 
 // ---------- Location dropdown (searchable by code or name) ----------
-function combo(el, { options, placeholder }) {
+function combo(el, { options, placeholder, empty = 'No location found' }) {
   el.innerHTML = `<input type="text" placeholder="${placeholder}" aria-autocomplete="list"><div class="combo-list" role="listbox"></div>`;
   const input = el.querySelector('input'), list = el.querySelector('.combo-list');
   let value = '', hl = -1, shown = [];
@@ -30,7 +30,7 @@ function combo(el, { options, placeholder }) {
     shown = options().filter(o => !t || o.label.toLowerCase().includes(t));
     hl = Math.min(hl, shown.length - 1);
     list.innerHTML = shown.length ? shown.map((o, i) => `<div data-i="${i}" class="${o.value === value ? 'sel' : ''} ${i === hl ? 'hl' : ''}">${esc(o.label)}</div>`).join('')
-      : '<div class="none">No location found</div>';
+      : `<div class="none">${empty}</div>`;
   }
   const isOpen = () => el.classList.contains('open');
   function open() { if (input.disabled) return; hl = -1; draw(); el.classList.add('open'); }

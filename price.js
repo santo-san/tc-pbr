@@ -31,7 +31,7 @@ const priceStatus = r => MP.status(r, TODAY);
 
 // ---------- Filters ----------
 const activePartners = () => VENDORS.filter(v => !v.deleted).sort((a, b) => a.code < b.code ? -1 : 1).map(v => ({ value: v.code, label: `${v.code} - ${v.name}` }));
-const pPartner = combo($('pPartner'), { options: activePartners, placeholder: 'Select Trucking Company' });
+const pPartner = combo($('pPartner'), { options: activePartners, placeholder: 'Select Trucking Company', empty: 'No trucking company found' });
 const pState = { f: { period: '', partner: '', comp: '', status: '' }, q: '', page: 1, size: 10, hidden: new Set(['vehicleType', 'source']) };
 function pLoad(fn) {
   $('pTableBox').classList.add('loading'); $('pSearch').disabled = true;
