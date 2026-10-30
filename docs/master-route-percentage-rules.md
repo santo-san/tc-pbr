@@ -5,7 +5,7 @@ Master Route Percentage decides **which routes are used in PR creation** and **h
 - A route is a sequence of **Master Location** stops: START, optional VIA stops, then END.
 - The system builds the **Route Code** and **Route Description** from the stops and **calculates the distance** of the route.
 
-Mock-up: `master.html#route-percentage` (Master > Route Percentage). Rules live in [`master-route-percentage.js`](../master-route-percentage.js). The screen follows the existing **Route Entry / List Active Route Percentage** screen.
+Mock-up: `master.html#route-percentage` (Master > Route Percentage). Rules live in [`master-route-percentage.js`](../master-route-percentage.js). UISS: [`docs/uiss/UISS_Screen_Master_Route_Percentage.xlsx`](uiss/UISS_Screen_Master_Route_Percentage.xlsx). The screen follows the existing **Route Entry / List Active Route Percentage** screen.
 
 ---
 
