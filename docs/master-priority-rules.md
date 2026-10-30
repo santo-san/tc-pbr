@@ -2,7 +2,7 @@
 
 Master Priority keeps the **priority order of routes (From → To)**. It is the reference used to decide which route comes first in **Trucking Payment by Resource**. Priority **1** is the highest; the numbers are always 1..n without gaps.
 
-Mock-up: `master.html#priority` (Master > Priority). Rules live in [`master-priority.js`](../master-priority.js).
+Mock-up: `master.html#priority` (Master > Priority). Rules live in [`master-priority.js`](../master-priority.js). UISS: [`docs/uiss/UISS_Screen_Master_Priority.xlsx`](uiss/UISS_Screen_Master_Priority.xlsx).
 The screen follows the existing **Master Priority** screen.
 
 ---
@@ -87,3 +87,4 @@ flowchart TD
 3. **Mileage required?** Must a route exist in Master Mileage before it gets a priority (assumed yes, since the Mileage column is shown)?
 4. **Delete:** physical delete (assumed) or inactive flag with history?
 5. **Scope:** one priority list for all, or per trucking company / per period?
+6. **Audit on renumbering:** when other routes shift because of an add, edit or delete, should their Changed DT / Changed By also be updated? The mock-up updates only the edited route and the two routes swapped by ↑ / ↓.
