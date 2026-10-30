@@ -173,6 +173,50 @@
   .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
   .kpi-tbr b { font-size: 15px; margin-right: 110px; }
   #kAlert .form-alert-m { margin-bottom: 12px; }
+  /* Master Route Percentage */
+  .rp-entry { border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.07); padding: 0 18px 18px; margin-bottom: 24px; background: #fff; }
+  .rp-entry h2 { font-size: 12px; font-weight: 600; margin: 0 0 16px; padding: 18px 16px 14px; border-bottom: 1px solid var(--line); }
+  .rp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+  .rp-entry label { display: block; font-weight: 600; font-size: 10px; margin-bottom: 6px; }
+  .rp-entry label .req { color: var(--red); }
+  .rp-entry .f { margin-bottom: 8px; position: relative; }
+  .rp-entry .f.wide { grid-column: span 2; }
+  .rp-entry .ro { width: 100%; height: 30px; border: 1px solid #e5e7eb; background: #eceef1; border-radius: 6px; padding: 0 10px; font-size: 9.5px; color: #6b7280; font-family: inherit; }
+  .rp-entry .combo input { height: 30px; }
+  .rp-entry .rp-x { position: absolute; right: 30px; top: 28px; border: 0; background: none; color: #9ca3af; font-size: 14px; cursor: pointer; }
+  .rp-stops { border: 1px solid var(--line); border-radius: 6px; margin: 4px 0 14px; overflow: hidden; }
+  .rp-stops table { width: 100%; border-collapse: collapse; }
+  .rp-stops th { background: #fff; text-align: left; font-size: 9.5px; padding: 9px 14px; border: 0; border-bottom: 1px solid var(--line); }
+  .rp-stops td { font-size: 9.5px; padding: 6px 14px; border: 0; text-align: left; }
+  .rp-stops tr:nth-child(odd) td { background: #f6f7f9; }
+  .rp-stops .mv button { border: 0; background: none; color: var(--blue); font-size: 15px; padding: 0 3px; cursor: pointer; }
+  .rp-stops .mv button:disabled { color: #c7cbd2; cursor: default; }
+  .rp-stops .rm { border: 1.5px solid #ef4444; color: #ef4444; background: #fff; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; line-height: 12px; padding: 0; cursor: pointer; }
+  .rp-tag { display: inline-block; min-width: 38px; text-align: center; border: 1px solid; border-radius: 5px; padding: 1px 6px; font-size: 8.5px; font-weight: 700; }
+  .rp-tag.START { color: #2563eb; border-color: #2563eb; } .rp-tag.END { color: #16a34a; border-color: #16a34a; } .rp-tag.VIA { color: #6b7280; border-color: #c7cbd2; }
+  .rp-stops .none { color: var(--muted); text-align: center; padding: 14px; }
+  .rp-row2 { display: flex; gap: 24px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .rp-row2 .f { width: 220px; }
+  .rp-row2 input#rPct { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 10px; font-family: inherit; font-size: 10.5px; }
+  .rp-entry .msg { color: var(--red); font-size: 9.5px; margin-top: 3px; }
+  .rp-entry .err input, .rp-stops.err { border-color: var(--red); }
+  .rp-actions { display: flex; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 6px; }
+  .rp-list-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .rp-list-head h2 { font-size: 11px; margin: 0; }
+  .rp-list-head .spacer { flex: 1; }
+  .rp-list-head .search input { width: 150px; }
+  #rpTable th, #rpTable td { text-align: left; padding: 8px 10px; font-size: 9.5px; }
+  #rpTable th:first-child, #rpTable td:first-child { text-align: center; width: 90px; }
+  #rpTable th.sort { cursor: pointer; user-select: none; }
+  #rpTable td input.pct { width: 100%; max-width: 260px; height: 28px; border: 1px solid #d5d9e0; border-radius: 4px; padding: 0 8px; font-family: inherit; font-size: 10px; }
+  #rpTable td input.pct.err { border-color: var(--red); background: #fef2f2; }
+  #rpTable tr.editing td { background: #eff6ff; }
+  #rpTable tr.flash td { animation: priFlash 1.2s; }
+  .rp-est { color: #b45309; font-size: 8.5px; }
+  .rp-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 10px; color: #4b5563; gap: 10px; flex-wrap: wrap; }
+  .rp-total { font-weight: 700; padding: 4px 10px; border-radius: 5px; background: #fef3c7; color: #92400e; }
+  .rp-total.full { background: #dcfce7; color: #15803d; }
+  @media (max-width: 900px) { .rp-grid { grid-template-columns: 1fr; } .rp-entry .f.wide { grid-column: span 1; } }
   /* Master Priority */
   .pri-bar { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
   .pri-bar .f { width: 150px; position: relative; }
@@ -474,6 +518,52 @@
         </div>
       </section>
     </div>
+    <div id="rpContent" style="display:none">
+      <section class="rp-entry">
+        <h2 id="rTitle">Route Entry</h2>
+        <div id="rAlert"></div>
+        <div class="rp-grid">
+          <div class="f"><label>Route Code <span class="req">*</span></label><input class="ro" id="rCode" readonly placeholder="Generated from the locations"></div>
+          <div class="f"><label>Location Pick</label><div class="combo" id="rPick"></div><button class="rp-x" id="rPickClear" title="Clear" aria-label="Clear">&times;</button></div>
+          <div class="f wide"><label>Route Description <span class="req">*</span></label><input class="ro" id="rDesc" readonly placeholder="Generated from the locations"></div>
+        </div>
+        <div class="rp-stops" id="rStops"><table><thead><tr><th style="width:12%">Move</th><th style="width:14%">Delete</th><th style="width:13%">Code</th><th style="width:30%">Location Name</th><th>Descr</th></tr></thead><tbody id="rStopBody"></tbody></table></div>
+        <div class="msg" id="rStopsMsg" style="margin:-8px 0 10px"></div>
+        <div class="rp-row2">
+          <div class="f" data-f="percentage"><label for="rPct">Percentage <span class="req">*</span></label><input id="rPct" inputmode="decimal"></div>
+          <div class="f"><label>Distance (Km)</label><input class="ro" id="rDist" readonly placeholder="Calculated by the system"></div>
+        </div>
+        <div class="rp-actions">
+          <button class="btn-save" id="rSave">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg><span id="rSaveLbl">Save</span>
+          </button>
+          <button class="btn-cancel" id="rClear">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Clear
+          </button>
+        </div>
+      </section>
+      <div class="rp-list-head">
+        <h2>List Active Route Percentage</h2>
+        <span class="spacer"></span>
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input type="text" id="rQuick" placeholder="Search">
+        </div>
+        <div class="dd" id="ddRView">
+          <button class="btn-blue">
+            <svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>
+            Kolom <span style="font-size:8px">▼</span>
+          </button>
+          <div class="dd-menu" id="rViewMenu"></div>
+        </div>
+      </div>
+      <div class="table-wrap"><table id="rpTable"><thead id="rThead"></thead><tbody id="rTbody"></tbody></table></div>
+      <div class="rp-foot">
+        <span id="rInfo"></span>
+        <span class="rp-total" id="rTotal"></span>
+        <div class="pri-pager" id="rPager"></div>
+      </div>
+    </div>
     <section class="mcard" id="kpiContent" style="display:none">
       <div id="kAlert"></div>
       <div class="kpi-bar">
@@ -556,11 +646,13 @@
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
 <script src="master-kpi.js?v=20261030a"></script>
-<script src="master.js?v=20261030d"></script>
-<script src="location.js?v=20261030c"></script>
-<script src="mileage.js?v=20261030d"></script>
+<script src="master-route-percentage.js?v=20261030a"></script>
+<script src="master.js?v=20261030e"></script>
+<script src="location.js?v=20261030d"></script>
+<script src="mileage.js?v=20261030e"></script>
 <script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
 <script src="kpi.js?v=20261030a"></script>
+<script src="route-percentage.js?v=20261030a"></script>
 </body>
 </html>

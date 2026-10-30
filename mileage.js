@@ -15,12 +15,14 @@ const milSeedAt = new Date(2026, 7, 22, 15, 0);
   // Routes used in Master Priority
   ['DPCMR', 'CYKRW', 57], ['PRTGP', 'WHCKR', 61], ['PRTGP', 'CYKRW', 67], ['DPCMR', 'EKRWP', 76], ['CYKRW', 'EKRWP', 25],
   ['CYSTR', 'PRTGP', 11], ['CYSTR', 'CYEDN', 6], ['CYEDN', 'PRTGP', 8], ['CYEJM', 'PRTGP', 4],
+  // Legs used in Master Route Percentage
+  ['D1', 'S1', 3], ['S1', 'X1', 14], ['S1', 'D3', 15],
 ].forEach(([from, to, mileage]) => MILEAGES.push({
   from, to, mileage, status: MM.STATUS.ACTIVE, createdBy: 'ielp1', createdAt: milSeedAt, updatedBy: 'ielp1', updatedAt: milSeedAt, version: 1,
 }));
 
 // ---------- Location dropdown (searchable by code or name) ----------
-function combo(el, { options, placeholder, empty = 'No location found' }) {
+function combo(el, { options, placeholder, empty = 'No location found', onPick }) {
   el.innerHTML = `<input type="text" placeholder="${placeholder}" aria-autocomplete="list"><div class="combo-list" role="listbox"></div>`;
   const input = el.querySelector('input'), list = el.querySelector('.combo-list');
   let value = '', hl = -1, shown = [];
@@ -35,7 +37,7 @@ function combo(el, { options, placeholder, empty = 'No location found' }) {
   const isOpen = () => el.classList.contains('open');
   function open() { if (input.disabled) return; hl = -1; draw(); el.classList.add('open'); }
   function close() { if (isOpen()) { el.classList.remove('open'); input.value = labelOf(value); } }
-  function pick(o) { value = o.value; el.classList.remove('open'); input.value = o.label; }
+  function pick(o) { value = o.value; el.classList.remove('open'); input.value = o.label; onPick?.(o.value); }
   input.addEventListener('focus', () => { input.select(); open(); });
   input.addEventListener('click', () => { if (!isOpen()) open(); });
   input.addEventListener('input', () => { hl = 0; draw(input.value); el.classList.add('open'); });
