@@ -6,7 +6,7 @@ Master KPI holds the **performance value of each trucking company** and its **Or
 - The same number is the **daily QTY** in **PR creation**.
 - **Total By Resource** is the sum of Order Sharing of the companies with Payment Type *By Resources* (reference: 3 + 4 + 5 + 4 + 4 = **20**).
 
-Mock-up: `master.html#kpi` (Master > KPI). Rules live in [`master-kpi.js`](../master-kpi.js). The screen follows the existing **Master KPI** screen.
+Mock-up: `master.html#kpi` (Master > KPI). Rules live in [`master-kpi.js`](../master-kpi.js). UISS: [`docs/uiss/UISS_Screen_Master_KPI.xlsx`](uiss/UISS_Screen_Master_KPI.xlsx). The screen follows the existing **Master KPI** screen.
 
 ---
 
