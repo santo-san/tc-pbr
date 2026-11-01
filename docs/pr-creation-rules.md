@@ -11,6 +11,7 @@ The created PRs use the existing PR structure and approval workflow, so they app
 - **Rules:** [`pr-creation-rules.js`](../pr-creation-rules.js)
 - **Data sources:** [`pr-sources.js`](../pr-sources.js)
 - **Unit tests:** [`tests/pr-creation.test.js`](../tests/pr-creation.test.js)
+- **UISS:** [`docs/uiss/UISS_Screen_PR_Creation.xlsx`](uiss/UISS_Screen_PR_Creation.xlsx)
 
 ---
 
