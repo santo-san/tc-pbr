@@ -1,6 +1,6 @@
 # ELIPS Monthly PR / PO: Proses, Status, dan Aturan Validasi
 
-Dokumen ini menjabarkan alur Monthly PR (Purchase Request) dan PO (Purchase Order) untuk menu **PR Approval, PO Approval, PR Inquiry, dan PO Inquiry**. PR Creation belum termasuk.
+Dokumen ini menjabarkan alur Monthly PR (Purchase Request) dan PO (Purchase Order) untuk menu **PR Approval, PO Approval, PR Inquiry, dan PO Inquiry**. PR Creation dijelaskan di [pr-creation-rules.md](pr-creation-rules.md).
 
 Mock-up: `monthly.html`. Logika ada di [`monthly-workflow.js`](../monthly-workflow.js), jadi perilaku mock-up dan dokumen ini selalu sama.
 
@@ -37,7 +37,8 @@ Kolom PO: Production Month, PO Number, PR Number, PO Status, Auto Approve At (de
 
 | Aktor | Data yang dilihat | Aksi |
 |---|---|---|
-| IP Admin (pembuat PR) | Semua PR / PO | PR Creation (belum di mock-up); jalankan Auto Approve PO secara manual |
+| IP Admin | Semua PR / PO | Jalankan Auto Approve PO secara manual (PR lama di mock-up dibuat oleh IP Admin) |
+| Staff VPLD / SH VPLD (pembuat PR) | Semua PR / PO | PR Creation, lihat [pr-creation-rules.md](pr-creation-rules.md). PR yang dibuat SH: level SH Skip |
 | SH VPLD | Semua PR / PO | Approve / Reject PR di level SH |
 | DpH VPLD | Semua PR / PO | Approve / Reject PR di level DpH (level SH yang masih Pending menjadi Skip) |
 | DH VPLD | Semua PR / PO | Approve / Reject PR di level DH (level SH dan DpH yang masih Pending menjadi Skip); approve DH membuat PO |

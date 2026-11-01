@@ -63,6 +63,60 @@
   .apv-list { max-height: 160px; overflow: auto; border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; margin-bottom: 12px; font-size: 10.5px; }
   .apv-list div { padding: 2px 0; }
   .apv-list .bad { color: var(--red); }
+  /* PR Creation */
+  .pc-sub { color: #6b7280; font-size: 10.5px; margin: -4px 0 14px; }
+  .pc-bar { display: flex; justify-content: flex-end; gap: 8px; margin: -46px 0 18px; flex-wrap: wrap; }
+  .pc-btn { height: 34px; border-radius: 6px; padding: 0 14px; font-size: 10.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; cursor: pointer; }
+  .pc-btn.green { background: #22a061; color: #fff; } .pc-btn.green:hover { background: #1b8a52; }
+  .pc-btn.navy { background: #1d4ed8; color: #fff; } .pc-btn.navy:hover { background: #1e40af; }
+  .pc-btn.outline { background: #fff; color: #1e3a8a; border-color: #c7d2e5; }
+  .pc-btn:disabled { opacity: .45; cursor: default; }
+  .pc-btn.busy { opacity: .7; cursor: wait; }
+  .pc-params { border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.07); padding: 16px 20px; margin-bottom: 14px; background: #fff; }
+  .pc-grid { display: grid; grid-template-columns: 1.3fr 1fr 1.3fr 1fr; gap: 10px 18px; align-items: start; }
+  .pc-grid label { display: block; font-weight: 600; font-size: 10.5px; margin-bottom: 6px; color: #0b2b5c; }
+  .pc-grid label .req { color: var(--red); }
+  .pc-grid select, .pc-grid input { width: 100%; height: 32px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 10px; font-family: inherit; font-size: 10.5px; color: var(--text); background: #fff; }
+  .pc-grid .ro { background: #f1f4f9; border: 1px solid #e2e7f0; border-radius: 6px; min-height: 32px; padding: 7px 10px; font-size: 10.5px; color: #374151; }
+  .pc-grid .err select, .pc-grid .err input { border-color: var(--red); }
+  .pc-grid .msg { color: var(--red); font-size: 9.5px; margin-top: 3px; }
+  .pc-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: #eef4ff; color: #1e3a8a; border-radius: 14px; padding: 4px 10px; font-size: 9.5px; }
+  .chip.ok { background: #e7f7ee; color: #166534; } .chip.warn { background: #fff4db; color: #92400e; } .chip.bad { background: #fde8ea; color: #b91c1c; }
+  .chip select { height: 20px; border: 1px solid #c7d2e5; border-radius: 4px; font-size: 9.5px; padding: 0 4px; background: #fff; }
+  .pc-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .pc-alert { border-radius: 6px; padding: 8px 12px; font-size: 10.5px; margin-top: 10px; }
+  .pc-alert.bad { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .pc-alert.info { background: #eef5ff; color: #1e4f9a; border: 1px solid #cfe0fb; }
+  #pcTable th { background: #e3ebf7; color: #0b2b5c; font-size: 9.5px; line-height: 1.3; }
+  #pcTable td { font-size: 10px; padding: 8px 8px; }
+  #pcTable td.num { text-align: right; white-space: nowrap; }
+  #pcTable td.left { text-align: left; }
+  #pcTable tfoot td { background: #e8f0fb; font-weight: 700; color: #0b2b5c; font-size: 10.5px; }
+  #pcTable tr.sel td { background: #f5f9ff; }
+  .pc-detail { white-space: nowrap; background: #0b2b5c; color: #fff; border: 0; border-radius: 5px; height: 26px; padding: 0 10px; font-size: 10px; font-weight: 600; cursor: pointer; }
+  .st { display: inline-block; border-radius: 4px; padding: 2px 6px; font-size: 9px; font-weight: 600; text-align: left; line-height: 1.35; max-width: 210px; white-space: normal; }
+  .st.ready { background: #e7f7ee; color: #166534; } .st.bad { background: #fde8ea; color: #b91c1c; } .st.done { background: #eef2f7; color: #475569; } .st.new { background: #dbeafe; color: #1e40af; }
+  .seq small { display: block; color: #6b7280; font-size: 8.5px; }
+  .pc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 10px; color: #4b5563; gap: 10px; flex-wrap: wrap; }
+  .pc-total { background: #0b2b5c; color: #fff; border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: 10.5px; }
+  .pc-loading { display: none; text-align: center; padding: 26px; color: #1e40af; font-size: 11px; }
+  .pc-loading.show { display: block; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #c7d2fe; border-top-color: #1d4ed8; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* PR Creation detail pop-up */
+  .pcm { width: 860px; }
+  .pcm .info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 14px; padding: 12px 16px; background: #f6f8fc; font-size: 10px; }
+  .pcm .info b { display: block; color: #6b7280; font-weight: 500; font-size: 9px; margin-bottom: 2px; }
+  .pcm .scroll { max-height: 330px; overflow: auto; margin: 10px 16px; border: 1px solid var(--line); border-radius: 6px; }
+  .pcm table th { position: sticky; top: 0; background: #e3ebf7; z-index: 1; font-size: 9.5px; }
+  .pcm table td { font-size: 10px; } .pcm td.num { text-align: right; white-space: nowrap; } .pcm td.left { text-align: left; }
+  .pcm td.left b { color: var(--blue); display: block; } .pcm td.left span { color: #8b9bb7; font-size: 9px; }
+  .pcm tfoot td { position: sticky; bottom: 0; background: #fef9e7; font-weight: 700; }
+  .pcm tr.used td { color: #9ca3af; }
+  .pcm .mf { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px 14px; align-items: center; }
+  .pcm .mf .note { margin-right: auto; font-size: 9.5px; color: #6b7280; }
+  @media (max-width: 1100px) { .pc-grid { grid-template-columns: 1fr 1fr; } .pc-bar { margin-top: 0; } .pcm .info { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 1100px) { .filter-card { grid-template-columns: 1fr; } }
   @media (max-width: 760px) { .mfilters { grid-template-columns: 1fr 1fr; } }
 </style>
@@ -111,6 +165,7 @@
         <label class="role" for="roleSel">Login sebagai
           <select id="roleSel">
             <option value="ip">IP Admin - ielp1</option>
+            <option value="staff">Staff VPLD - vpld.staff</option>
             <option value="ap:SH">SH VPLD - farid.fadillah</option>
             <option value="ap:DpH">DpH VPLD - bahauddin</option>
             <option value="ap:DH">DH VPLD - risa</option>
@@ -135,6 +190,52 @@
       <p>Menu ini belum dibuat di mock-up (menyusul).</p>
     </div>
 
+    <div id="prcPage" style="display:none">
+      <p class="pc-sub">Review and create Purchase Requisition for each trucking company</p>
+      <div class="pc-bar">
+        <button class="pc-btn green" id="pcGenerate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M9 18h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6"/></svg><span id="pcGenLbl">Generate Route Plan</span></button>
+        <button class="pc-btn navy" id="pcCreate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M10 13h6M10 17h4"/></svg><span id="pcCreateLbl">Create PR</span></button>
+        <div class="dd" id="ddPcExport">
+          <button class="pc-btn outline"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Export <span style="font-size:8px">▼</span></button>
+          <div class="dd-menu" id="pcExportMenu"><button data-x="summary">List Summary (.xls)</button><button data-x="routes">Route Plan Detail (.xls)</button></div>
+        </div>
+      </div>
+      <section class="pc-params">
+        <div class="pc-grid" id="pcForm">
+          <div class="f" data-f="type"><label for="pcType">PR Creation Type <span class="req">*</span></label>
+            <select id="pcType"><option value="">Select PR Creation Type</option><option value="FIX">Monthly PR - Fixed Cost</option><option value="ROUTE">Route-Based PR for LP Operations</option></select></div>
+          <div class="f" data-f="ym"><label for="pcMonth">Operational Month <span class="req">*</span></label><input type="month" id="pcMonth"></div>
+          <div class="f" data-f="partner"><label for="pcPartner">Logistics Partner <span class="req">*</span></label><select id="pcPartner"></select></div>
+          <div class="f"><label>PR Sequence</label><div class="ro" id="pcSeq">-</div></div>
+        </div>
+        <div class="pc-chips" id="pcChips"></div>
+        <div id="pcAlert"></div>
+        <div class="pc-btns">
+          <button class="btn-clear" id="pcCancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="list-head">
+          <b style="font-size:11px" id="pcListTitle">List Summary</b>
+          <span class="spacer"></span>
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input type="text" id="pcSearch" placeholder="Search trucking company..." style="width:220px">
+          </div>
+          <div class="dd" id="ddPcCol">
+            <button class="btn-blue"><svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>Column <span style="font-size:8px">▼</span></button>
+            <div class="dd-menu" id="pcColMenu"></div>
+          </div>
+        </div>
+        <div class="pc-loading" id="pcLoading"><span class="spin"></span><span id="pcLoadingText">Calculating route plan...</span></div>
+        <div class="table-wrap" id="pcTableBox"><table id="pcTable"><thead id="pcThead"></thead><tbody id="pcTbody"></tbody><tfoot id="pcTfoot"></tfoot></table></div>
+        <div class="pc-foot">
+          <span id="pcInfo"></span>
+          <span class="pc-total" id="pcSelTotal">Total PR Cost (selected): IDR 0</span>
+          <div class="pager" id="pcPager" style="margin-top:0"></div>
+        </div>
+      </section>
+    </div>
     <div id="content">
       <section class="filter-card">
         <div>
@@ -219,6 +320,15 @@
   </div>
 </div>
 
+<div class="overlay" id="pcOverlay">
+  <div class="modal pcm" role="dialog" aria-modal="true" aria-labelledby="pcmTitle">
+    <div class="modal-h"><h3 id="pcmTitle"></h3><button id="pcmClose" aria-label="Tutup">&times;</button></div>
+    <div class="info" id="pcmInfo"></div>
+    <div class="scroll"><table id="pcmTable"></table></div>
+    <div class="mf"><span class="note" id="pcmNote"></span><button class="btn-outline" id="pcmCancel">Close</button><button class="pc-btn navy" id="pcmConfirm">Confirm &amp; Create PR</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="preview">
   <div class="pv" role="dialog" aria-modal="true" aria-labelledby="pvTitle">
     <div class="modal-h"><h3 id="pvTitle"></h3><button id="pvClose" aria-label="Tutup">&times;</button></div>
@@ -229,7 +339,12 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="monthly-workflow.js?v=20261030a"></script>
-<script src="monthly.js?v=20261030a"></script>
+<script src="monthly-workflow.js?v=20261101a"></script>
+<script src="master-price.js?v=20261030b"></script>
+<script src="master-route-percentage.js?v=20261030a"></script>
+<script src="pr-sources.js?v=20261101a"></script>
+<script src="pr-creation-rules.js?v=20261101a"></script>
+<script src="monthly.js?v=20261101a"></script>
+<script src="pr-creation.js?v=20261101a"></script>
 </body>
 </html>
