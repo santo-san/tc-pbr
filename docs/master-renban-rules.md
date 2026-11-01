@@ -2,7 +2,7 @@
 
 Master Renban maintains the **Renban Code** per **Plant** and **Dest**, together with its **Source**.
 
-Mock-up: `master.html#renban` (Master > Renban). Rules live in [`master-renban.js`](../master-renban.js). The screen follows the existing **Master Renban** screen.
+Mock-up: `master.html#renban` (Master > Renban). Rules live in [`master-renban.js`](../master-renban.js). UISS: [`docs/uiss/UISS_Screen_Master_Renban.xlsx`](uiss/UISS_Screen_Master_Renban.xlsx). The screen follows the existing **Master Renban** screen.
 
 ---
 
