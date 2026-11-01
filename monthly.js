@@ -67,8 +67,9 @@ const IP = { role: 'IP_ADMIN', userId: 'ielp1', name: 'Admin IELP' };
 const approver = lv => ({ role: 'APPROVER', level: lv, division: MASTER.division, userId: MASTER.approvers[lv] });
 const supplier = code => ({ role: 'SUPPLIER', supplierCode: code, userId: `${code.toLowerCase()}.admin`, name: SUP[code] });
 const GA = { role: 'GA', userId: 'ga.staff', name: 'General Affair Dept' };
+const STAFF = { role: 'VPLD_STAFF', userId: 'vpld.staff', division: MASTER.division, name: 'Staff VPLD' };
 // PR running number per production month (Oct 2026 starts at 1152 as on the reference screen)
-const SEQ = { '2026-08': 952, '2026-09': 1052, '2026-10': 1152, '2026-11': 1252 };
+const SEQ = { '2026-08': 952, '2026-09': 1052, '2026-10': 1152, '2026-11': 1252, '2026-12': 1352, '2027-01': 1452 };
 
 function seedPR(code, ym, rev, prDate, steps = []) {
   const s = SUPPLIERS.find(x => x[0] === code);
@@ -121,7 +122,7 @@ POS.forEach((po, i) => {
 
 // ---------- Views ----------
 const VIEWS = {
-  'pr-creation': { title: 'PR Creation', empty: true },
+  'pr-creation': { title: 'PR Creation - List Summary', custom: true },   // pr-creation.js
   'pr-approval': { title: 'PR Approval', doc: 'pr', approval: true },
   'po-approval': { title: 'PO Approval', doc: 'po', approval: true },
   'pr-inquiry': { title: 'PR Inquiry', doc: 'pr' },
@@ -207,7 +208,9 @@ function render() {
   $('crumb').innerHTML = `PR/PO &nbsp;-&nbsp; ${v.title}`;
   document.querySelectorAll('#monthlySub a').forEach(a => a.classList.toggle('active', a.dataset.view === state.view));
   $('emptyPage').style.display = v.empty ? '' : 'none';
-  $('content').style.display = v.empty ? 'none' : '';
+  $('content').style.display = v.empty || v.custom ? 'none' : '';
+  $('prcPage').style.display = v.custom ? '' : 'none';
+  if (v.custom) return window.prcRender?.();
   if (v.empty) return;
   const c = COLS[v.doc];
   const rows = filtered();
@@ -253,7 +256,7 @@ function pagerHtml(page, pages) {
 
 function setupView() {
   const v = VIEWS[state.view];
-  if (v.empty) return render();
+  if (v.empty || v.custom) return render();
   const isPo = v.doc === 'po';
   $('fNoLabel').textContent = isPo ? 'PO Number' : 'PR Number';
   $('fStatus').innerHTML = (isPo ? PO_STATUS_OPT : PR_STATUS_OPT).map(([val, l]) => `<option value="${val}">${l}</option>`).join('');
@@ -319,7 +322,7 @@ document.addEventListener('click', () => document.querySelectorAll('.dd').forEac
 
 $('roleSel').addEventListener('change', () => {
   const [kind, val] = $('roleSel').value.split(':');
-  state.actor = kind === 'ip' ? IP : kind === 'ga' ? GA : kind === 'ap' ? approver(val) : supplier(val);
+  state.actor = kind === 'ip' ? IP : kind === 'staff' ? STAFF : kind === 'ga' ? GA : kind === 'ap' ? approver(val) : supplier(val);
   const a = state.actor;
   $('userName').textContent = a.userId;
   $('userRole').textContent = M.roleLabel(a) + (a.role === 'SUPPLIER' ? ` · ${a.name}` : '');
@@ -411,7 +414,8 @@ function openDetail(no) {
   $('docActions').innerHTML = onApproval ? `<button class="btn-green" data-doc="approve" ${can ? '' : 'disabled'} title="${esc(why || '')}">Approve</button>
     <button class="btn-red2" data-doc="reject" ${can ? '' : 'disabled'} title="${esc(why || '')}">Reject</button>${why ? `<span class="sub-info" style="align-self:center">${esc(why)}</span>` : ''}` : '';
   const h = d.history.slice().reverse();
-  $('docHistory').innerHTML = `<p class="sec-title">Riwayat Approval</p><div class="table-wrap"><table>
+  const typeInfo = d.type ? `<p class="notice" style="margin:0 0 10px">${esc(PrCreation.TYPE_LABEL[d.type])} · PR Sequence ${d.rev}${d.parentPrNo ? ` (additional to ${d.parentPrNo})` : ' (initial PR)'} · Working Days ${d.workingDays ?? '-'} · Next process: ${esc(d.nextProcess)}</p>` : '';
+  $('docHistory').innerHTML = `${typeInfo}<p class="sec-title">Riwayat Approval</p><div class="table-wrap"><table>
     <tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Dari</th><th>Ke</th><th>Reason / Catatan</th></tr>
     ${h.map(x => `<tr><td style="white-space:nowrap">${fmtDT(x.at)}</td><td>${esc(x.user)}<span class="sub-info">${esc(x.role)}</span></td><td>${esc(x.action)}</td><td>${esc(x.from)}</td><td>${esc(x.to)}</td><td class="left">${esc([x.reason, x.note].filter(Boolean).join(' · ') || '-')}</td></tr>`).join('')}
   </table></div>`;
@@ -420,6 +424,7 @@ function openDetail(no) {
 }
 function renderRoutes() {
   const d = rs.doc, q = rs.search.trim().toLowerCase();
+  if (d.type) return renderPcRoutes(d, q);
   const rows = d.routes.filter(r => !q || (r.code + ' ' + r.desc).toLowerCase().includes(q)).sort((a, b) => a.code < b.code ? -rs.sortDir : rs.sortDir);
   const pages = Math.max(1, Math.ceil(rows.length / rs.size)); rs.page = Math.min(rs.page, pages);
   const start = (rs.page - 1) * rs.size, view = rows.slice(start, start + rs.size);
@@ -434,6 +439,27 @@ function renderRoutes() {
       <td data-rc="qty" colspan="2" style="text-align:right">Total QTY :</td><td data-rc="qty"><span class="pill">${num(d.qty)}</span></td>
       <td data-rc="price" colspan="2" style="text-align:right">Total. Price</td><td data-rc="price"><span class="pill">${num(d.price)}</span></td></tr></tfoot>`;
   document.querySelectorAll('#routeTable [data-rc]').forEach(el => el.classList.toggle('hidden-col', rs.hidden.has(el.dataset.rc)));
+  $('rInfo').textContent = rows.length ? `Showing ${start + 1} to ${start + view.length} of ${rows.length} records` : 'Showing 0 to 0 of 0 records';
+  $('rPager').innerHTML = pagerHtml(rs.page, pages);
+}
+// PRs from PR Creation: Monthly Cost components or the planned routes
+function renderPcRoutes(d, q) {
+  if (d.type === PrCreation.TYPE.FIX) {
+    $('routeTable').innerHTML = `<thead><tr><th style="min-width:220px">Cost Component</th><th>Source</th><th>Basis</th><th>Amount (IDR)</th></tr></thead>
+      <tbody><tr><td class="rcell"><b>Monthly Cost (Fix Cost)</b><span>Paid once per month</span></td><td>E-Catalogue</td><td>IDR / month</td><td class="num tp">${num(d.fixedCost)}</td></tr>
+      <tr><td class="rcell"><b>Mileage Cost</b><span>Base price for distance; amount comes from the route-based PR</span></td><td>E-Catalogue</td><td>IDR ${num(d.mileageRate ?? 0)} / KM</td><td class="num">-</td></tr></tbody>
+      <tfoot><tr><td colspan="3" style="text-align:right">Total PR Cost :</td><td><span class="pill">${num(d.price)}</span></td></tr></tfoot>`;
+    $('rInfo').textContent = ''; $('rPager').innerHTML = ''; return;
+  }
+  const rows = d.routes.filter(r => !q || (r.code + ' ' + r.description).toLowerCase().includes(q)).sort((a, b) => a.code < b.code ? -rs.sortDir : rs.sortDir);
+  const pages = Math.max(1, Math.ceil(rows.length / rs.size)); rs.page = Math.min(rs.page, pages);
+  const start = (rs.page - 1) * rs.size, view = rows.slice(start, start + rs.size);
+  $('routeTable').innerHTML = `<thead><tr><th class="sortable" id="rSort" style="min-width:280px">Route <span class="arrow">${rs.sortDir === 1 ? '▲' : '▼'}</span></th>
+      <th>Route<br>Percentage</th><th>Number of<br>Orders</th><th>Distance<br>(Km)</th><th>Mileage Cost<br>(IDR/Km)</th><th>Planned Cost<br>(IDR)</th></tr></thead>
+    <tbody>${view.map(r => `<tr><td class="rcell"><b>${r.code}</b><span>${esc(r.description)}</span></td><td>${r.percentage}%</td><td class="tq">${num(r.orders)}</td>
+      <td>${num(r.distance)}</td><td class="num">${num(r.priceKm)}</td><td class="num tp">${num(r.cost)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">No Data Found</td></tr>'}</tbody>
+    <tfoot><tr><td style="text-align:right">Working Days : ${d.workingDays} · Order Sharing ${d.dailyOrders}/day (${d.percentage}%)</td><td></td>
+      <td><span class="pill">${num(d.qty)}</span></td><td colspan="2" style="text-align:right">Total PR Cost :</td><td><span class="pill">${num(d.price)}</span></td></tr></tfoot>`;
   $('rInfo').textContent = rows.length ? `Showing ${start + 1} to ${start + view.length} of ${rows.length} records` : 'Showing 0 to 0 of 0 records';
   $('rPager').innerHTML = pagerHtml(rs.page, pages);
 }
@@ -452,6 +478,16 @@ function download(no) {
   const d = [...PRS, ...POS].find(x => docNo(x) === no);
   const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const head = [d.poNo ? 'PO Number' : 'PR Number', 'Production Month', 'Trucking Code', 'Trucking Name', 'Route', 'Route Description', 'Qty 20', 'Qty 40', 'Qty Total', 'Price 20', 'Price 40', 'Price Total'];
+  if (d.type) {
+    const pcHead = [d.poNo ? 'PO Number' : 'PR Number', 'Production Month', 'PR Sequence', 'PR Type', 'Trucking Code', 'Trucking Name', 'Component / Route', 'Description', 'Route Percentage', 'Number of Orders', 'Distance (Km)', 'Mileage Cost (IDR/Km)', 'Amount (IDR)'];
+    const body = d.type === PrCreation.TYPE.FIX ? [[no, d.prodMonth, d.rev, PrCreation.TYPE_LABEL[d.type], d.supplierCode, d.supplierName, 'FIX', 'Monthly Cost (E-Catalogue)', '', '', '', d.mileageRate, d.fixedCost]]
+      : d.routes.map(r => [no, d.prodMonth, d.rev, PrCreation.TYPE_LABEL[d.type], d.supplierCode, d.supplierName, r.code, r.description, r.percentage, r.orders, r.distance, r.priceKm, r.cost]);
+    const out = [pcHead, ...body, ['TOTAL', '', '', '', '', '', '', `Working Days ${d.workingDays ?? '-'}`, '', d.qty, '', '', d.price]].map(r => r.map(q).join(','));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + out.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+    a.download = `${no}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    toast(`${no}.csv di-download`); return;
+  }
   const lines = [head.map(q).join(',')].concat(d.routes.map(r => [no, d.prodMonth, d.supplierCode, d.supplierName, r.code, r.desc, r.q20, r.q40, r.q20 + r.q40, r.p20, r.p40, r.q20 * r.p20 + r.q40 * r.p40].map(q).join(',')));
   lines.push(['TOTAL', '', '', '', '', `Sharing ${d.percentage}%`, '', '', d.qty, '', '', d.price].map(q).join(','));
   const a = document.createElement('a');
