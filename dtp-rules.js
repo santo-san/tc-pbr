@@ -1,0 +1,238 @@
+// ELIPS TC-PBR DTP Creation (Daily Trucking Plan) with one Universal DTP model for Import and Export.
+// Records come from Excel upload, manual entry or the BEST interface; the planner submits them, a queue processes them
+// and each processed record becomes a Daily order (Planning Order / DTP Creation Release) for the LP Admin.
+// Pure logic (no DOM) so it can be tested with Node.
+(function (root) {
+  const MODEL = { code: 'UNIVERSAL', label: 'Universal DTP', desc: 'Import / Export' };
+  const IO = ['IMPORT', 'EXPORT'];
+  const SOURCE = { BEST: 'BEST Interface', EXCEL: 'Excel Upload', MANUAL: 'Manual Entry' };
+  const STATUS = {
+    AVAILABLE: 'Available', ERROR: 'Validation Error', READY: 'Ready to Submit', SUBMITTED: 'Submitted',
+    QUEUED: 'Queued', PROCESSING: 'Processing', PROCESSED: 'Processed', FAILED: 'Failed',
+  };
+  const SELECTABLE = [STATUS.AVAILABLE, STATUS.READY];
+  const LOCKED = [STATUS.SUBMITTED, STATUS.QUEUED, STATUS.PROCESSING, STATUS.PROCESSED];
+  // Calendar entry colours (orders of a date, see batchStatus)
+  const CAL = { WAIT: 'Waiting Assignment', ASSIGNED: 'Assigned to Truck', REJECTED: 'Rejected by LP', FINISH: 'Order Finish' };
+
+  // Columns of the standard Excel template (format DTP), in template order. * = mandatory in the template.
+  const COLUMNS = [
+    ['roundUse', 'ROUNDUSE', true], ['lp', 'LP', true], ['renban', 'RENBAN', true], ['from', 'FROM LOCATION', true],
+    ['to', 'TO LOCATION', true], ['dest', 'DESTINATION', true], ['etd', 'ETD', true], ['ctrSize', 'CONTAINER SIZE', true],
+    ['agent', 'SHIPPING AGENT', false], ['bookNo', 'CTR BOOKING NO', false], ['vessel', 'VESSEL NAME', false],
+    ['truckType', 'TRUCK TYPE', true], ['container', 'CONTAINER NO', false], ['description', 'DESCRIPTION', false],
+    ['shift', 'SHIFT', false], ['dg', 'CTR DG FLAG', false], ['arrDate', 'ARRIVAL DATE', false], ['arrTime', 'ARRIVAL TIME', false],
+  ].map(([key, label, required]) => ({ key, label, required }));
+  // Fields that are not in the template: operation type (screen header or interface), exporter and importer (interface)
+  const EXTRA = [{ key: 'io', label: 'IMPORT/EXPORT', required: true }, { key: 'exporter', label: 'EXPORTER', required: false }, { key: 'importerCd', label: 'IMPORTER CD', required: false }];
+  const OPTIONS = { roundUse: ['Y', 'N'], ctrSize: ['20', '40', '40 HC', '45'], shift: ['DAY', 'NIGHT'], dg: ['DG'], io: IO };
+  const label = k => [...COLUMNS, ...EXTRA].find(c => c.key === k).label;
+
+  const MSG = {
+    noAuth: 'Only the VPLD Planner can create DTP.',
+    noConfig: 'System Master DTP date range (backdate / advance days) is not configured. Please contact the system administrator.',
+    backdate: (d, n) => `Planning date ${d} is before the allowed backdate range (${n} day(s) before today).`,
+    advance: (d, n) => `Planning date ${d} is after the allowed advance range (${n} day(s) after today).`,
+    modelReq: 'Please select the Universal DTP.',
+    req: l => `${l} is required.`,
+    option: (l, v, opts) => `${l} "${v}" is not valid (${opts.join(' / ')}).`,
+    code: (l, v) => `${l} "${v}" is not registered in the data mapping.`,
+    same: 'TO LOCATION cannot be the same as FROM LOCATION.',
+    format: l => `${l} must be letters / numbers only (max 20).`,
+    date: l => `${l} is not a valid date.`,
+    time: l => `${l} is not a valid time (HH:MM).`,
+    dupFile: (k, n) => `Duplicate ${k} in row ${n} of the same file.`,
+    dupGrid: (k, s) => `${k} already exists in the grid (status ${s}).`,
+    submitted: (k, s) => `${k} has already been submitted (status ${s}). It cannot be submitted again.`,
+    fileType: 'Invalid file. Please upload the Excel template (.xlsx / .xls).',
+    header: miss => `Invalid Excel format: column(s) ${miss} not found. Please use the Download Template format.`,
+    empty: 'The Excel file has no data rows.',
+    uploadErr: n => `${n} row(s) failed validation. No record was added. Please correct the file and upload again.`,
+    uploaded: n => `${n} record(s) uploaded and validated.`,
+    noSelect: 'Select at least one eligible record.',
+    notEligible: n => `${n} selected record(s) are no longer eligible (already submitted or invalid).`,
+    confirm: (n, d) => `Submit ${n} delivery record(s) as DTP for ${d}? Submitted records cannot be submitted again.`,
+    submittedOk: n => `${n} record(s) submitted and sent to the processing queue.`,
+  };
+
+  // ---------- Dates ----------
+  const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const addDays = (s, n) => { const [y, m, d] = s.split('-').map(Number); return ymd(new Date(y, m - 1, d + n)); };
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmtLong = s => { const [y, m, d] = s.split('-'); return `${d}-${MON[+m - 1]}-${y}`; };   // 10-Nov-2026
+  const fmtDmy = s => s ? s.split('-').reverse().join('/') : '';
+  // System Master: how many days back / ahead the planner may create DTP
+  function dateRange(today, cfg) {
+    if (!cfg || !Number.isInteger(cfg.backdateDays) || !Number.isInteger(cfg.advanceDays)) return null;
+    return { min: addDays(today, -cfg.backdateDays), max: addDays(today, cfg.advanceDays) };
+  }
+  function dateCheck(date, today, cfg) {
+    const r = dateRange(today, cfg);
+    if (!r) return MSG.noConfig;
+    if (date < r.min) return MSG.backdate(fmtLong(date), cfg.backdateDays);
+    if (date > r.max) return MSG.advance(fmtLong(date), cfg.advanceDays);
+    return null;
+  }
+  const canCreate = actor => actor.role === 'PLANNER';
+
+  // ---------- Values ----------
+  // Excel cells may be Date objects, numbers or text
+  function cellText(v) {
+    if (v == null) return '';
+    if (v instanceof Date) return ymd(v);
+    return String(v).trim();
+  }
+  // Excel serial number (1900 date system) -> date / time parts
+  const fromSerial = n => { const d = new Date(Math.round((n - 25569) * 86400000)); return { date: d.toISOString().slice(0, 10), time: d.toISOString().slice(11, 16) }; };
+  function normDate(v) {
+    if (typeof v === 'number') return fromSerial(v).date;
+    const s = cellText(v);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);   // dd/mm/yyyy
+    return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : s;
+  }
+  function normTime(v) {
+    if (typeof v === 'number') return fromSerial(v % 1).time;
+    if (v instanceof Date) return `${String(v.getHours()).padStart(2, '0')}:${String(v.getMinutes()).padStart(2, '0')}`;
+    const s = cellText(v), m = s.match(/^(\d{1,2}):(\d{2})(:\d{2})?$/);
+    return m ? `${m[1].padStart(2, '0')}:${m[2]}` : s;
+  }
+  function normalize(raw) {
+    const r = {};
+    [...COLUMNS, ...EXTRA].forEach(c => { r[c.key] = cellText(raw[c.key]); });
+    ['roundUse', 'lp', 'renban', 'from', 'to', 'dest', 'ctrSize', 'agent', 'bookNo', 'vessel', 'truckType', 'shift', 'dg', 'io', 'exporter', 'importerCd']
+      .forEach(k => { r[k] = r[k].toUpperCase(); });
+    r.container = r.container.toUpperCase().replace(/[\s-]/g, '');
+    r.etd = normDate(raw.etd); r.arrDate = normDate(raw.arrDate); r.arrTime = normTime(raw.arrTime);
+    return r;
+  }
+
+  // ctx: { lps: [codes], from: [codes], to: [codes], containerError(no) }
+  function validate(raw, ctx) {
+    const r = normalize(raw), e = {};
+    [...COLUMNS, ...EXTRA].forEach(c => { if (c.required && !r[c.key]) e[c.key] = MSG.req(c.label); });
+    Object.entries(OPTIONS).forEach(([k, opts]) => { if (r[k] && !opts.includes(r[k])) e[k] = MSG.option(label(k), r[k], opts); });
+    if (r.lp && !ctx.lps.includes(r.lp)) e.lp = MSG.code('LP', r.lp);
+    if (r.from && !ctx.from.includes(r.from)) e.from = MSG.code('FROM LOCATION', r.from);
+    if (r.to && !ctx.to.includes(r.to)) e.to = MSG.code('TO LOCATION', r.to);
+    if (!e.from && !e.to && r.from && r.from === r.to) e.to = MSG.same;
+    ['renban', 'dest', 'bookNo', 'importerCd'].forEach(k => { if (r[k] && !/^[A-Z0-9]{1,20}$/.test(r[k])) e[k] = MSG.format(label(k)); });
+    ['etd', 'arrDate'].forEach(k => { if (r[k] && !/^\d{4}-\d{2}-\d{2}$/.test(r[k])) e[k] = MSG.date(label(k)); });
+    if (r.arrTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(r.arrTime)) e.arrTime = MSG.time(label('arrTime'));
+    if (r.container) { const ce = ctx.containerError(r.container); if (ce) e.container = ce; }
+    return { record: r, errors: e };
+  }
+
+  // Duplicate key: Container No, otherwise Ctr Booking No (TBD: other keys for records without both)
+  const dupKey = r => r.container ? `Container ${r.container}` : r.bookNo ? `Booking ${r.bookNo}` : null;
+  // Check new records against each other and against the records already in the grid / submitted
+  function duplicates(news, existing) {
+    const out = {}, seen = new Map();
+    news.forEach((r, i) => {
+      const k = dupKey(r); if (!k) return;
+      if (seen.has(k)) { out[i] = MSG.dupFile(k, seen.get(k)); return; }
+      seen.set(k, r.row ?? i + 1);
+      const ex = existing.find(x => x !== r && x.status !== STATUS.FAILED && dupKey(x) === k);
+      if (ex) out[i] = LOCKED.includes(ex.status) ? MSG.submitted(k, ex.status) : MSG.dupGrid(k, ex.status);
+    });
+    return out;
+  }
+
+  // ---------- Excel ----------
+  const normHead = h => String(h ?? '').toUpperCase().replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+  // rows = array of arrays (sheet_to_json header:1). The header row is the first row that contains ROUNDUSE.
+  function readSheet(rows) {
+    const hi = rows.findIndex(r => (r || []).some(c => normHead(c) === 'ROUNDUSE'));
+    if (hi < 0) return { error: MSG.header('ROUNDUSE') };
+    const head = rows[hi].map(normHead);
+    const idx = Object.fromEntries([...COLUMNS, ...EXTRA].map(c => [c.key, head.indexOf(c.label)]));
+    const miss = COLUMNS.filter(c => idx[c.key] < 0).map(c => c.label);
+    if (miss.length) return { error: MSG.header(miss.join(', ')) };
+    const data = [];
+    rows.slice(hi + 1).forEach((r, i) => {
+      const rec = Object.fromEntries([...COLUMNS, ...EXTRA].map(c => [c.key, idx[c.key] >= 0 ? (r || [])[idx[c.key]] : '']));
+      if (COLUMNS.some(c => cellText(rec[c.key]))) data.push({ ...rec, row: hi + i + 2 });   // Excel row number
+    });
+    if (!data.length) return { error: MSG.empty };
+    return { records: data };
+  }
+  // Upload: all rows must be valid, otherwise nothing is added and every error is reported per row
+  function upload(rows, { io, grid, ctx }) {
+    const sheet = readSheet(rows);
+    if (sheet.error) return { ok: false, error: sheet.error };
+    const checked = sheet.records.map(raw => { const v = validate({ ...raw, io: raw.io || io }, ctx); v.record.row = raw.row; return v; });
+    const dup = duplicates(checked.map(c => c.record), grid);
+    const rowErrors = [];
+    checked.forEach((c, i) => {
+      Object.entries(c.errors).forEach(([k, m]) => rowErrors.push({ row: c.record.row, column: label(k), message: m }));
+      if (dup[i]) rowErrors.push({ row: c.record.row, column: dupKey(c.record).split(' ')[0].toUpperCase(), message: dup[i] });
+    });
+    if (rowErrors.length) return { ok: false, error: MSG.uploadErr(new Set(rowErrors.map(e => e.row)).size), rowErrors };
+    return { ok: true, records: checked.map(c => c.record), message: MSG.uploaded(checked.length) };
+  }
+
+  // ---------- Records in the grid ----------
+  // A record from any source; invalid interface records stay in the grid with Validation Error (never dropped)
+  function makeRecord(raw, { id, date, source, grid, ctx }) {
+    const { record, errors } = validate(raw, ctx);
+    const dup = duplicates([record], grid)[0];
+    if (dup) errors._ = dup;
+    return { ...record, id, date, source, status: Object.keys(errors).length ? STATUS.ERROR : STATUS.AVAILABLE, errors, orderNo: '', attempts: 0, failReason: '', history: [] };
+  }
+  // Edit (manual correction) re-validates the record
+  function revalidate(rec, changes, grid, ctx) {
+    if (LOCKED.includes(rec.status)) return { ok: false, error: MSG.submitted(dupKey(rec) || 'Record', rec.status) };
+    const { record, errors } = validate({ ...rec, ...changes }, ctx);
+    const dup = duplicates([record], grid.filter(x => x !== rec))[0];
+    if (dup) errors._ = dup;
+    if (Object.keys(errors).length) return { ok: false, errors };
+    Object.assign(rec, record, { status: STATUS.AVAILABLE, errors: {} });
+    return { ok: true };
+  }
+  const selectable = r => SELECTABLE.includes(r.status);
+
+  // Submit: only eligible records; they leave the selectable set at once (no double submission)
+  function submit(records, { at, actor, date, today, cfg }) {
+    if (!canCreate(actor)) return { ok: false, error: MSG.noAuth };
+    const dc = dateCheck(date, today, cfg);
+    if (dc) return { ok: false, error: dc };
+    if (!records.length) return { ok: false, error: MSG.noSelect };
+    const bad = records.filter(r => !selectable(r) || Object.keys(r.errors || {}).length);
+    if (bad.length) return { ok: false, error: MSG.notEligible(bad.length) };
+    records.forEach(r => {
+      Object.assign(r, { status: STATUS.SUBMITTED, submittedAt: at, submittedBy: actor.name });
+      r.history.push({ at, status: STATUS.SUBMITTED, note: `Submitted by ${actor.name}` });
+    });
+    return { ok: true, message: MSG.submittedOk(records.length) };
+  }
+  // Queue steps (the background service in the mock-up runs them with a delay)
+  function step(rec, to, at, note) { rec.status = to; rec.history.push({ at, status: to, note: note || '' }); }
+  // Failed records can be sent to the queue again
+  const canRetry = r => r.status === STATUS.FAILED;
+
+  // Daily order created for a processed record (shown to the LP Admin)
+  function orderPayload(r, names) {
+    return { date: r.date, type: 'Universal', supplier: names.lp(r.lp), from: names.from(r.from), to: names.to(r.to), renban: r.renban,
+      shift: r.shift || '-', planned: r.roundUse === 'Y' ? 2 : 1 };
+  }
+
+  // ---------- Calendar entry per date + DTP type ----------
+  const isAssigned = (o, W) => !!o.truck || o.status !== W.ORDER.PLAN;
+  function calStatus(orders, W) {
+    const done = [W.ORDER.FIN, W.ORDER.SA, W.ORDER.PO];
+    if (orders.length && orders.every(o => done.includes(o.status))) return CAL.FINISH;
+    if (orders.some(o => o.lpRejected && o.status === W.ORDER.PLAN)) return CAL.REJECTED;
+    if (orders.length && orders.every(o => isAssigned(o, W))) return CAL.ASSIGNED;
+    return CAL.WAIT;
+  }
+  function calLabel(type, date, orders, W) {
+    const t = type === 'Universal' ? 'U' : String(type).replace('DTP', '');
+    return `DTP - ${t} ( ${fmtDmy(date)} ) [ ${orders.filter(o => isAssigned(o, W)).length} / ${orders.length} ]`;
+  }
+
+  const api = { MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
+    dateRange, dateCheck, canCreate, normalize, validate, dupKey, duplicates, readSheet, upload, makeRecord, revalidate, selectable,
+    submit, step, canRetry, orderPayload, calStatus, calLabel };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.DtpRules = api;
+})(this);

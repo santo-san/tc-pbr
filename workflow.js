@@ -24,6 +24,7 @@
   const blank = v => !String(v ?? '').trim();
   const cur = o => o.cycles[o.cycles.length - 1];
   const roleLabel = a => a.role === 'IP_ADMIN' ? 'IP Admin'
+    : a.role === 'PLANNER' ? 'Planner VPLD'
     : a.role === 'DRIVER' ? 'Driver'
     : a.role === 'SYSTEM' ? 'System'
     : a.lpAdmin ? 'Supplier (LP Admin)' : 'Supplier';
@@ -47,7 +48,7 @@
 
   // ---------- Visibility ----------
   function canView(actor, o) {
-    if (actor.role === 'IP_ADMIN' || actor.role === 'SYSTEM') return true;
+    if (actor.role === 'IP_ADMIN' || actor.role === 'PLANNER' || actor.role === 'SYSTEM') return true;
     if (actor.role === 'SUPPLIER') return o.supplier === actor.supplier;
     if (actor.role === 'DRIVER') return o.supplier === actor.supplier && !!o.truck && o.truck === actor.truck;
     return false;
@@ -89,14 +90,18 @@
   function createDTP(p, actor, ctx, at, orderNo) {
     const errors = checkDTP(p, actor, ctx, at);
     if (Object.keys(errors).length) return { ok: false, errors };
+    return { ok: true, order: newOrder(p, actor, at, orderNo, 'DTP Check & Submit') };
+  }
+  // New order in Planning Order / DTP Creation Release (also used by the Planning Order screen after its own validation)
+  function newOrder(p, actor, at, orderNo, action, note) {
     const o = {
       orderNo, date: p.date, type: p.type, supplier: p.supplier, from: p.from, to: p.to, renban: p.renban, shift: p.shift,
       fa: p.fa || '', planned: +p.planned, truck: '', driver: '', status: ORDER.PLAN,
       cycles: [{ status: CYCLE.DTP, from: p.from, to: p.to, container: '', startAt: null, pickupAt: null, finishAt: null }],
       saAt: null, poNo: '', poAt: null, history: [],
     };
-    log(o, at, actor, 'DTP Check & Submit', null, { order: o.status, cycle: CYCLE.DTP }, '', `Planned ${o.planned} cycle`);
-    return { ok: true, order: o };
+    log(o, at, actor, action, null, { order: o.status, cycle: CYCLE.DTP }, '', note || `Planned ${o.planned} cycle`);
+    return o;
   }
 
   // ---------- Transitions ----------
@@ -121,7 +126,8 @@
     assignTruck: {
       label: 'Assign Truck', allow: a => a.role === 'IP_ADMIN',
       fields: () => [{ name: 'truck', label: 'Truck Number', type: 'truck', required: true }],
-      guard: o => o.status !== ORDER.PLAN && `Assign Truck hanya bisa saat status ${ORDER.PLAN}`,
+      guard: o => o.status !== ORDER.PLAN ? `Assign Truck hanya bisa saat status ${ORDER.PLAN}`
+        : o.lpRejected ? 'Order ditolak LP, ubah Truck Company di Planning Order terlebih dahulu' : null,
       validate(o, p, a, ctx) {
         const t = ctx.master.trucks.find(x => x.plate === p.truck);
         if (!t) return { truck: 'Truck tidak terdaftar' };
@@ -135,7 +141,8 @@
     lpRelease: {
       label: 'Order Release', allow: isLp,
       fields: () => [reasonField, { name: 'driver', label: 'Driver', type: 'driver', required: true }],
-      guard: o => ![ORDER.PLAN, ORDER.REL].includes(o.status) && `Order Release hanya bisa saat status ${ORDER.PLAN} / ${ORDER.REL}`,
+      guard: o => ![ORDER.PLAN, ORDER.REL].includes(o.status) ? `Order Release hanya bisa saat status ${ORDER.PLAN} / ${ORDER.REL}`
+        : o.lpRejected ? 'Order sudah ditolak LP' : null,
       validate(o, p, a, ctx) {
         const e = reasonError(p);
         const d = ctx.master.drivers.find(x => x.userId === p.driver);
@@ -149,6 +156,15 @@
         const d = ctx.master.drivers.find(x => x.userId === p.driver);
         o.driver = d.name; o.truck = o.truck || d.truck; o.status = ORDER.REL;
       },
+    },
+    // LP cannot serve the planned order (e.g. no truck available): back to the planner, who changes the Truck Company
+    lpReject: {
+      label: 'Reject by LP', allow: isLp,
+      fields: () => [reasonField],
+      guard: o => o.status !== ORDER.PLAN || o.truck ? `Reject hanya bisa saat status ${ORDER.PLAN} dan belum ada truck`
+        : o.lpRejected ? 'Order sudah ditolak LP' : null,
+      validate: (o, p) => reasonError(p),
+      apply(o, p, a, at) { o.lpRejected = { by: a.name, at, reason: String(p.reason).trim() }; return 'Kembali ke planner (Planning Order)'; },
     },
     startOrder: {
       label: 'Start Order', allow: a => a.role === 'DRIVER',
@@ -286,7 +302,7 @@
 
   const api = {
     ORDER, ORDER_SEQ, CYCLE, MAX_CYCLES, REASON_MIN, ACTIONS,
-    canView, login, checkDTP, createDTP, perform, available, blockReason, roleLabel,
+    canView, login, checkDTP, createDTP, newOrder, perform, available, blockReason, roleLabel,
     containerCheckDigit, containerError, normContainer, current: cur, ymd,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

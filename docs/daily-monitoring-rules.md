@@ -6,6 +6,8 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 
 ---
 
+> **Update:** menu Daily kini berisi **Daily Monitoring** (layar ini), **Planning Order** (DTP Creation oleh VPLD Planner, lihat [dtp-creation-rules.md](dtp-creation-rules.md)) dan **Truck Assignment** (menyusul). Order dari Planning Order masuk ke status Planning Order / DTP Creation Release seperti order lain. LP Admin juga punya aksi baru **Reject by LP** (status Planning Order, belum ada truck, reason ≥ 10 karakter); order yang ditolak tidak bisa di-Assign Truck / Order Release dan tampil merah (Rejected by LP) di kalender Planning Order.
+
 ## 1. Status
 
 ### Order Status

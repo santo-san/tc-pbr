@@ -481,6 +481,7 @@ function setActor(actor, value) {
   $('userAvatar').textContent = actor.name.split(' ').map(w => w[0]).join('').slice(0, 2);
   $('overlay').classList.remove('show');
   state.page = 1; render();
+  document.dispatchEvent(new CustomEvent('actorchange'));
 }
 function openLogin() {
   const demo = MASTER.drivers.map(d => {
@@ -514,6 +515,7 @@ function openLogin() {
 ROLE_SEL.addEventListener('change', () => {
   const v = ROLE_SEL.value;
   if (v === 'ip') return setActor(IP, v);
+  if (v === 'planner') return setActor({ role: 'PLANNER', userId: 'planner1', name: 'Planner VPLD' }, v);
   if (v === 'driver') return openLogin();
   const [, code, mode] = v.split(':'), sup = SUP_BY_CODE[code];
   setActor({ role: 'SUPPLIER', lpAdmin: mode === 'lp', supplier: sup, name: mode === 'lp' ? `LP Admin ${code}` : `Viewer ${code}` }, v);
@@ -626,7 +628,6 @@ $('dailyToggle').addEventListener('click', e => { e.preventDefault(); $('dailySu
 document.querySelectorAll('[data-page]').forEach(a => a.addEventListener('click', e => {
   e.preventDefault(); toast(`Halaman "${a.dataset.page}" belum tersedia di mock-up ini`);
 }));
-document.querySelector('.sub a.active').addEventListener('click', e => e.preventDefault());
 $('btnDriverApp').addEventListener('click', () => toast('Download Driver App (mock-up)'));
 $('btnLanding').addEventListener('click', () => toast('Menuju Landing Page (mock-up)'));
 
