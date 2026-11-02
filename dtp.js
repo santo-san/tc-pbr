@@ -68,7 +68,8 @@ function addRecord(raw, date, source) {
 const orderOf = (r, at) => {
   const o = W.newOrder(D.orderPayload(r, NAMES), { role: 'PLANNER', name: r.submittedBy || 'Planner VPLD' }, at, r.orderNo, 'DTP Creation (Universal DTP)',
     `${r.io} · ${r.source} · Container ${r.container || '-'}`);
-  o.dtp = { recId: r.id, io: r.io, exporter: r.exporter, importerCd: r.importerCd, container: r.container, dest: r.dest, vessel: r.vessel };
+  o.dtp = { recId: r.id, io: r.io, exporter: r.exporter, importerCd: r.importerCd, container: r.container, dest: r.dest, vessel: r.vessel,
+    agent: r.agent, bookNo: r.bookNo, ctrSize: r.ctrSize, truckType: r.truckType, fromCd: r.from, toCd: r.to };
   return o;
 };
 const QUEUE = []; let qBusy = false;
@@ -112,7 +113,13 @@ if (!restore()) {
     D.step(r, S.QUEUED, at); D.step(r, S.PROCESSING, at);
     r.orderNo = genOrderNo(t); r.attempts = 1; D.step(r, S.PROCESSED, at, `Daily order ${r.orderNo} created for LP Admin`);
     const o = orderOf(r, at); DATA.push(o);
-    if (i === 0) { const tr = MASTER.trucks.find(x => x.supplier === o.supplier && !DATA.some(d => d.truck === x.plate && d.date === t)); if (tr) W.perform(o, 'assignTruck', { truck: tr.plate }, IP, at, CTX); }
+    // the LP Admin already accepted the first one and assigned a truck (Planning Truck Assignment)
+    if (i === 0) {
+      const lp = { role: 'SUPPLIER', lpAdmin: true, supplier: o.supplier, name: `LP Admin ${r.lp}` };
+      W.perform(o, 'lpAccept', {}, lp, at, CTX);
+      const tr = MASTER.trucks.find(x => W.truckState(x, o, CTX).ok);
+      if (tr) W.perform(o, 'lpAssign', { truck: tr.plate }, lp, at, CTX);
+    }
   });
   persist();
 } else resumeQueue();
@@ -124,13 +131,14 @@ function route() {
   const v = VIEWS[v0] ? v0 : 'monitoring';
   Object.entries(VIEWS).forEach(([k, id]) => { $(id).style.display = k === v ? '' : 'none'; });
   document.querySelectorAll('#dailySub a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
-  document.title = `ELIPS - ${{ monitoring: 'Daily Monitoring', 'planning-order': 'Planning Order', 'truck-assignment': 'Truck Assignment' }[v]}`;
+  document.title = `ELIPS - ${{ monitoring: 'Daily Monitoring', 'planning-order': 'Planning Order', 'truck-assignment': 'Planning Truck Assignment' }[v]}`;
   if (v === 'monitoring') render();
+  if (v === 'truck-assignment') window.taRender?.();
   if (v !== 'planning-order') return;
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) openCreate(date); else showCalendar();
 }
 window.addEventListener('hashchange', route);
-document.addEventListener('actorchange', () => { if (location.hash.startsWith('#planning-order')) route(); });
+document.addEventListener('actorchange', () => { if (/^#(planning-order|truck-assignment)/.test(location.hash)) route(); });
 function refreshAll() {
   if ($('dtpCreate').style.display !== 'none' && dc.date) renderGrid();
   if ($('dtpCal').style.display !== 'none') renderCalendar();

@@ -29,6 +29,13 @@
     : a.role === 'SYSTEM' ? 'System'
     : a.lpAdmin ? 'Supplier (LP Admin)' : 'Supplier';
   const isLp = a => a.role === 'SUPPLIER' && a.lpAdmin;
+  // LP confirmation and truck assignment of an order (Planning Truck Assignment)
+  const LP_STATUS = { WAIT: 'Waiting for Confirmation', ACC: 'Accepted', REJ: 'Rejected' };
+  const ASSIGN_STATUS = { NONE: '-', WAIT: 'Waiting for Truck Assignment', DONE: 'Truck Assigned' };
+  const lpStatus = o => o.lpRejected ? LP_STATUS.REJ : o.lpAccepted || o.truck || o.status !== ORDER.PLAN ? LP_STATUS.ACC : LP_STATUS.WAIT;
+  const assignStatus = o => lpStatus(o) !== LP_STATUS.ACC ? ASSIGN_STATUS.NONE : o.truck ? ASSIGN_STATUS.DONE : ASSIGN_STATUS.WAIT;
+  // Orders from DTP Creation must be accepted by the LP before any truck is linked
+  const needsAccept = o => !!o.dtp && !o.lpAccepted && !o.truck;
 
   // ISO 6346 container number: 3-letter owner code + category (U/J/Z) + 6-digit serial + check digit
   const LETTER = {};
@@ -122,12 +129,37 @@
     return null;
   }
 
+  // Truck that can serve the order: same LP, not in maintenance, license valid on the order date,
+  // not active on another order of the same date + shift, type as requested by the order (when given)
+  function truckState(t, o, ctx) {
+    if (t.supplier !== o.supplier) return { ok: false, label: 'Other LP', reason: 'Truck bukan milik trucking company order ini' };
+    if (t.status === 'Maintenance') return { ok: false, label: 'Maintenance', reason: 'Truck sedang maintenance' };
+    if (t.licenseDate < o.date) return { ok: false, label: 'License Expired', reason: `Lisensi truck habis (${t.licenseDate}) sebelum tanggal order` };
+    const busy = ctx.orders.find(x => x !== o && x.truck === t.plate && x.date === o.date && x.shift === o.shift && [ORDER.REL, ORDER.START].includes(x.status));
+    if (busy) return { ok: false, label: 'In Use', reason: `Truck sudah di-assign ke order ${busy.orderNo} (${o.shift} ${o.date})` };
+    const need = o.dtp?.truckType;
+    if (need && t.type && need !== t.type) return { ok: false, label: 'Type Mismatch', reason: `Truck type ${t.type} tidak sesuai order (${need})` };
+    return { ok: true, label: 'Available', reason: '' };
+  }
+  function truckError(o, plate, ctx) {
+    const t = ctx.master.trucks.find(x => x.plate === plate);
+    if (!t) return { truck: 'Truck tidak terdaftar' };
+    const st = truckState(t, o, ctx);
+    return st.ok ? null : { truck: st.reason };
+  }
+  // The order follows the truck: the driver registered on the truck (if active) sees it in the Driver app
+  function linkTruck(o, plate, ctx) {
+    const d = ctx.master.drivers.find(x => x.truck === plate && x.active);
+    o.truck = plate; o.driver = d ? d.name : '';
+  }
+
   const ACTIONS = {
     assignTruck: {
       label: 'Assign Truck', allow: a => a.role === 'IP_ADMIN',
       fields: () => [{ name: 'truck', label: 'Truck Number', type: 'truck', required: true }],
       guard: o => o.status !== ORDER.PLAN ? `Assign Truck hanya bisa saat status ${ORDER.PLAN}`
-        : o.lpRejected ? 'Order ditolak LP, ubah Truck Company di Planning Order terlebih dahulu' : null,
+        : o.lpRejected ? 'Order ditolak LP, ubah Truck Company di Planning Order terlebih dahulu'
+        : needsAccept(o) ? 'Order harus di-Accept oleh LP Admin terlebih dahulu' : null,
       validate(o, p, a, ctx) {
         const t = ctx.master.trucks.find(x => x.plate === p.truck);
         if (!t) return { truck: 'Truck tidak terdaftar' };
@@ -142,7 +174,7 @@
       label: 'Order Release', allow: isLp,
       fields: () => [reasonField, { name: 'driver', label: 'Driver', type: 'driver', required: true }],
       guard: o => ![ORDER.PLAN, ORDER.REL].includes(o.status) ? `Order Release hanya bisa saat status ${ORDER.PLAN} / ${ORDER.REL}`
-        : o.lpRejected ? 'Order sudah ditolak LP' : null,
+        : o.lpRejected ? 'Order sudah ditolak LP' : needsAccept(o) ? 'Order harus di-Accept oleh LP Admin terlebih dahulu' : null,
       validate(o, p, a, ctx) {
         const e = reasonError(p);
         const d = ctx.master.drivers.find(x => x.userId === p.driver);
@@ -162,9 +194,37 @@
       label: 'Reject by LP', allow: isLp,
       fields: () => [reasonField],
       guard: o => o.status !== ORDER.PLAN || o.truck ? `Reject hanya bisa saat status ${ORDER.PLAN} dan belum ada truck`
-        : o.lpRejected ? 'Order sudah ditolak LP' : null,
+        : o.lpRejected ? 'Order sudah ditolak LP' : o.lpAccepted ? 'Order sudah di-Accept, tidak bisa di-Reject' : null,
       validate: (o, p) => reasonError(p),
       apply(o, p, a, at) { o.lpRejected = { by: a.name, at, reason: String(p.reason).trim() }; return 'Kembali ke planner (Planning Order)'; },
+    },
+    lpAccept: {
+      label: 'Accept Order', allow: isLp,
+      fields: () => [],
+      guard: o => o.status !== ORDER.PLAN || o.truck ? `Accept hanya bisa saat status ${ORDER.PLAN} dan belum ada truck`
+        : o.lpRejected ? 'Order sudah ditolak LP' : o.lpAccepted ? 'Order sudah di-Accept' : null,
+      apply(o, p, a, at) { o.lpAccepted = { by: a.name, at }; return 'Order diterima LP, menunggu Assign Truck'; },
+    },
+    lpAssign: {
+      label: 'Assign Truck (LP)', allow: isLp,
+      fields: () => [{ name: 'truck', label: 'Truck', type: 'truck', required: true }],
+      guard: o => o.status !== ORDER.PLAN ? `Assign Truck hanya bisa saat status ${ORDER.PLAN}`
+        : o.lpRejected ? 'Order Rejected tidak dapat di-assign truck'
+        : !o.lpAccepted ? 'Order harus di-Accept terlebih dahulu'
+        : o.truck ? 'Order sudah punya truck, gunakan Change Truck' : null,
+      validate: (o, p, a, ctx) => truckError(o, p.truck, ctx),
+      apply(o, p, a, at, ctx) { linkTruck(o, p.truck, ctx); o.status = ORDER.REL; return `Truck ${o.truck}${o.driver ? ` · Driver ${o.driver}` : ''}`; },
+    },
+    lpChangeTruck: {
+      label: 'Change Truck', allow: isLp,
+      fields: () => [{ name: 'truck', label: 'Replacement Truck', type: 'truck', required: true }],
+      guard: o => o.status !== ORDER.REL || !o.truck ? `Change Truck hanya bisa untuk order ${ORDER.REL} yang sudah punya truck`
+        : cur(o).status !== CYCLE.DTP ? 'Order sudah dimulai driver, truck tidak bisa diganti' : null,
+      validate(o, p, a, ctx) {
+        if (p.truck === o.truck) return { truck: 'Truck pengganti harus berbeda dari truck saat ini' };
+        return truckError(o, p.truck, ctx);
+      },
+      apply(o, p, a, at, ctx) { const prev = o.truck; linkTruck(o, p.truck, ctx); return `Truck ${prev} → ${o.truck}; order dipindah ke driver truck baru`; },
     },
     startOrder: {
       label: 'Start Order', allow: a => a.role === 'DRIVER',
@@ -267,6 +327,7 @@
       from: before ? `${before.order}${before.cycle ? ' / ' + before.cycle : ''}` : '-',
       to: `${after.order}${after.cycle ? ' / ' + after.cycle : ''}`,
       reason: reason || '', note: note || '',
+      plateFrom: before?.truck || '', plateTo: after.truck || '', lpFrom: before?.lp || '', lpTo: after.lp || '',
     });
   }
 
@@ -294,14 +355,15 @@
       }
       return { ok: false, errors };
     }
-    const before = { order: o.status, cycle: cur(o).status };
+    const before = { order: o.status, cycle: cur(o).status, truck: o.truck, lp: lpStatus(o) };
     const note = a.apply(o, payload, actor, at, ctx);
-    log(o, at, actor, a.label, before, { order: o.status, cycle: cur(o).status }, payload.reason, note);
+    log(o, at, actor, a.label, before, { order: o.status, cycle: cur(o).status, truck: o.truck, lp: lpStatus(o) }, payload.reason, note);
     return { ok: true };
   }
 
   const api = {
     ORDER, ORDER_SEQ, CYCLE, MAX_CYCLES, REASON_MIN, ACTIONS,
+    LP_STATUS, ASSIGN_STATUS, lpStatus, assignStatus, needsAccept, truckState,
     canView, login, checkDTP, createDTP, newOrder, perform, available, blockReason, roleLabel,
     containerCheckDigit, containerError, normContainer, current: cur, ymd,
   };

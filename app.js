@@ -32,12 +32,12 @@ SUPPLIERS.forEach(([sup, code], si) => {
   for (let k = 0; k < TRUCKS_PER_SUPPLIER; k++) {
     const plate = si === 0 && k === 0 ? 'B9504UIZ' : `B${1000 + Math.floor(rand() * 9000)}${pick(['UIZ', 'TXA', 'KLM', 'UJP'])}`;
     const n = si * TRUCKS_PER_SUPPLIER + k;
-    MASTER.trucks.push({ plate, supplier: sup, licenseDate: `2027-${pad(1 + n % 12)}-15` });
+    MASTER.trucks.push({ plate, supplier: sup, licenseDate: `2027-${pad(1 + n % 12)}-15`, type: k === 4 ? 'COMBO' : 'TRAILER', status: si === 0 && k === 3 ? 'Maintenance' : 'Active' });
     MASTER.drivers.push({ userId: `DRV-${code}-${pad(k + 1)}`, name: n === 0 ? 'ASEP SUKIRNO' : `${FIRST[n % FIRST.length]} ${LAST[(n * 7) % LAST.length]}`, supplier: sup, truck: plate, active: true });
   }
 });
 // Edge cases for demonstrating validation
-MASTER.trucks.push({ plate: 'B9299UIZ', supplier: SUPPLIERS[0][0], licenseDate: '2026-09-30' });
+MASTER.trucks.push({ plate: 'B9299UIZ', supplier: SUPPLIERS[0][0], licenseDate: '2026-09-30', type: 'TRAILER', status: 'Active' });
 MASTER.drivers.push({ userId: 'DRV-PBM-09', name: 'DEDI KURNIAWAN', supplier: SUPPLIERS[0][0], truck: 'B9299UIZ', active: true });
 MASTER.drivers.push({ userId: 'DRV-PBM-10', name: 'SLAMET RIYADI', supplier: SUPPLIERS[0][0], truck: '', active: false });
 

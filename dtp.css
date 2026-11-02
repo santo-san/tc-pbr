@@ -108,3 +108,32 @@
 .view-only { background: #eef5ff; border: 1px solid #cfe0fb; color: #1e4f9a; border-radius: 6px; padding: 7px 12px; font-size: 10.5px; margin-top: 10px; }
 @media (max-width: 1100px) { .me-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .cal-bar { grid-template-columns: 1fr; gap: 8px; } .cal-views { justify-self: start; } .cal-day { min-height: 70px; } .me-grid { grid-template-columns: 1fr 1fr; } }
+/* Planning Truck Assignment */
+.ta-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.ta-top .spacer { flex: 1; }
+.ro-chip { background: #fde8ea; color: #b91c1c; border-radius: 12px; padding: 3px 10px; }
+.ta-filters { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr 1.2fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 12px; }
+.ta-filters label { display: block; font-size: 10px; font-weight: 600; margin-bottom: 4px; }
+.ta-filters input, .ta-filters select { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 5px; padding: 0 8px; font-size: 10.5px; font-family: inherit; background: #fff; }
+#taTable th { font-size: 9.5px; white-space: nowrap; cursor: pointer; }
+#taTable td { font-size: 9.5px; padding: 6px 7px; }
+#taTable tr.asg td, #bmTable tr.asg td { background: #e9f9f0; }
+#taTable tr.rej td, #bmTable tr.rej td { background: #fff4f5; color: #6b7280; }
+.ta-act { display: flex; gap: 4px; flex-wrap: wrap; }
+.mini { height: 22px; border: 1px solid #d5d9e0; background: #fff; border-radius: 4px; font-size: 9px; font-weight: 600; padding: 0 7px; cursor: pointer; white-space: nowrap; }
+.mini.ok { background: #16a34a; border-color: #16a34a; color: #fff; } .mini.bad { background: #fff; border-color: #f43f5e; color: #e11d48; }
+.mini.pri { background: #0b1a3a; border-color: #0b1a3a; color: #fff; } .mini.warn { background: #f43f5e; border-color: #f43f5e; color: #fff; }
+small.sub { display: block; font-size: 8.5px; color: #6b7280; }
+.ta-ov { z-index: 45; }
+.ta-m { width: 1000px; }
+.ta-mb { padding: 14px 18px 6px; }
+.ta-mf { display: flex; gap: 8px; padding: 10px 18px 16px; border-top: 1px solid #eef0f3; align-items: center; }
+.ta-mf .spacer { flex: 1; }
+.ta-truck { padding-bottom: 10px; border-bottom: 1px solid #eef0f3; }
+.ta-truck label { display: block; font-size: 10.5px; font-weight: 600; margin-bottom: 6px; } .ta-truck .req { color: var(--red); }
+.ta-truck select { width: 440px; max-width: 100%; height: 32px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 8px; font-size: 10.5px; margin-right: 8px; }
+#bmTable th { font-size: 9.5px; white-space: nowrap; } #bmTable td { font-size: 9.5px; padding: 6px 7px; white-space: nowrap; }
+.cur-truck { background: #f3f7ff; border: 1px solid #cfe0fb; border-radius: 6px; padding: 8px 10px; font-size: 10.5px; margin-bottom: 8px; }
+.ta-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 14px; font-size: 10.5px; background: #f6f8fc; padding: 10px 12px; border-radius: 6px; }
+.ta-info b { display: block; font-weight: 500; color: #6b7280; font-size: 9px; }
+@media (max-width: 1100px) { .ta-filters { grid-template-columns: 1fr 1fr 1fr; } .ta-info { grid-template-columns: 1fr 1fr; } }

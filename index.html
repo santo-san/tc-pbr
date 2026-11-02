@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=20261030a">
-<link rel="stylesheet" href="dtp.css?v=20261102a">
+<link rel="stylesheet" href="dtp.css?v=20261102b">
 </head>
 <body>
 <div class="app">
@@ -30,7 +30,7 @@
       <div class="sub" id="dailySub">
         <a href="#monitoring" data-view="monitoring" class="active">Daily Monitoring</a>
         <a href="#planning-order" data-view="planning-order">Planning Order</a>
-        <a href="#truck-assignment" data-view="truck-assignment">Truck Assignment</a>
+        <a href="#truck-assignment" data-view="truck-assignment">Planning Truck Assignment</a>
       </div>
       <a href="monthly.html#pr-inquiry"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="1.5"/><path d="M3 9h18"/><text x="6" y="18" font-size="6" stroke="none" fill="#0b2b5c">Aug</text></svg>Monthly</a>
       <div class="sub collapsed" id="monthlySub">
@@ -186,13 +186,9 @@
     </div>
 
     <div id="pgAssign" style="display:none">
-      <h1>Truck Assignment</h1>
-      <div class="crumb">DTP &nbsp;-&nbsp; truck assignment</div>
-      <section class="card" style="min-height:200px;text-align:center;padding-top:60px">
-        <h3 style="margin:0 0 8px">Truck Assignment</h3>
-        <p style="font-size:11px;color:var(--muted);margin:0 0 14px">Menu ini menyusul (menunggu referensi screen). Sementara, Assign Truck, Reject by LP dan Order Release ada di detail order pada Daily Monitoring.</p>
-        <a class="btn-sm-blue" style="text-decoration:none" href="#monitoring">Buka Daily Monitoring</a>
-      </section>
+      <h1>Planning Truck Assignment</h1>
+      <div class="crumb">Order &nbsp;-&nbsp; planning assignment</div>
+      <div id="taRoot"></div>
     </div>
   </main>
 </div>
@@ -214,10 +210,11 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="workflow.js?v=20261102a"></script>
+<script src="workflow.js?v=20261102b"></script>
 <script src="vendor/xlsx/xlsx.full.min.js"></script>
 <script src="dtp-rules.js?v=20261102a"></script>
-<script src="app.js?v=20261102a"></script>
-<script src="dtp.js?v=20261102a"></script>
+<script src="app.js?v=20261102b"></script>
+<script src="dtp.js?v=20261102b"></script>
+<script src="truck-assign.js?v=20261102a"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 **DTP (Daily Trucking Plan) Creation** is used by the **VPLD Planner** to create the trucking delivery orders that go to the trucking company (LP). TC-PBR uses **one Universal DTP model** for both Import and Export.
 
-- **Menu:** Daily > **Planning Order** (`index.html#planning-order`). Daily now has three sub menus: Daily Monitoring, Planning Order and Truck Assignment (Truck Assignment is still a placeholder).
+- **Menu:** Daily > **Planning Order** (`index.html#planning-order`). Daily now has three sub menus: Daily Monitoring, Planning Order and Planning Truck Assignment ([truck-assignment-spec.md](truck-assignment-spec.md)).
 - **Rules:** [`dtp-rules.js`](../dtp-rules.js)
 - **UI:** [`dtp.js`](../dtp.js)
 - **Unit tests:** [`tests/dtp-creation.test.js`](../tests/dtp-creation.test.js)
@@ -151,4 +151,4 @@ stateDiagram-v2
 7. **BEST interface:** schedule, record key, and how changes or cancellations from BEST after submission are handled.
 8. **Queue failure rules:** which errors are retryable, how many retries, and who is notified.
 9. **Rejected by LP:** may the planner change the LP of a rejected order from DTP Creation, or must a new record be submitted?
-10. **Truck Assignment menu:** waiting for the reference screen.
+10. **Truck Assignment menu:** done, see [truck-assignment-spec.md](truck-assignment-spec.md).
