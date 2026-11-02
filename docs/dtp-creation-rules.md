@@ -7,6 +7,10 @@
 - **UI:** [`dtp.js`](../dtp.js)
 - **Unit tests:** [`tests/dtp-creation.test.js`](../tests/dtp-creation.test.js)
 - **Excel template:** based on `format_DTP2_1.xlsx`
+- **UISS:**
+  - [`UISS_Screen_DTP_Creation.xlsx`](uiss/UISS_Screen_DTP_Creation.xlsx) (screen)
+  - [`UISS_Batch_DTP_Excel_Upload.xlsx`](uiss/UISS_Batch_DTP_Excel_Upload.xlsx) (upload backend)
+  - [`UISS_Batch_DTP_Queue_Processing.xlsx`](uiss/UISS_Batch_DTP_Queue_Processing.xlsx) (processing queue)
 
 ```
 DTP Calendar → Select Date → Universal DTP → DTP Creation → Upload Excel / Manual Entry / BEST Interface
