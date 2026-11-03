@@ -188,8 +188,6 @@ function render() {
     <tr>
       <td data-col="action"><button class="act" data-order="${o.orderNo}" title="Lihat detail">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-      </button><button class="act dn-ic" data-dn="${o.orderNo}" title="Delivery Note (PDF)" aria-label="Delivery Note ${o.orderNo}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6v20h12V6z"/><path d="M14 2v4h4M9 13h6M9 17h6M9 9h2"/></svg>
       </button></td>
       <td data-col="date">${fmtDate(o.date)}</td>
       <td data-col="orderNo">${o.orderNo}</td>
@@ -327,11 +325,22 @@ const yymmdd = d => `${String(d.getFullYear()).slice(2)}${pad(d.getMonth() + 1)}
 const supCode = name => (SUPPLIERS.find(s => s[0] === name) || [, 'XXX'])[1];
 // SA Number (mock, source TBD): ILS/TC/<supplier code>/<YYMMDD of SA approval><NN>
 const saNumber = o => o.saAt ? `ILS/TC/${supCode(o.supplier)}/${yymmdd(o.saAt)}${pad((hash(o.orderNo) >>> 0) % 100)}` : '';
+// No Cycle Order = <order YYMMDD>C2<supplier code><NNN>, unique per cycle (Delivery ID of the Surat Jalan)
+const CYC_NO = new Map(), CYC_USED = new Set();
+function cycleNo(o, i, seed) {
+  const key = `${o.orderNo}|${i}`;
+  if (CYC_NO.has(key)) return CYC_NO.get(key);
+  const pre = `${o.orderNo.slice(0, 8)}${supCode(o.supplier)}`;
+  let n = seed, no = `${pre}${pad(n, 3)}`;
+  while (CYC_USED.has(no)) { n = n >= 999 ? 100 : n + 1; no = `${pre}${pad(n, 3)}`; }
+  CYC_NO.set(key, no); CYC_USED.add(no);
+  return no;
+}
 function cycleDetail(o, i) {
   const c = o.cycles[i], r = rng(hash(o.orderNo + i));
   return {
     driver: o.driver || '-', from: c.from, to: c.to, container: c.container || '-',
-    cycleNo: `${c.startAt ? yymmdd(c.startAt) : o.orderNo.slice(0, 6)}${o.orderNo.slice(6, 8)}${supCode(o.supplier)}${pad(100 + Math.floor(r() * 900), 3)}`,
+    cycleNo: cycleNo(o, i, 100 + Math.floor(r() * 900)),
     acts: [
       ['Start Cycle', c.startAt, '#22c55e', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
       ['Pick Up', c.pickupAt, '#eab308', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
@@ -568,32 +577,6 @@ function photo(title, d, color) {
     <text x="300" y="260" font-family="Arial" font-size="12" text-anchor="middle" fill="#888">(foto contoh / mock-up)</text></svg>`;
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
-function suratJalan(o, i, d) {
-  return `<div class="sj">
-    <h4>SURAT JALAN</h4><div class="no">No. ${d.cycleNo} · ELIPS</div>
-    <table>
-      <tr><td>Tanggal</td><td>: ${fmtDate(o.date)}</td></tr>
-      <tr><td>No. Order</td><td>: ${o.orderNo} (Cycle ${i + 1})</td></tr>
-      <tr><td>Trucking Company</td><td>: ${o.supplier}</td></tr>
-      <tr><td>Police No / Driver</td><td>: ${o.truck} / ${esc(d.driver)}</td></tr>
-      <tr><td>Container No</td><td>: ${d.container}</td></tr>
-      <tr><td>Dari</td><td>: ${d.from}</td></tr>
-      <tr><td>Tujuan</td><td>: ${d.to}</td></tr>
-      ${d.acts.map(([l, t]) => `<tr><td>${l}</td><td>: ${t ? fmtDT(t) : '-'}</td></tr>`).join('')}
-    </table>
-    <div class="sign"><div></div><div></div><div></div></div>
-    <div class="sign" style="margin-top:0"><small>Driver</small><small>Security</small><small>Penerima</small></div>
-  </div>`;
-}
-function printSuratJalan(o, i, d) {
-  const w = window.open('', '_blank');
-  if (!w) { toast('Pop-up diblokir browser, izinkan pop-up untuk export PDF'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><title>Surat Jalan ${d.cycleNo}</title>
-    <link rel="stylesheet" href="${new URL('styles.css', location.href)}"><style>body{padding:30px}</style></head>
-    <body>${suratJalan(o, i, d)}<script>onload=()=>{print()}<\/script></body></html>`);
-  w.document.close();
-}
-
 $('mBody').addEventListener('click', e => {
   const t = e.target.closest('[data-toggle]');
   if (t) { t.parentElement.classList.toggle('closed'); return; }
@@ -610,19 +593,14 @@ $('mBody').addEventListener('click', e => {
       `<a class="btn-sm-blue" style="text-decoration:none" download="${title.replace(/ /g, '_')}_${d.cycleNo}.svg" href="${src}">Download</a>`);
   }
   const sj = e.target.closest('[data-sj]');
-  if (sj && !sj.disabled) {
-    showPreview(`Surat Jalan ELIPS - Cycle ${i + 1}`, suratJalan(current, i, d), `<button class="btn-sm-blue" id="pvPrint">PDF</button>`);
-    $('pvPrint').onclick = () => window.dnPdfCycle ? window.dnPdfCycle(current, i) : printSuratJalan(current, i, d);
-  }
+  // Surat Jalan ELIPS = View, PDF = Download: generated on the fly (delivery-note.js)
+  if (sj && !sj.disabled) window.dnView(current, i);
   const pdf = e.target.closest('[data-pdf]');
-  if (pdf && !pdf.disabled) window.dnPdfCycle ? window.dnPdfCycle(current, i) : printSuratJalan(current, i, d);
+  if (pdf && !pdf.disabled) window.dnDownload(current, i);
 });
 
 const closeDetail = () => $('overlay').classList.remove('show');
-$('tbody').addEventListener('click', e => {
-  const d = e.target.closest('[data-dn]'); if (d) { window.dnView?.(d.dataset.dn); return; }
-  const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order);
-});
+$('tbody').addEventListener('click', e => { const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order); });
 $('mClose').addEventListener('click', closeDetail);
 $('pvClose').addEventListener('click', closePreview);
 $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) closeDetail(); });

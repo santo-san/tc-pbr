@@ -1,13 +1,15 @@
-// ELIPS Delivery Note (Daily > Delivery Note and the DN icon on every Daily Monitoring row).
-// The PDF is generated on the fly on each click from the latest order data (no stored or batch PDF).
-// Rules: dn-rules.js (window.DN); PDF renderer: dn-pdf.js (window.DNPDF) with vendor/jspdf.
+// ELIPS Delivery Note (Surat Jalan) in Daily Monitoring > Order Detail > Cycle n:
+// "Surat Jalan ELIPS" = View (PDF preview), "PDF" = Download. One Delivery = one cycle.
+// The PDF is generated on the fly on each click from the latest data (no stored or batch PDF).
+// The preview also holds the simulated Base64 API and PAS GR attachment for testing.
+// Rules: dn-rules.js (window.DN); renderer: dn-pdf.js (window.DNPDF) with vendor/jspdf.
 (function () {
-  const STORE = 'elips-dn-pas-v2';
+  const STORE = 'elips-dn-pas-v3';
   const PAS = (() => { try { return JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (e) { return {}; } })();
   const savePas = () => { try { localStorage.setItem(STORE, JSON.stringify(PAS)); } catch (e) { /* storage not available */ } };
   const guard = DN.createGuard();
-  const dn = { q: '', page: 1, gens: 0, last: null, sim: '', auth: 'valid', pasFail: false, id: '' };
-  // Data sources of the Surat Jalan fields (see docs/delivery-note-spec.md §2)
+  const dn = { gens: 0, pasFail: false, cur: null };
+  // Data sources of the Surat Jalan fields (docs/delivery-note-spec.md §2)
   const look = {
     sjNo: (o, i) => cycleDetail(o, i).cycleNo,
     phone: o => MASTER.drivers.find(d => d.name === o.driver && d.supplier === o.supplier)?.phone || '',
@@ -15,12 +17,14 @@
     loc: (o, name) => { const cd = name === o.from ? o.dtp?.fromCd : name === o.to ? o.dtp?.toCd : ''; return cd ? `${cd} - ${name}` : name; },
     keterangan: () => 'PENGIRIMAN CONTAINER', // TBD: source of Keterangan not defined
   };
+  const resolve = id => DATA.flatMap(o => o.cycles.map((c, i) => ({ o, i }))).filter(x => look.sjNo(x.o, x.i) === id);
   const generate = (m, printedAt) => { dn.gens++; return DNPDF.render(window.jspdf.jsPDF, m, printedAt); };
-  const ctx = () => ({ orders: DATA, canView: W.canView, look, generate, now: () => new Date() });
-  const call = (id, opts = {}) => DN.api({ deliveryId: id, cycle: opts.cycle, token: (opts.auth ?? 'valid') === 'valid' ? 'mock-session-token' : '', actor: state.actor, simulate: opts.sim || '' }, ctx());
+  const ctx = () => ({ resolve, canView: W.canView, look, generate, now: () => new Date() });
+  const call = (id, opts = {}) => DN.api({ deliveryId: id, token: (opts.auth ?? 'valid') === 'valid' ? 'mock-session-token' : '', actor: state.actor, simulate: opts.sim || '' }, ctx());
   const toBlob = b64 => { const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Blob([u], { type: 'application/pdf' }); };
   const kb = n => `${(n / 1024).toFixed(1)} KB`;
-  const ERR_TXT = { 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 422: 'Unprocessable Entity', 500: 'Internal Server Error', 503: 'Service Unavailable', 504: 'Gateway Timeout' };
+  const ERR_TXT = { 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 409: 'Conflict', 422: 'Unprocessable Entity', 500: 'Internal Server Error', 503: 'Service Unavailable', 504: 'Gateway Timeout' };
+  const short = body => JSON.stringify(Object.assign({}, body, body.base64 ? { base64: body.base64.slice(0, 80) + `… (${body.base64.length} chars)` } : {}), null, 2);
 
   function download(res) {
     const a = document.createElement('a'), url = URL.createObjectURL(toBlob(res.body.base64));
@@ -32,141 +36,83 @@
     return `<div class="dn-err"><b>HTTP ${res.status} ${ERR_TXT[res.status] || ''} · ${b.error}</b><p>${esc(b.message)}</p>
       ${b.missingFields ? `<p>Field mandatory yang kosong:</p><ul>${b.missingFields.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}</div>`;
   }
-  // Busy wrapper: blocks repeated clicks / simultaneous requests for the same delivery
-  function busy(id, btn, fn) {
-    if (!guard.begin(id)) { toast(`Delivery Note ${id} sedang diproses, tunggu sebentar`); return; }
-    document.querySelectorAll(`[data-dn="${id}"],[data-dnact$="|${id}"]`).forEach(b => b.classList.add('busy'));
+  // DN-R07: block repeated clicks / simultaneous requests for the same delivery
+  function busy(id, fn) {
+    if (!guard.begin(id)) { toast(`Surat Jalan ${id} sedang diproses, tunggu sebentar`); return; }
+    document.querySelectorAll('[data-sj],[data-pdf],[data-dnx]').forEach(b => b.classList.add('busy'));
     setTimeout(() => {
-      try { fn(); } finally {
-        guard.end(id);
-        document.querySelectorAll('.busy').forEach(b => b.classList.remove('busy'));
-      }
+      try { fn(); } finally { guard.end(id); document.querySelectorAll('.busy').forEach(b => b.classList.remove('busy')); }
     }, 250);
   }
+  const pasLine = id => {
+    const p = PAS[id];
+    return p ? `<span class="st ${p.status === 'Attached' ? 'av' : 'fl'}">${p.status}</span> Rev ${p.revisions} · ${p.attempts} attempt(s) · ${p.log.slice(-3).map(l => l.result).join(' → ')}`
+      : '<span class="st sb">Not Attached</span>';
+  };
 
-  // ---------- View (preview) ----------
-  function view(id) {
-    busy(id, null, () => {
+  // ---------- View (Surat Jalan ELIPS) ----------
+  function view(o, i) {
+    const id = look.sjNo(o, i);
+    busy(id, () => {
       const res = call(id);
-      if (res.status !== 200) { showPreview(`Delivery Note - ${id}`, errorBox(res), ''); return; }
+      if (res.status !== 200) { showPreview(`Surat Jalan ELIPS - Cycle ${i + 1}`, errorBox(res), ''); return; }
       const url = URL.createObjectURL(toBlob(res.body.base64)), b = res.body;
-      showPreview(`Delivery Note - ${id}`,
-        `<div class="dn-meta"><span>File <b>${esc(b.fileName)}</b></span><span>Size <b>${kb(b.size)}</b></span><span>Pages <b>${b.pages}</b></span><span>Data hash <b data-dn-sum>${b.dataHash}</b></span></div>
-         <iframe class="dn-frame" title="Delivery Note ${id}" src="${url}"></iframe>`,
-        `<button class="btn-sm-blue" id="dnPvDl">Download PDF</button>`, () => { URL.revokeObjectURL(url); $('preview').querySelector('.pv').classList.remove('dn-pv'); });
+      showPreview(`Surat Jalan ELIPS - Cycle ${i + 1}`,
+        `<div class="dn-meta"><span>Delivery ID <b>${b.deliveryId}</b></span><span>No Order <b>${b.orderNo}</b></span><span>File <b>${esc(b.fileName)}</b></span><span>Size <b>${kb(b.size)}</b></span><span>Data hash <b data-dn-sum>${b.dataHash}</b></span></div>
+         <iframe class="dn-frame" title="Surat Jalan ${b.deliveryId}" src="${url}"></iframe>
+         <details class="dn-api" id="dnApi"><summary>API Base64 &amp; PAS GR Attachment (simulasi)</summary>
+           <p class="q-note">${esc(DN.ENDPOINT)} · endpoint, auth &amp; kontrak PAS: TBD · generate di sesi ini: <b id="dnGens">${dn.gens}</b></p>
+           <div class="dn-form">
+             <div><label for="dnId">deliveryId</label><input id="dnId" value="${b.deliveryId}"></div>
+             <div><label for="dnAuth">Authorization</label><select id="dnAuth"><option value="valid">Token sesi valid</option><option value="none">Tanpa token</option></select></div>
+             <div><label for="dnSim">Simulasi</label><select id="dnSim">${[['', 'Normal'], ['genfail', 'PDF generation failure'], ['corrupt', 'Corrupted PDF'], ['timeout', 'Timeout'], ['unavailable', 'Service unavailable']].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+             <div class="dn-btns"><button class="btn-dark" data-dnx="send">Send</button><button class="btn-light" data-dnx="verify">Decode &amp; Verify</button></div>
+           </div>
+           <pre class="dn-res" id="dnRes">Belum ada request</pre>
+           <div class="dn-pas"><label class="form-check"><input type="checkbox" id="dnPasFail" ${dn.pasFail ? 'checked' : ''}> Simulasi PAS gagal</label>
+             <button class="btn-sm-blue" data-dnx="pas">Attach ke PAS GR</button><span id="dnPas">${pasLine(b.deliveryId)}</span></div>
+         </details>`,
+        `<button class="btn-sm-blue" id="dnPvDl">Download PDF</button>`,
+        () => { URL.revokeObjectURL(url); $('preview').querySelector('.pv').classList.remove('dn-pv'); dn.cur = null; });
       $('preview').querySelector('.pv').classList.add('dn-pv');
-      $('dnPvDl').onclick = () => dl(id);
-      dn.last = res; paint();
+      $('dnPvDl').onclick = () => dl(o, i);
+      dn.cur = { o, i, id: b.deliveryId, last: null };
     });
   }
-  function dl(id) {
-    busy(id, null, () => {
+  // ---------- Download (PDF) ----------
+  function dl(o, i) {
+    const id = look.sjNo(o, i);
+    busy(id, () => {
       const res = call(id);
-      if (res.status !== 200) { showPreview(`Delivery Note - ${id}`, errorBox(res), ''); return; }
-      download(res); dn.last = res; paint();
-      toast(`${res.body.fileName} diunduh · data hash ${res.body.dataHash}`);
-    });
-  }
-  function attach(id) {
-    busy(id, null, () => {
-      const res = call(id), r = DN.attachPAS(PAS, res, { fail: dn.pasFail ? 'PAS service tidak merespons' : '', at: new Date().toISOString() });
-      savePas(); paint();
-      if (res.status !== 200) { showPreview(`Attach ke PAS GR - ${id}`, errorBox(res), ''); return; }
-      toast(r.message);
+      if (res.status !== 200) { showPreview(`Surat Jalan ELIPS - Cycle ${i + 1}`, errorBox(res), ''); return; }
+      download(res); toast(`${res.body.fileName} diunduh · data hash ${res.body.dataHash}`);
     });
   }
 
-  // ---------- Page ----------
-  const visible = () => DATA.filter(o => W.canView(state.actor, o));
-  function rows() {
-    const q = dn.q.trim().toLowerCase();
-    return visible().filter(o => !q || [o.orderNo, o.supplier, o.truck, o.driver, o.date].join(' ').toLowerCase().includes(q))
-      .sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.orderNo < b.orderNo ? 1 : -1);
-  }
-  function pasCell(o) {
-    const p = PAS[o.orderNo];
-    if (!p) return '<span class="st sb">Not Attached</span>';
-    return `<span class="st ${p.status === 'Attached' ? 'av' : 'fl'}">${p.status}</span><small class="sub">Rev ${p.revisions} · ${p.attempts} attempt(s)</small>`;
-  }
-  function paint() {
-    const root = $('dnRoot'); if (!root || $('pgDN').style.display === 'none') return;
-    const list = rows(), b = dn.last?.body, PS = 10, pages = Math.max(1, Math.ceil(list.length / PS));
-    dn.page = Math.min(dn.page, pages);
-    const view = list.slice((dn.page - 1) * PS, dn.page * PS);
-    root.innerHTML = `<section class="cal-card">
-      <div class="dn-note">PDF Delivery Note dibuat <b>on-the-fly</b> setiap kali tombol diklik, dari data delivery terbaru. Tidak ada PDF yang disimpan atau di-generate secara batch.
-        <span>Jumlah generate di sesi ini: <b id="dnGens">${dn.gens}</b></span></div>
-      <div class="ta-top"><div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="text" id="dnQ" placeholder="Search No. Order / Trucking / Plate / Driver" value="${esc(dn.q)}" style="width:280px"></div>
-        <span class="spacer"></span><span class="q-note">${list.length} delivery · login: ${esc(W.roleLabel(state.actor))}</span></div>
-      <div class="table-wrap"><table id="dnTable"><thead><tr><th>Delivery Note</th><th>Date</th><th>No. Order (Delivery ID)</th><th>Trucking Comp.</th><th>License Plate</th><th>Driver</th><th>Cycle Start</th><th>Data DN</th><th>PAS GR Attachment</th></tr></thead>
-      <tbody>${view.map(o => {
-        const miss = DN.missing(o), n = DN.startedCycles(o).length;
-        return `<tr><td><div class="ta-act">
-            <button class="dn-b" data-dnact="view|${o.orderNo}" title="View PDF">View</button>
-            <button class="dn-b" data-dnact="dl|${o.orderNo}" title="Download PDF">Download</button>
-            <button class="dn-b pas" data-dnact="pas|${o.orderNo}" title="Attach ke PAS GR">PAS GR</button></div></td>
-          <td>${fmtDate(o.date)}</td><td><button class="link" data-dnact="api|${o.orderNo}">${o.orderNo}</button></td><td class="left">${esc(o.supplier)}</td><td>${o.truck || '-'}</td><td>${esc(o.driver || '-')}</td>
-          <td>${n} / ${o.cycles.length}</td>
-          <td>${miss.length ? `<span class="st fl">Incomplete</span><small class="sub">${miss.map(esc).join(', ')}</small>` : '<span class="st av">Complete</span>'}</td>
-          <td>${pasCell(o)}</td></tr>`; }).join('') || '<tr><td colspan="9" class="empty">No Data Found</td></tr>'}</tbody></table></div>
-      <div class="dn-pager"><span class="q-note">Showing ${list.length ? (dn.page - 1) * PS + 1 : 0} to ${(dn.page - 1) * PS + view.length} of ${list.length} records</span><span class="spacer"></span>
-        <button class="btn-light" data-dnpg="-1" ${dn.page === 1 ? 'disabled' : ''}>&lsaquo; Prev</button><span class="q-note">Page ${dn.page} / ${pages}</span><button class="btn-light" data-dnpg="1" ${dn.page === pages ? 'disabled' : ''}>Next &rsaquo;</button></div>
-    </section>
-    <section class="cal-card dn-api">
-      <h2>API Console (simulasi) <small>${esc(DN.ENDPOINT)} · endpoint &amp; auth: TBD</small></h2>
-      <div class="dn-form">
-        <div><label for="dnId">deliveryId</label><input id="dnId" value="${esc(dn.id)}" placeholder="No. Order"></div>
-        <div><label for="dnAuth">Authorization</label><select id="dnAuth"><option value="valid" ${dn.auth === 'valid' ? 'selected' : ''}>Token sesi valid</option><option value="none" ${dn.auth === 'none' ? 'selected' : ''}>Tanpa token</option></select></div>
-        <div><label for="dnSim">Simulasi</label><select id="dnSim">${[['', 'Normal'], ['genfail', 'PDF generation failure'], ['corrupt', 'Corrupted PDF'], ['timeout', 'Timeout'], ['unavailable', 'Service unavailable']].map(([v, l]) => `<option value="${v}" ${dn.sim === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-        <div class="dn-btns"><button class="btn-dark" id="dnSend">Send</button><button class="btn-light" id="dnVerify" ${b?.base64 ? '' : 'disabled'}>Decode &amp; Verify</button>
-          <label class="form-check"><input type="checkbox" id="dnPasFail" ${dn.pasFail ? 'checked' : ''}> Simulasi PAS gagal</label></div>
-      </div>
-      <pre class="dn-res" id="dnRes">${dn.last ? esc(JSON.stringify(Object.assign({}, dn.last.body, b?.base64 ? { base64: b.base64.slice(0, 96) + `… (${b.base64.length} chars)` } : {}), null, 2)) : 'Belum ada request'}</pre>
-      <div id="dnVerifyOut" class="q-note"></div>
-    </section>
-    <section class="cal-card"><h2>PAS GR Attachment Log</h2>
-      <div class="table-wrap"><table><thead><tr><th>Delivery ID</th><th>File</th><th>Size</th><th>Data Hash</th><th>Status</th><th>Rev</th><th>Attempt</th><th>Riwayat</th></tr></thead><tbody>
-      ${Object.values(PAS).filter(p => visible().some(o => o.orderNo === p.deliveryId)).map(p => `<tr><td>${p.deliveryId}</td><td>${esc(p.fileName)}</td><td>${p.size ? kb(p.size) : '-'}</td><td>${p.dataHash || '-'}</td><td>${p.status}</td><td>${p.revisions}</td><td>${p.attempts}</td>
-        <td class="left">${p.log.slice(-4).map(l => `${l.result} <small>${esc(l.note)}</small>`).join('<br>')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Belum ada attachment</td></tr>'}
-      </tbody></table></div>
-      <p class="q-note" style="margin-top:6px">Idempotency key = Delivery ID: retry dengan data dokumen yang sama tidak menambah file; data berubah → file GR diganti (Rev + 1). Kontrak interface PAS: TBD.</p>
-    </section>`;
-  }
-
-  function send() {
-    dn.id = $('dnId').value; dn.auth = $('dnAuth').value; dn.sim = $('dnSim').value;
-    const id = dn.id.trim() || '(kosong)';
-    busy(id, null, () => { dn.last = call(dn.id, { auth: dn.auth, sim: dn.sim }); paint(); });
-  }
   document.addEventListener('click', e => {
-    const t = e.target.closest('[data-dnact]');
-    if (t) {
-      const [act, id] = t.dataset.dnact.split('|');
-      if (act === 'view') view(id); else if (act === 'dl') dl(id); else if (act === 'pas') attach(id);
-      else if (act === 'api') { dn.id = id; paint(); $('dnId').focus(); }
-      return;
+    const x = e.target.closest('[data-dnx]'); if (!x || !dn.cur) return;
+    const cur = dn.cur;
+    if (x.dataset.dnx === 'send') {
+      const id = $('dnId').value;
+      busy(id.trim() || '(kosong)', () => {
+        cur.last = call(id, { auth: $('dnAuth').value, sim: $('dnSim').value });
+        $('dnRes').textContent = `HTTP ${cur.last.status}\n` + short(cur.last.body); $('dnGens').textContent = dn.gens;
+      });
     }
-    const pg = e.target.closest('[data-dnpg]');
-    if (pg && !pg.disabled) { dn.page += +pg.dataset.dnpg; paint(); return; }
-    if (e.target.id === 'dnSend') send();
-    if (e.target.id === 'dnVerify' && dn.last?.body.base64) {
-      const err = DN.checkPdfBase64(dn.last.body.base64);
-      $('dnVerifyOut').innerHTML = err ? `<span class="st fl">${err}</span>` : `<span class="st av">Valid PDF</span> header %PDF-, trailer %%EOF, ${kb(dn.last.body.size)}, ${dn.last.body.pages} page(s), data hash ${dn.last.body.dataHash} <button class="link" id="dnOpen">Buka PDF</button>`;
+    if (x.dataset.dnx === 'verify') {
+      const b64 = cur.last?.body.base64;
+      $('dnRes').textContent += `\n\n» Decode & Verify: ${!b64 ? 'tidak ada Base64 di response terakhir' : DN.checkPdfBase64(b64) || `VALID PDF (%PDF- … %%EOF), ${kb(DN.decodedSize(b64))}`}`;
     }
-    if (e.target.id === 'dnOpen') window.open(URL.createObjectURL(toBlob(dn.last.body.base64)), '_blank');
-  });
-  document.addEventListener('input', e => {
-    if (e.target.id === 'dnQ') { dn.q = e.target.value; dn.page = 1; const pos = e.target.selectionStart; paint(); $('dnQ').focus(); $('dnQ').setSelectionRange(pos, pos); }
+    if (x.dataset.dnx === 'pas') {
+      busy(cur.id, () => {
+        const res = call(cur.id), r = DN.attachPAS(PAS, res, { fail: $('dnPasFail').checked ? 'PAS service tidak merespons' : '', at: new Date().toISOString() });
+        savePas(); $('dnPas').innerHTML = pasLine(cur.id); $('dnGens').textContent = dn.gens;
+        toast(res.status !== 200 ? `${res.body.error}: ${res.body.message}` : r.message);
+      });
+    }
   });
   document.addEventListener('change', e => { if (e.target.id === 'dnPasFail') dn.pasFail = e.target.checked; });
-  document.addEventListener('actorchange', () => { dn.last = null; paint(); });
 
   window.dnView = view;
   window.dnDownload = dl;
-  window.dnPdfCycle = (o, i) => {
-    const res = call(o.orderNo, { cycle: i });
-    if (res.status !== 200) { toast(`${res.body.error}: ${res.body.missingFields ? res.body.missingFields.join(', ') : res.body.message}`); return; }
-    download(res); toast(`${res.body.fileName} diunduh`);
-  };
-  window.dnRender = paint;
 })();

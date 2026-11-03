@@ -125,16 +125,15 @@ if (!restore()) {
 } else resumeQueue();
 
 // ---------- Routing (Daily sub menu) ----------
-const VIEWS = { monitoring: 'pgMonitoring', 'planning-order': 'pgPlanning', 'truck-assignment': 'pgAssign', 'delivery-note': 'pgDN' };
+const VIEWS = { monitoring: 'pgMonitoring', 'planning-order': 'pgPlanning', 'truck-assignment': 'pgAssign' };
 function route() {
   const [v0, date] = location.hash.slice(1).split('/');
   const v = VIEWS[v0] ? v0 : 'monitoring';
   Object.entries(VIEWS).forEach(([k, id]) => { $(id).style.display = k === v ? '' : 'none'; });
   document.querySelectorAll('#dailySub a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
-  document.title = `ELIPS - ${{ monitoring: 'Daily Monitoring', 'planning-order': 'Planning Order', 'truck-assignment': 'Planning Truck Assignment', 'delivery-note': 'Delivery Note' }[v]}`;
+  document.title = `ELIPS - ${{ monitoring: 'Daily Monitoring', 'planning-order': 'Planning Order', 'truck-assignment': 'Planning Truck Assignment' }[v]}`;
   if (v === 'monitoring') render();
   if (v === 'truck-assignment') window.taRender?.();
-  if (v === 'delivery-note') window.dnRender?.();
   if (v !== 'planning-order') return;
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) openCreate(date); else showCalendar();
 }

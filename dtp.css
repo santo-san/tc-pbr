@@ -138,35 +138,24 @@ small.sub { display: block; font-size: 8.5px; color: #6b7280; }
 .ta-info b { display: block; font-weight: 500; color: #6b7280; font-size: 9px; }
 @media (max-width: 1100px) { .ta-filters { grid-template-columns: 1fr 1fr 1fr; } .ta-info { grid-template-columns: 1fr 1fr; } }
 
-/* ---------- Delivery Note ---------- */
-td[data-col="action"] { white-space: nowrap; }
-.act.dn-ic { margin-left: 4px; background: #fdecec; color: #c0392b; }
-.act.dn-ic:hover { background: #f9d6d6; }
+/* ---------- Delivery Note (Surat Jalan preview in Order Detail) ---------- */
 .busy { opacity: .45; pointer-events: none; cursor: progress; }
-.dn-note { background: #eef6ff; border: 1px solid #cfe3fb; border-radius: 6px; padding: 8px 12px; font-size: 10.5px; margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
-.dn-note span { margin-left: auto; }
-.dn-api h2, #pgDN h2 { font-size: 13px; margin: 0 0 10px; }
-.dn-api h2 small { font-weight: 400; color: var(--muted); font-size: 10px; margin-left: 6px; }
-#pgDN .cal-card { margin-bottom: 14px; }
-.dn-form { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr auto; gap: 10px; align-items: end; }
-.dn-form label { display: block; font-size: 10px; font-weight: 600; margin-bottom: 4px; }
-.dn-form input, .dn-form select { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 5px; padding: 0 8px; font-size: 10.5px; font-family: inherit; background: #fff; }
-.dn-btns { display: flex; gap: 8px; align-items: center; }
-.dn-btns button { height: 30px; }
-.dn-res { background: #0f1b2d; color: #d6e4ff; font-size: 10px; border-radius: 6px; padding: 10px 12px; margin: 12px 0 6px; max-height: 260px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
 .pv.dn-pv { width: 980px; }
-.dn-frame { width: 100%; height: 66vh; border: 1px solid #e3e6eb; border-radius: 6px; }
+.dn-frame { width: 100%; height: 62vh; border: 1px solid #e3e6eb; border-radius: 6px; }
 .dn-meta { display: flex; gap: 18px; font-size: 10.5px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap; }
 .dn-meta b { color: #111; }
 .dn-err { border: 1px solid #f5c2c2; background: #fff5f5; border-radius: 6px; padding: 10px 14px; font-size: 11px; }
 .dn-err b { color: #b42318; }
 .dn-err ul { margin: 4px 0 0 18px; }
+.dn-api { margin-top: 10px; border: 1px solid #e3e6eb; border-radius: 6px; padding: 8px 12px; font-size: 10.5px; }
+.dn-api summary { cursor: pointer; font-weight: 600; }
+.dn-api .q-note { margin: 6px 0 8px; }
+.dn-form { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr auto; gap: 10px; align-items: end; }
+.dn-form label { display: block; font-size: 10px; font-weight: 600; margin-bottom: 4px; }
+.dn-form input, .dn-form select { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 5px; padding: 0 8px; font-size: 10.5px; font-family: inherit; background: #fff; }
+.dn-btns { display: flex; gap: 8px; align-items: center; }
+.dn-btns button { height: 30px; }
+.dn-res { background: #0f1b2d; color: #d6e4ff; font-size: 10px; border-radius: 6px; padding: 10px 12px; margin: 10px 0 8px; max-height: 220px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.dn-pas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dn-pas .form-check { display: flex; align-items: center; gap: 4px; margin: 0; }
 @media (max-width: 900px) { .dn-form { grid-template-columns: 1fr 1fr; } }
-#dnTable .ta-act { flex-wrap: nowrap; }
-.dn-b { height: 22px; padding: 0 8px; border: 0; border-radius: 4px; background: var(--blue); color: #fff; font-size: 9.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.dn-b.pas { background: #0b2b5c; }
-.dn-pager { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.dn-pager .spacer { flex: 1; }
-.dn-pager button { height: 26px; }
-.dn-btns .form-check { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 500; white-space: nowrap; margin: 0; }
-.dn-btns .form-check input { width: auto; height: auto; }
