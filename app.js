@@ -290,23 +290,40 @@ document.querySelectorAll('.dd > button').forEach(btn => btn.addEventListener('c
 document.querySelectorAll('.dd-menu').forEach(m => m.addEventListener('click', e => e.stopPropagation()));
 document.addEventListener('click', () => document.querySelectorAll('.dd').forEach(x => x.classList.remove('open')));
 
+// ---------- Export (Download Daily Order Monitoring, see docs/uiss/UISS_Report_Daily_Order_Monitoring.xlsx) ----------
+// Excel: all rows matching the current filter / tab / search (not only the current page), in the current sort order.
+const EXPORT_HEAD = ['No', 'Date', 'No. Order', 'Type', 'Trucking Comp.', 'License Plate', 'Driver', 'DTP Loc. From', 'DTP Loc. To', 'Renban', 'Shift', 'FA'];
+const EXPORT_TAIL = ['Order Status', 'SA Approved At', 'PO Number'];
+function exportRows(rows) {
+  return rows.map((o, k) => [k + 1, fmtDate(o.date), o.orderNo, o.type, o.supplier, o.truck || '-', o.driver || '-', o.from, o.to, o.renban, o.shift, o.fa || '',
+    ...[0, 1, 2, 3, 4].flatMap(i => { const c = o.cycles[i]; if (!c) return ['-', '-', '-']; const t = c.finishAt || c.pickupAt || c.startAt; return [t ? fmtTS(t) : '-', c.status, c.container || '-']; }),
+    o.status, o.saAt ? fmtTS(o.saAt) : '-', o.poNo || '-']);
+}
+function exportExcel() {
+  const rows = filtered();
+  if (!rows.length) { toast('Tidak ada data untuk diexport'); return; }
+  const now = new Date(), ts = `${W.ymd(now).replace(/-/g, '')}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const opt = id => { const el = $(id); return el.value ? el.options[el.selectedIndex].text : 'All'; };
+  const crit = [['Date From', state.dateFrom ? fmtDate(state.dateFrom) : 'All'], ['Date To', state.dateTo ? fmtDate(state.dateTo) : 'All'],
+    ['From Loc.', opt('fromLoc')], ['To Loc.', opt('toLoc')], ['DTP Type', state.dtp ? state.dtp.replace('DTP', 'DTP ') : 'ALL'], ['Search', state.search.trim() || '-']];
+  const h1 = [...EXPORT_HEAD, ...[1, 2, 3, 4, 5].flatMap(n => [`CYCLE ${n}`, '', '']), ...EXPORT_TAIL];
+  const h2 = [...EXPORT_HEAD.map(() => ''), ...[1, 2, 3, 4, 5].flatMap(() => ['Time', 'Status', 'Container No.']), ...EXPORT_TAIL.map(() => '')];
+  const aoa = [['DAILY ORDER MONITORING'], [`Printed by : ${state.actor.name} (${W.roleLabel(state.actor)})`, '', '', '', '', '', '', '', '', '', '', '', '', '', `Printed date : ${fmtTS(now)}`],
+    [], ...crit.map(([k, v]) => [k, `: ${v}`]), [], h1, h2, ...exportRows(rows), [], [`Total : ${rows.length} record(s)`]];
+  const ws = XLSX.utils.aoa_to_sheet(aoa), H = 3 + crit.length + 1, last = h1.length - 1;
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: last } },
+    ...EXPORT_HEAD.map((_, c) => ({ s: { r: H, c }, e: { r: H + 1, c } })),
+    ...[0, 1, 2, 3, 4].map(n => ({ s: { r: H, c: EXPORT_HEAD.length + n * 3 }, e: { r: H, c: EXPORT_HEAD.length + n * 3 + 2 } })),
+    ...EXPORT_TAIL.map((_, k) => ({ s: { r: H, c: EXPORT_HEAD.length + 15 + k }, e: { r: H + 1, c: EXPORT_HEAD.length + 15 + k } }))];
+  ws['!cols'] = [5, 11, 20, 7, 28, 13, 20, 28, 28, 9, 8, 6, ...Array(5).fill([18, 16, 14]).flat(), 26, 19, 13].map(wch => ({ wch }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Daily Order Monitoring');
+  XLSX.writeFile(wb, `Daily Order Monitoring_${ts}.xlsx`);
+  toast(`${rows.length} baris diexport`);
+}
 document.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', () => {
   $('ddExport').classList.remove('open');
   if (b.dataset.export === 'print') { window.print(); return; }
-  const rows = filtered();
-  const head = ['Date', 'No. Order', 'Type', 'Trucking Comp.', 'License Plate', 'Driver', 'DTP Loc. From', 'DTP Loc. To', 'Renban', 'Shift', 'FA',
-    'Cycle 1', 'Cycle 2', 'Cycle 3', 'Cycle 4', 'Cycle 5', 'Order Status', 'SA Approved At', 'PO Number'];
-  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const lines = [head.map(q).join(',')].concat(rows.map(o => [
-    fmtDate(o.date), o.orderNo, o.type, o.supplier, o.truck, o.driver, o.from, o.to, o.renban, o.shift, o.fa,
-    ...[0, 1, 2, 3, 4].map(i => o.cycles[i] ? `${o.cycles[i].status} ${o.cycles[i].container}`.trim() : '-'),
-    o.status, o.saAt ? fmtTS(o.saAt) : '', o.poNo,
-  ].map(q).join(',')));
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = `order-monitoring-${W.ymd(new Date())}.csv`;
-  a.click(); URL.revokeObjectURL(a.href);
-  toast(`${rows.length} baris diexport`);
+  exportExcel();
 }));
 
 document.querySelectorAll('th.sortable').forEach(th => th.addEventListener('click', () => {
