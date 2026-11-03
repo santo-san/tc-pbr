@@ -188,6 +188,8 @@ function render() {
     <tr>
       <td data-col="action"><button class="act" data-order="${o.orderNo}" title="Lihat detail">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+      </button><button class="act dn-ic" data-dn="${o.orderNo}" title="Delivery Note (PDF)" aria-label="Delivery Note ${o.orderNo}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6v20h12V6z"/><path d="M14 2v4h4M9 13h6M9 17h6M9 9h2"/></svg>
       </button></td>
       <td data-col="date">${fmtDate(o.date)}</td>
       <td data-col="orderNo">${o.orderNo}</td>
@@ -606,14 +608,17 @@ $('mBody').addEventListener('click', e => {
   const sj = e.target.closest('[data-sj]');
   if (sj && !sj.disabled) {
     showPreview(`Surat Jalan ELIPS - Cycle ${i + 1}`, suratJalan(current, i, d), `<button class="btn-sm-blue" id="pvPrint">PDF</button>`);
-    $('pvPrint').onclick = () => printSuratJalan(current, i, d);
+    $('pvPrint').onclick = () => window.dnPdfCycle ? window.dnPdfCycle(current, i) : printSuratJalan(current, i, d);
   }
   const pdf = e.target.closest('[data-pdf]');
-  if (pdf && !pdf.disabled) printSuratJalan(current, i, d);
+  if (pdf && !pdf.disabled) window.dnPdfCycle ? window.dnPdfCycle(current, i) : printSuratJalan(current, i, d);
 });
 
 const closeDetail = () => $('overlay').classList.remove('show');
-$('tbody').addEventListener('click', e => { const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order); });
+$('tbody').addEventListener('click', e => {
+  const d = e.target.closest('[data-dn]'); if (d) { window.dnView?.(d.dataset.dn); return; }
+  const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order);
+});
 $('mClose').addEventListener('click', closeDetail);
 $('pvClose').addEventListener('click', closePreview);
 $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) closeDetail(); });
