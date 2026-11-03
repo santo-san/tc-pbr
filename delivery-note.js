@@ -2,15 +2,22 @@
 // The PDF is generated on the fly on each click from the latest order data (no stored or batch PDF).
 // Rules: dn-rules.js (window.DN); PDF renderer: dn-pdf.js (window.DNPDF) with vendor/jspdf.
 (function () {
-  const STORE = 'elips-dn-pas-v1';
+  const STORE = 'elips-dn-pas-v2';
   const PAS = (() => { try { return JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (e) { return {}; } })();
   const savePas = () => { try { localStorage.setItem(STORE, JSON.stringify(PAS)); } catch (e) { /* storage not available */ } };
   const guard = DN.createGuard();
   const dn = { q: '', page: 1, gens: 0, last: null, sim: '', auth: 'valid', pasFail: false, id: '' };
-  const sjNo = (o, i) => cycleDetail(o, i).cycleNo;
-  const generate = m => { dn.gens++; return DNPDF.render(window.jspdf.jsPDF, m); };
-  const ctx = () => ({ orders: DATA, canView: W.canView, sjNo, generate, now: () => new Date() });
-  const call = (id, opts = {}) => DN.api({ deliveryId: id, token: (opts.auth ?? 'valid') === 'valid' ? 'mock-session-token' : '', actor: state.actor, simulate: opts.sim || '' }, ctx());
+  // Data sources of the Surat Jalan fields (see docs/delivery-note-spec.md §2)
+  const look = {
+    sjNo: (o, i) => cycleDetail(o, i).cycleNo,
+    phone: o => MASTER.drivers.find(d => d.name === o.driver && d.supplier === o.supplier)?.phone || '',
+    saNo: o => saNumber(o),
+    loc: (o, name) => { const cd = name === o.from ? o.dtp?.fromCd : name === o.to ? o.dtp?.toCd : ''; return cd ? `${cd} - ${name}` : name; },
+    keterangan: () => 'PENGIRIMAN CONTAINER', // TBD: source of Keterangan not defined
+  };
+  const generate = (m, printedAt) => { dn.gens++; return DNPDF.render(window.jspdf.jsPDF, m, printedAt); };
+  const ctx = () => ({ orders: DATA, canView: W.canView, look, generate, now: () => new Date() });
+  const call = (id, opts = {}) => DN.api({ deliveryId: id, cycle: opts.cycle, token: (opts.auth ?? 'valid') === 'valid' ? 'mock-session-token' : '', actor: state.actor, simulate: opts.sim || '' }, ctx());
   const toBlob = b64 => { const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Blob([u], { type: 'application/pdf' }); };
   const kb = n => `${(n / 1024).toFixed(1)} KB`;
   const ERR_TXT = { 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 422: 'Unprocessable Entity', 500: 'Internal Server Error', 503: 'Service Unavailable', 504: 'Gateway Timeout' };
@@ -44,7 +51,7 @@
       if (res.status !== 200) { showPreview(`Delivery Note - ${id}`, errorBox(res), ''); return; }
       const url = URL.createObjectURL(toBlob(res.body.base64)), b = res.body;
       showPreview(`Delivery Note - ${id}`,
-        `<div class="dn-meta"><span>File <b>${esc(b.fileName)}</b></span><span>Size <b>${kb(b.size)}</b></span><span>Checksum <b data-dn-sum>${b.checksum}</b></span></div>
+        `<div class="dn-meta"><span>File <b>${esc(b.fileName)}</b></span><span>Size <b>${kb(b.size)}</b></span><span>Pages <b>${b.pages}</b></span><span>Data hash <b data-dn-sum>${b.dataHash}</b></span></div>
          <iframe class="dn-frame" title="Delivery Note ${id}" src="${url}"></iframe>`,
         `<button class="btn-sm-blue" id="dnPvDl">Download PDF</button>`, () => { URL.revokeObjectURL(url); $('preview').querySelector('.pv').classList.remove('dn-pv'); });
       $('preview').querySelector('.pv').classList.add('dn-pv');
@@ -57,7 +64,7 @@
       const res = call(id);
       if (res.status !== 200) { showPreview(`Delivery Note - ${id}`, errorBox(res), ''); return; }
       download(res); dn.last = res; paint();
-      toast(`${res.body.fileName} diunduh · checksum ${res.body.checksum}`);
+      toast(`${res.body.fileName} diunduh · data hash ${res.body.dataHash}`);
     });
   }
   function attach(id) {
@@ -118,11 +125,11 @@
       <div id="dnVerifyOut" class="q-note"></div>
     </section>
     <section class="cal-card"><h2>PAS GR Attachment Log</h2>
-      <div class="table-wrap"><table><thead><tr><th>Delivery ID</th><th>File</th><th>Size</th><th>Checksum</th><th>Status</th><th>Rev</th><th>Attempt</th><th>Riwayat</th></tr></thead><tbody>
-      ${Object.values(PAS).filter(p => visible().some(o => o.orderNo === p.deliveryId)).map(p => `<tr><td>${p.deliveryId}</td><td>${esc(p.fileName)}</td><td>${p.size ? kb(p.size) : '-'}</td><td>${p.checksum || '-'}</td><td>${p.status}</td><td>${p.revisions}</td><td>${p.attempts}</td>
+      <div class="table-wrap"><table><thead><tr><th>Delivery ID</th><th>File</th><th>Size</th><th>Data Hash</th><th>Status</th><th>Rev</th><th>Attempt</th><th>Riwayat</th></tr></thead><tbody>
+      ${Object.values(PAS).filter(p => visible().some(o => o.orderNo === p.deliveryId)).map(p => `<tr><td>${p.deliveryId}</td><td>${esc(p.fileName)}</td><td>${p.size ? kb(p.size) : '-'}</td><td>${p.dataHash || '-'}</td><td>${p.status}</td><td>${p.revisions}</td><td>${p.attempts}</td>
         <td class="left">${p.log.slice(-4).map(l => `${l.result} <small>${esc(l.note)}</small>`).join('<br>')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Belum ada attachment</td></tr>'}
       </tbody></table></div>
-      <p class="q-note" style="margin-top:6px">Idempotency key = Delivery ID: retry dengan PDF yang sama tidak menambah file; data berubah → file GR diganti (Rev + 1). Kontrak interface PAS: TBD.</p>
+      <p class="q-note" style="margin-top:6px">Idempotency key = Delivery ID: retry dengan data dokumen yang sama tidak menambah file; data berubah → file GR diganti (Rev + 1). Kontrak interface PAS: TBD.</p>
     </section>`;
   }
 
@@ -144,7 +151,7 @@
     if (e.target.id === 'dnSend') send();
     if (e.target.id === 'dnVerify' && dn.last?.body.base64) {
       const err = DN.checkPdfBase64(dn.last.body.base64);
-      $('dnVerifyOut').innerHTML = err ? `<span class="st fl">${err}</span>` : `<span class="st av">Valid PDF</span> header %PDF-, trailer %%EOF, ${kb(dn.last.body.size)}, checksum ${DN.checksum(dn.last.body.base64)} <button class="link" id="dnOpen">Buka PDF</button>`;
+      $('dnVerifyOut').innerHTML = err ? `<span class="st fl">${err}</span>` : `<span class="st av">Valid PDF</span> header %PDF-, trailer %%EOF, ${kb(dn.last.body.size)}, ${dn.last.body.pages} page(s), data hash ${dn.last.body.dataHash} <button class="link" id="dnOpen">Buka PDF</button>`;
     }
     if (e.target.id === 'dnOpen') window.open(URL.createObjectURL(toBlob(dn.last.body.base64)), '_blank');
   });
@@ -157,10 +164,9 @@
   window.dnView = view;
   window.dnDownload = dl;
   window.dnPdfCycle = (o, i) => {
-    const miss = DN.missing(o);
-    if (miss.length) { toast(`Data belum lengkap: ${miss.join(', ')}`); return; }
-    const b64 = generate(DN.model(o, sjNo, i));
-    download({ body: { base64: b64, fileName: DN.fileName(o, i) } });
+    const res = call(o.orderNo, { cycle: i });
+    if (res.status !== 200) { toast(`${res.body.error}: ${res.body.missingFields ? res.body.missingFields.join(', ') : res.body.message}`); return; }
+    download(res); toast(`${res.body.fileName} diunduh`);
   };
   window.dnRender = paint;
 })();

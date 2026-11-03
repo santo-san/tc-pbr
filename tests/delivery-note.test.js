@@ -14,9 +14,10 @@ const order = (over = {}) => Object.assign({
     { from: 'Depo Cakung Marunda', to: '(Empty) CY TMMIN Sunter 1', container: '', startAt: null, pickupAt: null, finishAt: null },
   ],
 }, over);
-const sjNo = (o, i) => `${o.orderNo.slice(0, 8)}PBM${100 + i}`;
+const look = { sjNo: (o, i) => `261027C2PBM${100 + i}`, phone: () => '87894756019', saNo: o => o.saNo || '', loc: (o, n) => n, keterangan: () => 'PENGIRIMAN CONTAINER' };
 const canView = (a, o) => a.role === 'IP_ADMIN' || (a.role === 'SUPPLIER' && a.supplier === o.supplier);
-const mkCtx = orders => ({ orders, canView, sjNo, generate: m => { gens++; return DNPDF.render(jsPDF, m); }, now: () => new Date('2026-11-03T01:00:00Z') });
+let NOW = new Date('2026-11-03T01:00:00Z');
+const mkCtx = orders => ({ orders, canView, look, generate: (m, at) => { gens++; return DNPDF.render(jsPDF, m, at); }, now: () => NOW });
 const IP = { role: 'IP_ADMIN' }, PBM = { role: 'SUPPLIER', supplier: 'PBM' }, SRL = { role: 'SUPPLIER', supplier: 'SRL' };
 const req = (id, o = {}) => Object.assign({ deliveryId: id, token: 't', actor: IP, simulate: '' }, o);
 const tests = [];
@@ -25,31 +26,39 @@ const test = (n, f) => tests.push([n, f]);
 test('missing(): complete delivery has no missing field', () => assert.deepStrictEqual(DN.missing(order()), []));
 test('missing(): lists every empty mandatory field', () => {
   const m = DN.missing(order({ truck: '', driver: '-', cycles: [{ from: 'A', to: 'B', startAt: null }] }));
-  assert.deepStrictEqual(m, ['Police No', 'Driver', 'Cycle (minimal 1 cycle sudah Start)']);
+  assert.deepStrictEqual(m, ['Nama (Driver)', 'No Polisi', 'Cycle (minimal 1 cycle sudah Start)']);
+  assert.deepStrictEqual(DN.missing(order({ cycles: [{ from: '', to: 'B', startAt: at(7) }] })), ['Lokasi Asal (Cycle 1)']);
 });
-test('model(): only started cycles, fields from the Surat Jalan only', () => {
-  const m = DN.model(order(), sjNo);
-  assert.strictEqual(m.rows.length, 2);
-  assert.deepStrictEqual(m.rows[0], ['1', '261027C2PBM100', 'SELU4384522', 'Depo Cakung Marunda', '(Empty) CY TMMIN Sunter 1', '27/10/2026 07:00', '27/10/2026 08:00', '27/10/2026 09:00']);
-  assert.deepStrictEqual(m.rows[1].slice(2), ['-', '(Empty) CY TMMIN Sunter 1', 'Depo Cakung Marunda', '27/10/2026 10:00', '-', '-']);
-  assert.deepStrictEqual(m.header.map(h => h[0]), ['Tanggal', 'No. Order', 'Trucking Company', 'Police No / Driver']);
-  assert.strictEqual(DN.model(order(), sjNo, 1).rows.length, 1);
+test('model(): one Surat Jalan page per started cycle, reference layout fields only', () => {
+  const m = DN.model(order({ saNo: 'ILS/TC/PBM/26102701' }), look);
+  assert.strictEqual(m.pages.length, 2);
+  assert.deepStrictEqual(m.pages[0].left, [['Nama', 'BUDI'], ['No. Telp', '87894756019'], ['No Polisi', 'B9001UIZ'], ['Tanggal', '27 October 2026']]);
+  assert.deepStrictEqual(m.pages[0].right, [['SA Number', 'ILS/TC/PBM/26102701'], ['No Order', '261027C20000020425'], ['No Cycle Order', '261027C2PBM100'], ['Cycle', '1']]);
+  assert.deepStrictEqual(m.pages[0].columns, ['NO', 'LOKASI ASAL', 'LOKASI TUJUAN', 'CTR NO', 'KETERANGAN']);
+  assert.deepStrictEqual(m.pages[0].rows, [['1', 'Depo Cakung Marunda', '(Empty) CY TMMIN Sunter 1', 'SELU4384522', 'PENGIRIMAN CONTAINER']]);
+  assert.deepStrictEqual(m.pages[1].rows[0].slice(3, 4), ['-']);
+  assert.strictEqual(DN.model(order(), look).pages[0].right[0][1], '-');
+  assert.strictEqual(DN.model(order(), look, 1).pages.length, 1);
 });
-test('API 200: Base64 decodes to a valid PDF, same data gives same bytes (View = Download)', () => {
+test('API 200: Base64 decodes to a valid PDF, same data gives same document (View = Download)', () => {
   const c = mkCtx([order()]), a = DN.api(req('261027C20000020425'), c), b = DN.api(req('261027C20000020425'), c);
+  NOW = new Date('2026-11-03T02:00:00Z'); const d = DN.api(req('261027C20000020425'), c);
+  assert.strictEqual(d.body.dataHash, a.body.dataHash); assert.notStrictEqual(d.body.base64, a.body.base64);
+  assert.strictEqual(a.body.pages, 2);
   assert.strictEqual(a.status, 200);
   assert.strictEqual(DN.checkPdfBase64(a.body.base64), null);
   assert.strictEqual(Buffer.from(a.body.base64, 'base64').toString('binary').slice(0, 5), '%PDF-');
   assert.strictEqual(a.body.base64, b.body.base64);
   assert.strictEqual(a.body.size, Buffer.from(a.body.base64, 'base64').length);
-  assert.strictEqual(a.body.fileName, 'DN_261027C20000020425.pdf');
+  assert.strictEqual(a.body.fileName, 'SJ_261027C20000020425.pdf');
+  assert.strictEqual(DN.api(req('261027C20000020425', { cycle: 0 }), c).body.fileName, 'SJ_261027C20000020425_C1.pdf');
 });
 test('API on-the-fly: every call regenerates from latest data', () => {
   const o = order(), c = mkCtx([o]); gens = 0;
   const a = DN.api(req(o.orderNo), c); o.cycles[1].container = 'TGCU1234560';
   const b = DN.api(req(o.orderNo), c);
   assert.strictEqual(gens, 2);
-  assert.notStrictEqual(a.body.checksum, b.body.checksum);
+  assert.notStrictEqual(a.body.dataHash, b.body.dataHash);
 });
 test('API errors: 400 missing / invalid, 401, 404', () => {
   const c = mkCtx([order()]);
@@ -66,7 +75,7 @@ test('API security: other trucking company gets 403 and no Base64', () => {
 test('API 422 incomplete data, 500 generation failure / corrupt, 503, 504', () => {
   const c = mkCtx([order(), order({ orderNo: '261027C20000020426', driver: '' })]);
   const r = DN.api(req('261027C20000020426'), c);
-  assert.strictEqual(r.status, 422); assert.deepStrictEqual(r.body.missingFields, ['Driver']);
+  assert.strictEqual(r.status, 422); assert.deepStrictEqual(r.body.missingFields, ['Nama (Driver)']);
   assert.strictEqual(DN.api(req('261027C20000020425', { simulate: 'genfail' }), c).body.error, 'GENERATION_FAILED');
   assert.strictEqual(DN.api(req('261027C20000020425', { simulate: 'corrupt' }), c).body.error, 'CORRUPTED_PDF');
   assert.strictEqual(DN.api(req('261027C20000020425', { simulate: 'unavailable' }), c).status, 503);
@@ -79,8 +88,9 @@ test('checkPdfBase64(): rejects invalid Base64 and non-PDF content', () => {
 test('PAS attach: idempotent retry, failure then retry, replace on change', () => {
   const o = order(), c = mkCtx([o]), store = {};
   const f = DN.attachPAS(store, DN.api(req(o.orderNo), c), { fail: 'timeout' });
-  assert.strictEqual(f.ok, false); assert.strictEqual(store[o.orderNo].status, 'Failed'); assert.strictEqual(store[o.orderNo].checksum, null);
+  assert.strictEqual(f.ok, false); assert.strictEqual(store[o.orderNo].status, 'Failed'); assert.strictEqual(store[o.orderNo].dataHash, null);
   assert.strictEqual(DN.attachPAS(store, DN.api(req(o.orderNo), c)).code, 'ATTACHED');
+  NOW = new Date('2026-11-04T05:00:00Z'); // retry later: printed date differs, data same
   assert.strictEqual(DN.attachPAS(store, DN.api(req(o.orderNo), c)).code, 'ALREADY_ATTACHED');
   assert.strictEqual(store[o.orderNo].revisions, 1);
   o.cycles[1].container = 'TGCU1234560';

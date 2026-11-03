@@ -33,7 +33,7 @@ SUPPLIERS.forEach(([sup, code], si) => {
     const plate = si === 0 && k === 0 ? 'B9504UIZ' : `B${1000 + Math.floor(rand() * 9000)}${pick(['UIZ', 'TXA', 'KLM', 'UJP'])}`;
     const n = si * TRUCKS_PER_SUPPLIER + k;
     MASTER.trucks.push({ plate, supplier: sup, licenseDate: `2027-${pad(1 + n % 12)}-15`, type: k === 4 ? 'COMBO' : 'TRAILER', status: si === 0 && k === 3 ? 'Maintenance' : 'Active' });
-    MASTER.drivers.push({ userId: `DRV-${code}-${pad(k + 1)}`, name: n === 0 ? 'ASEP SUKIRNO' : `${FIRST[n % FIRST.length]} ${LAST[(n * 7) % LAST.length]}`, supplier: sup, truck: plate, active: true });
+    MASTER.drivers.push({ userId: `DRV-${code}-${pad(k + 1)}`, name: n === 0 ? 'ASEP SUKIRNO' : `${FIRST[n % FIRST.length]} ${LAST[(n * 7) % LAST.length]}`, supplier: sup, truck: plate, active: true, phone: `8${String((hash(plate + code) >>> 0) % 1e10).padStart(10, '0')}` });
   }
 });
 // Edge cases for demonstrating validation
@@ -323,11 +323,15 @@ $('pager').addEventListener('click', e => {
 $('pageSize').addEventListener('change', e => { state.size = +e.target.value; state.page = 1; render(); });
 
 // ---------- Order detail ----------
+const yymmdd = d => `${String(d.getFullYear()).slice(2)}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+const supCode = name => (SUPPLIERS.find(s => s[0] === name) || [, 'XXX'])[1];
+// SA Number (mock, source TBD): ILS/TC/<supplier code>/<YYMMDD of SA approval><NN>
+const saNumber = o => o.saAt ? `ILS/TC/${supCode(o.supplier)}/${yymmdd(o.saAt)}${pad((hash(o.orderNo) >>> 0) % 100)}` : '';
 function cycleDetail(o, i) {
   const c = o.cycles[i], r = rng(hash(o.orderNo + i));
   return {
     driver: o.driver || '-', from: c.from, to: c.to, container: c.container || '-',
-    cycleNo: `${o.orderNo.slice(0, 8)}PBM${pad(100 + Math.floor(r() * 900), 3)}`,
+    cycleNo: `${c.startAt ? yymmdd(c.startAt) : o.orderNo.slice(0, 6)}${o.orderNo.slice(6, 8)}${supCode(o.supplier)}${pad(100 + Math.floor(r() * 900), 3)}`,
     acts: [
       ['Start Cycle', c.startAt, '#22c55e', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
       ['Pick Up', c.pickupAt, '#eab308', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
