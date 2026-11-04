@@ -1,6 +1,8 @@
 # TC-PBR Service Acceptance (SA) Approval – Functional & Technical Design
 
-TC-PBR = Trucking Container Payment By Resource. VPLD performs Service Acceptance (GR) for completed trucking deliveries. This supports the 3-way matching **PR → PO → GR/SA**.
+TC-PBR = Trucking Container Payment By Resource. VPLD performs Service Acceptance (GR) for two kinds of cost:
+- **delivery cost** of completed trucking deliveries (§1–§26);
+- **monthly truck cost**: the Fixed Cost PR/PO for the monthly rental of truck + driver, forwarded to SA Approval once the PO is released (§28). This supports the 3-way matching **PR → PO → GR/SA**.
 
 **Mock-up:** `index.html#sa-approval` (Service Acceptance › SA Approval) and `index.html#sa-monitoring` (Service Acceptance › SA Monitoring).
 
@@ -8,7 +10,7 @@ TC-PBR = Trucking Container Payment By Resource. VPLD performs Service Acceptanc
 - [`sa-rules.js`](../sa-rules.js): pure rules.
 - [`sa.js`](../sa.js): UI and mock reference data.
 - `workflow.js`: action `saApprove`.
-- Tests: [`tests/sa-approval.test.js`](../tests/sa-approval.test.js) (15 tests).
+- Tests: [`tests/sa-approval.test.js`](../tests/sa-approval.test.js) (19 tests).
 
 **UISS:** [`uiss/UISS_Screen_SA_Approval.xlsx`](uiss/UISS_Screen_SA_Approval.xlsx) and [`uiss/UISS_Screen_SA_Monitoring.xlsx`](uiss/UISS_Screen_SA_Monitoring.xlsx).
 
@@ -55,6 +57,7 @@ flowchart LR
 | FR-08 | The same delivery can never be SA-approved twice | C |
 | FR-09 | Detail popup per row shows the calculation (legs, KM, PO, formula) and the validation messages. A second icon opens the Daily Monitoring Order Detail | C ("detail data consistent with Daily Monitoring") / P |
 | FR-10 | The Order Detail of Daily Monitoring no longer offers "Proses ke SA". SA status is set only through SA Approval | P (follows FR-07) |
+| FR-11 | Besides deliveries, SA Approval lists the **monthly truck cost** of every released monthly (Fixed Cost) PO, for SA by VPLD (§28) | C |
 
 ## 3. Screen / UI design recommendation
 
@@ -410,3 +413,39 @@ approve(req, user):
 | OQ-13 | Is "finished by LP" = Daily status Finish Daily Order, or must all cycles also be Finish Cycle with container? |
 | OQ-14 | Default date range of the search, and the maximum number of rows per approval request. |
 | OQ-15 | Currency: always IDR, or taken from the PO? |
+| OQ-16 | Monthly truck cost: may SA be done before the month is finished (PO released in Month N-1), or only from / after the service month? |
+| OQ-17 | Monthly truck cost: always the full monthly amount, or deductions (truck not available, KPI / performance, partial month)? |
+| OQ-18 | Monthly truck cost: one SA per PO (mock), or one SA per trucking company and month together with the delivery SA? Does the SA Number need a different type code (e.g. not `TR`)? |
+| OQ-19 | Monthly truck cost: does a PR / PO sequence > 1 (additional Fixed Cost) also come to SA Approval as its own row? |
+
+## 28. Monthly truck cost (Fixed Cost PR / PO)
+
+The monthly truck cost (rental of truck + driver for one month) is a PR of type **Fixed Cost** in PR Creation. Its amount is the E-Catalogue Monthly Price; see [pr-creation-rules.md](pr-creation-rules.md) §3.1. When the PO of that PR is released, the monthly cost is forwarded to SA Approval, and VPLD performs the SA as for deliveries. (C)
+
+```mermaid
+flowchart LR
+  A["PR Creation<br>Fixed Cost (monthly truck)"] --> B["PR Approval SH / DpH / DH"]
+  B --> C["PO (General Affair approve<br>or Auto Approve Day + 1)"]
+  C -- "PO released" --> D["SA Approval<br>tab Monthly Truck (Fixed Cost)"]
+  D -- "VPLD Approve" --> E["SA Number<br>ILS/TR/{code}/{YYMMDD}{NNNN}"]
+  E --> F["SA Monitoring (SA Type Monthly Truck)<br>→ PAS interface / feedback"]
+```
+
+| ID | Rule | Type |
+|---|---|---|
+| SA-20 | Tab **Monthly Truck (Fixed Cost)** lists every monthly PO with type Fixed Cost, status **Approved / Auto Approved** (released), and no SA Number. Pending / Rejected PO are not listed. | C (released PO) / P (status list) |
+| SA-21 | Filter: production month overlapping Order From – To; search over PO, PR, trucking company, month. | P |
+| SA-22 | Row: PO Number, PR Number, Production Month, Truck Company, Cost Component *Monthly Cost (Fixed)*, PO Status, PO Released date-time, Service Period (1st – last day of the month), Price (= PO monthly cost), Currency, Validation. | P |
+| SA-23 | Validation: *Monthly Cost Not Found* (PO without amount), *Invalid Monthly Cost* (≤ 0), *Trucking Company Code Not Found*, *PO Not Active*, *Already SA Approved*. A row with an issue cannot be selected. | P |
+| SA-24 | Approve uses the same rules as delivery approval: VPLD only, confirmation, revalidation incl. *Monthly Cost Changed*, all-or-nothing, idempotent request id, rollback on any failure. | P |
+| SA-25 | One SA per monthly PO. The SA Number uses the same format and the same sequence (per trucking company per date). Header `type = MONTHLY`, one detail `kind = MONTHLY` with the snapshot of PO, PR, month and amount. The PO is marked with the SA Number, so it is never approved twice. | P (OQ-18) |
+| SA-26 | The monthly SA appears in SA Monitoring with SA Type *Monthly Truck* and goes through the same PAS interface / feedback. | P |
+
+**Data model:** `TB_R_SA_HEADER.SA_TYPE` (`DELIVERY` / `MONTHLY`), `PO_NO`, `PR_NO`, `PROD_MONTH`. `TB_R_SA_DETAIL` gets one row with `DETAIL_KIND = MONTHLY`, `PO_NO`, `PR_NO`, `PROD_MONTH`, `AMOUNT` (no route / KM). The monthly PO gets `SA_NO`, `SA_DT` (unique: one SA per PO).
+
+**Mock-up:** `MONTHLY_POS` in `sa.js` mirrors PO Inquiry.
+- October: all trucking companies released.
+- November:
+  - SRL Pending, TFL Rejected: not listed.
+  - SML without amount: *Monthly Cost Not Found*.
+- The Demo select also works on this tab: other user, amount change, DB failures.

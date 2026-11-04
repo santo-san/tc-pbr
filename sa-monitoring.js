@@ -53,13 +53,15 @@
   // ---------- Screen state ----------
   const today = SA.ymd(new Date());
   const lastMonth = (() => { const d = new Date(); d.setMonth(d.getMonth() - 1, 1); return SA.ymd(d); })();
-  const blankF = () => ({ from: lastMonth, to: today, saNo: '', status: '', lp: '', delNo: '', delDate: '', prNo: '', poNo: '', poEmpty: false });
+  const blankF = () => ({ from: lastMonth, to: today, saNo: '', status: '', lp: '', type: '', delNo: '', delDate: '', prNo: '', poNo: '', poEmpty: false });
+  const typeOf = s => s.type === 'MONTHLY' ? 'MONTHLY' : 'DELIVERY';
+  const TYPE_L = { DELIVERY: 'Delivery', MONTHLY: 'Monthly Truck' };
   const sm = { tab: 'list', f: blankF(), q: '', page: 1, size: 10, hidden: new Set(['elipsPo', 'rate', 'cur']), sim: { saNo: '', act: 'send_ok', msg: '' } };
   const has = (v, q) => String(v || '').toLowerCase().includes(q.trim().toLowerCase());
   function headers() {
     const f = sm.f;
     return visible().filter(s => { const d = d10(s.approvedAt);
-      return (!f.from || d >= f.from) && (!f.to || d <= f.to) && (!f.saNo || has(s.saNo, f.saNo)) && (!f.status || s.pas.status === f.status) && (!f.lp || s.lpCode === f.lp)
+      return (!f.from || d >= f.from) && (!f.to || d <= f.to) && (!f.saNo || has(s.saNo, f.saNo)) && (!f.status || s.pas.status === f.status) && (!f.lp || s.lpCode === f.lp) && (!f.type || typeOf(s) === f.type)
         && (!f.prNo || has(s.pas.prNo, f.prNo)) && (!f.poNo || has(s.pas.poNo, f.poNo)) && (!f.poEmpty || !s.pas.poNo)
         && (!f.delNo || s.details.some(x => has(x.orderNo, f.delNo))) && (!f.delDate || s.details.some(x => x.date === f.delDate)); })
       .sort((a, b) => b.approvedAt - a.approvedAt || (a.saNo < b.saNo ? -1 : 1));
@@ -67,10 +69,10 @@
   function detailRows() {
     const f = sm.f;
     return headers().flatMap(h => h.details.filter(d => (!f.delNo || has(d.orderNo, f.delNo)) && (!f.delDate || d.date === f.delDate)).map(d => ({ h, d, w: wbsOf(d) })))
-      .filter(({ h, d }) => !sm.q || [h.saNo, d.detNo, d.orderNo, h.lpCode, h.pas.prNo, h.pas.poNo, d.route, h.poNo, L[h.pas.status]].some(v => has(v, sm.q)));
+      .filter(({ h, d }) => !sm.q || [h.saNo, d.detNo, d.orderNo, d.description, h.lpCode, h.pas.prNo, h.pas.poNo, d.route, h.poNo, L[h.pas.status], TYPE_L[typeOf(h)]].some(v => has(v, sm.q)));
   }
   const hid = k => sm.hidden.has(k) ? ' style="display:none"' : '';
-  const COLS = [['detNo', 'SA Det No'], ['delNo', 'Delivery No'], ['delDate', 'Delivery Date'], ['lp', 'Truck Company'], ['prNo', 'PAS PR No'], ['poNo', 'PAS PO No'], ['prDate', 'PAS PR Date'],
+  const COLS = [['type', 'SA Type'], ['detNo', 'SA Det No'], ['delNo', 'Delivery No'], ['delDate', 'Delivery Date'], ['lp', 'Truck Company'], ['prNo', 'PAS PR No'], ['poNo', 'PAS PO No'], ['prDate', 'PAS PR Date'],
     ['ifs', 'Interface Status'], ['route', 'Route Code'], ['ctr', 'Ctr Size'], ['svc', 'Service Type'], ['km', 'Total KM'], ['elipsPo', 'ELIPS PO No'], ['rate', 'Rate / KM'], ['price', 'Price'], ['cur', 'Currency'],
     ['wbsPct', 'WBS % (Percentage)'], ['wbsCost', 'WBS Cost'], ['appr', 'Approval Date']];
   const ctrOf = no => DATA.find(o => o.orderNo === no)?.dtp?.ctrSize || '-';
@@ -88,7 +90,8 @@
       <tr>${[1, 2, 3, 4, 5].map(n => `<th${hid('svc')}>Cycle ${n}</th>`).join('')}${WBS.map(k => `<th${hid('wbsPct')}>${k}</th>`).join('')}${WBS.map(k => `<th${hid('wbsCost')}>${k}</th>`).join('')}</tr></thead>
       <tbody>${view.map(({ h, d, w }) => `<tr>
         <td><button class="act" data-smdet="${h.saNo}" title="View Detail">&#9776;</button></td><td>${h.saNo}</td>
-        <td${hid('detNo')}>${d.detNo || '-'}</td><td${hid('delNo')}>${d.orderNo}</td><td${hid('delDate')}>${d.date}</td><td${hid('lp')}>${h.lpCode}</td>
+        <td${hid('type')}><span class="st ${typeOf(h) === 'MONTHLY' ? 'sb' : 'rd'}">${TYPE_L[typeOf(h)]}</span></td>
+        <td${hid('detNo')}>${d.detNo || '-'}</td><td${hid('delNo')}>${d.kind === 'MONTHLY' ? `<small>${esc(d.description)}</small>` : d.orderNo}</td><td${hid('delDate')}>${d.kind === 'MONTHLY' ? SA.ymLabel(d.ym) : d.date}</td><td${hid('lp')}>${h.lpCode}</td>
         <td${hid('prNo')}>${h.pas.prNo || '-'}</td><td${hid('poNo')}>${h.pas.poNo || '-'}</td><td${hid('prDate')}>${h.pas.prDate || '-'}</td><td${hid('ifs')}>${badge(h.pas)}</td>
         <td class="left"${hid('route')}>${d.route || '-'}</td><td${hid('ctr')}>${ctrOf(d.orderNo)}</td>
         ${[0, 1, 2, 3, 4].map(i => `<td${hid('svc')}>${services(d)[i] || '-'}</td>`).join('')}
@@ -96,7 +99,7 @@
         <td class="num sa-price"${hid('price')}>${money(d.cost)}</td><td${hid('cur')}>${d.currency || '-'}</td>
         ${WBS.map(k => `<td${hid('wbsPct')}>${w.pct[k] ? w.pct[k] + '%' : '-'}</td>`).join('')}${WBS.map(k => `<td class="num"${hid('wbsCost')}>${w.amt[k] ? money(w.amt[k]) : '-'}</td>`).join('')}
         <td${hid('appr')}>${fmtDate(d10(h.approvedAt))}</td></tr>`).join('') || '<tr><td colspan="45" class="empty">No Data Found</td></tr>'}
-      ${rows.length ? `<tr class="sam-sum"><td colspan="${2 + ['detNo', 'delNo', 'delDate', 'lp', 'prNo', 'poNo', 'prDate', 'ifs', 'route', 'ctr'].filter(k => !sm.hidden.has(k)).length + (sm.hidden.has('svc') ? 0 : 5) + ['km', 'elipsPo', 'rate'].filter(k => !sm.hidden.has(k)).length}" class="num"><b>Summary :</b></td>
+      ${rows.length ? `<tr class="sam-sum"><td colspan="${2 + ['type', 'detNo', 'delNo', 'delDate', 'lp', 'prNo', 'poNo', 'prDate', 'ifs', 'route', 'ctr'].filter(k => !sm.hidden.has(k)).length + (sm.hidden.has('svc') ? 0 : 5) + ['km', 'elipsPo', 'rate'].filter(k => !sm.hidden.has(k)).length}" class="num"><b>Summary :</b></td>
         <td class="num sa-price"${hid('price')}><b>${money(sum.price)}</b></td><td${hid('cur')}></td><td colspan="6"${hid('wbsPct')} class="num"><b>WBS Cost Summary :</b></td>
         ${WBS.map(k => `<td class="num"${hid('wbsCost')}><b>${money(sum.w[k])}</b></td>`).join('')}<td${hid('appr')}></td></tr>` : ''}</tbody></table></div>${pager(rows.length)}`;
   }
@@ -105,17 +108,17 @@
     const wsum = h => Object.fromEntries(WBS.map(k => [k, h.details.reduce((s, d) => s + wbsOf(d).amt[k], 0)]));
     const tot = { cost: hs.reduce((s, h) => s + (h.totalCost || 0), 0), w: Object.fromEntries(WBS.map(k => [k, hs.reduce((s, h) => s + wsum(h)[k], 0)])) };
     return `<div class="table-wrap"><table class="sa-tbl sam-tbl"><thead>
-      <tr><th rowspan="2">Action</th><th rowspan="2">SA Number</th><th rowspan="2">SA Approval Date</th><th rowspan="2">Approved By</th><th rowspan="2">Truck Company</th><th rowspan="2">Delivery Count</th><th rowspan="2">Total KM</th>
+      <tr><th rowspan="2">Action</th><th rowspan="2">SA Number</th><th rowspan="2">SA Type</th><th rowspan="2">SA Approval Date</th><th rowspan="2">Approved By</th><th rowspan="2">Truck Company</th><th rowspan="2">Delivery Count</th><th rowspan="2">Total KM</th>
         <th rowspan="2">Total Cost</th><th rowspan="2">Currency</th><th colspan="6">WBS Consumption Master (Cost)</th><th rowspan="2">PAS PR Number</th><th rowspan="2">PAS PR Date</th><th rowspan="2">PAS PO Number</th>
         <th rowspan="2">Interface Status</th><th rowspan="2">Feedback</th><th rowspan="2">Last Update</th></tr><tr>${WBS.map(k => `<th>${k}</th>`).join('')}</tr></thead>
       <tbody>${view.map(h => { const w = wsum(h), retry = h.pas.status === ST.FAILED && !h.pas.prNo && !h.pas.poNo;
         return `<tr><td><div class="ta-act"><button class="act" data-smdet="${h.saNo}" title="View Detail">&#9776;</button><button class="act" data-smlog="${h.saNo}" title="View Interface Log">&#128203;</button>
           ${retry ? `<button class="act" data-smretry="${h.saNo}" ${canRetry(state.actor) ? '' : 'disabled'} title="${canRetry(state.actor) ? 'Retry Interface' : 'Retry Interface needs the retry authorization (IP Admin)'}">&#8635;</button>` : ''}</div></td>
-          <td>${h.saNo}${h.legacy ? ' <small class="q-note">legacy</small>' : ''}</td><td>${dt(h.approvedAt)}</td><td>${esc(h.approvedBy)}</td><td class="left">${h.lpCode} - ${esc(h.lpName)}</td><td class="num">${h.deliveries}</td>
+          <td>${h.saNo}${h.legacy ? ' <small class="q-note">legacy</small>' : ''}</td><td><span class="st ${typeOf(h) === 'MONTHLY' ? 'sb' : 'rd'}">${TYPE_L[typeOf(h)]}</span></td><td>${dt(h.approvedAt)}</td><td>${esc(h.approvedBy)}</td><td class="left">${h.lpCode} - ${esc(h.lpName)}</td><td class="num">${typeOf(h) === 'MONTHLY' ? '-' : h.deliveries}</td>
           <td class="num">${kmFmt(h.totalKm)}</td><td class="num sa-price">${money(h.totalCost)}</td><td>${h.currency}</td>${WBS.map(k => `<td class="num">${w[k] ? money(w[k]) : '-'}</td>`).join('')}
           <td>${h.pas.prNo || '-'}</td><td>${h.pas.prDate || '-'}</td><td>${h.pas.poNo || '-'}</td><td>${badge(h.pas)}</td>
-          <td>${h.pas.feedbackStatus || '-'}${h.pas.errorCode ? `<small class="sub" title="${esc(h.pas.errorMessage)}">${h.pas.errorCode}</small>` : ''}</td><td>${dt(h.pas.updatedAt || h.approvedAt)}</td></tr>`; }).join('') || '<tr><td colspan="24" class="empty">No Data Found</td></tr>'}
-      ${hs.length ? `<tr class="sam-sum"><td colspan="7" class="num"><b>Summary :</b></td><td class="num sa-price"><b>${money(tot.cost)}</b></td><td></td>${WBS.map(k => `<td class="num"><b>${money(tot.w[k])}</b></td>`).join('')}<td colspan="6"></td></tr>` : ''}</tbody></table></div>${pager(hs.length)}`;
+          <td>${h.pas.feedbackStatus || '-'}${h.pas.errorCode ? `<small class="sub" title="${esc(h.pas.errorMessage)}">${h.pas.errorCode}</small>` : ''}</td><td>${dt(h.pas.updatedAt || h.approvedAt)}</td></tr>`; }).join('') || '<tr><td colspan="25" class="empty">No Data Found</td></tr>'}
+      ${hs.length ? `<tr class="sam-sum"><td colspan="8" class="num"><b>Summary :</b></td><td class="num sa-price"><b>${money(tot.cost)}</b></td><td></td>${WBS.map(k => `<td class="num"><b>${money(tot.w[k])}</b></td>`).join('')}<td colspan="6"></td></tr>` : ''}</tbody></table></div>${pager(hs.length)}`;
   }
 
   function render() {
@@ -130,6 +133,7 @@
         <div><label for="smSaNo">SA Number</label><input id="smSaNo" value="${esc(f.saNo)}" placeholder="contains"></div>
         <div><label for="smStatus">Status <span class="req">*</span></label><select id="smStatus"><option value="">All</option>${Object.keys(ST).map(k => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${L[k]}</option>`).join('')}</select></div>
         <div><label for="smLp">Truck Company <span class="req">*</span></label><select id="smLp" ${state.actor.role === 'SUPPLIER' ? 'disabled' : ''}><option value="">All</option>${SUPPLIERS.map(([n, c]) => `<option value="${c}" ${f.lp === c ? 'selected' : ''}>${c} - ${n}</option>`).join('')}</select></div>
+        <div><label for="smType">SA Type</label><select id="smType"><option value="">All</option>${Object.entries(TYPE_L).map(([k, l]) => `<option value="${k}" ${f.type === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         <div><label for="smDelNo">Delivery Number</label><input id="smDelNo" value="${esc(f.delNo)}" placeholder="contains"></div>
         <div><label for="smDelDate">Delivery Date</label><input type="date" id="smDelDate" value="${f.delDate}"></div>
         <div><label for="smPrNo">PAS PR Number</label><input id="smPrNo" value="${esc(f.prNo)}" placeholder="contains"></div>
@@ -165,10 +169,11 @@
     showPreview(`SA ${h.saNo}`,
       sec('A. SA Information', 'ELIPS (SA Approval)', info([['SA Number', h.saNo], ['SA Date', fmtDate(d10(h.approvedAt))], ['Approved Date', dt(h.approvedAt)], ['Approved By', esc(h.approvedBy)], ['SA Status', h.status]])) +
       sec('B. Trucking Information', 'ELIPS (SA Approval)', info([['Trucking Company', esc(h.lpName)], ['Trucking Company Code', h.lpCode]])) +
+      (typeOf(h) === 'MONTHLY' ? sec('C. Monthly Truck Cost', 'ELIPS snapshot', info([['SA Det No', h.details[0].detNo], ['Description', esc(h.details[0].description)], ['Production Month', SA.ymLabel(h.ym)], ['Service Period', `${h.poFrom} - ${h.poTo}`], ['PR Number (ELIPS)', h.prNo], ['Monthly Cost', `${money(h.totalCost)} ${h.currency}`]])) :
       sec('C. Delivery Information', 'ELIPS snapshot', `<table class="sa-mini"><tr><th>SA Det No</th><th>Delivery Number</th><th>Delivery Date</th><th>Route</th><th>Origin</th><th>Destination</th><th>Total KM</th><th>Rate / KM</th><th>Cost</th></tr>
         ${h.details.map(d => `<tr><td>${d.detNo || '-'}</td><td>${d.orderNo}</td><td>${d.date}</td><td>${d.route || '-'}</td><td>${d.legs[0] ? `${d.legs[0].from} - ${esc(d.legs[0].fromName)}` : '-'}</td>
-          <td>${d.legs.length ? `${d.legs[d.legs.length - 1].to} - ${esc(d.legs[d.legs.length - 1].toName)}` : '-'}</td><td class="num">${kmFmt(d.totalKm)}</td><td class="num">${money(d.rate)}</td><td class="num">${money(d.cost)}</td></tr>`).join('')}</table>`) +
-      sec('D. Cost Calculation', 'ELIPS snapshot (not changed by PAS)', info([['ELIPS / Cost Reference PO', h.poNo], ['PO Validity', h.poFrom ? `${h.poFrom} - ${h.poTo}` : '-'], ['PO Rate', [...new Set(h.details.map(d => money(d.rate)))].join(' / ') + ' ' + h.currency + '/km'], ['Total KM', kmFmt(h.totalKm)], ['Calculated Cost', `${money(h.totalCost)} ${h.currency}`], ['Currency', h.currency]])) +
+          <td>${d.legs.length ? `${d.legs[d.legs.length - 1].to} - ${esc(d.legs[d.legs.length - 1].toName)}` : '-'}</td><td class="num">${kmFmt(d.totalKm)}</td><td class="num">${money(d.rate)}</td><td class="num">${money(d.cost)}</td></tr>`).join('')}</table>`)) +
+      sec('D. Cost Calculation', 'ELIPS snapshot (not changed by PAS)', info([['ELIPS / Cost Reference PO', h.poNo], ['PO Validity', h.poFrom ? `${h.poFrom} - ${h.poTo}` : '-'], ['PO Rate', typeOf(h) === 'MONTHLY' ? 'Monthly Cost (Fixed)' : [...new Set(h.details.map(d => money(d.rate)))].join(' / ') + ' ' + h.currency + '/km'], ['Total KM', kmFmt(h.totalKm)], ['Calculated Cost', `${money(h.totalCost)} ${h.currency}`], ['Currency', h.currency]])) +
       sec('E. PAS Information', 'PAS', info([['PAS PR Number', p.prNo || '-'], ['PAS PR Date', p.prDate || '-'], ['PAS PO Number', p.poNo || '-'], ['PAS Interface Status', badge(p)]])) +
       sec('F. Integration Information', 'PAS', info([['Interface Date', dt(p.interfaceAt)], ['Correlation ID', p.correlationId || '-'], ['Attempts', p.attempts], ['Last Feedback Date', dt(p.lastFeedbackAt)], ['Feedback Status', p.feedbackStatus || '-'], ['Error Code', p.errorCode || '-'], ['Error Message', esc(p.errorMessage || '-')]])) +
       sec('G. Audit Information', 'ELIPS', info([['Created Date', dt(h.createdAt)], ['Created By', esc(h.approvedBy)], ['Approved Date', dt(h.approvedAt)], ['Approved By', esc(h.approvedBy)], ['Last Updated Date', dt(p.updatedAt || h.approvedAt)]])) +
@@ -218,17 +223,17 @@
   // ---------- Export ----------
   function exportExcel() {
     let aoa;
-    if (sm.tab === 'wbs') aoa = [['SA Number', 'SA Approval Date', 'Approved By', 'Trucking Code', 'Trucking Company', 'Delivery Count', 'Total KM', 'Total Cost', 'Currency', 'PAS PR Number', 'PAS PR Date', 'PAS PO Number', 'Interface Status', 'Feedback', 'Error', 'Last Update'],
-      ...headers().map(h => [h.saNo, dt(h.approvedAt), h.approvedBy, h.lpCode, h.lpName, h.deliveries, h.totalKm, h.totalCost, h.currency, h.pas.prNo, h.pas.prDate, h.pas.poNo, L[h.pas.status], h.pas.feedbackStatus, h.pas.errorCode, dt(h.pas.updatedAt || h.approvedAt)])];
-    else aoa = [['SA No', 'SA Det No', 'Delivery No', 'Delivery Date', 'Trucking Code', 'PAS PR No', 'PAS PO No', 'PAS PR Date', 'Interface Status', 'Route Code', 'Total KM', 'ELIPS PO No', 'Rate / KM', 'Price', 'Currency', ...WBS.map(k => `WBS % ${k}`), ...WBS.map(k => `WBS Cost ${k}`), 'Approval Date'],
-      ...detailRows().map(({ h, d, w }) => [h.saNo, d.detNo, d.orderNo, d.date, h.lpCode, h.pas.prNo, h.pas.poNo, h.pas.prDate, L[h.pas.status], d.route, d.totalKm, d.poNo, d.rate, d.cost, d.currency, ...WBS.map(k => w.pct[k]), ...WBS.map(k => w.amt[k]), d10(h.approvedAt)])];
+    if (sm.tab === 'wbs') aoa = [['SA Number', 'SA Type', 'SA Approval Date', 'Approved By', 'Trucking Code', 'Trucking Company', 'Delivery Count', 'Total KM', 'Total Cost', 'Currency', 'PAS PR Number', 'PAS PR Date', 'PAS PO Number', 'Interface Status', 'Feedback', 'Error', 'Last Update'],
+      ...headers().map(h => [h.saNo, TYPE_L[typeOf(h)], dt(h.approvedAt), h.approvedBy, h.lpCode, h.lpName, h.deliveries, h.totalKm, h.totalCost, h.currency, h.pas.prNo, h.pas.prDate, h.pas.poNo, L[h.pas.status], h.pas.feedbackStatus, h.pas.errorCode, dt(h.pas.updatedAt || h.approvedAt)])];
+    else aoa = [['SA No', 'SA Type', 'SA Det No', 'Delivery No', 'Delivery Date', 'Trucking Code', 'PAS PR No', 'PAS PO No', 'PAS PR Date', 'Interface Status', 'Route Code', 'Total KM', 'ELIPS PO No', 'Rate / KM', 'Price', 'Currency', ...WBS.map(k => `WBS % ${k}`), ...WBS.map(k => `WBS Cost ${k}`), 'Approval Date'],
+      ...detailRows().map(({ h, d, w }) => [h.saNo, TYPE_L[typeOf(h)], d.detNo, d.orderNo || d.description, d.date, h.lpCode, h.pas.prNo, h.pas.poNo, h.pas.prDate, L[h.pas.status], d.route, d.totalKm, d.poNo, d.rate, d.cost, d.currency, ...WBS.map(k => w.pct[k]), ...WBS.map(k => w.amt[k]), d10(h.approvedAt)])];
     if (aoa.length < 2) { toast('Tidak ada data untuk diexport'); return; }
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'SA Monitoring');
     const n = new Date(); XLSX.writeFile(wb, `SA Monitoring_${SA.ymd(n).replace(/-/g, '')}${pad(n.getHours())}${pad(n.getMinutes())}${pad(n.getSeconds())}.xlsx`);
   }
 
   // ---------- Events ----------
-  const readF = () => Object.assign(sm.f, { from: $('smFrom').value, to: $('smTo').value, saNo: $('smSaNo').value, status: $('smStatus').value, lp: $('smLp').value,
+  const readF = () => Object.assign(sm.f, { from: $('smFrom').value, to: $('smTo').value, saNo: $('smSaNo').value, status: $('smStatus').value, lp: $('smLp').value, type: $('smType').value,
     delNo: $('smDelNo').value, delDate: $('smDelDate').value, prNo: $('smPrNo').value, poNo: $('smPoNo').value, poEmpty: $('smPoEmpty').checked });
   document.addEventListener('click', e => {
     const t = e.target; if (!t.closest('#pgSAM')) return;

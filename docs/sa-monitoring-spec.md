@@ -108,13 +108,13 @@ The screen follows the reference **Service Acceptance Monitoring** screen.
 
 **Tab Service Acceptance List** (detail level, reference columns plus the required ones):
 
-`Options | SA No | SA Det No | Delivery No | Delivery Date | Truck Company | PAS PR No | PAS PO No | PAS PR Date | Interface Status | Route Code | Ctr Size | Service Type Cycle 1–5 | Total KM | ELIPS PO No* | Rate / KM* | Price | Currency* | WBS % CS, RRE, RRR, SP, CE, CI | WBS Cost CS…CI | Approval Date`
+`Options | SA No | SA Type | SA Det No | Delivery No (monthly: description) | Delivery Date | Truck Company | PAS PR No | PAS PO No | PAS PR Date | Interface Status | Route Code | Ctr Size | Service Type Cycle 1–5 | Total KM | ELIPS PO No* | Rate / KM* | Price | Currency* | WBS % CS, RRE, RRR, SP, CE, CI | WBS Cost CS…CI | Approval Date`
 
 \* hidden by default (Kolom).
 
 **Tab Service Acceptance List (WBS Group)** (header level, §21 of the request):
 
-`Action (View Detail, View Interface Log, Retry Interface) | SA Number | SA Approval Date | Approved By | Truck Company | Delivery Count | Total KM | Total Cost | Currency | WBS Cost CS…CI | PAS PR Number | PAS PR Date | PAS PO Number | Interface Status | Feedback | Last Update`
+`Action (View Detail, View Interface Log, Retry Interface) | SA Number | SA Type | SA Approval Date | Approved By | Truck Company | Delivery Count | Total KM | Total Cost | Currency | WBS Cost CS…CI | PAS PR Number | PAS PR Date | PAS PO Number | Interface Status | Feedback | Last Update`
 
 Both tabs: summary row, paging 10 / 25 / 50, sort SA Approval Date descending then SA Number.
 
@@ -124,7 +124,7 @@ Both tabs: summary row, paging 10 / 25 / 50, sort SA Approval Date descending th
 |---|---|---|
 | A. SA Information | SA Number, SA Date, Approved Date, Approved By, SA Status | ELIPS |
 | B. Trucking Information | Trucking Company, Trucking Company Code | ELIPS |
-| C. Delivery Information | Per delivery: SA Det No, Delivery Number, Date, Route, Origin, Destination, Total KM, Rate, Cost | ELIPS snapshot |
+| C. Delivery Information | Per delivery: SA Det No, Delivery Number, Date, Route, Origin, Destination, Total KM, Rate, Cost. Monthly SA: SA Det No, description, production month, service period, PR Number (ELIPS), monthly cost | ELIPS snapshot |
 | D. Cost Calculation | ELIPS / Cost Reference PO, validity, PO Rate, Total KM, Calculated Cost, Currency | ELIPS snapshot |
 | E. PAS Information | PAS PR Number, PAS PR Date, PAS PO Number, Interface Status | PAS feedback |
 | F. Integration Information | Interface Date, Correlation ID, Attempts, Last Feedback Date, Feedback Status, Error Code, Error Message | PAS / interface |
@@ -138,6 +138,7 @@ SA Date = SA approval / generation date. A separate SA date is OQ-04.
 |---|---|---|
 | SA Number | `ILS/TR/{code}/{YYMMDD}{NNNN}` | From SA Approval, read only |
 | SA Det No | `{YYMM}C{NNNNN}` | Proposed running number per month at approval (format OQ-09) |
+| SA Type | `Delivery` / `Monthly Truck` | Delivery SA (route-based cost) or monthly truck cost SA (Fixed Cost PO); see [sa-approval-spec.md](sa-approval-spec.md) §28 |
 | PAS PR Number | text (mock `5000xxxxxx`) | Only from PAS feedback |
 | PAS PR Date | date `YYYY-MM-DD` | Only from PAS feedback; must be a valid date |
 | PAS PO Number | text (mock `45xxxxxxxx`) | Only from PAS feedback |
@@ -157,6 +158,7 @@ SA Date = SA approval / generation date. A separate SA date is OQ-04.
 | SA Number | contains | C |
 | Status * | Interface status, *All* allowed | C |
 | Truck Company * | code, *All* allowed (Supplier: fixed to own) | C |
+| SA Type | Delivery / Monthly Truck / All | P |
 | Delivery Number | contains (any detail of the SA) | C |
 | Delivery Date | equals | C |
 | PAS PR Number / PAS PO Number | contains | C |

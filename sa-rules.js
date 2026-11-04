@@ -8,6 +8,7 @@
     PO_NOT_FOUND: 'PO Not Found', MULTI_PO: 'Multiple PO Found', PO_NOT_ACTIVE: 'PO Not Active',
     RATE_NOT_FOUND: 'Rate Not Found', RATE_INVALID: 'Invalid Rate', COST_FAILED: 'Cost Calculation Failed',
     COST_CHANGED: 'Cost Changed', NOT_FOUND: 'Delivery Not Found',
+    AMOUNT_NOT_FOUND: 'Monthly Cost Not Found', AMOUNT_INVALID: 'Invalid Monthly Cost', AMOUNT_CHANGED: 'Monthly Cost Changed', PO_NOT_FOUND_M: 'PO Not Found',
   };
   const PO_ACTIVE = ['Approved', 'Auto Approved'];
   const pad = (n, l = 2) => String(n).padStart(l, '0');
@@ -127,10 +128,10 @@
         g.forEach(x => { seq[dk] = (seq[dk] || 0) + 1; x.detNo = detNumber(at, seq[dk]); });
         if (ctx.sas.some(s => s.saNo === saNo)) throw new Error(`SA Number ${saNo} already exists`);
         headers.push({
-          saNo, lpCode: c0.lpCode, lpName: c0.lpName, poNo: c0.poNo, poFrom: c0.poFrom, poTo: c0.poTo, currency: c0.currency,
+          saNo, type: 'DELIVERY', lpCode: c0.lpCode, lpName: c0.lpName, poNo: c0.poNo, poFrom: c0.poFrom, poTo: c0.poTo, currency: c0.currency,
           deliveries: g.length, totalKm: Math.round(g.reduce((s, x) => s + x.c.totalKm, 0) * 100) / 100, totalCost: g.reduce((s, x) => s + x.c.cost, 0),
           status: 'SA Approved', approvedBy: actor.name, approvedRole: actor.role, approvedAt: at, createdAt: at, requestId: req.requestId || '',
-          details: g.map(x => ({ ...x.c, detNo: x.detNo, calcAt: at })),
+          details: g.map(x => ({ ...x.c, kind: 'DELIVERY', detNo: x.detNo, calcAt: at })),
           audit: [{ at, by: actor.name, action: 'SA_APPROVED', note: `${g.length} delivery(ies), request ${req.requestId || '-'}` }],
           // PAS interface fields (written only by SA Monitoring / PAS interface, sa-pas-rules.js)
           pas: { status: 'NOT_SENT', prNo: '', prDate: '', poNo: '', interfaceAt: null, correlationId: '', attempts: 0, lastFeedbackAt: null, feedbackStatus: '', errorCode: '', errorMessage: '', updatedAt: null, version: 1 },
@@ -151,7 +152,72 @@
     return res;
   }
 
-  const api = { ERR, PO_ACTIVE, ymd, yymmdd, eligible, route, totalKm, mapPO, calculate, saNumber, detNumber, seqKey, approve };
+  // ---------- Monthly truck cost (Fixed Cost PO) - SA-20 .. SA-26 ----------
+  // A monthly PO (PR type Fixed Cost, rental of truck + driver for one month) goes to SA Approval when it is released
+  // (status Approved / Auto Approved). One SA per monthly PO. po: { poNo, prNo, type: 'FIX', lpCode, lpName, ym, status, amount, currency, releasedAt, saNo }
+  const ymLabel = ym => `${ym.slice(4, 6)}/${ym.slice(0, 4)}`;
+  const monthRange = ym => { const y = +ym.slice(0, 4), m = +ym.slice(4, 6); return [`${ym.slice(0, 4)}-${ym.slice(4, 6)}-01`, ymd(new Date(y, m, 0))]; };
+  const monthlyEligible = po => po.type === 'FIX' && PO_ACTIVE.includes(po.status) && !po.saNo;
+  function calculateMonthly(po) {
+    const errors = [];
+    if (po.saNo) errors.push(e('ALREADY_SA', `Already approved in ${po.saNo}`));
+    else if (!PO_ACTIVE.includes(po.status)) errors.push(e('PO_NOT_ACTIVE', `PO ${po.poNo} status ${po.status}`));
+    if (!po.lpCode) errors.push(e('LP_CODE_MISSING', `No code for ${po.lpName}`));
+    if (po.amount == null) errors.push(e('AMOUNT_NOT_FOUND', `PO ${po.poNo} has no monthly cost`));
+    else if (!(po.amount > 0)) errors.push(e('AMOUNT_INVALID', `Monthly cost ${po.amount} must be > 0`));
+    const [from, to] = monthRange(po.ym);
+    return { kind: 'MONTHLY', key: po.poNo, poNo: po.poNo, prNo: po.prNo || '', ym: po.ym, period: ymLabel(po.ym), poFrom: from, poTo: to, lpCode: po.lpCode, lpName: po.lpName,
+      amount: po.amount, cost: errors.some(x => x.code.startsWith('AMOUNT')) ? null : po.amount, currency: po.currency || '', poStatus: po.status, releasedAt: po.releasedAt || null,
+      description: `Monthly truck rental (Fixed Cost) ${ymLabel(po.ym)}`, errors, valid: !errors.length };
+  }
+  // req: { requestId, poNos[], expected: { poNo: amount } }; ctx: { monthlyPos[], sas[], seq{}, requests{}, scope, canApprove(actor), commitMonthly(po, saNo, at, actor), fail }
+  function approveMonthly(req, actor, at, ctx) {
+    if (!ctx.canApprove(actor)) return { ok: false, status: 403, message: 'Only VPLD users may approve Service Acceptance' };
+    if (req.requestId && ctx.requests[req.requestId]) return Object.assign({}, ctx.requests[req.requestId], { replay: true });
+    const ids = [...new Set(req.poNos || [])];
+    if (!ids.length) return { ok: false, status: 400, message: 'No monthly PO selected' };
+    const failed = [], calcs = [];
+    ids.forEach(id => {
+      const po = ctx.monthlyPos.find(x => x.poNo === id);
+      if (!po) { failed.push({ orderNo: id, errors: [e('PO_NOT_FOUND_M', id)] }); return; }
+      const c = calculateMonthly(po), exp = req.expected?.[id];
+      if (c.valid && exp != null && exp !== c.amount) c.errors.push(e('AMOUNT_CHANGED', `Monthly cost on screen ${exp}, PO now ${c.amount}. Refresh and check again`));
+      if (c.errors.length) failed.push({ orderNo: id, errors: c.errors }); else calcs.push({ po, c });
+    });
+    if (failed.length) return { ok: false, status: 422, message: `${failed.length} of ${ids.length} monthly PO(s) failed revalidation. Nothing was approved.`, failed };
+    const seq = Object.assign({}, ctx.seq), headers = [];
+    try {
+      calcs.forEach(({ c }) => {
+        const key = seqKey(ctx.scope, c.lpCode, at), n = (seq[key] || 0) + 1;
+        if (n > 9999) throw new Error(`SA sequence for ${key} exceeds 9999`);
+        seq[key] = n;
+        const saNo = saNumber(c.lpCode, at, n);
+        if (ctx.sas.some(s => s.saNo === saNo)) throw new Error(`SA Number ${saNo} already exists`);
+        const dk = `DET|${yymmdd(at).slice(0, 4)}`; seq[dk] = (seq[dk] || 0) + 1;
+        headers.push({
+          saNo, type: 'MONTHLY', lpCode: c.lpCode, lpName: c.lpName, poNo: c.poNo, prNo: c.prNo, ym: c.ym, poFrom: c.poFrom, poTo: c.poTo, currency: c.currency,
+          deliveries: 0, items: 1, totalKm: null, totalCost: c.amount, status: 'SA Approved', approvedBy: actor.name, approvedRole: actor.role, approvedAt: at, createdAt: at, requestId: req.requestId || '',
+          details: [{ kind: 'MONTHLY', detNo: detNumber(at, seq[dk]), orderNo: '', date: c.poFrom, description: c.description, route: '', legs: [], totalKm: null,
+            poNo: c.poNo, prNo: c.prNo, ym: c.ym, rate: null, cost: c.amount, currency: c.currency, formula: `Monthly Cost of PO ${c.poNo} (${c.period})`, errors: [], calcAt: at }],
+          audit: [{ at, by: actor.name, action: 'SA_APPROVED', note: `Monthly truck cost ${c.period}, PO ${c.poNo}, request ${req.requestId || '-'}` }],
+          pas: { status: 'NOT_SENT', prNo: '', prDate: '', poNo: '', interfaceAt: null, correlationId: '', attempts: 0, lastFeedbackAt: null, feedbackStatus: '', errorCode: '', errorMessage: '', updatedAt: null, version: 1 },
+          pasLog: [],
+        });
+      });
+      if (ctx.fail === 'header') throw new Error('SA header insert failed (simulated)');
+      if (ctx.fail === 'detail') throw new Error('SA detail insert failed (simulated)');
+      if (ctx.fail === 'daily') throw new Error('Monthly PO update failed (simulated)');
+    } catch (err) {
+      return { ok: false, status: 500, message: `${err.message}. Transaction rolled back, nothing was approved.` };
+    }
+    headers.forEach(h => { ctx.sas.push(h); ctx.commitMonthly(ctx.monthlyPos.find(p => p.poNo === h.poNo), h.saNo, at, actor); });
+    Object.assign(ctx.seq, seq);
+    const res = { ok: true, status: 200, message: `${headers.length} SA generated for ${headers.length} monthly PO(s)`, sas: headers.map(h => ({ saNo: h.saNo, lpCode: h.lpCode, poNo: h.poNo, deliveries: 0, totalCost: h.totalCost, currency: h.currency })) };
+    if (req.requestId) ctx.requests[req.requestId] = res;
+    return res;
+  }
+
+  const api = { ERR, PO_ACTIVE, ymd, yymmdd, eligible, route, totalKm, mapPO, calculate, saNumber, detNumber, seqKey, approve, ymLabel, monthRange, monthlyEligible, calculateMonthly, approveMonthly };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SA = api;
 })(typeof window !== 'undefined' ? window : this);

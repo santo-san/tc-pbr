@@ -19,7 +19,7 @@ function mkCtx(orders, pos = [PO()], extra = {}) {
     commitOrder: (o, saNo, when) => { o.status = 'SA Approved'; o.saNo = saNo; o.saAt = when; },
   }, extra);
 }
-const VPLD = { role: 'PLANNER', name: 'planner1' };
+const VPLD = { role: 'PLANNER', name: 'planner1' }, IP = { role: 'IP_ADMIN', name: 'admin' };
 const codes = r => r.errors.map(e => e.code);
 const tests = [];
 const test = (n, f) => tests.push([n, f]);
@@ -136,6 +136,49 @@ test('approve(): one SA per trucking company and PO', () => {
   const c = mkCtx(os, [PO(), PO({ poNo: 'PO-DNX-10', validFrom: '2026-10-01', validTo: '2026-10-31' })]);
   const r = SA.approve({ orderNos: ['A', 'B'] }, VPLD, at('2026-11-04', 9), c);
   assert.deepStrictEqual(r.sas.map(s => [s.saNo, s.poNo]), [['ILS/TR/DNX/2611040001', 'PO-DNX-11'], ['ILS/TR/DNX/2611040002', 'PO-DNX-10']]);
+});
+
+// ---------- Monthly truck cost (Fixed Cost PO) ----------
+const MPO = (over = {}) => Object.assign({ poNo: 'PODNX261101', prNo: 'DNX261101', type: 'FIX', lpCode: 'DNX', lpName: 'PT. Dinamika', ym: '202611', status: 'Approved', amount: 28000000, currency: 'IDR', saNo: '' }, over);
+const mctx = (pos, extra = {}) => mkCtx([], [PO()], Object.assign({ monthlyPos: pos, commitMonthly: (po, saNo, when) => { po.saNo = saNo; po.saAt = when; } }, extra));
+test('monthly: only released Fixed Cost PO without SA is eligible', () => {
+  assert.ok(SA.monthlyEligible(MPO()));
+  assert.ok(SA.monthlyEligible(MPO({ status: 'Auto Approved' })));
+  ['Pending', 'Rejected'].forEach(st => assert.ok(!SA.monthlyEligible(MPO({ status: st }))));
+  assert.ok(!SA.monthlyEligible(MPO({ type: 'TC-PBR' })));
+  assert.ok(!SA.monthlyEligible(MPO({ saNo: 'ILS/TR/DNX/2611040001' })));
+});
+test('monthly: calculation, period and validation', () => {
+  const r = SA.calculateMonthly(MPO());
+  assert.ok(r.valid); assert.deepStrictEqual([r.cost, r.period, r.poFrom, r.poTo], [28000000, '11/2026', '2026-11-01', '2026-11-30']);
+  assert.deepStrictEqual(SA.calculateMonthly(MPO({ amount: null })).errors.map(x => x.code), ['AMOUNT_NOT_FOUND']);
+  assert.deepStrictEqual(SA.calculateMonthly(MPO({ amount: 0 })).errors.map(x => x.code), ['AMOUNT_INVALID']);
+  assert.deepStrictEqual(SA.calculateMonthly(MPO({ lpCode: '' })).errors.map(x => x.code), ['LP_CODE_MISSING']);
+  assert.deepStrictEqual(SA.calculateMonthly(MPO({ status: 'Rejected' })).errors.map(x => x.code), ['PO_NOT_ACTIVE']);
+});
+test('monthly: approve gives one SA per PO with snapshot and PO marked; shares the SA sequence', () => {
+  const a = MPO(), b = MPO({ poNo: 'POOTH261101', lpCode: 'OTH', lpName: 'PT. Other' }), c = mctx([a, b]);
+  c.seq['DNX|261104'] = 1; // a delivery SA of DNX was already approved today
+  const r = SA.approveMonthly({ requestId: 'M1', poNos: ['PODNX261101', 'POOTH261101'], expected: { PODNX261101: 28000000 } }, VPLD, at('2026-11-04', 9), c);
+  assert.ok(r.ok, r.message);
+  assert.deepStrictEqual(r.sas.map(x => x.saNo), ['ILS/TR/DNX/2611040002', 'ILS/TR/OTH/2611040001']);
+  const h = c.sas[0];
+  assert.deepStrictEqual([h.type, h.totalCost, h.deliveries, h.details.length, h.details[0].kind, h.pas.status], ['MONTHLY', 28000000, 0, 1, 'MONTHLY', 'NOT_SENT']);
+  assert.strictEqual(a.saNo, 'ILS/TR/DNX/2611040002');
+  a.amount = 30000000; assert.strictEqual(c.sas[0].totalCost, 28000000);
+  assert.strictEqual(SA.approveMonthly({ requestId: 'M1', poNos: ['PODNX261101'] }, VPLD, at('2026-11-04', 9), c).replay, true);
+  assert.strictEqual(SA.approveMonthly({ requestId: 'M2', poNos: ['PODNX261101'] }, VPLD, at('2026-11-04', 9), c).failed[0].errors[0].code, 'ALREADY_SA');
+});
+test('monthly: 403, 400, amount changed, all-or-nothing and rollback', () => {
+  const c = mctx([MPO(), MPO({ poNo: 'PO2', amount: null })]);
+  assert.strictEqual(SA.approveMonthly({ poNos: ['PODNX261101'] }, IP, at('2026-11-04', 9), c).status, 403);
+  assert.strictEqual(SA.approveMonthly({ poNos: [] }, VPLD, at('2026-11-04', 9), c).status, 400);
+  assert.strictEqual(SA.approveMonthly({ poNos: ['PODNX261101'], expected: { PODNX261101: 1 } }, VPLD, at('2026-11-04', 9), c).failed[0].errors[0].code, 'AMOUNT_CHANGED');
+  const r = SA.approveMonthly({ poNos: ['PODNX261101', 'PO2', 'PO9'] }, VPLD, at('2026-11-04', 9), c);
+  assert.strictEqual(r.status, 422); assert.deepStrictEqual(r.failed.map(f => f.orderNo), ['PO2', 'PO9']); assert.strictEqual(c.sas.length, 0);
+  const d = mctx([MPO()], { fail: 'daily' });
+  assert.strictEqual(SA.approveMonthly({ poNos: ['PODNX261101'] }, VPLD, at('2026-11-04', 9), d).status, 500);
+  assert.deepStrictEqual([d.sas.length, d.seq, d.monthlyPos[0].saNo], [0, {}, '']);
 });
 
 let fail = 0;
