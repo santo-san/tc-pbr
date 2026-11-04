@@ -18,7 +18,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | 2 | **Order Release** | IP Admin meng-assign order ke truck number (atau LP Admin melakukan Order Release) |
 | 3 | **Start Daily Order** | Driver memulai order |
 | 4 | **Finish Daily Order** | Driver (atau LP Admin) menyelesaikan order |
-| 5 | **SA Approved** | Order berhasil diproses ke SA; timestamp SA disimpan |
+| 5 | **SA Approved** | Order di-approve VPLD di menu **SA Approval** (TC-PBR); SA Number `ILS/TR/{kode trucking}/{YYMMDD}{NNNN}` dan timestamp SA disimpan. Lihat [sa-approval-spec.md](sa-approval-spec.md) |
 | 6 | **SA Approved with PO Number** | Order berhasil diproses ke PAS dan mendapat PO Number |
 
 ### Cycle Status (per cycle, maksimal 5 cycle per order)
@@ -36,11 +36,12 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 
 | Aktor | Data yang bisa dilihat | Aksi yang boleh dilakukan |
 |---|---|---|
-| **IP Admin** | Semua order | DTP Check & Submit, Assign Truck, Proses ke SA, Proses ke PAS |
+| **IP Admin** | Semua order | DTP Check & Submit, Assign Truck, Proses ke PAS (SA Approval hanya lihat) |
 | **Driver** | Hanya order yang di-assign ke truck yang dipakai saat login | Start Order, Pickup Container, Finish Cycle, Start Next Cycle, Finish Order |
 | **Supplier (Viewer)** | Hanya order milik supplier sendiri | Tidak ada (hanya lihat) |
 | **Supplier (LP Admin)** | Hanya order milik supplier sendiri | Order Release, Pickup Container, Finish Cycle, Finish Order (selalu dengan Reason) |
-| **System (Batch SA/PAS)** | Semua order | Proses ke SA, Proses ke PAS |
+| **VPLD (Planner)** | Semua order | **SA Approval** di menu Service Acceptance (bukan dari Order Detail) |
+| **System (Batch SA/PAS)** | Semua order | Proses ke PAS; Proses ke SA hanya untuk data seed lama (legacy) |
 
 ### Matriks aksi per status
 
@@ -55,7 +56,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | Finish Cycle | Start Daily Order + Cycle `Pickup Container` | | ✔ | ✔ | (+ **Reason** untuk LP Admin) |
 | Start Next Cycle | Start Daily Order + cycle terakhir `Finish Cycle` | | ✔ | | - |
 | Finish Order | Start Daily Order + cycle terakhir `Finish Cycle` | | ✔ | ✔ | (+ **Reason** untuk LP Admin) |
-| Proses ke SA | Finish Daily Order | ✔ | | | - |
+| SA Approval (menu Service Acceptance, VPLD) | Finish Daily Order, belum ada SA Number | | | | Validasi PO, route, Total KM, biaya |
 | Proses ke PAS | SA Approved | ✔ | | | PO Number (dari PAS) |
 
 ---
@@ -72,7 +73,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | 6 | Driver | **Finish Cycle** | - | Start Daily Order / Finish Cycle |
 | 7 | Driver | **Start Next Cycle** (Cycle 2, 3, dst.), lalu ulangi langkah 5 sampai 6 | - | Start Daily Order / Start Cycle (cycle baru) |
 | 8 | Driver | **Finish Order** | - | Finish Daily Order / Finish Cycle |
-| 9 | System / IP Admin | Kirim order ke **SA** | Data order + Container Number setiap cycle | **SA Approved** + timestamp SA |
+| 9 | VPLD | **SA Approval** (menu Service Acceptance) | PO, Route, Total KM, biaya | **SA Approved** + SA Number + timestamp SA |
 | 10 | System / IP Admin | Kirim ke **PAS**, terima PO Number | PO Number | **SA Approved with PO Number** + PO Number + timestamp |
 
 **Jalur LP Admin (input manual oleh supplier):** Order Release (Reason, Driver) → Pickup Container (Reason, Container Number) → Finish Cycle (Reason) → Finish Order (Reason).

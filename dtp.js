@@ -125,20 +125,22 @@ if (!restore()) {
 } else resumeQueue();
 
 // ---------- Routing (Daily sub menu) ----------
-const VIEWS = { monitoring: 'pgMonitoring', 'planning-order': 'pgPlanning', 'truck-assignment': 'pgAssign' };
+const VIEWS = { monitoring: 'pgMonitoring', 'planning-order': 'pgPlanning', 'truck-assignment': 'pgAssign', 'sa-approval': 'pgSA', 'sa-monitoring': 'pgSAM' };
 function route() {
   const [v0, date] = location.hash.slice(1).split('/');
   const v = VIEWS[v0] ? v0 : 'monitoring';
   Object.entries(VIEWS).forEach(([k, id]) => { $(id).style.display = k === v ? '' : 'none'; });
-  document.querySelectorAll('#dailySub a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
-  document.title = `ELIPS - ${{ monitoring: 'Daily Monitoring', 'planning-order': 'Planning Order', 'truck-assignment': 'Planning Truck Assignment' }[v]}`;
+  document.querySelectorAll('#dailySub a, #saSub a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
+  document.title = `ELIPS - ${{ monitoring: 'Daily Monitoring', 'planning-order': 'Planning Order', 'truck-assignment': 'Planning Truck Assignment', 'sa-approval': 'SA Approval', 'sa-monitoring': 'SA Monitoring' }[v]}`;
   if (v === 'monitoring') render();
   if (v === 'truck-assignment') window.taRender?.();
+  if (v === 'sa-approval') window.saRender?.();
+  if (v === 'sa-monitoring') window.samRender?.();
   if (v !== 'planning-order') return;
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) openCreate(date); else showCalendar();
 }
 window.addEventListener('hashchange', route);
-document.addEventListener('actorchange', () => { if (/^#(planning-order|truck-assignment)/.test(location.hash)) route(); });
+document.addEventListener('actorchange', () => { if (/^#(planning-order|truck-assignment|sa-approval|sa-monitoring)/.test(location.hash)) route(); });
 function refreshAll() {
   if ($('dtpCreate').style.display !== 'none' && dc.date) renderGrid();
   if ($('dtpCal').style.display !== 'none') renderCalendar();

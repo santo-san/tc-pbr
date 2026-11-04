@@ -105,7 +105,7 @@
       orderNo, date: p.date, type: p.type, supplier: p.supplier, from: p.from, to: p.to, renban: p.renban, shift: p.shift,
       fa: p.fa || '', planned: +p.planned, truck: '', driver: '', status: ORDER.PLAN,
       cycles: [{ status: CYCLE.DTP, from: p.from, to: p.to, container: '', startAt: null, pickupAt: null, finishAt: null }],
-      saAt: null, poNo: '', poAt: null, history: [],
+      saAt: null, saNo: '', poNo: '', poAt: null, history: [],
     };
     log(o, at, actor, action, null, { order: o.status, cycle: CYCLE.DTP }, '', note || `Planned ${o.planned} cycle`);
     return o;
@@ -296,8 +296,15 @@
         return o.cycles.length < o.planned ? `Aktual ${o.cycles.length} dari rencana ${o.planned} cycle` : '';
       },
     },
+    // SA is approved by VPLD on the SA Approval screen (sa.js / sa-rules.js). processSA is kept for the legacy seed data only (SYSTEM).
+    saApprove: {
+      label: 'SA Approval', allow: a => a.role === 'PLANNER', screenOnly: true,
+      fields: () => [{ name: 'saNo', label: 'SA Number', type: 'text', required: true }],
+      guard: o => (o.status !== ORDER.FIN && `SA Approval hanya bisa saat status ${ORDER.FIN}`) || (o.saNo && `Sudah SA: ${o.saNo}`),
+      apply(o, p, a, at) { o.status = ORDER.SA; o.saAt = at; o.saNo = p.saNo; return `SA Number ${p.saNo}`; },
+    },
     processSA: {
-      label: 'Proses ke SA', allow: a => a.role === 'IP_ADMIN' || a.role === 'SYSTEM',
+      label: 'Proses ke SA', allow: a => a.role === 'SYSTEM',
       fields: () => [{ name: 'simulateFail', label: 'Simulasikan SA gagal', type: 'checkbox' }],
       guard: o => o.status !== ORDER.FIN && `Proses ke SA hanya bisa saat status ${ORDER.FIN}`,
       validate: (o, p) => {
@@ -337,7 +344,8 @@
     if (!a.allow(actor)) return `${roleLabel(actor)} tidak boleh melakukan ${a.label}`;
     return a.guard(o, actor, ctx) || null;
   }
-  const available = (o, actor, ctx) => Object.keys(ACTIONS).filter(k => !blockReason(o, k, actor, ctx));
+  // screenOnly actions are done on their own screen (SA Approval), not from the Order Detail action bar
+  const available = (o, actor, ctx) => Object.keys(ACTIONS).filter(k => !ACTIONS[k].screenOnly && !blockReason(o, k, actor, ctx));
 
   function perform(o, key, payload, actor, at, ctx) {
     const a = ACTIONS[key];
