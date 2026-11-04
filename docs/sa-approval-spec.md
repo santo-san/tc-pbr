@@ -10,7 +10,7 @@ TC-PBR = Trucking Container Payment By Resource. VPLD performs Service Acceptanc
 - `workflow.js`: action `saApprove`.
 - Tests: [`tests/sa-approval.test.js`](../tests/sa-approval.test.js) (15 tests).
 
-**UISS:** [`uiss/UISS_Screen_SA_Approval.xlsx`](uiss/UISS_Screen_SA_Approval.xlsx).
+**UISS:** [`uiss/UISS_Screen_SA_Approval.xlsx`](uiss/UISS_Screen_SA_Approval.xlsx) and [`uiss/UISS_Screen_SA_Monitoring.xlsx`](uiss/UISS_Screen_SA_Monitoring.xlsx).
 
 **Legend used in every rule:**
 - **C**: confirmed requirement (from the request or the reference screen).
