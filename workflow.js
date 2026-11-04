@@ -313,8 +313,9 @@
       },
       apply(o, p, a, at) { o.status = ORDER.SA; o.saAt = at; },
     },
+    // PAS PO Number arrives by PAS feedback (SA Monitoring, sa-pas-rules.js); no manual entry
     processPAS: {
-      label: 'Proses ke PAS', allow: a => a.role === 'IP_ADMIN' || a.role === 'SYSTEM',
+      label: 'Proses ke PAS', allow: a => a.role === 'SYSTEM',
       fields: () => [
         { name: 'poNo', label: 'PO Number (dari PAS)', type: 'text', required: true },
         { name: 'simulateFail', label: 'Simulasikan PAS gagal', type: 'checkbox' },

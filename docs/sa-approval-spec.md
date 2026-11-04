@@ -237,9 +237,11 @@ The snapshot keeps the approved amount fixed. Later changes to the PO or master 
 - It is `screenOnly`, so it is not offered in the Order Detail action bar (P).
 - `Proses ke SA` is now SYSTEM only. It is kept for the legacy seed data, which receive an SA Number and appear as *legacy* in SA Monitoring (P).
 - Daily Monitoring shows the SA Number under the status badge and in Order Detail. The Surat Jalan PDF prints it in **SA Number** (P).
-- `Proses ke PAS` (SA Approved with PO Number) is unchanged. How it relates to the PO already known at SA is OQ-11.
+- `Proses ke PAS` (SA Approved with PO Number) is now SYSTEM only. It is set when the PAS PO feedback is received in SA Monitoring ([sa-monitoring-spec.md](sa-monitoring-spec.md) §14).
 
 ## 16. SA Monitoring design
+
+Detailed design (PAS interface, PAS PR / PO feedback, statuses): [sa-monitoring-spec.md](sa-monitoring-spec.md). Summary:
 
 | Area | Content |
 |---|---|

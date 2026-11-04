@@ -90,6 +90,7 @@
   // SA-10 SA Number ILS/TR/{LP code}/{YYMMDD}{4-digit sequence}. Scope of the sequence is configurable (TBD):
   // 'LP_DATE' = per trucking company per date (default, proposed), 'DATE' = global per date.
   function saNumber(lpCode, at, n) { return `ILS/TR/${lpCode}/${yymmdd(at)}${pad(n, 4)}`; }
+  const detNumber = (at, n) => `${yymmdd(at).slice(0, 4)}C${pad(n, 5)}`;
   const seqKey = (scope, lpCode, at) => scope === 'DATE' ? yymmdd(at) : `${lpCode}|${yymmdd(at)}`;
 
   // ---------- Approval (SA-08 .. SA-14) ----------
@@ -121,13 +122,19 @@
         if (n > 9999) throw new Error(`SA sequence for ${key} exceeds 9999`);
         seq[key] = n;
         const saNo = saNumber(c0.lpCode, at, n);
+        // SA Detail No (proposed, format TBD): {YYMM}C{5-digit running number per month}, like the reference screen
+        const dk = `DET|${yymmdd(at).slice(0, 4)}`;
+        g.forEach(x => { seq[dk] = (seq[dk] || 0) + 1; x.detNo = detNumber(at, seq[dk]); });
         if (ctx.sas.some(s => s.saNo === saNo)) throw new Error(`SA Number ${saNo} already exists`);
         headers.push({
           saNo, lpCode: c0.lpCode, lpName: c0.lpName, poNo: c0.poNo, poFrom: c0.poFrom, poTo: c0.poTo, currency: c0.currency,
           deliveries: g.length, totalKm: Math.round(g.reduce((s, x) => s + x.c.totalKm, 0) * 100) / 100, totalCost: g.reduce((s, x) => s + x.c.cost, 0),
           status: 'SA Approved', approvedBy: actor.name, approvedRole: actor.role, approvedAt: at, createdAt: at, requestId: req.requestId || '',
-          details: g.map(x => ({ ...x.c, calcAt: at })),
-          audit: [{ at, by: actor.name, action: 'SA Approved', note: `${g.length} delivery(ies), request ${req.requestId || '-'}` }],
+          details: g.map(x => ({ ...x.c, detNo: x.detNo, calcAt: at })),
+          audit: [{ at, by: actor.name, action: 'SA_APPROVED', note: `${g.length} delivery(ies), request ${req.requestId || '-'}` }],
+          // PAS interface fields (written only by SA Monitoring / PAS interface, sa-pas-rules.js)
+          pas: { status: 'NOT_SENT', prNo: '', prDate: '', poNo: '', interfaceAt: null, correlationId: '', attempts: 0, lastFeedbackAt: null, feedbackStatus: '', errorCode: '', errorMessage: '', updatedAt: null, version: 1 },
+          pasLog: [],
         });
       });
       if (ctx.fail === 'header') throw new Error('SA header insert failed (simulated)');
@@ -144,7 +151,7 @@
     return res;
   }
 
-  const api = { ERR, PO_ACTIVE, ymd, yymmdd, eligible, route, totalKm, mapPO, calculate, saNumber, seqKey, approve };
+  const api = { ERR, PO_ACTIVE, ymd, yymmdd, eligible, route, totalKm, mapPO, calculate, saNumber, detNumber, seqKey, approve };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SA = api;
 })(typeof window !== 'undefined' ? window : this);

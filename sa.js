@@ -54,13 +54,14 @@
     Object.values(groups).forEach(g => {
       const lp = lpCodeOf(g[0].supplier), at = g[0].saAt, key = SA.seqKey('LP_DATE', lp, at), n = (SEQ[key] || 0) + 1; SEQ[key] = n;
       const saNo = SA.saNumber(lp, at, n), c = ctx();
-      const details = g.map(o => { const d = SA.calculate(o, c); d.errors = d.errors.filter(x => x.code !== 'NOT_ELIGIBLE'); return { ...d, calcAt: at }; });
+      const dk = `DET|${SA.yymmdd(at).slice(0, 4)}`;
+      const details = g.map(o => { const d = SA.calculate(o, c); d.errors = d.errors.filter(x => x.code !== 'NOT_ELIGIBLE'); SEQ[dk] = (SEQ[dk] || 0) + 1; return { ...d, detNo: SA.detNumber(at, SEQ[dk]), calcAt: at }; });
       g.forEach(o => { o.saNo = saNo; });
       SAS.push({ saNo, lpCode: lp, lpName: g[0].supplier, poNo: details.find(d => d.poNo)?.poNo || '-', poFrom: details[0].poFrom, poTo: details[0].poTo, currency: 'IDR',
         deliveries: g.length, totalKm: details.every(d => d.totalKm != null) ? details.reduce((s, d) => s + d.totalKm, 0) : null,
         totalCost: details.every(d => d.cost != null) ? details.reduce((s, d) => s + d.cost, 0) : null,
         status: g.some(o => o.status === W.ORDER.PO) ? 'SA Approved with PO Number' : 'SA Approved', approvedBy: 'Batch SA/PAS', approvedRole: 'SYSTEM', approvedAt: at, createdAt: at,
-        legacy: true, details, audit: [{ at, by: 'Batch SA/PAS', action: 'SA Approved (legacy, before TC-PBR SA Approval)', note: '' }] });
+        legacy: true, details, pas: SAPAS.init(), pasLog: [], audit: [{ at, by: 'Batch SA/PAS', action: 'SA_APPROVED', note: 'legacy, before TC-PBR SA Approval' }] });
     });
   })();
   // Approvals made in this browser (mock persistence): re-apply them to the regenerated Daily data
@@ -183,6 +184,7 @@
         showPreview('SA Approved', `<p>${esc(res.message)}.</p><table class="sa-mini"><tr><th>SA Number</th><th>Trucking</th><th>PO Number</th><th>Deliveries</th><th>Total Cost</th></tr>
           ${res.sas.map(s => `<tr><td><b>${s.saNo}</b></td><td>${s.lpCode}</td><td>${s.poNo}</td><td class="num">${s.deliveries}</td><td class="num">${money(s.totalCost)} ${s.currency}</td></tr>`).join('')}</table>`,
           '<a class="btn-sm-blue" style="text-decoration:none" href="#sa-monitoring" id="saGoMon">Open SA Monitoring</a>');
+        window.samChanged?.();
         $('saGoMon').onclick = closePreview;
         render(); window.render?.();
       } else {
@@ -190,43 +192,6 @@
         render();
       }
     };
-  }
-
-  // ---------- SA Monitoring ----------
-  const sm = { from: lastMonth, to: today, lp: '', q: '', page: 1 };
-  const samVisible = s => state.actor.role === 'SUPPLIER' ? s.lpCode === lpCodeOf(state.actor.supplier) : ['PLANNER', 'IP_ADMIN'].includes(state.actor.role);
-  function samRender() {
-    const root = $('samRoot'); if (!root || $('pgSAM').style.display === 'none') return;
-    if (state.actor.role === 'DRIVER') { root.innerHTML = '<section class="cal-card"><p class="q-note">SA Monitoring is not available for Driver.</p></section>'; return; }
-    const q = sm.q.trim().toLowerCase();
-    const list = SAS.filter(samVisible).filter(s => { const d = SA.ymd(s.approvedAt); return (!sm.from || d >= sm.from) && (!sm.to || d <= sm.to) && (!sm.lp || s.lpCode === sm.lp)
-      && (!q || [s.saNo, s.lpCode, s.lpName, s.poNo, s.approvedBy, ...s.details.map(x => x.orderNo)].join(' ').toLowerCase().includes(q)); })
-      .sort((a, b) => b.approvedAt - a.approvedAt);
-    const pages = Math.max(1, Math.ceil(list.length / 10)); sm.page = Math.min(sm.page, pages);
-    root.innerHTML = `<section class="cal-card">
-      <div class="sa-filter">
-        <div><label for="smFrom">Approval Date From</label><input type="date" id="smFrom" value="${sm.from}"></div>
-        <div><label for="smTo">Approval Date To</label><input type="date" id="smTo" value="${sm.to}"></div>
-        <div><label for="smLp">Trucking Company</label><select id="smLp"><option value="">All</option>${SUPPLIERS.map(([n, c]) => `<option value="${c}" ${sm.lp === c ? 'selected' : ''}>${c} - ${n}</option>`).join('')}</select></div>
-        <button class="btn-dark" id="smSearch">&#128269; Search</button><button class="btn-light" id="smClear">&#8635; Clear</button>
-        <span class="spacer"></span><div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="text" id="smQ" placeholder="Search SA / PO / Order" value="${esc(sm.q)}"></div>
-      </div>
-      <div class="table-wrap"><table class="sa-tbl"><thead><tr><th>SA Number</th><th>Approval Date</th><th>Approved By</th><th>Trucking Code</th><th>Trucking Company</th><th>Deliveries</th><th>PO Number</th><th>PO Validity</th><th>Total KM</th><th>Total Cost</th><th>Currency</th><th>SA Status</th></tr></thead>
-      <tbody>${list.slice((sm.page - 1) * 10, sm.page * 10).map(s => `<tr><td><button class="link" data-samdet="${s.saNo}">${s.saNo}</button>${s.legacy ? ' <small class="q-note">legacy</small>' : ''}</td>
-        <td>${fmtDT(s.approvedAt)}</td><td>${esc(s.approvedBy)}</td><td>${s.lpCode}</td><td class="left">${esc(s.lpName)}</td><td class="num">${s.deliveries}</td><td>${s.poNo}</td>
-        <td>${s.poFrom ? `${s.poFrom} - ${s.poTo}` : '-'}</td><td class="num">${kmFmt(s.totalKm)}</td><td class="num sa-price">${money(s.totalCost)}</td><td>${s.currency}</td><td><span class="st av">${s.status}</span></td></tr>`).join('') || '<tr><td colspan="12" class="empty">No Data Found</td></tr>'}</tbody></table></div>
-      <div class="dn-pager"><span class="q-note">${list.length} SA</span><span class="spacer"></span><button class="btn-light" data-smpg="-1" ${sm.page === 1 ? 'disabled' : ''}>&lsaquo; Prev</button><span class="q-note">Page ${sm.page} / ${pages}</span><button class="btn-light" data-smpg="1" ${sm.page === pages ? 'disabled' : ''}>Next &rsaquo;</button></div>
-    </section>`;
-  }
-  function samDetail(saNo) {
-    const s = SAS.find(x => x.saNo === saNo);
-    showPreview(`SA ${s.saNo}`, `<div class="ta-info"><div><b>Trucking Company</b>${s.lpCode} - ${esc(s.lpName)}</div><div><b>PO Number</b>${s.poNo}</div><div><b>PO Validity</b>${s.poFrom ? `${s.poFrom} - ${s.poTo}` : '-'}</div><div><b>SA Status</b>${s.status}</div>
-        <div><b>Approved By</b>${esc(s.approvedBy)}</div><div><b>Approval Date</b>${fmtDT(s.approvedAt)}</div><div><b>Total KM</b>${kmFmt(s.totalKm)}</div><div><b>Total Cost</b>${money(s.totalCost)} ${s.currency}</div></div>
-      <h4 class="sa-h4">Deliveries (calculation snapshot at approval)</h4>
-      <table class="sa-mini"><tr><th>Order Number</th><th>Order Date</th><th>Route</th><th>Total KM</th><th>Rate / KM</th><th>Cost</th></tr>
-        ${s.details.map(d => `<tr><td>${d.orderNo}</td><td>${d.date}</td><td>${d.route || '-'}</td><td class="num">${kmFmt(d.totalKm)}</td><td class="num">${money(d.rate)}</td><td class="num">${money(d.cost)}</td></tr>`).join('')}</table>
-      <h4 class="sa-h4">Audit</h4><table class="sa-mini"><tr><th>Date-time</th><th>By</th><th>Action</th><th>Note</th></tr>${s.audit.map(a => `<tr><td>${fmtDT(a.at)}</td><td>${esc(a.by)}</td><td>${esc(a.action)}</td><td>${esc(a.note)}</td></tr>`).join('')}</table>`, '');
-    $('preview').querySelector('.pv').classList.add('dn-pv');
   }
 
   // ---------- Events ----------
@@ -243,12 +208,6 @@
       if (t.id === 'saApprove' && !t.disabled) confirmApprove();
       if (t.id === 'saKolom') { e.stopPropagation(); $('saKolomDd').classList.toggle('open'); }
     }
-    if (t.closest('#pgSAM')) {
-      if (t.id === 'smSearch') { sm.from = $('smFrom').value; sm.to = $('smTo').value; sm.lp = $('smLp').value; sm.page = 1; samRender(); }
-      if (t.id === 'smClear') { Object.assign(sm, { from: lastMonth, to: today, lp: '', q: '', page: 1 }); samRender(); }
-      const pg = t.closest('[data-smpg]'); if (pg && !pg.disabled) { sm.page += +pg.dataset.smpg; samRender(); }
-      const d = t.closest('[data-samdet]'); if (d) samDetail(d.dataset.samdet);
-    }
   });
   document.addEventListener('change', e => {
     const t = e.target;
@@ -261,12 +220,10 @@
   document.addEventListener('input', e => {
     const keep = id => { const pos = e.target.selectionStart; return () => { $(id).focus(); $(id).setSelectionRange(pos, pos); }; };
     if (e.target.id === 'saQ') { sa.q = e.target.value; sa.page = 1; const k = keep('saQ'); render(); k(); }
-    if (e.target.id === 'smQ') { sm.q = e.target.value; sm.page = 1; const k = keep('smQ'); samRender(); k(); }
   });
-  document.addEventListener('actorchange', () => { sa.sel.clear(); render(); samRender(); });
+  document.addEventListener('actorchange', () => { sa.sel.clear(); render(); });
 
   window.saRender = render;
-  window.samRender = samRender;
-  window.SA_DATA = { POS, MILEAGE, LOC_CODE, SAS };
-  render(); samRender(); // route() of dtp.js ran before this file was loaded
+  window.SA_DATA = { POS, MILEAGE, LOC_CODE, SAS, SEQ, persist };
+  render(); // route() of dtp.js ran before this file was loaded
 })();
