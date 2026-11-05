@@ -8,6 +8,13 @@
   const GRADES = [{ min: 750, grade: 'GOLD' }, { min: 600, grade: 'SILVER' }, { min: 0, grade: 'BRONZE' }];
   const PALETTE = ['#2563eb', '#16a34a', '#6d28d9', '#0891b2', '#ea7a0c', '#3b6fe0', '#ef4444', '#06b6d4', '#db2777', '#65a30d', '#7c3aed', '#0d9488'];
 
+  // Seed rows of the mock-up (single source for Master KPI screen and DTP Creation monitoring):
+  // [code, score, orderSharing]. Reference screen rows AGR..PBM; PNJ, SRL, TFL are the trucking companies of Daily / DTP Creation.
+  const SEED = [['AGR', 766, 3], ['DNX', 855, 4], ['GIB', 892, 5], ['JMP', 837, 4], ['PBM', 774, 4], ['PNJ', 801, 3], ['SRL', 760, 3], ['TFL', 742, 2]];
+  // Applicable Master KPI row of a trucking company for a date. Master KPI has no validity period (one current row per
+  // company, KP-01), so the date is not used yet; with an effective period: date >= effective from and <= effective to (TBD).
+  const applicable = (rows, code, date) => rows.find(r => r.partner === code && (!r.effFrom || r.effFrom <= date) && (!r.effTo || date <= r.effTo)) || null;
+
   const MSG = {
     nameReq: 'KPI name is required.',
     nameLen: `KPI name must be at most ${MAX_NAME} characters.`,
@@ -99,7 +106,7 @@
     return Object.fromEntries(parts.map(p => [p.r.partner, p.qty]));
   }
 
-  const api = { PAYMENT_BY_RESOURCE, UOM, MAX_ITEM, MAX_SCORE, MAX_SHARING, MAX_NAME, GRADES, PALETTE, MSG,
+  const api = { SEED, applicable, PAYMENT_BY_RESOURCE, UOM, MAX_ITEM, MAX_SCORE, MAX_SHARING, MAX_NAME, GRADES, PALETTE, MSG,
     grade, total, totalByResource, addItem, removeItem, addCompany, validateRow, updateRow, removeCompany, dailyQty, allocate };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MasterKpi = api;

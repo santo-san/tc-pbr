@@ -11,7 +11,7 @@ const KPI_ITEMS = [];
 const KPI_SEED = { SAFETY: 45, COMM: 45, FLEXI: 45, LEGAL: 45, KPI: 170, TPS: 200, TAX: 50, QCC: 50 };
 const KPIS = [];
 const kpiSeedAt = new Date(2026, 4, 21, 9, 15, 0);
-[['AGR', 766, 3], ['DNX', 855, 4], ['GIB', 892, 5], ['JMP', 837, 4], ['PBM', 774, 4]].forEach(([partner, score, orderSharing]) => KPIS.push({
+MK.SEED.forEach(([partner, score, orderSharing]) => KPIS.push({
   partner, paymentType: MK.PAYMENT_BY_RESOURCE, score, values: { ...KPI_SEED }, orderSharing, uom: MK.UOM,
   createdBy: 'SYSTEM', createdAt: kpiSeedAt, changedBy: 'SYSTEM', changedAt: kpiSeedAt, version: 1,
 }));

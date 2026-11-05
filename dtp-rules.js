@@ -216,6 +216,37 @@
     return null;
   }
   const canSwitch = (r, orders, W) => !switchCheck(r, orders, W);
+
+  // ---------- DTP Creation vs Master KPI monitoring (per date and trucking company) - KM-01 .. KM-08 ----------
+  // Master KPI Order Sharing = daily order share (daily QTY) of the trucking company; 1 DTP record = 1 Daily order,
+  // so Assigned = number of DTP records of the date and LP that consume the allocation (same unit).
+  // Consuming: submitted to the trucking company and not rolled back (Submitted, Queued, Processing, Processed, Failed);
+  // a processed order rejected by the LP Admin does not consume (returned to the planner). Rule TBD (OQ).
+  const CONSUMING = [STATUS.SUBMITTED, STATUS.QUEUED, STATUS.PROCESSING, STATUS.PROCESSED, STATUS.FAILED];
+  const KPI_WARN = 80;   // usage % from which the indicator is yellow (TBD)
+  const consumes = (r, rejected) => CONSUMING.includes(r.status) && !rejected(r);
+  function kpiMonitor({ date, records, lps, kpiRows, applicable, byResource, rejected = () => false }) {
+    const recs = records.filter(r => r.date === date);
+    const codes = [...new Set([...lps, ...recs.map(r => r.lp).filter(Boolean)])];
+    const rows = codes.map(lp => {
+      const mine = recs.filter(r => r.lp === lp);
+      const assigned = mine.filter(r => consumes(r, rejected)).length;
+      const rejectedN = mine.filter(r => r.status === STATUS.PROCESSED && rejected(r)).length;
+      const selected = mine.filter(r => r.status === STATUS.READY).length;
+      const k = applicable(kpiRows, lp, date);
+      const base = { lp, assigned, rejected: rejectedN, selected, open: mine.filter(r => r.status === STATUS.AVAILABLE || r.status === STATUS.ERROR).length };
+      if (!k) return { ...base, kpi: 'NONE', limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
+      if (k.paymentType !== byResource) return { ...base, kpi: 'NOT_BY_RESOURCE', paymentType: k.paymentType, limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
+      const limit = +k.orderSharing || 0, after = assigned + selected;
+      const usage = limit > 0 ? Math.round(assigned / limit * 100) : (assigned > 0 ? null : 0);
+      const level = assigned >= limit ? 'full' : usage >= KPI_WARN ? 'warn' : 'ok';
+      return { ...base, kpi: 'OK', limit, remaining: Math.max(0, limit - assigned), over: Math.max(0, assigned - limit), usage, level, after, afterOver: Math.max(0, after - limit) };
+    });
+    const withKpi = rows.filter(r => r.kpi === 'OK');
+    const total = { limit: withKpi.reduce((t, r) => t + r.limit, 0), assigned: withKpi.reduce((t, r) => t + r.assigned, 0), noKpiAssigned: rows.filter(r => r.kpi !== 'OK').reduce((t, r) => t + r.assigned, 0), remaining: withKpi.reduce((t, r) => t + r.remaining, 0),
+      over: rows.reduce((t, r) => t + r.over, 0), selected: rows.reduce((t, r) => t + r.selected, 0) };
+    return { rows, total };
+  }
   // All-or-nothing, like Submit: every selected record is checked again immediately before the rollback (backend check);
   // one non-eligible record rejects the whole request. ctx: { at, actor, orders, W, grid, vctx, dequeue(id), removeOrder(o), fail }
   function switchBack(records, ctx) {
@@ -280,7 +311,7 @@
     return `DTP - ${t} ( ${fmtDmy(date)} ) [ ${orders.filter(o => isAssigned(o, W)).length} / ${orders.length} ]`;
   }
 
-  const api = { SWITCHABLE, driverStarted, switchCheck, canSwitch, switchBack, MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
+  const api = { CONSUMING, KPI_WARN, kpiMonitor, SWITCHABLE, driverStarted, switchCheck, canSwitch, switchBack, MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
     dateRange, dateCheck, canCreate, normalize, validate, dupKey, duplicates, readSheet, upload, makeRecord, revalidate, selectable,
     submit, step, canRetry, orderPayload, calStatus, calLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

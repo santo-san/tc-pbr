@@ -165,3 +165,20 @@ small.sub { display: block; font-size: 8.5px; color: #6b7280; }
 .opt .swb { color: #b45309; }
 .drv { font-size: 9.5px; color: #166534; } .drv.on { color: #b91c1c; font-weight: 600; }
 .sw-chk { accent-color: #f59e0b; }
+/* DTP Creation vs Master KPI */
+.kpi-mon { border: 1px solid #e3e6eb; border-radius: 8px; margin: 10px 0; background: #fff; }
+.kpi-mon > summary { cursor: pointer; padding: 9px 12px; font-size: 11px; font-weight: 600; background: #f6f8fc; border-radius: 8px; }
+.kpi-mon > div { padding: 8px 12px 4px; }
+.kpi-tbl { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+.kpi-tbl th, .kpi-tbl td { border-bottom: 1px solid #eef0f3; padding: 5px 8px; text-align: center; white-space: nowrap; }
+.kpi-tbl th { background: #f3f6fb; font-size: 9.5px; }
+.kpi-tbl th small, .kpi-tbl td small { display: block; font-weight: 400; color: #6b7280; font-size: 8.5px; }
+.kpi-tbl td.left, .kpi-tbl th.left { text-align: left; }
+.kpi-tbl td.rem b { font-size: 15px; }
+.kpi-tbl tr.lv-ok td.rem b { color: #166534; } .kpi-tbl tr.lv-warn td.rem b { color: #b45309; } .kpi-tbl tr.lv-full td.rem b { color: #b91c1c; } .kpi-tbl tr.lv-none td.rem b { color: #9aa3b2; }
+.kpi-tbl small.over { color: #b91c1c !important; font-weight: 600 !important; }
+.kpi-tbl tr.tot td { font-weight: 600; background: #fafbfc; }
+.kpi-tbl td.u { display: flex; align-items: center; gap: 6px; justify-content: center; }
+.kbar { width: 90px; height: 7px; background: #eef0f3; border-radius: 4px; overflow: hidden; }
+.kbar i { display: block; height: 100%; background: #22c55e; } .kbar.warn i { background: #f59e0b; } .kbar.full i { background: #ef4444; }
+.kpi-note { margin: 6px 0 4px; font-size: 9.5px; }

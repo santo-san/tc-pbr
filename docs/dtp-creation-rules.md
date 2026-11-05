@@ -141,6 +141,25 @@ stateDiagram-v2
 
 ---
 
+## 4a. DTP Creation vs Master KPI monitoring
+
+A collapsible panel above the delivery grid shows, for the planning date shown and per trucking company:
+- Master KPI Limit (Order Sharing), Assigned DTP, **Remaining Slot**, Usage %, Status;
+- Selected (not yet submitted), After Submit, Rejected by LP.
+
+| ID | Rule |
+|---|---|
+| KM-01 | **Per date and trucking company:** quantities of different dates are never combined. Rows are the LP codes of the data mapping, plus any LP found in the records of the date. |
+| KM-02 | **Limit** = Order Sharing of the applicable Master KPI row (`MasterKpi.applicable`). Master KPI has one current row per company and no validity period (KP-01); with an effective period the rule is DTP date within effective from – to (TBD). Payment Type must be *By Resources*. |
+| KM-03 | **Unit:** Order Sharing is the daily order share (daily QTY of PR Creation, KP-08 / KP-09). One DTP record = one Daily order, so **Assigned** = number of DTP records of the date and LP that consume the allocation. |
+| KM-04 | **Consuming:** Submitted, Queued, Processing, Processed, Failed. **Not consuming:** Available, Ready to Submit, Validation Error, rolled back by DTP Switching (back to Available), and a Processed order rejected by the LP Admin (shown as *Rejected by LP*). The Failed and LP-rejected rules are TBD. |
+| KM-05 | **Remaining** = max(0, Limit − Assigned); **Over Allocation** = Assigned − Limit when > 0 (red, never hidden); **Usage %** = Assigned / Limit × 100. Colours: green < 80 %, yellow ≥ 80 % (threshold TBD), red ≥ 100 % (existing status badge colours). |
+| KM-06 | **Dynamic:** recalculated from the records on every grid change (select, submit, queue result, DTP Switching, LP reject); no page reload. |
+| KM-07 | **No blocking:** DTP Creation has no limit rule, so Submit is not blocked. The confirmation shows a warning when *After Submit* exceeds the limit or the LP has no Master KPI. |
+| KM-08 | **No Master KPI:** status *No Master KPI*, limit and remaining "-", not treated as 0. A KPI row with another payment type shows *Not By Resources*. |
+
+Mock-up: the Master KPI rows come from `MasterKpi.SEED`, the same seed as the Master KPI screen. PNJ, SRL and TFL were added to it; SML has no Master KPI (it is not in Master Trucking Company). Tests: `tests/dtp-kpi.test.js`.
+
 ## 5. Open questions (TBD)
 
 1. **System Master values:** how many days may the planner backdate and plan ahead (mock-up 3 / 14)?
@@ -153,3 +172,9 @@ stateDiagram-v2
 8. **Queue failure rules:** which errors are retryable, how many retries, and who is notified.
 9. **Rejected by LP:** may the planner change the LP of a rejected order from DTP Creation, or must a new record be submitted?
 10. **Truck Assignment menu:** done, see [truck-assignment-spec.md](truck-assignment-spec.md).
+| KM-OQ1 | Does a **Failed** record (not yet a Daily order, retryable) consume the Order Sharing allocation? Mock-up: yes. |
+| KM-OQ2 | Does a Daily order **rejected by the LP** release the slot? Mock-up: yes (not counted). |
+| KM-OQ3 | Should Submit be **blocked** above the Order Sharing limit, or only warned (mock-up)? |
+| KM-OQ4 | Will Master KPI get an **effective period** (validity) per company? |
+| KM-OQ5 | Behaviour when Master KPI is **missing** for a company: warning only (mock-up), or no DTP allowed? |
+| KM-OQ6 | Yellow threshold (80 %) or another rule, for example remaining ≤ 1? |

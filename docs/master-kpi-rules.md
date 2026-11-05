@@ -67,6 +67,7 @@ flowchart TD
 | KP-10 | Grid edit: one row at a time, concurrency check on save (version). Changed Dt / By set on save; Created Dt / By never change |
 | KP-11 | Deleting a trucking company (after confirmation) removes it from Total By Resource, daily order assignment and PR creation |
 | KP-12 | Search filters on all visible columns. Export XLS exports all filtered rows with the visible columns plus the Total By Resource line |
+| KP-13 | **DTP Creation vs Master KPI:** Order Sharing is the daily limit per trucking company monitored in DTP Creation (Assigned DTP vs Order Sharing per date, see [dtp-creation-rules.md](dtp-creation-rules.md) §4a). Mock-up seed: `MasterKpi.SEED` (reference rows plus PNJ, SRL, TFL; Total By Resource 28) |
 
 ### Messages
 

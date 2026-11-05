@@ -249,6 +249,10 @@ const DCOLS = [['io', 'Import/Export', 1], ['exporter', 'Exporter', 1], ['import
   ['bookNo', 'Ctr Booking No', 0], ['truckType', 'Truck Type', 0], ['shift', 'Shift', 0], ['dg', 'Ctr DG Flag', 0], ['arrDate', 'Arrival Date', 0], ['arrTime', 'Arrival Time', 0], ['description', 'Description', 0]];
 const dc = { date: null, io: 'EXPORT', q: '', fStatus: '', fSource: '', fIo: '', sort: 'id', dir: 1, page: 1, size: 25, hidden: new Set(DCOLS.filter(c => !c[2]).map(c => c[0])), flash: new Set(), sw: new Set() };
 const orderFor = r => r.orderNo ? DATA.find(o => o.orderNo === r.orderNo) : null;
+// Master KPI rows (single mock source MasterKpi.SEED, as on the Master KPI screen); Order Sharing = daily limit per trucking company
+const MK = window.MasterKpi;
+const KPI_ROWS = MK.SEED.map(([partner, score, orderSharing]) => ({ partner, paymentType: MK.PAYMENT_BY_RESOURCE, score, orderSharing, uom: MK.UOM }));
+const kpiMon = (date = dc.date) => D.kpiMonitor({ date, records: RECS, lps: DCTX.lps, kpiRows: KPI_ROWS, applicable: MK.applicable, byResource: MK.PAYMENT_BY_RESOURCE, rejected: r => !!orderFor(r)?.lpRejected });
 const swCheck = r => D.switchCheck(r, DATA, W);
 const drvStatus = r => { const o = r.status === S.PROCESSED ? orderFor(r) : null; return !o ? '-' : D.driverStarted(o, W) ? `Started (${o.status})` : `Not Started (${o.status})`; };
 
@@ -283,6 +287,7 @@ function openCreate(date) {
       <div style="display:flex;gap:8px"><button class="btn-sm-blue" id="dcAdd">+ Add to Grid</button><button class="btn-outline" id="dcClearForm" style="height:27px">Clear</button></div></div></details>
     <details class="acc" ${ro ? 'hidden' : ''}><summary>&#128260; Interface Data (BEST)</summary><div class="body">
       <span id="dcBestInfo"></span> <button class="btn-sm-blue" id="dcBest" style="margin-left:8px">Load / Refresh from BEST</button></div></details>
+    <details class="kpi-mon" id="dcKpiBox" ${dc.kpiOpen === false ? '' : 'open'}><summary>&#128202; DTP Creation vs Master KPI <span class="q-note" id="dcKpiSum"></span></summary><div id="dcKpi"></div></details>
     <div class="grid-bar">
       <label class="selall"><input type="checkbox" id="dcAll" ${ro ? 'disabled' : ''}><span><b>Select All</b><small id="dcSelCount">0 Selected</small></span></label>
       <button class="btn-del" id="dcDelete" ${ro ? 'disabled' : ''}>&#10005; Delete</button>
@@ -349,6 +354,7 @@ function bindCreate(ro) {
   $('dcAll').onchange = e => toggleSel(gridRows().filter(D.selectable), e.target.checked);
   $('dcUnselect').onclick = () => { toggleSel(dateRecs().filter(r => r.status === S.READY), false); toast('Selection cleared'); };
   $('dcSubmit').onclick = confirmSubmit;
+  $('dcKpiBox').addEventListener('toggle', e => { dc.kpiOpen = e.target.open; });
   if (ro) return;
   $('dcIo').onclick = e => { const b = e.target.closest('[data-io]'); if (!b) return; dc.io = b.dataset.io; $('dcIo').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('dcIoNote').textContent = dc.io; $('dcManual').querySelector('[name=io]').value = dc.io; };
   $('dcChoose').onclick = () => $('dcFile').click();
@@ -406,8 +412,25 @@ function renderGrid() {
   $('dcSubmit').innerHTML = `&#10003; Submit DTP${ready.length ? ` (${ready.length})` : ''}`;
   $('dcDelete').disabled = ro || !ready.some(r => r.source !== D.SOURCE.BEST);
   $('dcPager').innerHTML = pagerFor(dc.page, pages);
+  renderKpi();
   const bestN = all.filter(r => r.source === D.SOURCE.BEST).length;
   if ($('dcBestInfo')) $('dcBestInfo').innerHTML = `Records received from BEST for ${D.fmtDmy(dc.date)}: <b>${bestN}</b>${PULLED[dc.date] ? '' : ' (not loaded yet)'}`;
+}
+// DTP Creation vs Master KPI (KM-01 .. KM-08): recalculated from the DTP records on every grid change
+function renderKpi() {
+  if (!$('dcKpi')) return;
+  const m = kpiMon(), name = c => `${c} - ${NAMES.lp(c)}`;
+  const badge = r => r.kpi === 'NONE' ? '<span class="st sb">No Master KPI</span>' : r.kpi === 'NOT_BY_RESOURCE' ? `<span class="st sb">Not By Resources</span>`
+    : r.over ? `<span class="st fl">Over Allocation +${r.over}</span>` : r.level === 'full' ? '<span class="st fl">Full</span>' : r.level === 'warn' ? '<span class="st qu">Near Limit</span>' : '<span class="st av">Available</span>';
+  const bar = r => r.kpi !== 'OK' ? '-' : `<div class="kbar ${r.level}"><i style="width:${Math.min(100, r.usage ?? 100)}%"></i></div><b>${r.usage == null ? '-' : r.usage + '%'}</b>`;
+  $('dcKpi').innerHTML = `<table class="kpi-tbl"><tr><th>Trucking Company</th><th>Master KPI Limit<small>Order Sharing / day</small></th><th>Assigned DTP</th><th class="rem">Remaining Slot</th><th>Usage</th><th>Status</th><th>Selected<small>not submitted</small></th><th>After Submit</th><th>Rejected by LP<small>not counted</small></th></tr>
+    ${m.rows.map(r => `<tr class="lv-${r.level}"><td class="left">${esc(name(r.lp))}</td><td>${r.limit ?? '-'}</td><td>${r.assigned}</td>
+      <td class="rem"><b>${r.kpi === 'OK' ? r.remaining : '-'}</b>${r.over ? `<small class="over">over ${r.over}</small>` : ''}</td><td class="u">${bar(r)}</td><td>${badge(r)}</td>
+      <td>${r.selected || '-'}</td><td>${r.selected ? `${r.after}${r.kpi === 'OK' ? ` / ${r.limit}` : ''}${r.afterOver ? ` <small class="over">exceeds by ${r.afterOver}</small>` : ''}` : '-'}</td><td>${r.rejected || '-'}</td></tr>`).join('')}
+    <tr class="tot"><td class="left">Total (with Master KPI)${m.total.noKpiAssigned ? `<small>+ ${m.total.noKpiAssigned} assigned without Master KPI</small>` : ''}</td><td>${m.total.limit}</td><td>${m.total.assigned}</td><td class="rem"><b>${m.total.remaining}</b></td><td></td><td>${m.total.over ? `<span class="st fl">Over +${m.total.over}</span>` : ''}</td><td>${m.total.selected || '-'}</td><td></td><td></td></tr></table>
+    <p class="q-note kpi-note">Date ${D.fmtDmy(dc.date)} · Assigned = DTP records submitted to the trucking company (Submitted, Queued, Processing, Processed, Failed; rolled back and LP-rejected records do not count) · Remaining = Limit - Assigned · Yellow from ${D.KPI_WARN}% usage · Not blocking (no limit rule in DTP Creation).</p>`;
+  const full = m.rows.filter(r => r.kpi === 'OK' && r.level === 'full').length, none = m.rows.filter(r => r.kpi !== 'OK' && r.assigned + r.selected + r.open > 0).length;
+  $('dcKpiSum').textContent = `· ${D.fmtDmy(dc.date)} · remaining ${m.total.remaining} of ${m.total.limit}${full ? ` · ${full} full` : ''}${m.total.over ? ` · over allocation ${m.total.over}` : ''}${none ? ` · ${none} without Master KPI` : ''}`;
 }
 function pagerFor(page, pages) {
   let h = `<button data-p="${page - 1}" ${page === 1 ? 'disabled' : ''}>‹</button>`;
@@ -540,7 +563,8 @@ function confirmSubmit() {
   showPreview('Submit DTP', `<p style="font-size:12px;margin:0 0 10px"><b>${esc(D.MSG.confirm(list.length, D.fmtLong(dc.date)).split('?')[0])}?</b></p>
     <p class="q-note" style="margin:0 0 8px">Planning date: <b>${D.fmtLong(dc.date)}</b> · DTP Model: ${D.MODEL.label} · Deliveries: <b>${list.length}</b>
       (Import ${list.filter(r => r.io === 'IMPORT').length}, Export ${list.filter(r => r.io === 'EXPORT').length})</p>
-    <div class="form-alert" style="background:#fff7e6;border-color:#fcd9a3;color:#92400e">Submitted records cannot be submitted again.</div>`,
+    <div class="form-alert" style="background:#fff7e6;border-color:#fcd9a3;color:#92400e">Submitted records cannot be submitted again.</div>
+    ${(() => { const ex = kpiMon().rows.filter(r => r.selected && (r.afterOver || r.kpi !== 'OK')); return ex.length ? `<div class="form-alert">Master KPI check (not blocking): ${ex.map(r => r.kpi !== 'OK' ? `${esc(r.lp)} has no Master KPI Order Sharing` : `${esc(r.lp)} ${r.after} / ${r.limit} exceeds by ${r.afterOver}`).join(' · ')}</div>` : ''; })()}`,
     '<button class="btn-outline" id="sNo">Cancel</button><button class="btn-submit" id="sYes">Confirm Submit</button>');
   $('sNo').onclick = closePreview;
   $('sYes').onclick = () => {
