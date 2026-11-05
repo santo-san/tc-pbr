@@ -53,6 +53,15 @@
     notEligible: n => `${n} selected record(s) are no longer eligible (already submitted or invalid).`,
     confirm: (n, d) => `Submit ${n} delivery record(s) as DTP for ${d}? Submitted records cannot be submitted again.`,
     submittedOk: n => `${n} record(s) submitted and sent to the processing queue.`,
+    // DTP Switching (rollback of a submitted DTP)
+    swNotSubmitted: 'DTP has not been submitted. There is nothing to roll back.',
+    swDriverStarted: 'DTP cannot be rolled back because the driver has already started the process.',
+    swNotEligible: 'DTP is no longer eligible for rollback. Please refresh the data and try again.',
+    swNoSelect: 'Select at least one submitted DTP record that the driver has not started.',
+    swFailed: n => `${n} selected record(s) cannot be rolled back. Nothing was rolled back.`,
+    swError: 'DTP rollback failed. No data was changed. Please try again.',
+    swOk: 'DTP rollback completed successfully.',
+    swConfirm: 'Are you sure you want to rollback this DTP submission? The DTP will become available for correction and resubmission.',
   };
 
   // ---------- Dates ----------
@@ -191,6 +200,47 @@
   }
   const selectable = r => SELECTABLE.includes(r.status);
 
+  // ---------- DTP Switching (rollback of a submitted DTP while the driver has not started) - SW-01 .. SW-09 ----------
+  // Submitted states that can be rolled back. Processing is excluded: the queue service is creating the Daily order right now.
+  const SWITCHABLE = [STATUS.SUBMITTED, STATUS.QUEUED, STATUS.PROCESSED, STATUS.FAILED];
+  // Driver started = Daily order is beyond Planning Order / Order Release, or any cycle has a Start Cycle time
+  const driverStarted = (o, W) => !!o && (o.cycles.some(c => c.startAt) || ![W.ORDER.PLAN, W.ORDER.REL].includes(o.status));
+  function switchCheck(r, orders, W) {
+    if (r.status === STATUS.PROCESSING) return { code: 'NOT_ELIGIBLE', msg: MSG.swNotEligible };
+    if (!SWITCHABLE.includes(r.status)) return { code: 'NOT_SUBMITTED', msg: MSG.swNotSubmitted };
+    if (r.status === STATUS.PROCESSED) {
+      const o = orders.find(x => x.orderNo === r.orderNo);
+      if (!o) return { code: 'NOT_ELIGIBLE', msg: MSG.swNotEligible };
+      if (driverStarted(o, W)) return { code: 'DRIVER_STARTED', msg: MSG.swDriverStarted };
+    }
+    return null;
+  }
+  const canSwitch = (r, orders, W) => !switchCheck(r, orders, W);
+  // All-or-nothing, like Submit: every selected record is checked again immediately before the rollback (backend check);
+  // one non-eligible record rejects the whole request. ctx: { at, actor, orders, W, grid, vctx, dequeue(id), removeOrder(o), fail }
+  function switchBack(records, ctx) {
+    const { at, actor, orders, W } = ctx;
+    if (!canCreate(actor)) return { ok: false, status: 403, error: MSG.noAuth };
+    if (!records.length) return { ok: false, status: 400, error: MSG.swNoSelect };
+    const failed = records.map(r => ({ r, e: switchCheck(r, orders, W) })).filter(x => x.e)
+      .map(({ r, e }) => ({ id: r.id, key: dupKey(r) || `Record ${r.id}`, status: r.status, code: e.code, msg: e.msg }));
+    if (failed.length) return { ok: false, status: 409, error: MSG.swFailed(failed.length), failed };
+    const plan = records.map(r => ({ r, prev: r.status, o: r.status === STATUS.PROCESSED ? orders.find(x => x.orderNo === r.orderNo) : null }));
+    if (ctx.fail) return { ok: false, status: 500, error: MSG.swError };   // DB error before commit: nothing applied (rollback)
+    plan.forEach(({ r, prev, o }) => {
+      if (prev !== STATUS.PROCESSED) ctx.dequeue(r.id);
+      const snap = o ? { orderNo: o.orderNo, orderStatus: o.status, cycle: o.cycles[0]?.status || '', truck: o.truck || '', driver: o.driver || '',
+        lpStatus: o.lpRejected ? 'Rejected' : o.lpAccepted ? 'Accepted' : 'Waiting', history: o.history.map(h => ({ ...h })) } : null;
+      if (o) ctx.removeOrder(o);
+      (r.switchLog = r.switchLog || []).push({ at, by: actor.name, from: prev, order: snap });
+      Object.assign(r, { status: STATUS.AVAILABLE, orderNo: '', submittedAt: null, submittedBy: '', attempts: 0, failReason: '', failOnce: false });
+      const v = revalidate(r, {}, ctx.grid, ctx.vctx);
+      if (!v.ok) Object.assign(r, { status: STATUS.ERROR, errors: v.errors || { _: v.error } });
+      r.history.push({ at, status: r.status, note: `DTP Switching by ${actor.name}: rollback from ${prev}` + (snap ? `; Daily order ${snap.orderNo} (${snap.orderStatus}, LP ${snap.lpStatus}${snap.truck ? `, truck ${snap.truck}` : ''}) cancelled` : '') });
+    });
+    return { ok: true, status: 200, message: MSG.swOk, count: records.length };
+  }
+
   // Submit: only eligible records; they leave the selectable set at once (no double submission)
   function submit(records, { at, actor, date, today, cfg }) {
     if (!canCreate(actor)) return { ok: false, error: MSG.noAuth };
@@ -230,7 +280,7 @@
     return `DTP - ${t} ( ${fmtDmy(date)} ) [ ${orders.filter(o => isAssigned(o, W)).length} / ${orders.length} ]`;
   }
 
-  const api = { MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
+  const api = { SWITCHABLE, driverStarted, switchCheck, canSwitch, switchBack, MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
     dateRange, dateCheck, canCreate, normalize, validate, dupKey, duplicates, readSheet, upload, makeRecord, revalidate, selectable,
     submit, step, canRetry, orderPayload, calStatus, calLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

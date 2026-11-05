@@ -13,7 +13,7 @@ const ST_CLS = { [S.AVAILABLE]: 'av', [S.ERROR]: 'er', [S.READY]: 'rd', [S.SUBMI
 const CAL_CLS = { [D.CAL.WAIT]: 'w', [D.CAL.ASSIGNED]: 'a', [D.CAL.REJECTED]: 'r', [D.CAL.FINISH]: 'f' };
 const todayStr = () => W.ymd(new Date());
 const isPlanner = () => D.canCreate(state.actor);
-const demo = { bestError: false, submitError: false };
+const demo = { bestError: false, submitError: false, swError: false, swRace: false };
 
 // ---------- Records (persisted in this browser so a refresh cannot submit the same records again) ----------
 const STORE = 'tcpbr.dtp.v1';
@@ -80,9 +80,13 @@ function runQueue() {
   const id = QUEUE.shift(), r = RECS.find(x => x.id === id);
   const next = () => { qBusy = false; persist(); refreshAll(); runQueue(); };
   if (!r) return next();
+  // DTP Switching may roll the record back while it waits: stop when it is no longer submitted (backend: status check in the same transaction)
+  const gone = () => ![S.SUBMITTED, S.QUEUED, S.PROCESSING].includes(r.status);
   setTimeout(() => {
+    if (gone()) return next();
     if (r.status !== S.PROCESSING) { D.step(r, S.QUEUED, new Date(), 'In processing queue'); refreshAll(); }
     setTimeout(() => {
+      if (gone()) return next();
       D.step(r, S.PROCESSING, new Date(), 'Picked up by the queue service'); refreshAll();
       setTimeout(() => {
         r.attempts++;
@@ -240,10 +244,13 @@ function pickDtp(date) {
 
 // ---------- DTP Creation ----------
 const DCOLS = [['io', 'Import/Export', 1], ['exporter', 'Exporter', 1], ['importerCd', 'Importer CD', 1], ['container', 'Container No.', 1], ['renban', 'Renban', 1],
-  ['etd', 'ETD Based', 1], ['vessel', 'Vessel Name', 1], ['source', 'Data Source', 1], ['status', 'Status', 1], ['lp', 'LP', 1], ['orderNo', 'Order No', 1],
+  ['etd', 'ETD Based', 1], ['vessel', 'Vessel Name', 1], ['source', 'Data Source', 1], ['status', 'Status', 1], ['lp', 'LP', 1], ['orderNo', 'Order No', 1], ['drv', 'Driver Status', 1],
   ['from', 'From Location', 0], ['to', 'To Location', 0], ['dest', 'Destination', 0], ['roundUse', 'Round Use', 0], ['ctrSize', 'Container Size', 0], ['agent', 'Shipping Agent', 0],
   ['bookNo', 'Ctr Booking No', 0], ['truckType', 'Truck Type', 0], ['shift', 'Shift', 0], ['dg', 'Ctr DG Flag', 0], ['arrDate', 'Arrival Date', 0], ['arrTime', 'Arrival Time', 0], ['description', 'Description', 0]];
-const dc = { date: null, io: 'EXPORT', q: '', fStatus: '', fSource: '', fIo: '', sort: 'id', dir: 1, page: 1, size: 25, hidden: new Set(DCOLS.filter(c => !c[2]).map(c => c[0])), flash: new Set() };
+const dc = { date: null, io: 'EXPORT', q: '', fStatus: '', fSource: '', fIo: '', sort: 'id', dir: 1, page: 1, size: 25, hidden: new Set(DCOLS.filter(c => !c[2]).map(c => c[0])), flash: new Set(), sw: new Set() };
+const orderFor = r => r.orderNo ? DATA.find(o => o.orderNo === r.orderNo) : null;
+const swCheck = r => D.switchCheck(r, DATA, W);
+const drvStatus = r => { const o = r.status === S.PROCESSED ? orderFor(r) : null; return !o ? '-' : D.driverStarted(o, W) ? `Started (${o.status})` : `Not Started (${o.status})`; };
 
 function openCreate(date) {
   const err = D.dateCheck(date, todayStr(), DTP_CFG);
@@ -261,6 +268,9 @@ function openCreate(date) {
       <div class="dd demo-dd" id="ddDemo"><button class="btn-light" style="height:28px">Demo &#9662;</button><div class="dd-menu">
         <label><input type="checkbox" data-demo="bestError" ${demo.bestError ? 'checked' : ''}> Simulate BEST interface error</label>
         <label><input type="checkbox" data-demo="submitError" ${demo.submitError ? 'checked' : ''}> Simulate submission failure</label>
+        <label><input type="checkbox" data-demo="swError" ${demo.swError ? 'checked' : ''}> Simulate DTP Switching failure (DB)</label>
+        <label><input type="checkbox" data-demo="swRace" ${demo.swRace ? 'checked' : ''}> Driver starts during DTP Switching confirmation</label>
+        <button data-demo-start>Driver starts the first assigned order</button>
         <button data-demo-reset>Reset DTP demo data</button></div></div>
     </div>
     ${ro ? `<div class="view-only">${esc(err || D.MSG.noAuth)} The data is shown read only.</div>` : ''}
@@ -276,6 +286,7 @@ function openCreate(date) {
     <div class="grid-bar">
       <label class="selall"><input type="checkbox" id="dcAll" ${ro ? 'disabled' : ''}><span><b>Select All</b><small id="dcSelCount">0 Selected</small></span></label>
       <button class="btn-del" id="dcDelete" ${ro ? 'disabled' : ''}>&#10005; Delete</button>
+      <button class="btn-switch" id="dcSwitch" disabled title="Rollback submitted DTP while the driver has not started">&#8644; DTP Switching</button>
       <span class="spacer"></span>
       <select id="dcFStatus" aria-label="Status filter"><option value="">All Status</option>${Object.values(S).map(s => `<option>${s}</option>`).join('')}</select>
       <select id="dcFSource" aria-label="Source filter"><option value="">All Sources</option>${Object.values(D.SOURCE).map(s => `<option>${s}</option>`).join('')}</select>
@@ -321,7 +332,8 @@ function bindCreate(ro) {
   $('dcBack').onclick = () => { location.hash = '#planning-order'; };
   document.querySelectorAll('#dtpCreate .dd > button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const dd = b.parentElement; document.querySelectorAll('.dd').forEach(x => x !== dd && x.classList.remove('open')); dd.classList.toggle('open'); }));
   document.querySelectorAll('#dtpCreate .dd-menu').forEach(m => m.addEventListener('click', e => e.stopPropagation()));
-  $('ddDemo').addEventListener('change', e => { const k = e.target.dataset.demo; if (k) { demo[k] = e.target.checked; toast(`Demo: ${k === 'bestError' ? 'BEST interface error' : 'submission failure'} ${e.target.checked ? 'ON' : 'OFF'}`); } });
+  $('ddDemo').addEventListener('change', e => { const k = e.target.dataset.demo; if (k) { demo[k] = e.target.checked; toast(`Demo: ${{ bestError: 'BEST interface error', submitError: 'submission failure', swError: 'DTP Switching failure', swRace: 'driver starts during confirmation' }[k]} ${e.target.checked ? 'ON' : 'OFF'}`); } });
+  $('ddDemo').querySelector('[data-demo-start]').onclick = () => { const r = dateRecs().find(x => x.status === S.PROCESSED && orderFor(x)?.truck && !D.driverStarted(orderFor(x), W)); toast(r ? driverStart(orderFor(r)) : 'No assigned order waiting for the driver on this date'); renderGrid(); };
   $('ddDemo').querySelector('[data-demo-reset]').onclick = () => { try { localStorage.removeItem(STORE); } catch (e) { /* ignore */ } location.reload(); };
   $('dcColMenu').addEventListener('change', e => { const k = e.target.dataset.k; e.target.checked ? dc.hidden.delete(k) : dc.hidden.add(k); renderGrid(); });
   $('dcSearch').oninput = e => { dc.q = e.target.value; dc.page = 1; renderGrid(); };
@@ -329,7 +341,11 @@ function bindCreate(ro) {
   $('dcSize').onchange = e => { dc.size = +e.target.value; dc.page = 1; renderGrid(); };
   $('dcPager').onclick = e => { const b = e.target.closest('button[data-p]'); if (b && !b.disabled) { dc.page = +b.dataset.p; renderGrid(); } };
   $('dcHead').onclick = e => { const th = e.target.closest('th[data-sort]'); if (!th) return; dc.dir = dc.sort === th.dataset.sort ? -dc.dir : 1; dc.sort = th.dataset.sort; renderGrid(); };
-  $('dcBody').onclick = rowAction; $('dcBody').onchange = e => { const c = e.target.closest('[data-sel]'); if (c) toggleSel([RECS.find(r => r.id === +c.dataset.sel)], c.checked); };
+  $('dcBody').onclick = rowAction; $('dcBody').onchange = e => {
+    const c = e.target.closest('[data-sel]'); if (c) toggleSel([RECS.find(r => r.id === +c.dataset.sel)], c.checked);
+    const w = e.target.closest('[data-sw]'); if (w) { w.checked ? dc.sw.add(+w.dataset.sw) : dc.sw.delete(+w.dataset.sw); renderGrid(); }
+  };
+  $('dcSwitch').onclick = () => confirmSwitch(dateRecs().filter(r => dc.sw.has(r.id)));
   $('dcAll').onchange = e => toggleSel(gridRows().filter(D.selectable), e.target.checked);
   $('dcUnselect').onclick = () => { toggleSel(dateRecs().filter(r => r.status === S.READY), false); toast('Selection cleared'); };
   $('dcSubmit').onclick = confirmSubmit;
@@ -365,19 +381,27 @@ function renderGrid() {
     const cell = k => k === 'status' ? `<span class="st ${ST_CLS[r.status]}" title="${esc(r.status === S.ERROR ? errText(r) : r.status === S.FAILED ? r.failReason : r.history.at(-1)?.note || '')}">${r.status}</span>`
       : k === 'source' ? `<span class="src ${SRC_CLS[r.source]}">${r.source}</span>`
       : k === 'orderNo' ? (r.orderNo ? `<a class="doc-link" href="#" data-order="${r.orderNo}">${r.orderNo}</a>` : '-')
+      : k === 'drv' ? (r.status === S.PROCESSED ? `<span class="drv ${/^Started/.test(drvStatus(r)) ? 'on' : ''}">${drvStatus(r)}</span>` : '-')
       : k === 'etd' || k === 'arrDate' ? (r[k] ? D.fmtDmy(r[k]) : '-') : esc(r[k] || '-');
+    const swE = swCheck(r), canSw = !ro && !swE, swTip = swE ? (swE.code === 'NOT_SUBMITTED' ? '' : swE.msg) : 'Select for DTP Switching (rollback)';
     return `<tr class="${r.status === S.ERROR ? 'err' : r.status === S.READY ? 'ready' : sel ? '' : 'nosel'} ${dc.flash.has(r.id) ? 'flash' : ''}">
-      <td><input type="checkbox" data-sel="${r.id}" ${sel ? '' : 'disabled'} ${r.status === S.READY ? 'checked' : ''} aria-label="Select record ${r.id}" title="${sel ? '' : locked ? 'Already submitted' : r.status === S.ERROR ? 'Fix the validation error first' : r.status === S.FAILED ? 'Use Retry' : ''}"></td>
+      <td>${D.SWITCHABLE.includes(r.status) || r.status === S.PROCESSING
+        ? `<input type="checkbox" class="sw-chk" data-sw="${r.id}" ${canSw ? '' : 'disabled'} ${dc.sw.has(r.id) ? 'checked' : ''} aria-label="Select record ${r.id} for DTP Switching" title="${esc(swTip)}">`
+        : `<input type="checkbox" data-sel="${r.id}" ${sel ? '' : 'disabled'} ${r.status === S.READY ? 'checked' : ''} aria-label="Select record ${r.id}" title="${sel ? '' : r.status === S.ERROR ? 'Fix the validation error first' : ''}">`}</td>
       <td><div class="opt"><button data-edit="${r.id}" title="Edit" ${ro || locked ? 'disabled' : ''}>&#9998;</button><button class="del" data-del="${r.id}" title="Delete" ${ro || locked || r.source === D.SOURCE.BEST ? 'disabled' : ''}>&#128465;</button>
-        <button data-retry="${r.id}" title="Retry" ${!ro && D.canRetry(r) ? '' : 'disabled'}>&#8635;</button><button data-hist="${r.id}" title="History">&#9432;</button></div></td>
+        <button data-retry="${r.id}" title="Retry" ${!ro && D.canRetry(r) ? '' : 'disabled'}>&#8635;</button><button data-hist="${r.id}" title="History">&#9432;</button>
+        <button class="swb" data-switch="${r.id}" title="${canSw ? 'DTP Switching (rollback)' : esc(swE?.code === 'NOT_SUBMITTED' ? 'DTP Switching: only for submitted DTP' : swE?.msg || '')}" ${canSw ? '' : 'disabled'}>&#8644;</button></div></td>
       ${cols.map(([k]) => `<td>${cell(k)}</td>`).join('')}</tr>`;
   }).join('') : `<tr><td colspan="${cols.length + 2}" class="empty">No data available in table</td></tr>`;
   dc.flash.clear();
+  [...dc.sw].forEach(id => { const x = RECS.find(r => r.id === id); if (!x || ro || swCheck(x)) dc.sw.delete(id); });
+  $('dcSwitch').disabled = ro || !dc.sw.size;
+  $('dcSwitch').innerHTML = `&#8644; DTP Switching${dc.sw.size ? ` (${dc.sw.size})` : ''}`;
   const all = dateRecs(), ready = all.filter(r => r.status === S.READY), elig = rows.filter(D.selectable);
   $('dcInfo').textContent = rows.length ? `Showing ${start + 1} to ${start + view.length} of ${rows.length} records` + (rows.length !== all.length ? ` (filtered from ${all.length})` : '') : 'Showing no records';
   $('dcSelCount').textContent = `${ready.length} Selected`;
   $('dcAll').checked = !!elig.length && elig.every(r => r.status === S.READY); $('dcAll').disabled = ro || !elig.length;
-  $('dcCnt').innerHTML = `<b>${ready.length}</b> record(s) selected · ${all.filter(r => r.status === S.ERROR).length} validation error · ${all.filter(r => [S.SUBMITTED, S.QUEUED, S.PROCESSING].includes(r.status)).length} in queue · ${all.filter(r => r.status === S.PROCESSED).length} processed`;
+  $('dcCnt').innerHTML = `<b>${ready.length}</b> record(s) selected · ${all.filter(r => r.status === S.ERROR).length} validation error · ${all.filter(r => [S.SUBMITTED, S.QUEUED, S.PROCESSING].includes(r.status)).length} in queue · ${all.filter(r => r.status === S.PROCESSED).length} processed${dc.sw.size ? ` · <b>${dc.sw.size}</b> selected for DTP Switching` : ''}`;
   $('dcSubmit').disabled = ro || !ready.length;
   $('dcSubmit').innerHTML = `&#10003; Submit DTP${ready.length ? ` (${ready.length})` : ''}`;
   $('dcDelete').disabled = ro || !ready.some(r => r.source !== D.SOURCE.BEST);
@@ -400,7 +424,8 @@ function rowAction(e) {
   const o = e.target.closest('[data-order]');
   if (o) { e.preventDefault(); return openDetail(o.dataset.order); }
   const b = e.target.closest('button'); if (!b || b.disabled) return;
-  const r = RECS.find(x => x.id === +(b.dataset.edit ?? b.dataset.del ?? b.dataset.retry ?? b.dataset.hist));
+  const r = RECS.find(x => x.id === +(b.dataset.edit ?? b.dataset.del ?? b.dataset.retry ?? b.dataset.hist ?? b.dataset.switch));
+  if (b.dataset.switch) return confirmSwitch([r]);
   if (b.dataset.hist) showPreview(`Record ${r.id} · ${r.container || r.bookNo || r.renban}`, `<div class="err-scroll"><table class="err-table"><tr><th>Time</th><th>Status</th><th>Note</th></tr>
     ${r.history.slice().reverse().map(h => `<tr><td style="white-space:nowrap">${fmtDT(new Date(h.at))}</td><td>${h.status}</td><td>${esc(h.note)}</td></tr>`).join('')}</table></div>
     ${Object.keys(r.errors || {}).length ? `<p class="q-note" style="color:#b91c1c;margin-top:10px">${esc(errText(r)).replace(/\n/g, '<br>')}</p>` : ''}`, '<button class="btn-outline" id="hClose">Close</button>');
@@ -534,3 +559,50 @@ function confirmSubmit() {
 }
 
 route();
+
+// ---------- DTP Switching: rollback of submitted DTP while the driver has not started (docs/dtp-switching-spec.md) ----------
+function driverStart(o) {
+  const d = MASTER.drivers.find(x => x.truck === o.truck && x.active);
+  if (!d) return `No active driver registered on truck ${o.truck}`;
+  // Demo of the Driver APK event "Jalankan" (Start Order); another active order of the truck in the seed data is ignored here
+  const at = new Date(), res = W.perform(o, 'startOrder', {}, driverActor(d), at, CTX);
+  if (!res.ok) {
+    W.ACTIONS.startOrder.apply(o, {}, driverActor(d), at);
+    o.history.push({ at, actor: d.name, role: 'Driver', action: 'Start Order', from: 'Order Release / DTP Creation Release', to: 'Start Daily Order / Start Cycle', reason: '', note: 'Demo: driver started (Driver APK)', plateFrom: o.truck, plateTo: o.truck, lpFrom: '', lpTo: '' });
+  }
+  return `Driver ${d.name} started order ${o.orderNo}`;
+}
+function confirmSwitch(list) {
+  if (!list.length) { toast(D.MSG.swNoSelect); return; }
+  // 1-2. latest status and driver status are checked before the confirmation
+  const bad = list.map(r => ({ r, e: swCheck(r) })).filter(x => x.e);
+  if (bad.length) { swResult({ ok: false, status: 409, error: D.MSG.swFailed(bad.length), failed: bad.map(({ r, e }) => ({ id: r.id, key: r.container || r.bookNo || `Record ${r.id}`, status: r.status, code: e.code, msg: e.msg })) }); renderGrid(); return; }
+  const row = r => { const o = orderFor(r); return `<tr><td>${r.id}</td><td>${esc(r.container || r.bookNo || r.renban)}</td><td>${r.lp}</td><td>${r.status}</td><td>${r.orderNo || '-'}</td>
+    <td>${o ? `${o.status}${o.truck ? ` · ${o.truck}` : ''}` : '-'}</td><td>${r.status === S.PROCESSED ? 'Daily order cancelled' : 'Removed from queue'}</td></tr>`; };
+  showPreview('Confirm DTP Switching', `<p style="font-size:12px;margin:0 0 10px"><b>${esc(D.MSG.swConfirm)}</b></p>
+    <div class="err-scroll"><table class="err-table"><tr><th>Record</th><th>Container / Booking</th><th>LP</th><th>DTP Status</th><th>Order No</th><th>Order / Truck</th><th>Rollback effect</th></tr>${list.map(row).join('')}</table></div>
+    <div class="form-alert" style="background:#fff7e6;border-color:#fcd9a3;color:#92400e;margin-top:10px">After rollback the record is <b>Available</b> again (edit and submit through the normal DTP Creation flow). Processed records: the Daily order is cancelled for the LP Admin and the truck / driver assignment is released. History is kept.</div>`,
+    '<button class="btn-outline" id="swNo">Cancel</button><button class="btn-del" id="swYes">Confirm Rollback</button>');
+  $('pvBody').closest('.pv').style.width = '860px';
+  $('swNo').onclick = () => { closePreview(); $('pvBody').closest('.pv').style.width = ''; };
+  $('swYes').onclick = () => {
+    $('swYes').disabled = true; closePreview(); $('pvBody').closest('.pv').style.width = ''; busy(true, `Rolling back ${list.length} DTP record(s)...`);
+    setTimeout(() => {
+      busy(false);
+      if (demo.swRace) { const r = list.find(x => x.status === S.PROCESSED && orderFor(x)?.truck); if (r) driverStart(orderFor(r)); }
+      // 3-6. backend re-check and rollback (one transaction): queue entry / Daily order removed, record back to Available
+      const res = D.switchBack(list, { at: new Date(), actor: state.actor, orders: DATA, W, grid: RECS, vctx: DCTX, fail: demo.swError,
+        dequeue: id => { const i = QUEUE.indexOf(id); if (i >= 0) QUEUE.splice(i, 1); },
+        removeOrder: o => { DATA.splice(DATA.indexOf(o), 1); } });
+      if (res.ok) { dc.sw.clear(); list.forEach(r => dc.flash.add(r.id)); persist(); refreshAll(); window.render?.(); }
+      swResult(res); renderGrid();
+    }, 600);
+  };
+}
+function swResult(res) {
+  if (res.ok) { toast(`${res.message} (${res.count} record(s))`); return; }
+  showPreview(res.status === 500 ? 'DTP Switching failed' : 'DTP Switching not possible', `<div class="form-alert">${esc(res.error)}</div>
+    ${res.failed ? `<div class="err-scroll"><table class="err-table"><tr><th>Record</th><th>Container / Booking</th><th>Status</th><th>Reason</th></tr>${res.failed.map(f => `<tr><td>${f.id}</td><td>${esc(f.key)}</td><td>${f.status}</td><td>${esc(f.msg)}</td></tr>`).join('')}</table></div>` : ''}`,
+    '<button class="btn-outline" id="swOk">Close</button>');
+  $('swOk').onclick = closePreview;
+}
