@@ -132,6 +132,30 @@ ELIPS (SA approved, READY)                Talend job                            
 
 The SA Approval and SA Monitoring mock-ups in this repository *propose* SA header / detail tables and a PAS status block. They are proposals, not confirmed ELIPS tables, so this design does not depend on them.
 
+### D.1a Eligibility query (conceptual)
+All names in `< >` and every column except the JSON field names are **TBD - Requires ELIPS table/column confirmation**. `APPROVAL_ROLE` / `APPROVAL_STATUS` and the values `'VPLD'` / `'APPROVED'` are the conceptual condition of the requirement, not confirmed ELIPS columns or codes.
+
+```sql
+SELECT H.SA_NUMBER, H.TC_VENDOR_CD, H.TC_NAME, H.CREATED_BY
+FROM <ELIPS_SA_HEADER> H
+JOIN <ELIPS_APPROVAL_HISTORY> A
+     ON A.<SA_KEY> = H.<SA_KEY>                                   -- TBD
+LEFT JOIN <ELIPS_SA_INTERFACE_STATUS> S
+     ON S.SA_NUMBER = H.SA_NUMBER
+WHERE A.APPROVAL_ROLE   = 'VPLD'                                  -- conceptual, TBD
+  AND A.APPROVAL_STATUS = 'APPROVED'                              -- conceptual, TBD
+  AND <LATEST_APPROVAL_CONDITION>                                 -- TBD: last approval row is not cancelled / re-opened
+  AND ( S.SA_NUMBER IS NULL                                        -- <NOT_YET_INTERFACED_CONDITION>
+        OR S.INTERFACE_STATUS = 'READY'
+        OR (S.INTERFACE_STATUS = 'FAILED' AND S.RETRY_COUNT < :MAX_RETRY) )
+  AND EXISTS (SELECT 1 FROM <ELIPS_SA_DETAIL> D WHERE D.<SA_KEY> = H.<SA_KEY>)   -- completeness pre-check
+ORDER BY H.SA_NUMBER;
+```
+
+- **"Not processed by another run":** `PROCESSING` is excluded, and the claim UPDATE (step 4) must affect exactly 1 row.
+- **Full completeness check:** done per SA in step 5 (D.2), so the reason can be stored.
+- **If the tracking row is created at approval time by ELIPS:** the `S.SA_NUMBER IS NULL` branch is not needed (OQ-01 / OQ-02).
+
 ### D.2 Mandatory data (validated in step 5, before PAS is touched)
 - **Header:** SA_NUMBER, TC_VENDOR_CD; CREATED_BY (from the header or FIX).
 - **Detail:** at least one item; ITEM_NO unique per SA; COST numeric; ORDER_FINISH_DATE matches `yyyy-MM-dd[ HH:mm:ss]`; ORDER_NO and ROUTE present.
@@ -266,6 +290,23 @@ The design is safe because **PR_DESC = SA_NUMBER** is checked before any PR numb
 
 ---
 
+### I.3 Requirement step 13 ("mark ELIPS SUCCESS before COMMIT")
+The requirement lists the ELIPS SUCCESS update inside the transaction. That is only atomic if the ELIPS status is written **through the PAS connection in the same SQL Server transaction**. This is possible only when:
+- ELIPS and PAS are databases on the same SQL Server instance (cross-database transaction), or
+- MSDTC is used through a linked server.
+
+Neither is confirmed (OQ-20). The design therefore does not depend on it:
+- PAS is committed first.
+- ELIPS is updated right after.
+- The gap between the two commits is closed by the reconciliation by PR_DESC (I.2).
+
+If OQ-20 confirms the same instance, step 11 can be moved inside the PAS transaction and the recovery remains a safety net.
+
+**Rollback failure:** if the `ROLLBACK` itself fails (for example the connection is broken), SQL Server rolls back the open transaction when the session ends. Talend then:
+1. closes and reopens the PAS connection before the next SA;
+2. leaves the SA in **PROCESSING**, because the outcome is unknown;
+3. lets the next run decide by PR_DESC.
+
 ## J. Idempotency
 - **Key:** `SA_NUMBER` = `TB_R_PR_H.PR_DESC`.
 - **ELIPS status:** READY / PROCESSING / SUCCESS / FAILED, plus PROCESS_ID, PR_NO, ERROR_MESSAGE, START_DT, END_DT, RETRY_COUNT, CREATED_DT, CHANGED_DT.
@@ -296,6 +337,8 @@ The design is safe because **PR_DESC = SA_NUMBER** is checked before any PR numb
 | 13 | Commit OK, ELIPS update failed | Step 11 | Leave as is | PROCESSING → reconciled next run | Auto |
 | 14 | RETRY_COUNT = max | Step 3 | Not selected | FAILED | Manual Resend |
 | 15 | Unexpected Talend error | Any | ROLLBACK current SA; job ends with error | PROCESSING → recovered | Next run |
+| 16 | VPLD approval missing / withdrawn at processing time | Step 3 (query), re-checked in step 5 | Not selected, or FAILED "SA not approved by VPLD" | unchanged / FAILED | After approval |
+| 17 | ROLLBACK fails (connection broken) | Step 10 | Close and reopen the PAS connection; outcome unknown | PROCESSING → reconciled next run | Next run |
 
 The full message texts are in the UISS, sheet Logging Message.
 
@@ -343,6 +386,15 @@ The full message texts are in the UISS, sheet Logging Message.
 | 12 | `tDBRow` (ELIPS) | SUCCESS / FAILED update |
 | 13 | `tLogCatcher` → `tDBRollback` + `tDBOutput` / file | Job-level error |
 | 14 | `tPostjob` → `tDBClose` × 2, `tLogRow` / `tStatCatcher` | Summary |
+
+**Alternative (as in the requirement sketch):**
+- `tMap` → `tMSSqlOutput` (TB_R_PR_H / TB_R_PR_ITEM / TB_R_PR_SUBITEM) → `tMSSqlRow` (TB_T_* copies) → `tMSSqlSP` × 2 → `tMSSqlRow` (TB_T_JOB_AUTOPO) → `tMSSqlCommit`.
+- It also works, provided that:
+  - every component uses the **same** existing PAS connection (`Use an existing connection`, no commit per batch);
+  - `Die on error` is on;
+  - `OnSubjobError` → `tMSSqlRollback` → ELIPS FAILED;
+  - the header uses `tMSSqlRow` (INSERT … SELECT … WHERE NOT EXISTS), because `tMSSqlOutput` cannot express the NOT EXISTS guard;
+  - the number of rows inserted is checked (`NB_LINE_INSERTED`).
 
 Keeping the PAS steps in one `tJava` (as today) instead of many `tDBOutput` components keeps the exact order of the PAS calls and the row checks in one place. The ELIPS reads move out of `tJava` into `tDBInput` components.
 
@@ -402,24 +454,26 @@ processOne(sa):
 
 | TC | Scenario | Pre-condition | Expected result |
 |---|---|---|---|
-| TC01 | Happy path: 1 SA, 1 item, 1 sub item | SA READY, valid FIX | 1 PR: TB_R/T_PR_H, _ITEM, _SUBITEM; TB_R_LOG_H; number in TB_H_DOCUMENT_NUMBER; CURRENT_NUMBER + 1; SPs run; ELIPS SUCCESS with PR_NO / PROCESS_ID |
-| TC02 | Several items and sub items | 3 items × 2 sub items | 3 item and 6 sub item rows (R and T); MAT_DESC = ORDER_NO;ROUTE; item DELIVERY_PLAN_DT = ORDER_FINISH_DATE |
-| TC03 | Several SAs, one fails | SA1 valid, SA2 bad budget WBS, SA3 valid | SA1, SA3 SUCCESS; SA2 FAILED, no PAS rows, PR number not consumed (SA3 gets the next number) |
-| TC04 | Re-run after success | SA SUCCESS | Not selected; no PAS change |
-| TC05 | SA already in PAS | PR with PR_DESC = SA exists, ELIPS READY | SUCCESS (reconciled) with the existing PR_NO; no new PROCESS_ID / number / SP call |
-| TC06 | Prefix not registered | PR_TYPE without TB_M_DOC_NUMBERING row | FAILED with the PAS message; no PR rows; TB_M_DOC_NUMBERING unchanged |
-| TC07 | Insert failure after numbering | Force an item insert error (e.g. too long value) | Full rollback: no header, TB_H_DOCUMENT_NUMBER row and CURRENT_NUMBER restored, no TB_R_LOG_H row; FAILED |
-| TC08 | SP_ILS_GENERATE_PR_ITEM fails | RESULT not success / error | Rollback; FAILED |
-| TC09 | Budget SP fails | Budget insufficient / WBS invalid / DIVISION_ID not numeric | DIVISION_ID: FAILED at validation (PAS untouched); budget: rollback, FAILED |
-| TC10 | Auto PO | (a) eligible valuation class + SRCILS source type; (b) not eligible | (a) 1 TB_T_JOB_AUTOPO row ('PR', PR_NO, NULL, 'ILSTC', …, 0, 0); (b) none, SUCCESS |
-| TC11 | Data validation | Missing detail / COST 'abc' / bad date / missing FIX key | FAILED with field and reason; PAS not touched |
-| TC12 | PAS committed, ELIPS update fails | Simulate ELIPS down after the commit | SA PROCESSING; next run after timeout → SUCCESS with the same PR_NO; no second PR |
-| TC13 | Retry limit | SA fails 3 times | RETRY_COUNT 3; not selected again; Resend → READY, retry 0, processed |
-| TC14 | Concurrency | Start the job twice / PAS online user creates a PR at the same time | One run claims the SA; no duplicate PR / number; no hang (timeout on OBS-04) |
-| TC15 | As-is regression | Compare with the old job for the same SA | Same values per mapping (PR_NOTES NULL, PROC_MONTH / header DELIVERY_PLAN_DT = run date, VENDOR_CD = TC_VENDOR_CD) |
-| TC16 | Connection lost inside the transaction | Kill the PAS session during an insert | Rollback by SQL Server; FAILED or PROCESSING → recovered; no partial PR |
-| TC17 | Stale PROCESSING without a PR | PROCESSING older than the timeout, no PR in PAS | FAILED ('Recovered after timeout'), retried |
-| TC18 | Header insert rows = 0 | PR_DESC inserted by another session between step 6 and step 8 | Rollback; next run reconciles to SUCCESS |
+| TC01 | SA VPLD approved and eligible | SA approved by VPLD, status READY, valid data; valuation class / source type eligible for Auto PO | 1 PR: TB_R/T_PR_H, _ITEM, _SUBITEM; TB_R_LOG_H; number in TB_H_DOCUMENT_NUMBER; CURRENT_NUMBER + 1; both SPs run; 1 TB_T_JOB_AUTOPO row; ELIPS SUCCESS with PR_NO / PROCESS_ID |
+| TC02 | SA not approved by VPLD | SA without VPLD approval (or rejected / pending) | Not selected by the eligibility query; nothing in PAS; ELIPS status unchanged |
+| TC03 | SA already interfaced | (a) ELIPS SUCCESS; (b) ELIPS READY but a PR with PR_DESC = SA exists | (a) not selected; (b) SUCCESS (reconciled) with the existing PR_NO. No new PROCESS_ID, number, SP call or PR |
+| TC04 | Header exists but item missing | SA header without detail items | FAILED at validation ("detail item missing"); PAS not touched; no PR number consumed |
+| TC05 | One SA with multiple items | 3 detail items | 1 TB_R_PR_H; 3 TB_R_PR_ITEM + 3 TB_T_PR_ITEM; PR_ITEM_NO = ITEM_NO; MAT_DESC = ORDER_NO;ROUTE; DELIVERY_PLAN_DT = date of ORDER_FINISH_DATE |
+| TC06 | One item with multiple sub items | 1 item × 3 sub items | 3 TB_R_PR_SUBITEM + 3 TB_T_PR_SUBITEM with PR_ITEM_NO / ITEM_NO of the parent; WBS / GL / cost center / TARIF per sub item |
+| TC07 | PR number generation failure | PR_TYPE without TB_M_DOC_NUMBERING row, or maximum range reached | Numbering returns 'FAILED' → ROLLBACK: no PR rows, no TB_R_LOG_H, TB_M_DOC_NUMBERING unchanged; ELIPS FAILED with the PAS message |
+| TC08 | SP_ILS_GENERATE_PR_ITEM failure | SP raises error / RESULT not success | ROLLBACK of all PR rows and the PR number; ELIPS FAILED |
+| TC09 | Budget processing failure | Budget insufficient / WBS invalid | ROLLBACK; ELIPS FAILED. (DIVISION_ID non-numeric: FAILED at validation, PAS untouched) |
+| TC10 | Eligible for Auto PO | Item VALUATION_CLASS → PURCHASING_GROUP_CD in TB_M_SYSTEM AUTOPO, SOURCE_TYPE in SRCILS | 1 TB_T_JOB_AUTOPO row ('PR', PR_NO, NULL, 'ILSTC', GETDATE(), 0, 0); PAS Auto PO job creates the PO |
+| TC11 | Not eligible for Auto PO | Purchasing group or source type not configured | PR created, ELIPS SUCCESS, no TB_T_JOB_AUTOPO row (to be confirmed as PAS business rule) |
+| TC12 | Rerun after SUCCESS | Run the job again | SA not selected; no PAS change; no second Auto PO job |
+| TC13 | Rerun after FAILED | SA FAILED (e.g. TC08), cause fixed | SA retried (RETRY_COUNT < max); exactly 1 PR / item set / sub item set; no leftover rows from the failed attempt |
+| TC14 | Multiple SAs in one batch | SA1 valid, SA2 budget error, SA3 valid | SA1, SA3 SUCCESS and committed; SA2 FAILED and rolled back alone; SA3 gets the next PR number |
+| TC15 | PAS committed, ELIPS update fails | Simulate ELIPS down after the PAS commit | SA stays PROCESSING; next run after the timeout → SUCCESS with the same PR_NO; no second PR |
+| TC16 | Retry limit | SA fails MAX_RETRY times | Not selected again; Resend → READY, RETRY_COUNT 0, processed |
+| TC17 | Concurrency | Job started twice / PAS online user creates a PR at the same time | One run claims the SA; no duplicate PR / number; no hang (query timeout, OBS-04) |
+| TC18 | As-is regression | Same SA through the old and the new job | Same values per mapping (PR_NOTES NULL, PROC_MONTH / header DELIVERY_PLAN_DT = run date, VENDOR_CD = TC_VENDOR_CD) |
+| TC19 | Connection lost inside the transaction | Kill the PAS session during an insert | SQL Server rolls back; FAILED, or PROCESSING → recovered; no partial PR |
+| TC20 | Invalid data | COST 'abc', ORDER_FINISH_DATE '31/13/2026', missing FIX key | FAILED with field and reason; PAS not touched |
 
 ---
 
