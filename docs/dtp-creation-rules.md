@@ -172,9 +172,9 @@ Mock-up: the Master KPI rows come from `MasterKpi.SEED`, the same seed as the Ma
 8. **Queue failure rules:** which errors are retryable, how many retries, and who is notified.
 9. **Rejected by LP:** may the planner change the LP of a rejected order from DTP Creation, or must a new record be submitted?
 10. **Truck Assignment menu:** done, see [truck-assignment-spec.md](truck-assignment-spec.md).
-| KM-OQ1 | Does a **Failed** record (not yet a Daily order, retryable) consume the Order Sharing allocation? Mock-up: yes. |
-| KM-OQ2 | Does a Daily order **rejected by the LP** release the slot? Mock-up: yes (not counted). |
-| KM-OQ3 | Should Submit be **blocked** above the Order Sharing limit, or only warned (mock-up)? |
-| KM-OQ4 | Will Master KPI get an **effective period** (validity) per company? |
-| KM-OQ5 | Behaviour when Master KPI is **missing** for a company: warning only (mock-up), or no DTP allowed? |
-| KM-OQ6 | Yellow threshold (80 %) or another rule, for example remaining ≤ 1? |
+11. **DTP vs Master KPI (KM-OQ1):** Does a **Failed** record (not yet a Daily order, retryable) consume the Order Sharing allocation? Mock-up: yes.
+12. **DTP vs Master KPI (KM-OQ2):** Does a Daily order **rejected by the LP** release the slot? Mock-up: yes (not counted).
+13. **DTP vs Master KPI (KM-OQ3):** Should Submit be **blocked** above the Order Sharing limit, or only warned (mock-up)?
+14. **DTP vs Master KPI (KM-OQ4):** Will Master KPI get an **effective period** (validity) per company?
+15. **DTP vs Master KPI (KM-OQ5):** Behaviour when Master KPI is **missing** for a company: warning only (mock-up), or no DTP allowed?
+16. **DTP vs Master KPI (KM-OQ6):** Yellow threshold (80 %) or another rule, for example remaining ≤ 1?
