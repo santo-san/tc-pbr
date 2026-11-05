@@ -261,6 +261,7 @@ function openCreate(date) {
   dc.date = date; cal.selected = date; cal.cursor = date;
   $('dtpCal').style.display = 'none'; $('dtpCreate').style.display = '';
   const ro = !isPlanner() || !!err;
+  const roTag = ro ? ` <span class="ro-tag">${err ? 'date outside the DTP range' : 'VPLD Planner only'}</span>` : '';
   $('dtpCreate').innerHTML = `<section class="dc-card" style="position:relative">
     <div class="busy-mask" id="dcBusy"><span class="spin"></span><span id="dcBusyText"></span></div>
     <div class="dc-head">
@@ -277,15 +278,16 @@ function openCreate(date) {
         <button data-demo-start>Driver starts the first assigned order</button>
         <button data-demo-reset>Reset DTP demo data</button></div></div>
     </div>
-    ${ro ? `<div class="view-only">${esc(err || D.MSG.noAuth)} The data is shown read only.</div>` : ''}
-    <details class="acc" open ${ro ? 'hidden' : ''}><summary>&#128196; Upload Excel</summary><div class="body">
+    ${ro ? `<div class="view-only ro-strong"><b>&#128274; ${esc(err || D.MSG.noAuth)}</b> Upload Excel, Manual Entry and Interface Data (BEST) are locked; the data is shown read only.
+      ${err ? '' : '<button class="btn-sm-blue" id="dcAsPlanner">Login sebagai Planner VPLD</button>'}</div>` : ''}
+    <details class="acc ${ro ? 'acc-ro' : ''}" ${ro ? '' : 'open'}><summary>&#128196; Upload Excel${roTag}</summary><div class="body">
       <div style="font-weight:600;margin-bottom:6px">Filename</div>
       <div class="up-row"><input type="text" id="dcFileName" readonly placeholder="No file chosen"><button class="btn-dark" id="dcChoose">Choose File</button>
         <input type="file" id="dcFile" accept=".xlsx,.xls" hidden></div>
       <div style="margin-top:8px">*) <button class="link" id="dcTemplate">Download Template</button> <span class="q-note">· Operation Type of uploaded rows = ${'<b id="dcIoNote">' + dc.io + '</b>'} (header)</span></div></div></details>
-    <details class="acc" ${ro ? 'hidden' : ''}><summary>&#128421; Manual Entry</summary><div class="body"><form id="dcManual" onsubmit="return false">${manualForm({ io: dc.io, roundUse: 'N', truckType: 'TRAILER', arrDate: date })}</form>
+    <details class="acc ${ro ? 'acc-ro' : ''}"><summary>&#128421; Manual Entry${roTag}</summary><div class="body"><form id="dcManual" onsubmit="return false">${manualForm({ io: dc.io, roundUse: 'N', truckType: 'TRAILER', arrDate: date })}</form>
       <div style="display:flex;gap:8px"><button class="btn-sm-blue" id="dcAdd">+ Add to Grid</button><button class="btn-outline" id="dcClearForm" style="height:27px">Clear</button></div></div></details>
-    <details class="acc" ${ro ? 'hidden' : ''}><summary>&#128260; Interface Data (BEST)</summary><div class="body">
+    <details class="acc ${ro ? 'acc-ro' : ''}"><summary>&#128260; Interface Data (BEST)${roTag}</summary><div class="body">
       <span id="dcBestInfo"></span> <button class="btn-sm-blue" id="dcBest" style="margin-left:8px">Load / Refresh from BEST</button></div></details>
     <details class="kpi-mon" id="dcKpiBox" ${dc.kpiOpen === false ? '' : 'open'}><summary>&#128202; DTP Creation vs Master KPI <span class="q-note" id="dcKpiSum"></span></summary><div id="dcKpi"></div></details>
     <div class="grid-bar">
@@ -354,6 +356,7 @@ function bindCreate(ro) {
   $('dcAll').onchange = e => toggleSel(gridRows().filter(D.selectable), e.target.checked);
   $('dcUnselect').onclick = () => { toggleSel(dateRecs().filter(r => r.status === S.READY), false); toast('Selection cleared'); };
   $('dcSubmit').onclick = confirmSubmit;
+  if ($('dcAsPlanner')) $('dcAsPlanner').onclick = () => { $('roleSel').value = 'planner'; $('roleSel').dispatchEvent(new Event('change')); };
   $('dcKpiBox').addEventListener('toggle', e => { dc.kpiOpen = e.target.open; });
   if (ro) return;
   $('dcIo').onclick = e => { const b = e.target.closest('[data-io]'); if (!b) return; dc.io = b.dataset.io; $('dcIo').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('dcIoNote').textContent = dc.io; $('dcManual').querySelector('[name=io]').value = dc.io; };
