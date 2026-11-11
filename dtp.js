@@ -299,13 +299,11 @@ function renderMaint() {
   const pages = Math.max(1, Math.ceil(rows.length / mt.size)); mt.page = Math.min(mt.page, pages);
   const start = (mt.page - 1) * mt.size, view = rows.slice(start, start + mt.size);
   const selectable = rows.filter(o => !mtLock(o)), allOn = selectable.length > 0 && selectable.every(o => mt.sel.has(o.orderNo));
-  $('mtHead').innerHTML = `<tr><th style="min-width:84px"><label class="mt-all" title="Select all DTP that can still be deleted (all pages of the current search)"><input type="checkbox" id="mtAll" ${allOn ? 'checked' : ''} ${selectable.length ? '' : 'disabled'}> Options</label></th>${cols.map(([, l, , w]) => `<th style="min-width:${w}px">${l}</th>`).join('')}</tr>`;
+  $('mtHead').innerHTML = `<tr><th style="min-width:96px"><label class="mt-all" title="Select all DTP that can still be deleted (all pages of the current search)"><input type="checkbox" id="mtAll" ${allOn ? 'checked' : ''} ${selectable.length ? '' : 'disabled'}> Options</label></th>${cols.map(([, l, , w]) => `<th style="min-width:${w}px">${l}</th>`).join('')}</tr>`;
   $('mtBody').innerHTML = view.map(o => {
     const v = mtVals(o), lock = mtLock(o), cx = mt.cancels.has(o.orderNo);
-    const opt = cx ? `<button class="mt-x undo" data-undo="${o.orderNo}" title="Undo cancel">&#8634;</button>`
-      : `<button class="mt-x" data-x="${o.orderNo}" ${lock ? `disabled title="${esc(lock)}"` : 'title="Cancel / delete this DTP"'}>&#10005;</button>`;
     const chk = `<input type="checkbox" class="mt-chk" data-sel="${o.orderNo}" ${mt.sel.has(o.orderNo) ? 'checked' : ''} ${lock ? `disabled title="${esc(lock)}"` : ''}>`;
-    return `<tr data-o="${o.orderNo}" class="${cx ? 'mt-cx' : ''} ${lock ? 'mt-lock' : ''} ${mt.errors[o.orderNo] ? 'mt-err' : ''} ${mt.sel.has(o.orderNo) ? 'mt-sel' : ''}"><td class="mt-opt">${chk}${opt}</td>${cols.map(([k, , kind]) => `<td>${mtCell(o, k, kind, v, lock, cx)}</td>`).join('')}</tr>`;
+    return `<tr data-o="${o.orderNo}" class="${cx ? 'mt-cx' : ''} ${lock ? 'mt-lock' : ''} ${mt.errors[o.orderNo] ? 'mt-err' : ''} ${mt.sel.has(o.orderNo) ? 'mt-sel' : ''}"><td class="mt-opt">${chk}${cx ? '<span class="mt-tag" title="Marked for deletion; select the row and click Restore Selected to undo">Delete</span>' : ''}</td>${cols.map(([k, , kind]) => `<td>${mtCell(o, k, kind, v, lock, cx)}</td>`).join('')}</tr>`;
   }).join('') || `<tr><td colspan="${cols.length + 1}" class="q-note" style="padding:14px;text-align:center">${q.length >= 3 ? 'No matching DTP.' : 'No DTP on this date and type.'}</td></tr>`;
   $('mtInfo').textContent = `Showing ${rows.length ? start + 1 : 0} to ${start + view.length} of ${rows.length} records`;
   $('mtPager').innerHTML = pagerFor(mt.page, pages);
@@ -336,11 +334,6 @@ function bindMaint() {
     if (e.type === 'change') renderMaint();
   };
   $('mtBody').addEventListener('input', onEdit); $('mtBody').addEventListener('change', onEdit);
-  $('mtBody').addEventListener('click', e => {
-    const x = e.target.closest('[data-x]'), u = e.target.closest('[data-undo]');
-    if (x && !x.disabled) { mt.cancels.add(x.dataset.x); renderMaint(); }
-    if (u) { mt.cancels.delete(u.dataset.undo); renderMaint(); }
-  });
   $('mtBody').addEventListener('change', e => { const c = e.target.closest('[data-sel]'); if (c) { c.checked ? mt.sel.add(c.dataset.sel) : mt.sel.delete(c.dataset.sel); renderMaint(); } });
   $('mtHead').addEventListener('change', e => {
     if (e.target.id !== 'mtAll') return;

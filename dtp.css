@@ -215,9 +215,10 @@ small.sub { display: block; font-size: 8.5px; color: #6b7280; }
 .mt-table .drv.on { color: #b91c1c; font-weight: 600; }
 .mt-foot1 { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 .mt-save { background: #0b1a3a; }
-.mt-opt { white-space: nowrap; }
+.mt-opt { white-space: nowrap; text-align: left; }
 .mt-opt .mt-chk { width: 15px; height: 15px; margin: 0 8px 0 2px; vertical-align: middle; }
 .mt-all { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .mt-table tr.mt-sel td { background: #eef5ff; }
 .mt-bar .btn-del:disabled, .mt-bar .mt-rest:disabled { opacity: .4; cursor: default; }
 .mt-bar .mt-rest { height: 30px; font-size: 11px; }
+.mt-tag { display: inline-block; margin-left: 2px; padding: 2px 6px; border-radius: 4px; background: #f43f5e; color: #fff; font-size: 9px; font-weight: 700; vertical-align: middle; }
