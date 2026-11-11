@@ -188,3 +188,30 @@ small.sub { display: block; font-size: 8.5px; color: #6b7280; }
 .acc.acc-ro .body { pointer-events: none; opacity: .5; }
 .acc.acc-ro > summary { color: #6b7280; }
 .ro-tag { font-size: 9px; font-weight: 600; color: #92400e; background: #fef3c7; border-radius: 8px; padding: 1px 7px; margin-left: 6px; }
+
+/* ---------- DTP Maintenance (calendar entry > DTP n List) ---------- */
+.mt-card .spacer { flex: 1; }
+.mt-head { display: flex; align-items: center; gap: 12px; font-size: 11px; padding-bottom: 12px; border-bottom: 1px solid #eef0f3; margin-bottom: 12px; }
+.mt-head .mt-title { font-size: 11px; color: #111827; }
+.mt-bar { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.mt-bar h3 { margin: 0; font-size: 13px; }
+.mt-bar .dd-menu { max-height: 340px; overflow: auto; }
+.mt-wrap { overflow-x: auto; }
+.mt-table { border-collapse: collapse; width: max-content; min-width: 100%; }
+.mt-table th { background: #e4e7ef; font-size: 10px; text-align: left; padding: 8px 6px; white-space: nowrap; }
+.mt-table td { padding: 8px 6px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+.mt-in { width: 100%; height: 30px; border: 1px solid #d5d9e0; border-radius: 5px; padding: 0 6px; font: inherit; font-size: 10px; background: #fff; box-sizing: border-box; }
+.mt-in:disabled { background: #f3f4f6; color: #6b7280; }
+.mt-in.chg { border-color: #2f80ed; background: #eef5ff; }
+.mt-in.bad { border-color: #e11d48; background: #fff1f3; }
+.mt-x { width: 30px; height: 30px; border: 0; border-radius: 5px; background: #f43f5e; color: #fff; font-size: 13px; cursor: pointer; }
+.mt-x:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+.mt-x.undo { background: #6b7280; }
+.mt-table tr.mt-cx td { background: #fff1f3; }
+.mt-table tr.mt-cx .mt-in { text-decoration: line-through; }
+.mt-table tr.mt-err td:first-child { box-shadow: inset 3px 0 #e11d48; }
+.mt-table .mono { font-family: ui-monospace, Menlo, monospace; font-size: 10px; }
+.mt-table .drv { font-size: 10px; color: #047857; white-space: nowrap; }
+.mt-table .drv.on { color: #b91c1c; font-weight: 600; }
+.mt-foot1 { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.mt-save { background: #0b1a3a; }

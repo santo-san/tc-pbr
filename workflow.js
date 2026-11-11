@@ -374,7 +374,7 @@
     ORDER, ORDER_SEQ, CYCLE, MAX_CYCLES, REASON_MIN, ACTIONS,
     LP_STATUS, ASSIGN_STATUS, lpStatus, assignStatus, needsAccept, truckState,
     canView, login, checkDTP, createDTP, newOrder, perform, available, blockReason, roleLabel,
-    containerCheckDigit, containerError, normContainer, current: cur, ymd,
+    containerCheckDigit, containerError, normContainer, current: cur, ymd, log,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Workflow = api;

@@ -28,7 +28,7 @@ DTP Calendar → Select Date → Universal DTP → DTP Creation → Upload Excel
 | Toolbar | ‹ › Today, month title, view **Month / Week / Day** |
 | Info | System Master range: *backdate n day(s), advance n day(s) → selectable dd-Mon-yyyy to dd-Mon-yyyy*; view-only notice for users who are not VPLD Planner |
 | Day cell | **Selectable** (white, "+ DTP" on hover), **Disabled** (hatched, outside the System Master range, click shows the reason), **Today** (blue number), **Selected** (navy outline) |
-| Entries | One entry per date and DTP type of the Daily orders: `DTP - U ( dd/mm/yyyy ) [ assigned / total ]` (U = Universal; older orders show DTP 1-4). "+n more" opens the Day view. Clicking an entry opens Daily Monitoring filtered on that date |
+| Entries | One entry per date and DTP type of the Daily orders: `DTP - U ( dd/mm/yyyy ) [ assigned / total ]` (U = Universal; older orders show DTP 1-4). "+n more" opens the Day view. Clicking an entry opens the **DTP Maintenance** list of that date and type (§1.4); Daily Monitoring is reachable from there |
 | Draft badge | "n open · n in queue" for DTP records of the date that are not processed yet |
 | Legend | Waiting Assignment (blue), Assigned to Truck (green), Rejected by LP (red), Order Finish (navy); Selectable / Disabled / Today / Selected |
 
@@ -41,6 +41,28 @@ Entry colour (orders of the date and type):
 ### 1.2 Universal DTP selection (modal)
 
 Title `Planning order form #dd/mm/yyyy`, *Choose Transaction Type**, banner "Please select the Universal DTP", one card **Universal DTP (Import / Export)**. **Next** is enabled after the card is selected and opens DTP Creation for that date (`#planning-order/YYYY-MM-DD`), so the date stays in the URL.
+
+### 1.4 DTP Maintenance (calendar entry → "DTP n List")
+
+Opened by clicking a calendar entry (`#planning-order/maint/YYYY-MM-DD/<type>`). It lists the Daily orders of that date and DTP type, so the planner can **change or cancel / delete** a DTP as long as the driver has **not started**. Rules: `dtp-rules.js` `maintValues`, `maintCheck`, `maintValidate`, `maintSave`; tests `tests/dtp-maintenance.test.js` (9).
+
+| Element | Content |
+|---|---|
+| Header | `Daily Plan Date : dd/mm/yyyy` · link *Open in Daily Monitoring* · Demo menu · `▸ DTP n - Maintenance` (Universal DTP for DTP Creation orders) |
+| Bar | Title **DTP n List**, Search (from 3 characters), **Kolom** (show / hide columns) |
+| Columns | Options (✕ cancel / ↺ undo), Round Use, Truck Company, Renban, From, To, Destination, ETD, Ctr Size, Agent, Ctr Book No, Container No (read only: entered by the driver at Pick Up), Ctr Type (GP / HC), Ctr DG ?, Vessel, Truck Type, Description, Service Type (Container for Export / Import = Import/Export of the record), Shift, Arr. Date, Arr. Time, Order No, Driver Status |
+| Footer | Showing x to y of n records, pager; **Back** (asks before discarding unsaved changes), **Cancel** (discard pending changes), **Save** |
+
+| ID | Rule |
+|---|---|
+| MT-01 | A row can be changed or cancelled only while the driver has not started: order Planning Order / Order Release and no cycle with Start Cycle (same rule as DTP Switching). Started rows are read only and ✕ is disabled with the reason. |
+| MT-02 | Only the VPLD Planner may change / cancel (DT-01). Other roles see the list read only. |
+| MT-03 | Changed cells are highlighted. Save validates with the DTP Creation rules (DT-04..DT-10: mandatory fields, mapping codes, From ≠ To, formats, options; Ctr Size + Ctr Type must give 20 / 40 / 40 HC / 45). Errors are shown per cell and in a list; nothing is saved. Orders without a DTP record (older DTP 1-4 data) are checked on the order fields only. |
+| MT-04 | Save asks for confirmation (list of cancellations and changes) and runs as one transaction, all-or-nothing (as Submit DT-15). **Cancel**: the Daily order is cancelled (removed for LP Admin, Truck Assignment and the driver; truck released) and the DTP record is deleted, with a history note. **Change**: the DTP record and the Daily order (LP, From / To, Renban, Shift, planned cycles, DTP details) are updated, with an order history row *DTP Maintenance*. |
+| MT-05 | The driver status is checked again at Save; if any row started meanwhile, nothing is saved and the rows are listed. |
+| MT-06 | Another Truck Company on an assigned / accepted order releases the truck and the LP decision; the order is back to Planning Order and the new LP must accept and assign again. |
+| MT-07 | Cancelled DTP no longer consume the Master KPI Order Sharing (§4a). |
+| MT-08 | Mock-up: changes of orders without a DTP record are kept only until reload; DTP Creation orders are rebuilt from the stored DTP records. |
 
 ### 1.3 DTP Creation
 
@@ -178,3 +200,6 @@ Mock-up: the Master KPI rows come from `MasterKpi.SEED`, the same seed as the Ma
 14. **DTP vs Master KPI (KM-OQ4):** Will Master KPI get an **effective period** (validity) per company?
 15. **DTP vs Master KPI (KM-OQ5):** Behaviour when Master KPI is **missing** for a company: warning only (mock-up), or no DTP allowed?
 16. **DTP vs Master KPI (KM-OQ6):** Yellow threshold (80 %) or another rule, for example remaining ≤ 1?
+17. **DTP Maintenance (MT-OQ1):** Cancel = delete the DTP record and cancel the Daily order (mock-up), or keep the record with a *Cancelled* status? Is a reason mandatory?
+18. **DTP Maintenance (MT-OQ2):** Which fields may be changed after the LP accepted / a truck is assigned (mock-up: all, a new Truck Company releases the truck)? Must the LP Admin / driver be notified?
+19. **DTP Maintenance (MT-OQ3):** Ctr Type, Service Type and Shift options: final master lists (mock-up GP / HC, Container for Export / Import, DAY / NIGHT).

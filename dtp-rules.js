@@ -297,6 +297,105 @@
       shift: r.shift || '-', planned: r.roundUse === 'Y' ? 2 : 1 };
   }
 
+  // ---------- DTP Maintenance (calendar entry > DTP n List): edit / cancel a DTP while the driver has not started - MT-01 .. MT-08 ----------
+  const SERVICE_TYPES = { EXPORT: 'CONTAINER FOR EXPORT', IMPORT: 'CONTAINER FOR IMPORT' };
+  const CTR_TYPES = ['GP', 'HC'];
+  const MT_MSG = {
+    driverStarted: 'DTP cannot be cancelled or changed because the driver has already started the process.',
+    notFound: 'Daily order is no longer available. Please refresh the data and try again.',
+    nothing: 'There is no change to save.',
+    invalid: n => `${n} DTP row(s) have invalid data. Please correct the highlighted fields.`,
+    blocked: n => `${n} DTP row(s) can no longer be changed (driver started / order missing). Nothing was saved.`,
+    ok: (c, e) => `${c} DTP cancelled, ${e} DTP updated.`,
+    dbError: 'Save failed. No data was changed. Please try again.',
+  };
+  // Row values of the maintenance grid from the DTP record (Universal DTP) or, for orders without a record, from the order
+  function maintValues(o, r, names) {
+    if (r) {
+      const hc = /\bHC$/.test(r.ctrSize || '');
+      return { roundUse: r.roundUse || 'N', lp: r.lp, renban: r.renban, from: r.from, to: r.to, dest: r.dest || '', etd: r.etd || '', ctrSize: (r.ctrSize || '').replace(/\s*HC$/, ''),
+        ctrType: r.ctrSize ? (hc ? 'HC' : 'GP') : '', agent: r.agent || '', bookNo: r.bookNo || '', container: o?.cycles?.find(c => c.container)?.container || r.container || '',
+        dg: r.dg === 'DG' ? 'Y' : 'N', vessel: r.vessel || '', truckType: r.truckType || '', description: r.description || '',
+        serviceType: SERVICE_TYPES[r.io] || '', shift: r.shift || '', arrDate: r.arrDate || '', arrTime: r.arrTime || '' };
+    }
+    const m = o.maint || {};
+    return { roundUse: o.planned > 1 ? 'Y' : 'N', lp: names.lpCode(o.supplier), renban: o.renban || '', from: names.fromCode(o.from), to: names.toCode(o.to),
+      dest: m.dest || '', etd: m.etd || '', ctrSize: m.ctrSize || '', ctrType: m.ctrType || '', agent: m.agent || '', bookNo: m.bookNo || '',
+      container: o.cycles.find(c => c.container)?.container || '', dg: m.dg || 'N', vessel: m.vessel || '', truckType: m.truckType || '', description: m.description || '',
+      serviceType: m.serviceType || '', shift: o.shift && o.shift !== '-' ? o.shift : '', arrDate: m.arrDate || '', arrTime: m.arrTime || '' };
+  }
+  // Grid values -> DTP record fields (container is entered by the driver at Pick Up, not here)
+  const maintToRecord = v => ({ roundUse: v.roundUse, lp: v.lp, renban: v.renban, from: v.from, to: v.to, dest: v.dest, etd: v.etd,
+    ctrSize: v.ctrType === 'HC' ? `${v.ctrSize} HC` : v.ctrSize, agent: v.agent, bookNo: v.bookNo, dg: v.dg === 'Y' ? 'DG' : '', vessel: v.vessel,
+    truckType: v.truckType, description: v.description, io: Object.keys(SERVICE_TYPES).find(k => SERVICE_TYPES[k] === v.serviceType) || '', shift: v.shift,
+    arrDate: v.arrDate, arrTime: v.arrTime });
+  // MT-01: edit / cancel only while the driver has not started (same rule as DTP Switching)
+  const maintCheck = (o, W) => !o ? { code: 'NOT_FOUND', msg: MT_MSG.notFound } : driverStarted(o, W) ? { code: 'DRIVER_STARTED', msg: MT_MSG.driverStarted } : null;
+  // MT-03: validation of an edited row. With a DTP record: the DTP Creation rules; without: the order fields only.
+  function maintValidate(v, r, ctx) {
+    if (r) {
+      const { errors } = validate({ ...r, ...maintToRecord(v), container: r.container }, ctx);
+      const e = {};
+      Object.entries(errors).forEach(([k, m]) => { e[k === 'io' ? 'serviceType' : k === 'ctrSize' && v.ctrType === 'HC' ? 'ctrType' : k] = m; });
+      return e;
+    }
+    const e = {};
+    if (!ctx.lps.includes(v.lp)) e.lp = v.lp ? MSG.code('LP', v.lp) : MSG.req('LP');
+    if (!v.renban) e.renban = MSG.req('RENBAN'); else if (!/^[A-Z0-9]{1,20}$/.test(v.renban)) e.renban = MSG.format('RENBAN');
+    if (!v.from) e.from = MSG.req('FROM LOCATION');
+    if (!v.to) e.to = MSG.req('TO LOCATION'); else if (v.from && v.from === v.to) e.to = MSG.same;
+    if (v.shift && !OPTIONS.shift.includes(v.shift)) e.shift = MSG.option('SHIFT', v.shift, OPTIONS.shift);
+    ['etd', 'arrDate'].forEach(k => { if (v[k] && !/^\d{4}-\d{2}-\d{2}$/.test(v[k])) e[k] = MSG.date(k === 'etd' ? 'ETD' : 'ARRIVAL DATE'); });
+    if (v.arrTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(v.arrTime)) e.arrTime = MSG.time('ARRIVAL TIME');
+    return e;
+  }
+  // MT-04 .. MT-07: save all pending cancellations and edits in one transaction (all-or-nothing, as Submit DT-15)
+  // rows: [{ key, o, r, cancel, values }]; ctx: { at, actor, W, vctx, names, removeOrder, removeRecord, fail }
+  function maintSave(rows, ctx) {
+    const { at, actor, W } = ctx;
+    if (!canCreate(actor)) return { ok: false, status: 403, error: MSG.noAuth };
+    if (!rows.length) return { ok: false, status: 400, error: MT_MSG.nothing };
+    const blocked = rows.map(x => ({ key: x.key, e: maintCheck(x.o, W) })).filter(x => x.e);   // re-check: the driver may have started meanwhile
+    if (blocked.length) return { ok: false, status: 409, error: MT_MSG.blocked(blocked.length), failed: blocked.map(x => ({ key: x.key, code: x.e.code, msg: x.e.msg })) };
+    const errors = {};
+    rows.filter(x => !x.cancel).forEach(x => { const e = maintValidate(x.values, x.r, ctx.vctx); if (Object.keys(e).length) errors[x.key] = e; });
+    if (Object.keys(errors).length) return { ok: false, status: 422, error: MT_MSG.invalid(Object.keys(errors).length), errors };
+    if (ctx.fail) return { ok: false, status: 500, error: MT_MSG.dbError };   // DB error before commit: nothing applied
+    let cancelled = 0, updated = 0;
+    rows.forEach(({ o, r, cancel, values }) => {
+      const truck = o.truck, status0 = o.status, lpStatus = o.lpRejected ? 'Rejected' : o.lpAccepted ? 'Accepted' : 'Waiting';
+      if (cancel) {
+        ctx.removeOrder(o);
+        if (r) {
+          r.history.push({ at, status: r.status, note: `DTP Maintenance by ${actor.name}: DTP cancelled; Daily order ${o.orderNo} (${o.status}, LP ${lpStatus}${truck ? `, truck ${truck}` : ''}) cancelled` });
+          ctx.removeRecord(r);
+        }
+        cancelled++; return;
+      }
+      const before = maintValues(o, r, ctx.names), changed = Object.keys(values).filter(k => k !== 'container' && String(values[k] ?? '') !== String(before[k] ?? ''));
+      if (!changed.length) return;
+      const lpChanged = values.lp !== before.lp;
+      if (r) {
+        const { record } = validate({ ...r, ...maintToRecord(values), container: r.container }, ctx.vctx);
+        Object.assign(r, record);
+        r.history.push({ at, status: r.status, note: `DTP Maintenance by ${actor.name}: ${changed.join(', ')} changed` });
+        Object.assign(o, orderPayload(r, ctx.names), { orderNo: o.orderNo, type: o.type });
+        Object.assign(o.dtp || (o.dtp = {}), { io: r.io, container: r.container, dest: r.dest, vessel: r.vessel, agent: r.agent, bookNo: r.bookNo, ctrSize: r.ctrSize, truckType: r.truckType, fromCd: r.from, toCd: r.to });
+      } else {
+        Object.assign(o, { supplier: ctx.names.lp(values.lp), renban: values.renban, from: ctx.names.from(values.from), to: ctx.names.to(values.to), shift: values.shift || '-', planned: values.roundUse === 'Y' ? 2 : 1 });
+        o.maint = Object.fromEntries(['dest', 'etd', 'ctrSize', 'ctrType', 'agent', 'bookNo', 'dg', 'vessel', 'truckType', 'description', 'serviceType', 'arrDate', 'arrTime'].map(k => [k, values[k]]));
+      }
+      o.cycles.forEach(c => { if (!c.startAt) { c.from = o.from; c.to = o.to; } });
+      // MT-06: another trucking company -> the old LP decision and truck assignment no longer apply
+      if (lpChanged) { Object.assign(o, { truck: '', driver: '', lpAccepted: false, lpRejected: false, status: W.ORDER.PLAN }); }
+      const note = `${changed.join(', ')} changed${lpChanged && truck ? `; truck ${truck} released (trucking company changed)` : ''}`;
+      if (W.log) W.log(o, at, actor, 'DTP Maintenance', { order: status0, cycle: o.cycles[0]?.status, truck }, { order: o.status, cycle: o.cycles[0]?.status, truck: o.truck }, '', note);
+      else o.history.push({ at, actor: actor.name, action: 'DTP Maintenance', note });
+      updated++;
+    });
+    return { ok: true, status: 200, message: MT_MSG.ok(cancelled, updated), cancelled, updated };
+  }
+
   // ---------- Calendar entry per date + DTP type ----------
   const isAssigned = (o, W) => !!o.truck || o.status !== W.ORDER.PLAN;
   function calStatus(orders, W) {
@@ -313,7 +412,7 @@
 
   const api = { CONSUMING, KPI_WARN, kpiMonitor, SWITCHABLE, driverStarted, switchCheck, canSwitch, switchBack, MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
     dateRange, dateCheck, canCreate, normalize, validate, dupKey, duplicates, readSheet, upload, makeRecord, revalidate, selectable,
-    submit, step, canRetry, orderPayload, calStatus, calLabel };
+    submit, step, canRetry, orderPayload, calStatus, calLabel, SERVICE_TYPES, CTR_TYPES, MT_MSG, maintValues, maintToRecord, maintCheck, maintValidate, maintSave };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DtpRules = api;
 })(this);

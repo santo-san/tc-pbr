@@ -13,7 +13,7 @@ const ST_CLS = { [S.AVAILABLE]: 'av', [S.ERROR]: 'er', [S.READY]: 'rd', [S.SUBMI
 const CAL_CLS = { [D.CAL.WAIT]: 'w', [D.CAL.ASSIGNED]: 'a', [D.CAL.REJECTED]: 'r', [D.CAL.FINISH]: 'f' };
 const todayStr = () => W.ymd(new Date());
 const isPlanner = () => D.canCreate(state.actor);
-const demo = { bestError: false, submitError: false, swError: false, swRace: false };
+const demo = { bestError: false, submitError: false, swError: false, swRace: false, mtError: false, mtRace: false };
 
 // ---------- Records (persisted in this browser so a refresh cannot submit the same records again) ----------
 const STORE = 'tcpbr.dtp.v1';
@@ -131,7 +131,7 @@ if (!restore()) {
 // ---------- Routing (Daily sub menu) ----------
 const VIEWS = { monitoring: 'pgMonitoring', 'planning-order': 'pgPlanning', 'truck-assignment': 'pgAssign', 'sa-approval': 'pgSA', 'sa-monitoring': 'pgSAM' };
 function route() {
-  const [v0, date] = location.hash.slice(1).split('/');
+  const [v0, date, mDate, mType] = location.hash.slice(1).split('/');
   const v = VIEWS[v0] ? v0 : 'monitoring';
   Object.entries(VIEWS).forEach(([k, id]) => { $(id).style.display = k === v ? '' : 'none'; });
   document.querySelectorAll('#dailySub a, #saSub a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
@@ -141,13 +141,14 @@ function route() {
   if (v === 'sa-approval') window.saRender?.();
   if (v === 'sa-monitoring') window.samRender?.();
   if (v !== 'planning-order') return;
-  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) openCreate(date); else showCalendar();
+  if (date === 'maint' && /^\d{4}-\d{2}-\d{2}$/.test(mDate || '') && mType) openMaint(mDate, decodeURIComponent(mType));
+  else if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) openCreate(date); else showCalendar();
 }
 window.addEventListener('hashchange', route);
 document.addEventListener('actorchange', () => { if (/^#(planning-order|truck-assignment|sa-approval|sa-monitoring)/.test(location.hash)) route(); });
 function refreshAll() {
   if ($('dtpCreate').style.display !== 'none' && dc.date) renderGrid();
-  if ($('dtpCal').style.display !== 'none') renderCalendar();
+  if ($('dtpCal').style.display !== 'none') { if ($('mtBody')) renderMaint(); else renderCalendar(); }
 }
 
 // ---------- Calendar ----------
@@ -168,7 +169,7 @@ function dayCell(date, inMonth, limit) {
   return `<div class="${cls}" data-date="${date}" title="${err ? esc(err) : 'Click to create DTP'}">
     ${err ? '' : '<span class="add">+ DTP</span>'}<div class="num">${date === todayStr() ? `<b>${+date.slice(8)}</b>` : +date.slice(8)}</div>
     ${open || inq ? `<span class="drafts">${open ? `${open} open` : ''}${open && inq ? ' · ' : ''}${inq ? `${inq} in queue` : ''}</span>` : ''}
-    ${shown.map(e => `<button class="ev ${CAL_CLS[e.status]}" data-ev="${date}|${e.type}" title="${esc(e.status)} - open in Daily Monitoring">${esc(e.label)}</button>`).join('')}
+    ${shown.map(e => `<button class="ev ${CAL_CLS[e.status]}" data-ev="${date}|${e.type}" title="${esc(e.status)} - open the DTP list (maintenance)">${esc(e.label)}</button>`).join('')}
     ${limit && ents.length > limit ? `<button class="ev-more" data-more="${date}">+${ents.length - limit} more</button>` : ''}</div>`;
 }
 function renderCalendar() {
@@ -213,7 +214,7 @@ $('dtpCal').addEventListener('click', e => {
   }
   const v = e.target.closest('[data-view]'); if (v) { cal.view = v.dataset.view; return renderCalendar(); }
   const more = e.target.closest('[data-more]'); if (more) { cal.view = 'day'; cal.cursor = more.dataset.more; return renderCalendar(); }
-  const ev = e.target.closest('[data-ev]'); if (ev) { const [d, type] = ev.dataset.ev.split('|'); return openMonitoring(d, type); }
+  const ev = e.target.closest('[data-ev]'); if (ev) { const [d, type] = ev.dataset.ev.split('|'); location.hash = `#planning-order/maint/${d}/${encodeURIComponent(type)}`; return; }
   const pk = e.target.closest('[data-pick]'); if (pk) return pickDtp(pk.dataset.pick);
   const day = e.target.closest('[data-date]'); if (!day) return;
   const err = D.dateCheck(day.dataset.date, todayStr(), DTP_CFG);
@@ -226,6 +227,158 @@ function openMonitoring(date, type) {
   $('dateFrom').value = date; $('dateTo').value = date; $('search').value = ''; $('fromLoc').value = ''; $('toLoc').value = '';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.dtp === state.dtp));
   location.hash = '#monitoring'; toast(`Daily orders ${D.fmtLong(date)} · ${type}`);
+}
+
+// ---------- DTP Maintenance (calendar entry > "DTP n List"): edit / cancel DTP while the driver has not started ----------
+const SUP_CODE = Object.fromEntries(SUPPLIERS.map(([n, c]) => [n, c]));
+const revMap = m => n => Object.keys(m).find(k => m[k] === n) || n || '';
+const MNAMES = { ...NAMES, lpCode: n => SUP_CODE[n] || n || '', fromCode: revMap(LOC_FROM), toCode: revMap(LOC_TO) };
+const MCOLS = [['roundUse', 'Round Use', 'sel', 70], ['lp', 'Truck Company', 'sel', 190], ['renban', 'Renban', 'txt', 64], ['from', 'From', 'sel', 150], ['to', 'To', 'sel', 160],
+  ['dest', 'Destination', 'txt', 64], ['etd', 'ETD', 'date', 118], ['ctrSize', 'Ctr Size', 'sel', 62], ['agent', 'Agent', 'txt', 78], ['bookNo', 'Ctr Book No', 'txt', 92],
+  ['container', 'Container No', 'ro', 96], ['ctrType', 'Ctr Type', 'sel', 62], ['dg', 'Ctr DG ?', 'sel', 62], ['vessel', 'Vessel', 'txt', 92], ['truckType', 'Truck Type', 'sel', 84],
+  ['description', 'Description', 'txt', 92], ['serviceType', 'Service Type', 'sel', 170], ['shift', 'Shift', 'sel', 110], ['arrDate', 'Arr. Date', 'date', 118],
+  ['arrTime', 'Arr. Time', 'time', 84], ['orderNo', 'Order No', 'info', 130], ['drv', 'Driver Status', 'info', 150]];
+const MOPTS = {
+  roundUse: () => [['Y', 'Yes'], ['N', 'No']], lp: () => lpOpts(), from: () => fromOpts(), to: () => toOpts(), ctrSize: () => ['20', '40', '45'], ctrType: () => D.CTR_TYPES,
+  dg: () => [['N', 'No'], ['Y', 'Yes']], truckType: () => [...new Set(MASTER.trucks.map(t => t.type))].sort(), serviceType: () => Object.values(D.SERVICE_TYPES), shift: () => D.OPTIONS.shift,
+};
+const mt = { date: null, type: null, q: '', page: 1, size: 10, hidden: new Set(), edits: {}, cancels: new Set(), errors: {} };
+const mtTypeLabel = t => t === 'Universal' ? 'Universal DTP' : String(t).replace(/^DTP(\d)$/, 'DTP $1');
+const mtOrders = () => DATA.filter(o => o.date === mt.date && o.type === mt.type);
+const mtRec = o => o.dtp ? RECS.find(r => r.orderNo === o.orderNo) || null : null;
+const mtBase = o => D.maintValues(o, mtRec(o), MNAMES);
+const mtVals = o => mt.edits[o.orderNo] || mtBase(o);
+const mtChanged = o => { const e = mt.edits[o.orderNo]; if (!e) return []; const b = mtBase(o); return Object.keys(e).filter(k => String(e[k] ?? '') !== String(b[k] ?? '')); };
+const mtLock = o => !isPlanner() ? D.MSG.noAuth : D.maintCheck(o, W)?.msg || '';
+const mtPending = () => mt.cancels.size + mtOrders().filter(o => !mt.cancels.has(o.orderNo) && mtChanged(o).length).length;
+
+function openMaint(date, type) {
+  if (mt.date !== date || mt.type !== type) Object.assign(mt, { date, type, q: '', page: 1, edits: {}, cancels: new Set(), errors: {} });
+  $('dtpCreate').style.display = 'none'; $('dtpCal').style.display = '';
+  const lbl = mtTypeLabel(type), ro = !isPlanner();
+  $('dtpCal').innerHTML = `<section class="cal-card mt-card">
+    <div class="mt-head"><span>&#128197; Daily Plan Date : <b>${D.fmtDmy(date)}</b></span><span class="spacer"></span>
+      <button class="link" id="mtMon" title="Show these orders in Daily Monitoring">Open in Daily Monitoring</button>
+      <div class="dd demo-dd" id="mtDemo"><button class="btn-light" style="height:26px">Demo &#9662;</button><div class="dd-menu">
+        <label><input type="checkbox" data-mdemo="mtError" ${demo.mtError ? 'checked' : ''}> Simulate save failure (DB)</label>
+        <label><input type="checkbox" data-mdemo="mtRace" ${demo.mtRace ? 'checked' : ''}> Driver starts during save confirmation</label>
+        <button data-mdemo-start>Driver starts the first assigned order</button></div></div>
+      <span class="mt-title">&#9656; ${esc(lbl)} - Maintenance</span></div>
+    ${ro ? `<div class="view-only ro-strong"><b>&#128274; ${esc(D.MSG.noAuth)}</b> The list is read only. <button class="btn-sm-blue" id="mtAsPlanner">Login sebagai Planner VPLD</button></div>` : ''}
+    <div class="mt-bar"><h3>${esc(lbl)} List</h3><span class="spacer"></span>
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="text" id="mtSearch" placeholder="Search [ Input 3 characters ]" style="width:190px" value="${esc(mt.q)}"></div>
+      <div class="dd" id="mtCol"><button class="btn-blue"><svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>Kolom <span style="font-size:8px">▼</span></button>
+        <div class="dd-menu dd-right">${MCOLS.map(([k, l]) => `<label><input type="checkbox" data-k="${k}" ${mt.hidden.has(k) ? '' : 'checked'}> ${l}</label>`).join('')}</div></div></div>
+    <div class="table-wrap mt-wrap"><table class="mt-table"><thead id="mtHead"></thead><tbody id="mtBody"></tbody></table></div>
+    <div class="mt-foot1"><span id="mtInfo" class="q-note"></span><div class="pager" id="mtPager"></div></div>
+    <div class="dc-foot"><button class="btn-outline" id="mtBack">&larr; Back</button><span class="spacer"></span><span class="cnt" id="mtCnt"></span>
+      <button class="btn-outline" id="mtCancel" ${ro ? 'disabled' : ''}>&#8634; Cancel</button><button class="btn-submit mt-save" id="mtSave" ${ro ? 'disabled' : ''}>&#128190; Save</button></div>
+  </section>`;
+  bindMaint(); renderMaint();
+}
+function mtCell(o, k, kind, v, lock, cancelled) {
+  const val = v[k] ?? '', err = mt.errors[o.orderNo]?.[k], chg = mtChanged(o).includes(k), dis = lock || cancelled ? 'disabled' : '';
+  const cls = `${chg ? 'chg' : ''} ${err ? 'bad' : ''}`, tip = err ? `title="${esc(err)}"` : '';
+  if (kind === 'info') return k === 'orderNo' ? `<span class="mono">${esc(o.orderNo)}</span>` : `<span class="drv ${D.driverStarted(o, W) ? 'on' : ''}">${esc(D.driverStarted(o, W) ? `Started (${o.status})` : `Not Started (${o.status}${o.truck ? ` · ${o.truck}` : ''})`)}</span>`;
+  if (kind === 'ro') return `<input class="mt-in" value="${esc(val)}" placeholder="ENTER VALUE" disabled title="Entered by the driver at Pick Up">`;
+  if (kind === 'sel') {
+    let opts = MOPTS[k]().map(x => Array.isArray(x) ? x : [x, x]);
+    if (val && !opts.some(([c]) => c === val)) opts = [[val, val], ...opts];
+    return `<select class="mt-in ${cls}" data-f="${k}" ${dis} ${tip}>${val ? '' : `<option value="">Select an option</option>`}${opts.map(([c, l]) => `<option value="${esc(c)}" ${c === val ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  }
+  const type = kind === 'date' ? 'date' : 'text', ph = kind === 'time' ? 'HH:MM' : '';
+  return `<input class="mt-in ${cls}" data-f="${k}" type="${type}" value="${esc(val)}" placeholder="${ph}" ${dis} ${tip}>`;
+}
+function renderMaint() {
+  const cols = MCOLS.filter(([k]) => !mt.hidden.has(k)), q = mt.q.trim().toLowerCase();
+  let rows = mtOrders();
+  if (q.length >= 3) rows = rows.filter(o => [o.orderNo, ...Object.values(mtVals(o)), o.supplier, o.from, o.to].join(' ').toLowerCase().includes(q));
+  const pages = Math.max(1, Math.ceil(rows.length / mt.size)); mt.page = Math.min(mt.page, pages);
+  const start = (mt.page - 1) * mt.size, view = rows.slice(start, start + mt.size);
+  $('mtHead').innerHTML = `<tr><th style="min-width:54px">Options</th>${cols.map(([, l, , w]) => `<th style="min-width:${w}px">${l}</th>`).join('')}</tr>`;
+  $('mtBody').innerHTML = view.map(o => {
+    const v = mtVals(o), lock = mtLock(o), cx = mt.cancels.has(o.orderNo);
+    const opt = cx ? `<button class="mt-x undo" data-undo="${o.orderNo}" title="Undo cancel">&#8634;</button>`
+      : `<button class="mt-x" data-x="${o.orderNo}" ${lock ? `disabled title="${esc(lock)}"` : 'title="Cancel / delete this DTP"'}>&#10005;</button>`;
+    return `<tr data-o="${o.orderNo}" class="${cx ? 'mt-cx' : ''} ${lock ? 'mt-lock' : ''} ${mt.errors[o.orderNo] ? 'mt-err' : ''}"><td>${opt}</td>${cols.map(([k, , kind]) => `<td>${mtCell(o, k, kind, v, lock, cx)}</td>`).join('')}</tr>`;
+  }).join('') || `<tr><td colspan="${cols.length + 1}" class="q-note" style="padding:14px;text-align:center">${q.length >= 3 ? 'No matching DTP.' : 'No DTP on this date and type.'}</td></tr>`;
+  $('mtInfo').textContent = `Showing ${rows.length ? start + 1 : 0} to ${start + view.length} of ${rows.length} records`;
+  $('mtPager').innerHTML = pagerFor(mt.page, pages);
+  const p = mtPending();
+  $('mtCnt').textContent = p ? `${mt.cancels.size} to cancel · ${p - mt.cancels.size} changed` : '';
+}
+function bindMaint() {
+  const card = $('dtpCal').querySelector('.mt-card');
+  card.querySelectorAll('.dd > button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const dd = b.parentElement; document.querySelectorAll('.dd').forEach(x => x !== dd && x.classList.remove('open')); dd.classList.toggle('open'); }));
+  card.querySelectorAll('.dd-menu').forEach(m => m.addEventListener('click', e => e.stopPropagation()));
+  $('mtCol').querySelector('.dd-menu').addEventListener('change', e => { const k = e.target.dataset.k; if (k) { e.target.checked ? mt.hidden.delete(k) : mt.hidden.add(k); renderMaint(); } });
+  $('mtDemo').addEventListener('change', e => { const k = e.target.dataset.mdemo; if (k) { demo[k] = e.target.checked; toast(`Demo: ${k === 'mtError' ? 'save failure' : 'driver starts during confirmation'} ${e.target.checked ? 'ON' : 'OFF'}`); } });
+  $('mtDemo').querySelector('[data-mdemo-start]').onclick = () => { $('mtDemo').classList.remove('open'); const o = mtOrders().find(x => x.truck && !D.driverStarted(x, W)); toast(o ? driverStart(o) : 'No assigned order waiting for the driver in this list'); renderMaint(); };
+  $('mtSearch').addEventListener('input', e => { mt.q = e.target.value; mt.page = 1; renderMaint(); });
+  $('mtPager').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b && !b.disabled) { mt.page = +b.dataset.p; renderMaint(); } });
+  const onEdit = e => {
+    const f = e.target.dataset.f, tr = e.target.closest('[data-o]'); if (!f || !tr) return;
+    const o = DATA.find(x => x.orderNo === tr.dataset.o); if (!o) return;
+    let val = e.target.value; if (['renban', 'dest', 'bookNo'].includes(f)) val = val.toUpperCase();
+    mt.edits[o.orderNo] = { ...mtVals(o), [f]: val };
+    if (mt.errors[o.orderNo]) delete mt.errors[o.orderNo][f];
+    e.target.classList.toggle('chg', mtChanged(o).includes(f)); e.target.classList.remove('bad'); e.target.removeAttribute('title');
+    if (e.type === 'change') renderMaint();
+  };
+  $('mtBody').addEventListener('input', onEdit); $('mtBody').addEventListener('change', onEdit);
+  $('mtBody').addEventListener('click', e => {
+    const x = e.target.closest('[data-x]'), u = e.target.closest('[data-undo]');
+    if (x && !x.disabled) { mt.cancels.add(x.dataset.x); renderMaint(); }
+    if (u) { mt.cancels.delete(u.dataset.undo); renderMaint(); }
+  });
+  $('mtCancel').onclick = () => { if (!mtPending()) { toast('No pending change.'); return; } Object.assign(mt, { edits: {}, cancels: new Set(), errors: {} }); renderMaint(); toast('Changes discarded.'); };
+  $('mtBack').onclick = () => mtLeave(() => { location.hash = '#planning-order'; });
+  $('mtMon').onclick = () => mtLeave(() => openMonitoring(mt.date, mt.type));
+  $('mtSave').onclick = confirmMaint;
+  if ($('mtAsPlanner')) $('mtAsPlanner').onclick = () => { $('roleSel').value = 'planner'; $('roleSel').dispatchEvent(new Event('change')); };
+}
+function mtLeave(go) {
+  if (!mtPending()) { Object.assign(mt, { date: null, type: null }); go(); return; }
+  showPreview('Discard changes?', `<div class="form-alert" style="background:#fff7e6;border-color:#fcd9a3;color:#92400e">There are ${mtPending()} unsaved change(s) in the ${esc(mtTypeLabel(mt.type))} list. Leave without saving?</div>`,
+    '<button class="btn-outline" id="mlStay">Stay</button><button class="btn-dark" id="mlGo">Discard and leave</button>');
+  $('mlStay').onclick = closePreview;
+  $('mlGo').onclick = () => { closePreview(); Object.assign(mt, { date: null, type: null, edits: {}, cancels: new Set(), errors: {} }); go(); };
+}
+function confirmMaint() {
+  const orders = mtOrders();
+  const rows = orders.filter(o => mt.cancels.has(o.orderNo)).map(o => ({ key: o.orderNo, o, r: mtRec(o), cancel: true }))
+    .concat(orders.filter(o => !mt.cancels.has(o.orderNo) && mtChanged(o).length).map(o => ({ key: o.orderNo, o, r: mtRec(o), values: mt.edits[o.orderNo] })));
+  if (!rows.length) { toast(D.MT_MSG.nothing); return; }
+  const lbl = k => MCOLS.find(c => c[0] === k)?.[1] || k;
+  const line = x => {
+    const o = x.o, ch = x.cancel ? [] : mtChanged(o), lpMove = !x.cancel && ch.includes('lp') && o.truck;
+    return `<tr><td>${o.orderNo}</td><td>${esc(o.supplier)}</td><td>${esc(o.from)} &rarr; ${esc(o.to)}</td><td>${o.status}${o.truck ? ` · ${o.truck}` : ''}</td>
+      <td>${x.cancel ? '<b style="color:#c62828">Cancel DTP</b> (Daily order cancelled' + (o.truck ? ', truck released' : '') + ')' : `Update: ${ch.map(lbl).join(', ')}${lpMove ? ' <b style="color:#b45309">(truck released, LP must accept again)</b>' : ''}`}</td></tr>`;
+  };
+  showPreview(`Confirm ${mtTypeLabel(mt.type)} Maintenance`, `<p style="margin:0 0 8px">Save the following change(s) for ${D.fmtLong(mt.date)}? The driver status is checked again before saving.</p>
+    <div class="err-scroll"><table class="err-table"><tr><th>Order No</th><th>Truck Company</th><th>From &rarr; To</th><th>Status</th><th>Change</th></tr>${rows.map(line).join('')}</table></div>
+    <div class="form-alert" style="background:#fff7e6;border-color:#fcd9a3;color:#92400e;margin-top:10px">Cancelled DTP are removed for the LP Admin, Truck Assignment and the driver; history is kept. Started orders cannot be changed.</div>`,
+    '<button class="btn-outline" id="mcNo">Back</button><button class="btn-dark" id="mcYes">Save</button>');
+  $('mcNo').onclick = closePreview;
+  $('mcYes').onclick = () => {
+    $('mcYes').disabled = true;
+    if (demo.mtRace) { const o = rows.map(x => x.o).find(x => x.truck && !D.driverStarted(x, W)); if (o) driverStart(o); }
+    const res = D.maintSave(rows, { at: new Date(), actor: state.actor, W, vctx: DCTX, names: MNAMES, fail: demo.mtError,
+      removeOrder: o => { const i = DATA.indexOf(o); if (i >= 0) DATA.splice(i, 1); },
+      removeRecord: r => { const i = RECS.indexOf(r); if (i >= 0) RECS.splice(i, 1); } });
+    closePreview();
+    if (res.ok) {
+      Object.assign(mt, { edits: {}, cancels: new Set(), errors: {} });
+      persist(); window.render?.(); renderMaint(); toast(res.message); return;
+    }
+    if (res.errors) { mt.errors = res.errors; renderMaint(); }
+    if (res.failed) renderMaint();
+    showPreview(res.status === 500 ? 'Save failed' : 'Save not possible', `<div class="form-alert">${esc(res.error)}</div>
+      ${res.failed ? `<div class="err-scroll"><table class="err-table"><tr><th>Order No</th><th>Reason</th></tr>${res.failed.map(f => `<tr><td>${f.key}</td><td>${esc(f.msg)}</td></tr>`).join('')}</table></div>` : ''}
+      ${res.errors ? `<div class="err-scroll"><table class="err-table"><tr><th>Order No</th><th>Field</th><th>Message</th></tr>${Object.entries(res.errors).flatMap(([k, e]) => Object.entries(e).map(([f, m]) => `<tr><td>${k}</td><td>${lbl(f)}</td><td>${esc(m)}</td></tr>`)).join('')}</table></div>` : ''}`,
+      '<button class="btn-outline" id="mfOk">Close</button>');
+    $('mfOk').onclick = closePreview;
+  };
 }
 
 // Universal DTP selection modal
