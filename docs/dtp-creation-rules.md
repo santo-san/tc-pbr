@@ -49,13 +49,14 @@ Opened by clicking a calendar entry (`#planning-order/maint/YYYY-MM-DD/<type>`).
 | Element | Content |
 |---|---|
 | Header | `Daily Plan Date : dd/mm/yyyy` · link *Open in Daily Monitoring* · Demo menu · `▸ DTP n - Maintenance` (Universal DTP for DTP Creation orders) |
-| Bar | Title **DTP n List**, Search (from 3 characters), **Kolom** (show / hide columns) |
+| Bar | Title **DTP n List**, **Delete Selected (n)**, **Restore Selected (n)**, "n selected", Search (from 3 characters), **Kolom** (show / hide columns) |
 | Columns | Options (✕ cancel / ↺ undo), Round Use, Truck Company, Renban, From, To, Destination, ETD, Ctr Size, Agent, Ctr Book No, Container No (read only: entered by the driver at Pick Up), Ctr Type (GP / HC), Ctr DG ?, Vessel, Truck Type, Description, Service Type (Container for Export / Import = Import/Export of the record), Shift, Arr. Date, Arr. Time, Order No, Driver Status |
 | Footer | Showing x to y of n records, pager; **Back** (asks before discarding unsaved changes), **Cancel** (discard pending changes), **Save** |
 
 | ID | Rule |
 |---|---|
 | MT-01 | A row can be changed or cancelled only while the driver has not started: order Planning Order / Order Release and no cycle with Start Cycle (same rule as DTP Switching). Started rows are read only and ✕ is disabled with the reason. |
+| MT-01a | **Multiple delete:** a checkbox per row and **Select All** in the Options header (all rows of the current search, every page, that can still be deleted; started rows are excluded and their checkbox is disabled). **Delete Selected** marks every selected row for deletion at once, **Restore Selected** removes the mark; the single ✕ / ↺ per row still works. The deletion is executed with **Save** (MT-04), together with other changes, in one confirmation. A row whose driver starts meanwhile leaves the selection. |
 | MT-02 | Only the VPLD Planner may change / cancel (DT-01). Other roles see the list read only. |
 | MT-03 | Changed cells are highlighted. Save validates with the DTP Creation rules (DT-04..DT-10: mandatory fields, mapping codes, From ≠ To, formats, options; Ctr Size + Ctr Type must give 20 / 40 / 40 HC / 45). Errors are shown per cell and in a list; nothing is saved. Orders without a DTP record (older DTP 1-4 data) are checked on the order fields only. |
 | MT-04 | Save asks for confirmation (list of cancellations and changes) and runs as one transaction, all-or-nothing (as Submit DT-15). **Cancel**: the Daily order is cancelled (removed for LP Admin, Truck Assignment and the driver; truck released) and the DTP record is deleted, with a history note. **Change**: the DTP record and the Daily order (LP, From / To, Renban, Shift, planned cycles, DTP details) are updated, with an order history row *DTP Maintenance*. |

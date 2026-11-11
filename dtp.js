@@ -242,7 +242,7 @@ const MOPTS = {
   roundUse: () => [['Y', 'Yes'], ['N', 'No']], lp: () => lpOpts(), from: () => fromOpts(), to: () => toOpts(), ctrSize: () => ['20', '40', '45'], ctrType: () => D.CTR_TYPES,
   dg: () => [['N', 'No'], ['Y', 'Yes']], truckType: () => [...new Set(MASTER.trucks.map(t => t.type))].sort(), serviceType: () => Object.values(D.SERVICE_TYPES), shift: () => D.OPTIONS.shift,
 };
-const mt = { date: null, type: null, q: '', page: 1, size: 10, hidden: new Set(), edits: {}, cancels: new Set(), errors: {} };
+const mt = { date: null, type: null, q: '', page: 1, size: 10, hidden: new Set(), edits: {}, cancels: new Set(), errors: {}, sel: new Set() };
 const mtTypeLabel = t => t === 'Universal' ? 'Universal DTP' : String(t).replace(/^DTP(\d)$/, 'DTP $1');
 const mtOrders = () => DATA.filter(o => o.date === mt.date && o.type === mt.type);
 const mtRec = o => o.dtp ? RECS.find(r => r.orderNo === o.orderNo) || null : null;
@@ -253,7 +253,7 @@ const mtLock = o => !isPlanner() ? D.MSG.noAuth : D.maintCheck(o, W)?.msg || '';
 const mtPending = () => mt.cancels.size + mtOrders().filter(o => !mt.cancels.has(o.orderNo) && mtChanged(o).length).length;
 
 function openMaint(date, type) {
-  if (mt.date !== date || mt.type !== type) Object.assign(mt, { date, type, q: '', page: 1, edits: {}, cancels: new Set(), errors: {} });
+  if (mt.date !== date || mt.type !== type) Object.assign(mt, { date, type, q: '', page: 1, edits: {}, cancels: new Set(), errors: {}, sel: new Set() });
   $('dtpCreate').style.display = 'none'; $('dtpCal').style.display = '';
   const lbl = mtTypeLabel(type), ro = !isPlanner();
   $('dtpCal').innerHTML = `<section class="cal-card mt-card">
@@ -265,7 +265,10 @@ function openMaint(date, type) {
         <button data-mdemo-start>Driver starts the first assigned order</button></div></div>
       <span class="mt-title">&#9656; ${esc(lbl)} - Maintenance</span></div>
     ${ro ? `<div class="view-only ro-strong"><b>&#128274; ${esc(D.MSG.noAuth)}</b> The list is read only. <button class="btn-sm-blue" id="mtAsPlanner">Login sebagai Planner VPLD</button></div>` : ''}
-    <div class="mt-bar"><h3>${esc(lbl)} List</h3><span class="spacer"></span>
+    <div class="mt-bar"><h3>${esc(lbl)} List</h3>
+      <button class="btn-del" id="mtDelSel" disabled title="Mark the selected DTP for deletion (confirmed with Save)">&#10005; Delete Selected</button>
+      <button class="btn-outline mt-rest" id="mtRestSel" disabled title="Remove the deletion mark of the selected DTP">&#8634; Restore Selected</button>
+      <span class="q-note" id="mtSelCnt"></span><span class="spacer"></span>
       <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="text" id="mtSearch" placeholder="Search [ Input 3 characters ]" style="width:190px" value="${esc(mt.q)}"></div>
       <div class="dd" id="mtCol"><button class="btn-blue"><svg width="15" height="13" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="22" height="18" rx="2"/><path d="M5 6h14M5 10h14M5 14h14"/></svg>Kolom <span style="font-size:8px">▼</span></button>
         <div class="dd-menu dd-right">${MCOLS.map(([k, l]) => `<label><input type="checkbox" data-k="${k}" ${mt.hidden.has(k) ? '' : 'checked'}> ${l}</label>`).join('')}</div></div></div>
@@ -295,15 +298,22 @@ function renderMaint() {
   if (q.length >= 3) rows = rows.filter(o => [o.orderNo, ...Object.values(mtVals(o)), o.supplier, o.from, o.to].join(' ').toLowerCase().includes(q));
   const pages = Math.max(1, Math.ceil(rows.length / mt.size)); mt.page = Math.min(mt.page, pages);
   const start = (mt.page - 1) * mt.size, view = rows.slice(start, start + mt.size);
-  $('mtHead').innerHTML = `<tr><th style="min-width:54px">Options</th>${cols.map(([, l, , w]) => `<th style="min-width:${w}px">${l}</th>`).join('')}</tr>`;
+  const selectable = rows.filter(o => !mtLock(o)), allOn = selectable.length > 0 && selectable.every(o => mt.sel.has(o.orderNo));
+  $('mtHead').innerHTML = `<tr><th style="min-width:84px"><label class="mt-all" title="Select all DTP that can still be deleted (all pages of the current search)"><input type="checkbox" id="mtAll" ${allOn ? 'checked' : ''} ${selectable.length ? '' : 'disabled'}> Options</label></th>${cols.map(([, l, , w]) => `<th style="min-width:${w}px">${l}</th>`).join('')}</tr>`;
   $('mtBody').innerHTML = view.map(o => {
     const v = mtVals(o), lock = mtLock(o), cx = mt.cancels.has(o.orderNo);
     const opt = cx ? `<button class="mt-x undo" data-undo="${o.orderNo}" title="Undo cancel">&#8634;</button>`
       : `<button class="mt-x" data-x="${o.orderNo}" ${lock ? `disabled title="${esc(lock)}"` : 'title="Cancel / delete this DTP"'}>&#10005;</button>`;
-    return `<tr data-o="${o.orderNo}" class="${cx ? 'mt-cx' : ''} ${lock ? 'mt-lock' : ''} ${mt.errors[o.orderNo] ? 'mt-err' : ''}"><td>${opt}</td>${cols.map(([k, , kind]) => `<td>${mtCell(o, k, kind, v, lock, cx)}</td>`).join('')}</tr>`;
+    const chk = `<input type="checkbox" class="mt-chk" data-sel="${o.orderNo}" ${mt.sel.has(o.orderNo) ? 'checked' : ''} ${lock ? `disabled title="${esc(lock)}"` : ''}>`;
+    return `<tr data-o="${o.orderNo}" class="${cx ? 'mt-cx' : ''} ${lock ? 'mt-lock' : ''} ${mt.errors[o.orderNo] ? 'mt-err' : ''} ${mt.sel.has(o.orderNo) ? 'mt-sel' : ''}"><td class="mt-opt">${chk}${opt}</td>${cols.map(([k, , kind]) => `<td>${mtCell(o, k, kind, v, lock, cx)}</td>`).join('')}</tr>`;
   }).join('') || `<tr><td colspan="${cols.length + 1}" class="q-note" style="padding:14px;text-align:center">${q.length >= 3 ? 'No matching DTP.' : 'No DTP on this date and type.'}</td></tr>`;
   $('mtInfo').textContent = `Showing ${rows.length ? start + 1 : 0} to ${start + view.length} of ${rows.length} records`;
   $('mtPager').innerHTML = pagerFor(mt.page, pages);
+  [...mt.sel].forEach(k => { const o = DATA.find(x => x.orderNo === k); if (!o || mtLock(o) || o.date !== mt.date || o.type !== mt.type) mt.sel.delete(k); });   // started / gone rows leave the selection
+  const ns = mt.sel.size, nMark = [...mt.sel].filter(k => !mt.cancels.has(k)).length, nRest = ns - nMark;
+  $('mtDelSel').disabled = !nMark; $('mtDelSel').innerHTML = `&#10005; Delete Selected${nMark ? ` (${nMark})` : ''}`;
+  $('mtRestSel').disabled = !nRest; $('mtRestSel').innerHTML = `&#8634; Restore Selected${nRest ? ` (${nRest})` : ''}`;
+  $('mtSelCnt').textContent = ns ? `${ns} selected` : '';
   const p = mtPending();
   $('mtCnt').textContent = p ? `${mt.cancels.size} to cancel · ${p - mt.cancels.size} changed` : '';
 }
@@ -331,7 +341,18 @@ function bindMaint() {
     if (x && !x.disabled) { mt.cancels.add(x.dataset.x); renderMaint(); }
     if (u) { mt.cancels.delete(u.dataset.undo); renderMaint(); }
   });
-  $('mtCancel').onclick = () => { if (!mtPending()) { toast('No pending change.'); return; } Object.assign(mt, { edits: {}, cancels: new Set(), errors: {} }); renderMaint(); toast('Changes discarded.'); };
+  $('mtBody').addEventListener('change', e => { const c = e.target.closest('[data-sel]'); if (c) { c.checked ? mt.sel.add(c.dataset.sel) : mt.sel.delete(c.dataset.sel); renderMaint(); } });
+  $('mtHead').addEventListener('change', e => {
+    if (e.target.id !== 'mtAll') return;
+    const q = mt.q.trim().toLowerCase(), rows = mtOrders().filter(o => q.length < 3 || [o.orderNo, ...Object.values(mtVals(o)), o.supplier, o.from, o.to].join(' ').toLowerCase().includes(q));
+    rows.filter(o => !mtLock(o)).forEach(o => e.target.checked ? mt.sel.add(o.orderNo) : mt.sel.delete(o.orderNo)); renderMaint();
+  });
+  $('mtDelSel').onclick = () => {
+    const ks = [...mt.sel].filter(k => !mt.cancels.has(k)); ks.forEach(k => mt.cancels.add(k)); mt.sel.clear(); renderMaint();
+    toast(`${ks.length} DTP marked for deletion. Click Save to confirm.`);
+  };
+  $('mtRestSel').onclick = () => { const ks = [...mt.sel].filter(k => mt.cancels.has(k)); ks.forEach(k => mt.cancels.delete(k)); mt.sel.clear(); renderMaint(); toast(`${ks.length} DTP restored.`); };
+  $('mtCancel').onclick = () => { if (!mtPending()) { toast('No pending change.'); return; } Object.assign(mt, { edits: {}, cancels: new Set(), errors: {}, sel: new Set() }); renderMaint(); toast('Changes discarded.'); };
   $('mtBack').onclick = () => mtLeave(() => { location.hash = '#planning-order'; });
   $('mtMon').onclick = () => mtLeave(() => openMonitoring(mt.date, mt.type));
   $('mtSave').onclick = confirmMaint;
@@ -368,7 +389,7 @@ function confirmMaint() {
       removeRecord: r => { const i = RECS.indexOf(r); if (i >= 0) RECS.splice(i, 1); } });
     closePreview();
     if (res.ok) {
-      Object.assign(mt, { edits: {}, cancels: new Set(), errors: {} });
+      Object.assign(mt, { edits: {}, cancels: new Set(), errors: {}, sel: new Set() });
       persist(); window.render?.(); renderMaint(); toast(res.message); return;
     }
     if (res.errors) { mt.errors = res.errors; renderMaint(); }
