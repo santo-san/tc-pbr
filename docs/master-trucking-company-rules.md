@@ -2,7 +2,7 @@
 
 Master Trucking Company dipakai untuk mendaftarkan dan memelihara trucking company sebagai **vendor tc-PBR**: tambah, ubah, hapus, cari, dan export.
 
-Mock-up: `master.html#trucking-company`. Logika validasi ada di [`master-trucking.js`](../master-trucking.js).
+Mock-up: `master.html#trucking-company`. Logika validasi ada di [`master-trucking.js`](../master-trucking.js). UISS: [`uiss/UISS_Screen_Master_Trucking_Company.xlsx`](uiss/UISS_Screen_Master_Trucking_Company.xlsx).
 
 Menu Master berisi 8 submenu: **Trucking Company**, Mileage, Price, Location Code, Priority, Renban, KPI, Route Percentage. Saat ini baru Trucking Company yang dibuat; yang lain masih placeholder.
 
