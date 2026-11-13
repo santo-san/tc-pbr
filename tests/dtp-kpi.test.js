@@ -115,6 +115,38 @@ test('KM-11/12: By Trip daily limit from the trips per day (5 -> TCA 3, TCB 2), 
   assert.deepStrictEqual([bad.sumPct, bad.sumOk], [90, false]);
 });
 
+// ---------- Payment Type per DTP chosen by the planner (KM-13 .. KM-15) ----------
+const P = D.PAY, planner = { role: 'PLANNER', name: 'Planner VPLD' };
+const ptRecs = (lp, status, n, payType) => recs(lp, '2026-11-05', status, n).map(r => Object.assign(r, { payType, history: [] }));
+test('KM-13: the planner\'s Payment Type decides by resource / by trip; By Resources above the limit is over allocation', () => {
+  // TCA: limit 2 + By Trip. Planner: 1 By Resources, 3 By Trip, 1 without type (auto -> fills the free resource slot)
+  const r = [...ptRecs('TCA', S.PROCESSED, 1, P.RES), ...ptRecs('TCA', S.PROCESSED, 3, P.TRIP), ...ptRecs('TCA', S.SUBMITTED, 1, undefined)];
+  const a = row(monT(r), 'TCA');
+  assert.deepStrictEqual([a.assigned, a.tripAssigned, a.over, a.remaining], [2, 3, 0, 0]);
+  const o = row(monT(ptRecs('TCA', S.PROCESSED, 3, P.RES)), 'TCA');   // planner chose By Resources 3 times: over 1, nothing by trip
+  assert.deepStrictEqual([o.assigned, o.over, o.tripAssigned, o.level], [3, 1, 0, 'full']);
+  const s = row(monT([...ptRecs('TCA', S.PROCESSED, 1, P.TRIP), ...ptRecs('TCA', S.READY, 1, P.RES)]), 'TCA');   // projection follows the type
+  assert.deepStrictEqual([s.assigned, s.tripAssigned, s.after, s.tripAfter], [0, 1, 1, 1]);
+});
+test('KM-14 / KM-15: types of a company, default By Resources while a slot is free, change only before submit, submit check', () => {
+  const ap = MK.applicable;
+  assert.deepStrictEqual([D.payTypesFor('TCA', '2026-11-05', KT, ap), D.payTypesFor('TCB', '2026-11-05', KT, ap), D.payTypesFor('TCD', '2026-11-05', KT, ap), D.payTypesFor('TCC', '2026-11-05', KT, ap)],
+    [[P.RES, P.TRIP], [P.TRIP], [], [P.RES]]);   // TCD By Trip 0 % -> not eligible
+  const g = ptRecs('TCA', S.AVAILABLE, 2, P.RES);
+  assert.strictEqual(D.suggestPayType('TCA', '2026-11-05', g, KT, ap), P.TRIP);   // 2 of 2 slots planned
+  assert.strictEqual(D.suggestPayType('TCA', '2026-11-05', g.slice(0, 1), KT, ap), P.RES);
+  assert.strictEqual(D.suggestPayType('TCC', '2026-11-05', ptRecs('TCC', S.AVAILABLE, 5, P.RES), KT, ap), P.RES);   // no By Trip: stays By Resources
+  const x = ptRecs('TCB', S.AVAILABLE, 1, P.TRIP)[0], lockedR = ptRecs('TCA', S.SUBMITTED, 1, P.RES)[0];
+  const ctx = { date: '2026-11-05', kpiRows: KT, applicable: ap, at: new Date(), actor: planner };
+  assert.match(D.setPayType([x], P.RES, ctx).error, /TCB has no By Resources/);
+  assert.match(D.setPayType([lockedR], P.TRIP, ctx).error, /cannot be changed/);
+  const y = ptRecs('TCA', S.READY, 1, P.RES)[0];
+  assert.deepStrictEqual([D.setPayType([y], P.TRIP, ctx).ok, y.payType, y.history.length], [true, P.TRIP, 1]);
+  assert.strictEqual(D.setPayType([y], P.TRIP, { ...ctx, actor: { role: 'IP', name: 'IP' } }).ok, false);
+  const issues = D.payIssues([Object.assign({}, y, { payType: '' }), Object.assign({}, x, { payType: P.RES }), ptRecs('ZZZ', S.READY, 1, undefined)[0]], '2026-11-05', KT, ap);
+  assert.deepStrictEqual(issues.map(i => /select the Payment Type/.test(i.msg) ? 'none' : 'wrong'), ['none', 'wrong']);   // ZZZ has no Master KPI: not checked
+});
+
 let fail = 0;
 for (const [n, f] of tests) { try { f(); console.log('ok  -', n); } catch (e) { fail++; console.log('FAIL-', n, '\n   ', e.message); } }
 console.log(`\n${tests.length - fail}/${tests.length} passed`);

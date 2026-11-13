@@ -8,6 +8,11 @@ const LOC_FROM = { D1: 'Depo Sunter', D2: 'Depo Cikarang', D3: 'Depo Cakung Maru
 const LOC_TO = { K1E: 'CY TMMIN Karawang (EMPTY)', S1E: 'CY TMMIN Sunter (EMPTY)' };
 const DCTX = { lps: SUPPLIERS.map(s => s[1]), from: Object.keys(LOC_FROM), to: Object.keys(LOC_TO), containerError: W.containerError };
 const NAMES = { lp: c => SUP_BY_CODE[c] || window.MasterKpi?.NAMES?.[c] || c, from: c => LOC_FROM[c] || c, to: c => LOC_TO[c] || c };
+// Master KPI rows (single mock source MasterKpi.SEED, as on the Master KPI screen); Order Sharing = daily limit per trucking company
+const MK = window.MasterKpi;
+const KPI_ROWS = MK.SEED.map(({ partner, paymentType, score, orderSharing, dailyTrip }) => ({ partner, paymentType, score, orderSharing, ...(dailyTrip != null ? { dailyTrip } : {}), uom: MK.UOM }));
+// Payment Type per DTP (KM-13..KM-15): types of a company from Master KPI, grid cell, change (row or selected records)
+const payTypes = (lp, date) => lp ? D.payTypesFor(lp, date, KPI_ROWS, MK.applicable) : [];
 const SRC_CLS = { [D.SOURCE.IPMS]: 'IPMS', [D.SOURCE.EXCEL]: 'EXCEL', [D.SOURCE.MANUAL]: 'MANUAL' };
 const ST_CLS = { [S.AVAILABLE]: 'av', [S.ERROR]: 'er', [S.READY]: 'rd', [S.SUBMITTED]: 'sb', [S.QUEUED]: 'qu', [S.PROCESSING]: 'pr', [S.PROCESSED]: 'ok', [S.FAILED]: 'fl' };
 const CAL_CLS = { [D.CAL.WAIT]: 'w', [D.CAL.ASSIGNED]: 'a', [D.CAL.REJECTED]: 'r', [D.CAL.FINISH]: 'f' };
@@ -26,7 +31,8 @@ function restore() {
     const s = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (!s) return false;
     ({ RECS, recSeq, PULLED } = s);
-    RECS.forEach(r => { if (r.source === 'BEST Interface') r.source = D.SOURCE.IPMS; });   // records stored before the source was renamed to IPMS
+    RECS.forEach(r => { if (r.source === 'BEST Interface') r.source = D.SOURCE.IPMS; });
+    RECS.forEach(r => { if (!r.payType && !D.LOCKED.includes(r.status) && r.status !== S.FAILED) r.payType = D.suggestPayType(r.lp, r.date, RECS, KPI_ROWS, MK.applicable, r); });   // stored before Payment Type existed   // records stored before the source was renamed to IPMS
     RECS.forEach(r => { r.history.forEach(h => { h.at = new Date(h.at); }); if (r.submittedAt) r.submittedAt = new Date(r.submittedAt); });
     // processed records: their Daily orders are part of the order data again
     RECS.filter(r => r.status === S.PROCESSED && r.orderNo && !DATA.some(o => o.orderNo === r.orderNo)).forEach(r => DATA.push(orderOf(r, new Date(r.history.at(-1).at))));
@@ -61,6 +67,8 @@ function pullIpms(date) {
 function addRecord(raw, date, source) {
   const r = D.makeRecord(raw, { id: recSeq++, date, source, grid: RECS, ctx: DCTX });
   r.failOnce = !!raw.failOnce;
+  // KM-14: Payment Type chosen by the planner (manual entry) or the default (By Resources while a slot is free, then By Trip)
+  r.payType = raw.payType && payTypes(r.lp, date).includes(raw.payType) ? raw.payType : D.suggestPayType(r.lp, date, RECS, KPI_ROWS, MK.applicable);
   r.history.push({ at: new Date(), status: r.status, note: `Received from ${source}` });
   RECS.push(r); return r;
 }
@@ -70,7 +78,7 @@ const orderOf = (r, at) => {
   const o = W.newOrder(D.orderPayload(r, NAMES), { role: 'PLANNER', name: r.submittedBy || 'Planner VPLD' }, at, r.orderNo, 'DTP Creation (Universal DTP)',
     `${r.io} · ${r.source} · Container ${r.container || '-'}`);
   o.dtp = { recId: r.id, io: r.io, exporter: r.exporter, importerCd: r.importerCd, container: r.container, dest: r.dest, vessel: r.vessel,
-    agent: r.agent, bookNo: r.bookNo, ctrSize: r.ctrSize, truckType: r.truckType, fromCd: r.from, toCd: r.to };
+    agent: r.agent, bookNo: r.bookNo, ctrSize: r.ctrSize, truckType: r.truckType, fromCd: r.from, toCd: r.to, payType: r.payType || '' };
   return o;
 };
 const QUEUE = []; let qBusy = false;
@@ -234,14 +242,14 @@ function openMonitoring(date, type) {
 const SUP_CODE = Object.fromEntries(SUPPLIERS.map(([n, c]) => [n, c]));
 const revMap = m => n => Object.keys(m).find(k => m[k] === n) || n || '';
 const MNAMES = { ...NAMES, lpCode: n => SUP_CODE[n] || n || '', fromCode: revMap(LOC_FROM), toCode: revMap(LOC_TO) };
-const MCOLS = [['roundUse', 'Round Use', 'sel', 70], ['lp', 'Truck Company', 'sel', 190], ['renban', 'Renban', 'txt', 64], ['from', 'From', 'sel', 150], ['to', 'To', 'sel', 160],
+const MCOLS = [['roundUse', 'Round Use', 'sel', 70], ['lp', 'Truck Company', 'sel', 190], ['payType', 'Payment Type', 'sel', 120], ['renban', 'Renban', 'txt', 64], ['from', 'From', 'sel', 150], ['to', 'To', 'sel', 160],
   ['dest', 'Destination', 'txt', 64], ['etd', 'ETD', 'date', 118], ['ctrSize', 'Ctr Size', 'sel', 62], ['agent', 'Agent', 'txt', 78], ['bookNo', 'Ctr Book No', 'txt', 92],
   ['container', 'Container No', 'ro', 96], ['ctrType', 'Ctr Type', 'sel', 62], ['dg', 'Ctr DG ?', 'sel', 62], ['vessel', 'Vessel', 'txt', 92], ['truckType', 'Truck Type', 'sel', 84],
   ['description', 'Description', 'txt', 92], ['serviceType', 'Service Type', 'sel', 170], ['shift', 'Shift', 'sel', 110], ['arrDate', 'Arr. Date', 'date', 118],
   ['arrTime', 'Arr. Time', 'time', 84], ['orderNo', 'Order No', 'info', 130], ['drv', 'Driver Status', 'info', 150]];
 const MOPTS = {
   roundUse: () => [['Y', 'Yes'], ['N', 'No']], lp: () => lpOpts(), from: () => fromOpts(), to: () => toOpts(), ctrSize: () => ['20', '40', '45'], ctrType: () => D.CTR_TYPES,
-  dg: () => [['N', 'No'], ['Y', 'Yes']], truckType: () => [...new Set(MASTER.trucks.map(t => t.type))].sort(), serviceType: () => Object.values(D.SERVICE_TYPES), shift: () => D.OPTIONS.shift,
+  dg: () => [['N', 'No'], ['Y', 'Yes']], payType: () => Object.values(D.PAY), truckType: () => [...new Set(MASTER.trucks.map(t => t.type))].sort(), serviceType: () => Object.values(D.SERVICE_TYPES), shift: () => D.OPTIONS.shift,
 };
 const mt = { date: null, type: null, q: '', page: 1, size: 10, hidden: new Set(), edits: {}, cancels: new Set(), errors: {}, sel: new Set() };
 const mtTypeLabel = t => t === 'Universal' ? 'Universal DTP' : String(t).replace(/^DTP(\d)$/, 'DTP $1');
@@ -378,7 +386,7 @@ function confirmMaint() {
   $('mcYes').onclick = () => {
     $('mcYes').disabled = true;
     if (demo.mtRace) { const o = rows.map(x => x.o).find(x => x.truck && !D.driverStarted(x, W)); if (o) driverStart(o); }
-    const res = D.maintSave(rows, { at: new Date(), actor: state.actor, W, vctx: DCTX, names: MNAMES, fail: demo.mtError,
+    const res = D.maintSave(rows, { at: new Date(), actor: state.actor, W, vctx: DCTX, names: MNAMES, fail: demo.mtError, payTypes: lp => payTypes(lp, mt.date),
       removeOrder: o => { const i = DATA.indexOf(o); if (i >= 0) DATA.splice(i, 1); },
       removeRecord: r => { const i = RECS.indexOf(r); if (i >= 0) RECS.splice(i, 1); } });
     closePreview();
@@ -412,15 +420,24 @@ function pickDtp(date) {
 
 // ---------- DTP Creation ----------
 const DCOLS = [['io', 'Import/Export', 1], ['exporter', 'Exporter', 1], ['importerCd', 'Importer CD', 1], ['container', 'Container No.', 1], ['renban', 'Renban', 1],
-  ['etd', 'ETD Based', 1], ['vessel', 'Vessel Name', 1], ['source', 'Data Source', 1], ['status', 'Status', 1], ['lp', 'LP', 1], ['orderNo', 'Order No', 1], ['drv', 'Driver Status', 1],
+  ['etd', 'ETD Based', 1], ['vessel', 'Vessel Name', 1], ['source', 'Data Source', 1], ['status', 'Status', 1], ['lp', 'LP', 1], ['payType', 'Payment Type', 1], ['orderNo', 'Order No', 1], ['drv', 'Driver Status', 1],
   ['from', 'From Location', 0], ['to', 'To Location', 0], ['dest', 'Destination', 0], ['roundUse', 'Round Use', 0], ['ctrSize', 'Container Size', 0], ['agent', 'Shipping Agent', 0],
   ['bookNo', 'Ctr Booking No', 0], ['truckType', 'Truck Type', 0], ['shift', 'Shift', 0], ['dg', 'Ctr DG Flag', 0], ['arrDate', 'Arrival Date', 0], ['arrTime', 'Arrival Time', 0], ['description', 'Description', 0]];
 const dc = { date: null, io: 'EXPORT', q: '', fStatus: '', fSource: '', fIo: '', sort: 'id', dir: 1, page: 1, size: 25, hidden: new Set(DCOLS.filter(c => !c[2]).map(c => c[0])), flash: new Set(), sw: new Set() };
 const orderFor = r => r.orderNo ? DATA.find(o => o.orderNo === r.orderNo) : null;
-// Master KPI rows (single mock source MasterKpi.SEED, as on the Master KPI screen); Order Sharing = daily limit per trucking company
-const MK = window.MasterKpi;
-const KPI_ROWS = MK.SEED.map(({ partner, paymentType, score, orderSharing, dailyTrip }) => ({ partner, paymentType, score, orderSharing, ...(dailyTrip != null ? { dailyTrip } : {}), uom: MK.UOM }));
 const kpiMon = (date = dc.date) => D.kpiMonitor({ date, records: RECS, lps: DCTX.lps, kpiRows: KPI_ROWS, applicable: MK.applicable, byResource: MK.PAYMENT_BY_RESOURCE, byTrip: MK.PAYMENT_BY_TRIP, dailyTrips: MK.DAILY_TRIPS, tripLimits: MK.allocateTrip, rejected: r => !!orderFor(r)?.lpRejected });
+function payCell(r, ro) {
+  const types = payTypes(r.lp, r.date), cls = r.payType === D.PAY.TRIP ? 'trip' : r.payType === D.PAY.RES ? 'res' : 'none';
+  const editable = !ro && !D.LOCKED.includes(r.status) && r.status !== S.FAILED && types.length;
+  if (!editable) return r.payType ? `<span class="pt ${cls}">${esc(r.payType)}</span>` : (types.length ? '<span class="pt none">-</span>' : '<span class="q-note" title="No Master KPI for this trucking company">-</span>');
+  const opts = [...new Set([...types, ...(r.payType ? [r.payType] : [])])];
+  return `<select class="pt-sel ${cls}" data-pay="${r.id}" title="Payment Type: ${types.join(' / ')}">${r.payType ? '' : '<option value="">- Select -</option>'}${opts.map(v => `<option ${v === r.payType ? 'selected' : ''} ${types.includes(v) ? '' : 'disabled'}>${v}</option>`).join('')}</select>`;
+}
+function applyPayType(list, value) {
+  const res = D.setPayType(list, value, { date: dc.date, kpiRows: KPI_ROWS, applicable: MK.applicable, at: new Date(), actor: state.actor });
+  if (!res.ok) { toast(res.error); renderGrid(); return; }
+  persist(); list.forEach(r => dc.flash.add(r.id)); renderGrid(); toast(`${res.count} record(s): Payment Type ${value}`);
+}
 const swCheck = r => D.switchCheck(r, DATA, W);
 const drvStatus = r => { const o = r.status === S.PROCESSED ? orderFor(r) : null; return !o ? '-' : D.driverStarted(o, W) ? `Started (${o.status})` : `Not Started (${o.status})`; };
 
@@ -461,6 +478,8 @@ function openCreate(date) {
     <div class="grid-bar">
       <label class="selall"><input type="checkbox" id="dcAll" ${ro ? 'disabled' : ''}><span><b>Select All</b><small id="dcSelCount">0 Selected</small></span></label>
       <button class="btn-del" id="dcDelete" ${ro ? 'disabled' : ''}>&#10005; Delete</button>
+      <div class="dd" id="ddPay"><button class="btn-pay" id="dcPayBtn" ${ro ? 'disabled' : ''} title="Set the Payment Type of the selected records">&#9881; Payment Type <span style="font-size:8px">▼</span></button>
+        <div class="dd-menu">${Object.values(D.PAY).map(v => `<button data-setpay="${v}">Set ${v}</button>`).join('')}</div></div>
       <button class="btn-switch" id="dcSwitch" disabled title="Rollback submitted DTP while the driver has not started">&#8644; DTP Switching</button>
       <span class="spacer"></span>
       <select id="dcFStatus" aria-label="Status filter"><option value="">All Status</option>${Object.values(S).map(s => `<option>${s}</option>`).join('')}</select>
@@ -487,7 +506,7 @@ const lpOpts = () => DCTX.lps.map(c => [c, `${c} - ${NAMES.lp(c)}`]);
 const fromOpts = () => Object.entries(LOC_FROM).map(([c, n]) => [c, `${c} - ${n}`]);
 const toOpts = () => Object.entries(LOC_TO).map(([c, n]) => [c, `${c} - ${n}`]);
 const FORM = [['io', 'Import/Export', 'select', true, () => D.IO.map(v => [v, v])], ['exporter', 'Exporter', 'text'], ['importerCd', 'Importer CD', 'text'],
-  ['roundUse', 'Round Use', 'select', true, () => [['N', 'N'], ['Y', 'Y']]], ['lp', 'LP', 'select', true, lpOpts], ['renban', 'Renban', 'text', true],
+  ['roundUse', 'Round Use', 'select', true, () => [['N', 'N'], ['Y', 'Y']]], ['lp', 'LP', 'select', true, lpOpts], ['payType', 'Payment Type', 'select', false, () => Object.values(D.PAY).map(v => [v, v])], ['renban', 'Renban', 'text', true],
   ['from', 'From Location', 'select', true, fromOpts], ['to', 'To Location', 'select', true, toOpts], ['dest', 'Destination', 'text', true],
   ['etd', 'ETD', 'date', true], ['ctrSize', 'Container Size', 'select', true, () => D.OPTIONS.ctrSize.map(v => [v, v])], ['agent', 'Shipping Agent', 'text'],
   ['bookNo', 'Ctr Booking No', 'text'], ['vessel', 'Vessel Name', 'text'], ['truckType', 'Truck Type', 'text', true], ['container', 'Container No', 'text'],
@@ -535,6 +554,10 @@ function bindCreate(ro) {
   $('dcClearForm').onclick = () => { $('dcManual').innerHTML = manualForm({ io: dc.io, roundUse: 'N', truckType: 'TRAILER', arrDate: dc.date }); };
   $('dcIpms').onclick = loadIpms;
   $('dcDelete').onclick = deleteSelected;
+  $('ddPay').querySelector('.dd-menu').addEventListener('click', e => { const b = e.target.closest('[data-setpay]'); if (!b) return; $('ddPay').classList.remove('open');
+    const list = dateRecs().filter(r => r.status === S.READY); if (!list.length) { toast('Select records first'); return; }
+    applyPayType(list, b.dataset.setpay); });
+  $('dcBody').addEventListener('change', e => { const s = e.target.closest('[data-pay]'); if (!s) return; const r = RECS.find(x => x.id === +s.dataset.pay); if (r) applyPayType([r], s.value); });
 }
 
 const dateRecs = () => RECS.filter(r => r.date === dc.date);
@@ -559,6 +582,7 @@ function renderGrid() {
       : k === 'source' ? `<span class="src ${SRC_CLS[r.source]}">${r.source}</span>`
       : k === 'orderNo' ? (r.orderNo ? `<a class="doc-link" href="#" data-order="${r.orderNo}">${r.orderNo}</a>` : '-')
       : k === 'drv' ? (r.status === S.PROCESSED ? `<span class="drv ${/^Started/.test(drvStatus(r)) ? 'on' : ''}">${drvStatus(r)}</span>` : '-')
+      : k === 'payType' ? payCell(r, ro)
       : k === 'etd' || k === 'arrDate' ? (r[k] ? D.fmtDmy(r[k]) : '-') : esc(r[k] || '-');
     const swE = swCheck(r), canSw = !ro && !swE, swTip = swE ? (swE.code === 'NOT_SUBMITTED' ? '' : swE.msg) : 'Select for DTP Switching (rollback)';
     return `<tr class="${r.status === S.ERROR ? 'err' : r.status === S.READY ? 'ready' : sel ? '' : 'nosel'} ${dc.flash.has(r.id) ? 'flash' : ''}">
@@ -582,6 +606,7 @@ function renderGrid() {
   $('dcSubmit').disabled = ro || !ready.length;
   $('dcSubmit').innerHTML = `&#10003; Submit DTP${ready.length ? ` (${ready.length})` : ''}`;
   $('dcDelete').disabled = ro || !ready.some(r => r.source !== D.SOURCE.IPMS);
+  $('dcPayBtn').disabled = ro || !ready.length; $('dcPayBtn').innerHTML = `&#9881; Payment Type${ready.length ? ` (${ready.length})` : ''} <span style="font-size:8px">▼</span>`;
   $('dcPager').innerHTML = pagerFor(dc.page, pages);
   renderKpi();
   const ipmsN = all.filter(r => r.source === D.SOURCE.IPMS).length;
@@ -598,14 +623,14 @@ function renderKpi() {
   const resRows = m.rows.filter(r => r.kpi !== 'BY_TRIP');
   const tBadge = r => r.over ? `<span class="st fl">Over Limit +${r.over}</span>` : r.level === 'full' ? '<span class="st fl">Full</span>' : r.level === 'warn' ? '<span class="st qu">Near Limit</span>' : '<span class="st av">Available</span>';
   const tBar = r => `<div class="kbar ${r.level}"><i style="width:${Math.min(100, r.usage ?? 100)}%"></i></div><b>${r.usage == null ? '-' : r.usage + '%'}</b>`;
-  const tripTbl = !t.rows.length ? '' : `<h5 class="kpi-sub">By Trip <small>trips per day <b>${t.dailyTrips}</b> shared by Order Sharing % (1 trip per company first, the rest by %) · trips above the By Resources limit, or of a By Trip only company, count here</small></h5>
+  const tripTbl = !t.rows.length ? '' : `<h5 class="kpi-sub">By Trip <small>trips per day <b>${t.dailyTrips}</b> shared by Order Sharing % (1 trip per company first, the rest by %) · counts the DTP with Payment Type By Trip chosen by the planner</small></h5>
     ${t.sumOk ? '' : `<div class="kpi-warn">${esc(MK.MSG.pctSum(t.sumPct))} Check Master KPI.</div>`}
     <table class="kpi-tbl kpi-trip"><tr><th>Trucking Company</th><th>Order Sharing<small>%</small></th><th>Daily Trip<small>limit per day</small></th><th>Trips by trip<small>today</small></th><th class="rem">Remaining Trip</th><th>Usage</th><th>Status</th><th>Selected<small>not submitted</small></th><th>After Submit</th></tr>
     ${t.rows.map(r => `<tr class="lv-${r.level}"><td class="left">${esc(name(r.lp))}</td><td>${r.pct.toFixed(2)}%</td><td>${r.limit}</td><td>${r.trips}</td>
       <td class="rem"><b>${r.remaining}</b>${r.over ? `<small class="over">over ${r.over}</small>` : ''}</td><td class="u">${tBar(r)}</td><td>${tBadge(r)}</td><td>${r.selected || '-'}</td>
       <td>${r.selected ? `${r.after} / ${r.limit}${r.afterOver ? ` <small class="over">exceeds by ${r.afterOver}</small>` : ''}` : '-'}</td></tr>`).join('')}
     <tr class="tot"><td class="left">Total By Trip</td><td>${t.sumPct.toFixed(2)}%</td><td>${t.limit}</td><td>${t.trips}</td><td class="rem"><b>${t.remaining}</b></td><td></td><td>${t.over ? `<span class="st fl">Over +${t.over}</span>` : ''}</td><td>${t.after - t.trips || '-'}</td><td></td></tr></table>`;
-  $('dcKpi').innerHTML = `<h5 class="kpi-sub">By Resources <small>Daily Trip typed in Master KPI (Order Sharing % is information only)</small></h5>
+  $('dcKpi').innerHTML = `<h5 class="kpi-sub">By Resources <small>DTP with Payment Type By Resources · Daily Trip typed in Master KPI (Order Sharing % is information only)</small></h5>
     <table class="kpi-tbl"><tr><th>Trucking Company</th><th>Order Sharing<small>%</small></th><th>Daily Trip<small>limit per day</small></th><th>Assigned DTP<small>by resource</small></th><th class="rem">Remaining Slot</th><th>Usage</th><th>Status</th><th>Selected<small>not submitted</small></th><th>After Submit</th><th>Rejected by LP<small>not counted</small></th></tr>
     ${resRows.map(r => `<tr class="lv-${r.level}"><td class="left">${esc(name(r.lp))}${r.tripAssigned ? `<small>total ${r.total} = ${r.assigned} by resource + ${r.tripAssigned} by trip</small>` : ''}</td><td>${r.pct != null ? r.pct.toFixed(2) + '%' : '-'}</td><td>${r.limit ?? '-'}</td><td>${r.assigned}</td>
       <td class="rem"><b>${r.kpi === 'OK' ? r.remaining : '-'}</b>${r.over ? `<small class="over">over ${r.over}</small>` : ''}</td><td class="u">${bar(r)}</td><td>${badge(r)}</td>
@@ -652,8 +677,11 @@ function rowAction(e) {
   $('pvBody').closest('.pv').style.width = '980px';
   $('edNo').onclick = () => { closePreview(); $('pvBody').closest('.pv').style.width = ''; };
   $('edYes').onclick = () => {
-    const res = D.revalidate(r, readForm($('edForm')), RECS, DCTX);
+    const form = readForm($('edForm')), types = payTypes(form.lp, r.date);
+    if (form.payType && types.length && !types.includes(form.payType)) return showErrors($('edForm'), { payType: `${form.lp} has no ${form.payType} in Master KPI (${types.join(' / ')})` });
+    const res = D.revalidate(r, form, RECS, DCTX);
     if (!res.ok) return showErrors($('edForm'), res.errors || { _: res.error });
+    r.payType = form.payType && types.includes(form.payType) ? form.payType : types.includes(r.payType) ? r.payType : D.suggestPayType(r.lp, r.date, RECS, KPI_ROWS, MK.applicable, r);
     r.history.push({ at: new Date(), status: r.status, note: `Edited by ${state.actor.name}` });
     persist(); closePreview(); $('pvBody').closest('.pv').style.width = ''; dc.flash.add(r.id); renderGrid(); toast('Record validated and saved');
   };
@@ -662,7 +690,8 @@ function rowAction(e) {
 // Manual entry: same validations as upload / interface; only valid records are added
 function addManual() {
   const box = $('dcManual'), raw = readForm(box), v = D.validate(raw, DCTX), dup = D.duplicates([v.record], dateRecs().concat(RECS.filter(r => r.date !== dc.date)))[0];
-  const errors = { ...v.errors, ...(dup ? { _: dup } : {}) };
+  const types = payTypes(raw.lp, dc.date);
+  const errors = { ...v.errors, ...(dup ? { _: dup } : {}), ...(raw.payType && raw.lp && types.length && !types.includes(raw.payType) ? { payType: `${raw.lp} has no ${raw.payType} in Master KPI (${types.join(' / ')})` } : {}) };
   showErrors(box, errors);
   if (Object.keys(errors).length) { toast(Object.values(errors)[0]); return; }
   const r = addRecord(raw, dc.date, D.SOURCE.MANUAL); dc.flash.add(r.id);
@@ -744,9 +773,16 @@ function deleteSelected() {
 function confirmSubmit() {
   const list = dateRecs().filter(r => r.status === S.READY);
   if (!list.length) { toast(D.MSG.noSelect); return; }
+  const issues = D.payIssues(list, dc.date, KPI_ROWS, MK.applicable);
+  if (issues.length) {
+    showPreview('Payment Type required', `<div class="form-alert">Select a valid Payment Type (By Resources / By Trip) for ${issues.length} record(s) before submitting.</div>
+      <div class="err-scroll"><table class="err-table"><tr><th>Record</th><th>Reason</th></tr>${issues.map(i => `<tr><td>${i.id}</td><td>${esc(i.msg)}</td></tr>`).join('')}</table></div>`, '<button class="btn-outline" id="piOk">Close</button>');
+    $('piOk').onclick = closePreview; return;
+  }
+  const byRes = list.filter(r => r.payType === D.PAY.RES).length, byTrip = list.filter(r => r.payType === D.PAY.TRIP).length;
   showPreview('Submit DTP', `<p style="font-size:12px;margin:0 0 10px"><b>${esc(D.MSG.confirm(list.length, D.fmtLong(dc.date)).split('?')[0])}?</b></p>
     <p class="q-note" style="margin:0 0 8px">Planning date: <b>${D.fmtLong(dc.date)}</b> · DTP Model: ${D.MODEL.label} · Deliveries: <b>${list.length}</b>
-      (Import ${list.filter(r => r.io === 'IMPORT').length}, Export ${list.filter(r => r.io === 'EXPORT').length})</p>
+      (Import ${list.filter(r => r.io === 'IMPORT').length}, Export ${list.filter(r => r.io === 'EXPORT').length}) · Payment Type: By Resources <b>${byRes}</b>, By Trip <b>${byTrip}</b>${list.length - byRes - byTrip ? `, none ${list.length - byRes - byTrip}` : ''}</p>
     <div class="form-alert" style="background:#fff7e6;border-color:#fcd9a3;color:#92400e">Submitted records cannot be submitted again.</div>
     ${(() => { const ex = kpiMon().rows.filter(r => r.selected && (r.afterOver || r.kpi !== 'OK')); return ex.length ? `<div class="form-alert">Master KPI check (not blocking): ${ex.map(r => r.kpi !== 'OK' ? `${esc(r.lp)} has no Master KPI Order Sharing` : `${esc(r.lp)} ${r.after} / ${r.limit} exceeds by ${r.afterOver}`).join(' · ')}</div>` : ''; })()}`,
     '<button class="btn-outline" id="sNo">Cancel</button><button class="btn-submit" id="sYes">Confirm Submit</button>');

@@ -225,6 +225,42 @@
   const CONSUMING = [STATUS.SUBMITTED, STATUS.QUEUED, STATUS.PROCESSING, STATUS.PROCESSED, STATUS.FAILED];
   const KPI_WARN = 80;   // usage % from which the indicator is yellow (TBD)
   const consumes = (r, rejected) => CONSUMING.includes(r.status) && !rejected(r);
+  // ---------- Payment Type per DTP (KM-13 .. KM-15): the planner chooses By Resources or By Trip ----------
+  const PAY = { RES: 'By Resources', TRIP: 'By Trip' };
+  // Payment types a trucking company can use on a date: its Master KPI rows (By Trip only with a share > 0)
+  function payTypesFor(lp, date, kpiRows, applicable) {
+    const out = [];
+    if (applicable(kpiRows, lp, date, PAY.RES)) out.push(PAY.RES);
+    const t = applicable(kpiRows, lp, date, PAY.TRIP); if (t && +t.orderSharing > 0) out.push(PAY.TRIP);
+    return out;
+  }
+  // KM-14 default: By Resources while the company still has a By Resources slot on the date, then By Trip
+  function suggestPayType(lp, date, records, kpiRows, applicable, self) {
+    const types = payTypesFor(lp, date, kpiRows, applicable);
+    if (!types.length) return '';
+    if (types.includes(PAY.RES)) {
+      const res = applicable(kpiRows, lp, date, PAY.RES), limit = +(res.dailyTrip ?? res.orderSharing) || 0;
+      const planned = records.filter(r => r !== self && r.date === date && r.lp === lp && r.payType === PAY.RES && r.status !== STATUS.FAILED).length;
+      if (planned < limit || !types.includes(PAY.TRIP)) return PAY.RES;
+    }
+    return PAY.TRIP;
+  }
+  // KM-15: change the Payment Type of not submitted records (Available / Ready / Validation Error); value must be a type of the company
+  function setPayType(records, value, { date, kpiRows, applicable, at, actor }) {
+    if (!canCreate(actor)) return { ok: false, error: MSG.noAuth };
+    const bad = [];
+    records.forEach(r => {
+      if (LOCKED.includes(r.status) || r.status === STATUS.FAILED) bad.push(`${dupKey(r) || 'Record ' + r.id}: ${r.status}, Payment Type cannot be changed`);
+      else if (!payTypesFor(r.lp, date, kpiRows, applicable).includes(value)) bad.push(`${dupKey(r) || 'Record ' + r.id}: ${r.lp || 'no LP'} has no ${value} in Master KPI`);
+    });
+    if (bad.length) return { ok: false, error: bad.length === 1 ? bad[0] : `${bad.length} record(s) cannot get ${value}: ${bad.slice(0, 3).join(' · ')}${bad.length > 3 ? ' ...' : ''}` };
+    records.forEach(r => { if (r.payType !== value) { const prev = r.payType || '-'; r.payType = value; r.history.push({ at, status: r.status, note: `Payment Type ${prev} -> ${value} by ${actor.name}` }); } });
+    return { ok: true, count: records.length };
+  }
+  // Submit check: a company with Master KPI needs a valid Payment Type on every record
+  const payIssues = (records, date, kpiRows, applicable) => records.map(r => { const t = payTypesFor(r.lp, date, kpiRows, applicable);
+    return !t.length ? null : !r.payType ? { id: r.id, msg: `${dupKey(r) || 'Record ' + r.id}: select the Payment Type` } : !t.includes(r.payType) ? { id: r.id, msg: `${dupKey(r) || 'Record ' + r.id}: ${r.lp} has no ${r.payType}` } : null; }).filter(Boolean);
+
   // KM-01..KM-12: per date and trucking company. By Resources = daily limit in trucks (Order Sharing). By Trip (KM-09..KM-12):
   // trips above the By Resources limit of a company (or all trips of a company that is By Trip only) are trips by trip;
   // each By Trip company has a daily trip limit = its part of the trips per day (Master KPI, shared by Order Sharing %).
@@ -247,12 +283,19 @@
         return { ...base, ...tripOnly, kpi: 'NOT_BY_RESOURCE', paymentType: res.paymentType, limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
       }
       const limit = +(res.dailyTrip ?? res.orderSharing) || 0, after = assigned + selected;   // By Resources: Daily Trip (typed)
-      // with a By Trip share the trips above the limit go by trip instead of over allocation
-      const used = tripOk ? Math.min(assigned, limit) : assigned, usedAfter = tripOk ? Math.min(after, limit) : after;
+      // KM-13: the planner's Payment Type of each record decides by resource / by trip. Records without a Payment Type (older data)
+      // fill the By Resources limit first and go by trip above it (KM-09); a planner's By Resources above the limit is over allocation.
+      const split = list => {
+        const er = list.filter(r => r.payType === PAY.RES).length, et = list.filter(r => r.payType === PAY.TRIP).length, u = list.length - er - et;
+        if (!tripOk) return [er + et + u, 0];
+        const auto = Math.min(u, Math.max(0, limit - er));
+        return [er + auto, et + u - auto];
+      };
+      const [used, tripN] = split(mine.filter(r => consumes(r, rejected))), [usedAfter, tripAfterN] = split(mine.filter(r => consumes(r, rejected) || r.status === STATUS.READY));
       const usage = limit > 0 ? Math.round(used / limit * 100) : (used > 0 ? null : 0);
       const level = used >= limit ? 'full' : usage >= KPI_WARN ? 'warn' : 'ok';
       return { ...base, assigned: used, kpi: 'OK', pct: res.dailyTrip != null ? +res.orderSharing || 0 : null, limit, remaining: Math.max(0, limit - used), over: Math.max(0, used - limit), usage, level, after: usedAfter, afterOver: Math.max(0, usedAfter - limit),
-        tripAssigned: tripOk ? assigned - used : 0, tripAfter: tripOk ? after - usedAfter : 0 };
+        tripAssigned: tripN, tripAfter: tripAfterN };
     });
     const withKpi = rows.filter(r => r.kpi === 'OK');
     const total = { limit: withKpi.reduce((t, r) => t + r.limit, 0), assigned: withKpi.reduce((t, r) => t + r.assigned, 0), noKpiAssigned: rows.filter(r => r.kpi === 'NONE' || r.kpi === 'NOT_BY_RESOURCE').reduce((t, r) => t + r.assigned, 0), remaining: withKpi.reduce((t, r) => t + r.remaining, 0),
@@ -341,13 +384,13 @@
       return { roundUse: r.roundUse || 'N', lp: r.lp, renban: r.renban, from: r.from, to: r.to, dest: r.dest || '', etd: r.etd || '', ctrSize: (r.ctrSize || '').replace(/\s*HC$/, ''),
         ctrType: r.ctrSize ? (hc ? 'HC' : 'GP') : '', agent: r.agent || '', bookNo: r.bookNo || '', container: o?.cycles?.find(c => c.container)?.container || r.container || '',
         dg: r.dg === 'DG' ? 'Y' : 'N', vessel: r.vessel || '', truckType: r.truckType || '', description: r.description || '',
-        serviceType: SERVICE_TYPES[r.io] || '', shift: r.shift || '', arrDate: r.arrDate || '', arrTime: r.arrTime || '' };
+        serviceType: SERVICE_TYPES[r.io] || '', shift: r.shift || '', arrDate: r.arrDate || '', arrTime: r.arrTime || '', payType: r.payType || '' };
     }
     const m = o.maint || {};
     return { roundUse: o.planned > 1 ? 'Y' : 'N', lp: names.lpCode(o.supplier), renban: o.renban || '', from: names.fromCode(o.from), to: names.toCode(o.to),
       dest: m.dest || '', etd: m.etd || '', ctrSize: m.ctrSize || '', ctrType: m.ctrType || '', agent: m.agent || '', bookNo: m.bookNo || '',
       container: o.cycles.find(c => c.container)?.container || '', dg: m.dg || 'N', vessel: m.vessel || '', truckType: m.truckType || '', description: m.description || '',
-      serviceType: m.serviceType || '', shift: o.shift && o.shift !== '-' ? o.shift : '', arrDate: m.arrDate || '', arrTime: m.arrTime || '' };
+      serviceType: m.serviceType || '', shift: o.shift && o.shift !== '-' ? o.shift : '', arrDate: m.arrDate || '', arrTime: m.arrTime || '', payType: m.payType || '' };
   }
   // Grid values -> DTP record fields (container is entered by the driver at Pick Up, not here)
   const maintToRecord = v => ({ roundUse: v.roundUse, lp: v.lp, renban: v.renban, from: v.from, to: v.to, dest: v.dest, etd: v.etd,
@@ -357,12 +400,14 @@
   // MT-01: edit / cancel only while the driver has not started (same rule as DTP Switching)
   const maintCheck = (o, W) => !o ? { code: 'NOT_FOUND', msg: MT_MSG.notFound } : driverStarted(o, W) ? { code: 'DRIVER_STARTED', msg: MT_MSG.driverStarted } : null;
   // MT-03: validation of an edited row. With a DTP record: the DTP Creation rules; without: the order fields only.
-  function maintValidate(v, r, ctx) {
+  function maintValidate(v, r, ctx, payTypes) {
+    const pt = payTypes ? payTypes(v.lp) : [];
+    const ptErr = pt.length && !pt.includes(v.payType) ? { payType: v.payType ? `${v.lp} has no ${v.payType} in Master KPI (${pt.join(' / ')}).` : 'Payment Type is required.' } : {};
     if (r) {
       const { errors } = validate({ ...r, ...maintToRecord(v), container: r.container }, ctx);
       const e = {};
       Object.entries(errors).forEach(([k, m]) => { e[k === 'io' ? 'serviceType' : k === 'ctrSize' && v.ctrType === 'HC' ? 'ctrType' : k] = m; });
-      return e;
+      return { ...e, ...ptErr };
     }
     const e = {};
     if (!ctx.lps.includes(v.lp)) e.lp = v.lp ? MSG.code('LP', v.lp) : MSG.req('LP');
@@ -372,7 +417,7 @@
     if (v.shift && !OPTIONS.shift.includes(v.shift)) e.shift = MSG.option('SHIFT', v.shift, OPTIONS.shift);
     ['etd', 'arrDate'].forEach(k => { if (v[k] && !/^\d{4}-\d{2}-\d{2}$/.test(v[k])) e[k] = MSG.date(k === 'etd' ? 'ETD' : 'ARRIVAL DATE'); });
     if (v.arrTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(v.arrTime)) e.arrTime = MSG.time('ARRIVAL TIME');
-    return e;
+    return { ...e, ...ptErr };
   }
   // MT-04 .. MT-07: save all pending cancellations and edits in one transaction (all-or-nothing, as Submit DT-15)
   // rows: [{ key, o, r, cancel, values }]; ctx: { at, actor, W, vctx, names, removeOrder, removeRecord, fail }
@@ -383,7 +428,7 @@
     const blocked = rows.map(x => ({ key: x.key, e: maintCheck(x.o, W) })).filter(x => x.e);   // re-check: the driver may have started meanwhile
     if (blocked.length) return { ok: false, status: 409, error: MT_MSG.blocked(blocked.length), failed: blocked.map(x => ({ key: x.key, code: x.e.code, msg: x.e.msg })) };
     const errors = {};
-    rows.filter(x => !x.cancel).forEach(x => { const e = maintValidate(x.values, x.r, ctx.vctx); if (Object.keys(e).length) errors[x.key] = e; });
+    rows.filter(x => !x.cancel).forEach(x => { const e = maintValidate(x.values, x.r, ctx.vctx, ctx.payTypes); if (Object.keys(e).length) errors[x.key] = e; });
     if (Object.keys(errors).length) return { ok: false, status: 422, error: MT_MSG.invalid(Object.keys(errors).length), errors };
     if (ctx.fail) return { ok: false, status: 500, error: MT_MSG.dbError };   // DB error before commit: nothing applied
     let cancelled = 0, updated = 0;
@@ -402,13 +447,13 @@
       const lpChanged = values.lp !== before.lp;
       if (r) {
         const { record } = validate({ ...r, ...maintToRecord(values), container: r.container }, ctx.vctx);
-        Object.assign(r, record);
+        Object.assign(r, record, { payType: values.payType || r.payType });
         r.history.push({ at, status: r.status, note: `DTP Maintenance by ${actor.name}: ${changed.join(', ')} changed` });
         Object.assign(o, orderPayload(r, ctx.names), { orderNo: o.orderNo, type: o.type });
-        Object.assign(o.dtp || (o.dtp = {}), { io: r.io, container: r.container, dest: r.dest, vessel: r.vessel, agent: r.agent, bookNo: r.bookNo, ctrSize: r.ctrSize, truckType: r.truckType, fromCd: r.from, toCd: r.to });
+        Object.assign(o.dtp || (o.dtp = {}), { payType: r.payType || '', io: r.io, container: r.container, dest: r.dest, vessel: r.vessel, agent: r.agent, bookNo: r.bookNo, ctrSize: r.ctrSize, truckType: r.truckType, fromCd: r.from, toCd: r.to });
       } else {
         Object.assign(o, { supplier: ctx.names.lp(values.lp), renban: values.renban, from: ctx.names.from(values.from), to: ctx.names.to(values.to), shift: values.shift || '-', planned: values.roundUse === 'Y' ? 2 : 1 });
-        o.maint = Object.fromEntries(['dest', 'etd', 'ctrSize', 'ctrType', 'agent', 'bookNo', 'dg', 'vessel', 'truckType', 'description', 'serviceType', 'arrDate', 'arrTime'].map(k => [k, values[k]]));
+        o.maint = Object.fromEntries(['dest', 'etd', 'ctrSize', 'ctrType', 'agent', 'bookNo', 'dg', 'vessel', 'truckType', 'description', 'serviceType', 'arrDate', 'arrTime', 'payType'].map(k => [k, values[k]]));
       }
       o.cycles.forEach(c => { if (!c.startAt) { c.from = o.from; c.to = o.to; } });
       // MT-06: another trucking company -> the old LP decision and truck assignment no longer apply
@@ -435,7 +480,7 @@
     return `DTP - ${t} ( ${fmtDmy(date)} ) [ ${orders.filter(o => isAssigned(o, W)).length} / ${orders.length} ]`;
   }
 
-  const api = { CONSUMING, KPI_WARN, kpiMonitor, SWITCHABLE, driverStarted, switchCheck, canSwitch, switchBack, MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
+  const api = { PAY, payTypesFor, suggestPayType, setPayType, payIssues, CONSUMING, KPI_WARN, kpiMonitor, SWITCHABLE, driverStarted, switchCheck, canSwitch, switchBack, MODEL, IO, SOURCE, STATUS, SELECTABLE, LOCKED, CAL, COLUMNS, EXTRA, OPTIONS, MSG, label, ymd, addDays, fmtLong, fmtDmy,
     dateRange, dateCheck, canCreate, normalize, validate, dupKey, duplicates, readSheet, upload, makeRecord, revalidate, selectable,
     submit, step, canRetry, orderPayload, calStatus, calLabel, SERVICE_TYPES, CTR_TYPES, MT_MSG, maintValues, maintToRecord, maintCheck, maintValidate, maintSave };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

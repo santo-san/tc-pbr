@@ -91,6 +91,17 @@ test('order without DTP record (other DTP types): order fields and maintenance v
   assert.deepStrictEqual([ok.updated, o.shift, o.supplier, o.maint.agent, D.maintValues(o, null, names).agent], [1, 'NIGHT', LP.TCB, 'MAERSK', 'MAERSK']);
 });
 
+test('KM-15 in maintenance: Payment Type can be changed while the driver has not started; must be a type of the company', () => {
+  const s = setup(); s.r.payType = 'By Resources';
+  const ctx = { ...s.ctx, payTypes: lp => lp === 'TCA' ? ['By Resources', 'By Trip'] : ['By Resources'] };
+  assert.strictEqual(D.maintValues(s.o, s.r, names).payType, 'By Resources');
+  const bad = D.maintSave([{ key: 'A', o: s.o, r: s.r, values: { ...s.v, payType: 'By Resources', lp: 'TCB' } }], { ...ctx, payTypes: () => ['By Trip'] });
+  assert.match(bad.errors.A.payType, /TCB has no By Resources/);
+  const ok = D.maintSave([{ key: 'A', o: s.o, r: s.r, values: { ...s.v, payType: 'By Trip' } }], ctx);
+  assert.deepStrictEqual([ok.updated, s.r.payType, s.o.dtp.payType], [1, 'By Trip', 'By Trip']);
+  assert.match(s.o.history.at(-1).note, /payType changed/);
+});
+
 let fail = 0;
 for (const [n, f] of tests) { try { f(); console.log('ok  -', n); } catch (e) { fail++; console.log('FAIL-', n, '\n   ', e.message); } }
 console.log(`\n${tests.length - fail}/${tests.length} passed`);

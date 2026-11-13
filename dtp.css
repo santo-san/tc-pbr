@@ -229,3 +229,11 @@ small.sub { display: block; font-size: 8.5px; color: #6b7280; }
 .kpi-trip th { background: #e6f6f1; }
 .kpi-tbl tr.tl-over td.rem b { color: #b45309; } .kpi-tbl tr.tl-under td.rem b { color: #166534; } .kpi-tbl tr.tl-ok td.rem b { color: #0b2b5c; }
 .kpi-tbl tr.next td { background: #f0f7ff; }
+/* Payment Type per DTP (KM-13..KM-15) */
+.pt { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 9.5px; font-weight: 600; white-space: nowrap; }
+.pt.res { background: #fef9c3; color: #854d0e; } .pt.trip { background: #d1fae5; color: #065f46; } .pt.none { background: #f3f4f6; color: #6b7280; }
+.pt-sel { height: 24px; border: 1px solid #d5d9e0; border-radius: 12px; padding: 0 6px; font: inherit; font-size: 9.5px; font-weight: 600; }
+.pt-sel.res { background: #fef9c3; color: #854d0e; } .pt-sel.trip { background: #d1fae5; color: #065f46; } .pt-sel.none { background: #fff1f3; color: #b91c1c; border-color: #fca5a5; }
+.btn-pay { background: #0f766e; color: #fff; border: 0; border-radius: 6px; height: 30px; padding: 0 12px; font-size: 10.5px; font-weight: 600; }
+.btn-pay:disabled { opacity: .4; }
+#ddPay .dd-menu { left: 0; right: auto; min-width: 170px; }
