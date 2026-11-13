@@ -225,27 +225,52 @@
   const CONSUMING = [STATUS.SUBMITTED, STATUS.QUEUED, STATUS.PROCESSING, STATUS.PROCESSED, STATUS.FAILED];
   const KPI_WARN = 80;   // usage % from which the indicator is yellow (TBD)
   const consumes = (r, rejected) => CONSUMING.includes(r.status) && !rejected(r);
-  function kpiMonitor({ date, records, lps, kpiRows, applicable, byResource, rejected = () => false }) {
+  // KM-01..KM-12: per date and trucking company. By Resources = daily limit in trucks (Order Sharing). By Trip (KM-09..KM-12):
+  // trips above the By Resources limit of a company (or all trips of a company that is By Trip only) are trips by trip;
+  // each By Trip company has a daily trip limit = its part of the trips per day (Master KPI, shared by Order Sharing %).
+  function kpiMonitor({ date, records, lps, kpiRows, applicable, byResource, byTrip, dailyTrips = 0, tripLimits, rejected = () => false }) {
     const recs = records.filter(r => r.date === date);
     const codes = [...new Set([...lps, ...recs.map(r => r.lp).filter(Boolean)])];
+    const tripRow = lp => byTrip ? applicable(kpiRows, lp, date, byTrip) : null;
     const rows = codes.map(lp => {
       const mine = recs.filter(r => r.lp === lp);
       const assigned = mine.filter(r => consumes(r, rejected)).length;
       const rejectedN = mine.filter(r => r.status === STATUS.PROCESSED && rejected(r)).length;
       const selected = mine.filter(r => r.status === STATUS.READY).length;
-      const k = applicable(kpiRows, lp, date);
-      const base = { lp, assigned, rejected: rejectedN, selected, open: mine.filter(r => r.status === STATUS.AVAILABLE || r.status === STATUS.ERROR).length };
-      if (!k) return { ...base, kpi: 'NONE', limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
-      if (k.paymentType !== byResource) return { ...base, kpi: 'NOT_BY_RESOURCE', paymentType: k.paymentType, limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
-      const limit = +k.orderSharing || 0, after = assigned + selected;
-      const usage = limit > 0 ? Math.round(assigned / limit * 100) : (assigned > 0 ? null : 0);
-      const level = assigned >= limit ? 'full' : usage >= KPI_WARN ? 'warn' : 'ok';
-      return { ...base, kpi: 'OK', limit, remaining: Math.max(0, limit - assigned), over: Math.max(0, assigned - limit), usage, level, after, afterOver: Math.max(0, after - limit) };
+      const res = byTrip ? applicable(kpiRows, lp, date, byResource) : applicable(kpiRows, lp, date);
+      const trip = tripRow(lp), tripOk = !!trip && +trip.orderSharing > 0;
+      const base = { lp, assigned, total: assigned, rejected: rejectedN, selected, open: mine.filter(r => r.status === STATUS.AVAILABLE || r.status === STATUS.ERROR).length, trip: tripOk ? +trip.orderSharing : null };
+      if (!res || res.paymentType !== byResource) {
+        const tripOnly = { tripAssigned: tripOk ? assigned : 0, tripAfter: tripOk ? assigned + selected : 0 };
+        if (tripOk) return { ...base, ...tripOnly, kpi: 'BY_TRIP', limit: null, remaining: null, over: 0, usage: null, level: 'trip', after: assigned + selected, afterOver: 0 };
+        if (!res) return { ...base, ...tripOnly, kpi: 'NONE', limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
+        return { ...base, ...tripOnly, kpi: 'NOT_BY_RESOURCE', paymentType: res.paymentType, limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
+      }
+      const limit = +res.orderSharing || 0, after = assigned + selected;
+      // with a By Trip share the trips above the limit go by trip instead of over allocation
+      const used = tripOk ? Math.min(assigned, limit) : assigned, usedAfter = tripOk ? Math.min(after, limit) : after;
+      const usage = limit > 0 ? Math.round(used / limit * 100) : (used > 0 ? null : 0);
+      const level = used >= limit ? 'full' : usage >= KPI_WARN ? 'warn' : 'ok';
+      return { ...base, assigned: used, kpi: 'OK', limit, remaining: Math.max(0, limit - used), over: Math.max(0, used - limit), usage, level, after: usedAfter, afterOver: Math.max(0, usedAfter - limit),
+        tripAssigned: tripOk ? assigned - used : 0, tripAfter: tripOk ? after - usedAfter : 0 };
     });
     const withKpi = rows.filter(r => r.kpi === 'OK');
-    const total = { limit: withKpi.reduce((t, r) => t + r.limit, 0), assigned: withKpi.reduce((t, r) => t + r.assigned, 0), noKpiAssigned: rows.filter(r => r.kpi !== 'OK').reduce((t, r) => t + r.assigned, 0), remaining: withKpi.reduce((t, r) => t + r.remaining, 0),
+    const total = { limit: withKpi.reduce((t, r) => t + r.limit, 0), assigned: withKpi.reduce((t, r) => t + r.assigned, 0), noKpiAssigned: rows.filter(r => r.kpi === 'NONE' || r.kpi === 'NOT_BY_RESOURCE').reduce((t, r) => t + r.assigned, 0), remaining: withKpi.reduce((t, r) => t + r.remaining, 0),
       over: rows.reduce((t, r) => t + r.over, 0), selected: rows.reduce((t, r) => t + r.selected, 0) };
-    return { rows, total };
+    // ---- By Trip (KM-09..KM-12): daily trip limit per By Trip company = trips per day shared by Order Sharing % (tripLimits),
+    // monitored like By Resources: trips by trip of the date vs the limit. All eligible By Trip companies (share > 0) are listed.
+    const lim = byTrip && tripLimits ? tripLimits(kpiRows, dailyTrips) : {};
+    const tRows = Object.keys(lim).filter(lp => tripRow(lp)).map(lp => {
+      const r = rows.find(x => x.lp === lp), trips = r ? r.tripAssigned : 0, after = r ? r.tripAfter : 0, limit = lim[lp];
+      const usage = limit > 0 ? Math.round(trips / limit * 100) : (trips > 0 ? null : 0);
+      return { lp, pct: +tripRow(lp).orderSharing, limit, trips, remaining: Math.max(0, limit - trips), over: Math.max(0, trips - limit), usage,
+        level: trips >= limit ? 'full' : usage >= KPI_WARN ? 'warn' : 'ok', selected: after - trips, after, afterOver: Math.max(0, after - limit) };
+    });
+    const sumPct = Math.round(kpiRows.filter(k => k.paymentType === byTrip).reduce((s, k) => s + (+k.orderSharing || 0), 0) * 100) / 100;
+    const tsum = k => tRows.reduce((s, r) => s + r[k], 0);
+    const trip = { rows: tRows, dailyTrips: byTrip ? +dailyTrips || 0 : 0, limit: tsum('limit'), trips: tsum('trips'), remaining: tsum('remaining'), over: tsum('over'), after: tsum('after'),
+      sumPct, sumOk: !tRows.length || sumPct === 100 };
+    return { rows, total, trip };
   }
   // All-or-nothing, like Submit: every selected record is checked again immediately before the rollback (backend check);
   // one non-eligible record rejects the whole request. ctx: { at, actor, orders, W, grid, vctx, dequeue(id), removeOrder(o), fail }

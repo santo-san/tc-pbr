@@ -5,6 +5,7 @@ Master KPI holds the **performance value of each trucking company** and its **Or
 - **Order Sharing** is the share each trucking company gets in the **daily order assignment** done by the VPLD planner.
 - The same number is the **daily QTY** in **PR creation**.
 - **Total By Resource** is the sum of Order Sharing of the companies with Payment Type *By Resources* (reference: 3 + 4 + 5 + 4 + 4 = **20**).
+- **Payment Type By Trip** (added 13-Nov-2026): Order Sharing is a **percentage** (two decimals, total of all By Trip rows = **100%**). The **trips per day** (reference **20**) are shared over the By Trip companies into a **daily trip limit** per company, like By Resources. A company can be registered both By Resources and By Trip.
 
 Mock-up: `master.html#kpi` (Master > KPI). Rules live in [`master-kpi.js`](../master-kpi.js). UISS: [`docs/uiss/UISS_Screen_Master_KPI.xlsx`](uiss/UISS_Screen_Master_KPI.xlsx). The screen follows the existing **Master KPI** screen.
 
@@ -15,9 +16,9 @@ Mock-up: `master.html#kpi` (Master > KPI). Rules live in [`master-kpi.js`](../ma
 | Section | Content |
 |---|---|
 | Header | Title "Master KPI", breadcrumb "Master - Master KPI" |
-| Toolbar | **Enter New KPI** + **Add New**: adds a KPI item as a new column. **Select Trucking Company** + **+ Add Company**: adds a company from Master Trucking Company *(not on the reference screen; see open question 2)*. Search, Kolom (show / hide columns), Export XLS |
-| Grid | Action (✎ / 🗑; while editing ✓ / ✕), Payment Type, Trucking Company (`Code - Name`), Score, Grade, **one column per KPI item** (coloured header: Safety, Comm., Flexi., Legal, KPI, TPS, Tax, QCC, …), **Total**, **Order Sharing** (yellow), UoM (Truck), Created Dt, Created By, Changed Dt, Changed By |
-| Footer | "Menampilkan x - y dari z data", green **Total By Resource** bar, pager |
+| Toolbar | **Enter New KPI** + **Add New**: adds a KPI item as a new column. **Payment Type** (By Resources / By Trip) + **Select Trucking Company** + **+ Add Company**: adds a company row of that payment type from Master Trucking Company *(not on the reference screen; see open question 2)*. Tabs **All / By Resources / By Trip**. Search, Kolom (show / hide columns), Export XLS |
+| Grid | Action (✎ / 🗑; while editing ✓ / ✕), Payment Type (yellow By Resources, green By Trip), **No** (per payment type), Trucking Company (`Code - Name`), Score, Grade, **one column per KPI item** (coloured header: Safety, Comm., Flexi., Legal, KPI, TPS, Tax, QCC, …), **Total**, **Order Sharing** (trucks for By Resources, `x.xx%` for By Trip), UoM (Truck), Created Dt, Created By, Changed Dt, Changed By. Rows are grouped By Resources first, then By Trip (as the two reference tables). A By Trip row without Order Sharing (e.g. SGL, SILVER) is hatched: not eligible |
+| Footer | "Menampilkan x - y dari z data", green **Total By Resource** bar, teal **Total By Trip** bar (red with "must be 100%" when the total ≠ 100.00%), pager. **By Trip - daily trip allocation**: input **Trips per day** (default 20) and the table No / Trucking Company / Order Sharing / Trip per day / Total |
 
 ### Editing in the grid
 
@@ -55,19 +56,22 @@ flowchart TD
 
 | ID | Rule |
 |---|---|
-| KP-01 | One row per trucking company. A company is selected from Master Trucking Company (active, Deletion = No) and can appear only once |
+| KP-01 | One row per trucking company **and Payment Type** (By Resources / By Trip). A company is selected from Master Trucking Company (active, Deletion = No); the same company may have one By Resources row and one By Trip row |
 | KP-02 | KPI items are dynamic columns. Name required, max 15 characters, unique (case-insensitive). A new item starts at 0 for every company |
 | KP-03 | Deleting a KPI item (after confirmation) removes its values for all companies and recalculates Total |
-| KP-04 | Score, KPI values and Order Sharing are whole numbers: Score 0–1000, KPI value 0–999, Order Sharing 0–99 (limits TBD) |
+| KP-04 | Score and KPI values are whole numbers: Score 0–1000, KPI value 0–999. Order Sharing: **By Resources** whole number 0–99 (trucks per day); **By Trip** percentage 0–100 with at most 2 decimals (limits TBD) |
 | KP-05 | **Total** = sum of all KPI item values of the row (calculated, not typed) |
-| KP-06 | **Grade** from Score: ≥ 750 GOLD, 600–749 SILVER, < 600 BRONZE (thresholds TBD) |
+| KP-06 | **Grade** from Score: ≥ 666 GOLD, 600–665 SILVER, < 600 BRONZE (thresholds TBD; the By Trip reference shows 667 GOLD and 665 SILVER) |
 | KP-07 | **Total By Resource** = sum of Order Sharing of rows with Payment Type *By Resources* |
 | KP-08 | **Daily order assignment:** orders of a day are split in proportion to Order Sharing (largest remainder; ties by higher Total, then code). Example: 20 orders with shares 3/4/5/4/4 gives exactly 3/4/5/4/4 |
 | KP-09 | **PR creation:** the daily QTY of a trucking company = its Order Sharing |
 | KP-10 | Grid edit: one row at a time, concurrency check on save (version). Changed Dt / By set on save; Created Dt / By never change |
 | KP-11 | Deleting a trucking company (after confirmation) removes it from Total By Resource, daily order assignment and PR creation |
 | KP-12 | Search filters on all visible columns. Export XLS exports all filtered rows with the visible columns plus the Total By Resource line |
-| KP-13 | **DTP Creation vs Master KPI:** Order Sharing is the daily limit per trucking company monitored in DTP Creation (Assigned DTP vs Order Sharing per date, see [dtp-creation-rules.md](dtp-creation-rules.md) §4a). Mock-up seed: `MasterKpi.SEED` (reference rows plus PNJ, SRL, TFL; Total By Resource 28) |
+| KP-14 | **Total By Trip** = sum of Order Sharing % of the By Trip rows; must be **100.00%**. Saving a row is not blocked, but the total turns red and the save message warns. A By Trip row with 0% is **not eligible** (gets no trips) |
+| KP-15 | **Daily trip allocation (By Trip):** every eligible By Trip company gets **1 trip** first; the rest (trips per day − number of companies) is split by Order Sharing % with the largest remainder (ties: higher %, then code). Fewer trips than companies: 1 trip each to the highest shares. Reference: 20 trips over 11 companies → GIB, VMB, JMP, DNX, IBT, MJR, PLI, PNJ, PBM 2 each; AGR, PS 1 each |
+| KP-16 | **Trips per day (By Trip)**: whole number 0–999, default 20 (reference). Source and maintenance (fixed value, per day from the plan, or equal to Total By Resource) TBD |
+| KP-13 | **DTP Creation vs Master KPI:** By Resources Order Sharing is the daily truck limit, and the By Trip daily trip limit (KP-15) is the trip limit per trucking company monitored in DTP Creation ([dtp-creation-rules.md](dtp-creation-rules.md) §4a, KM-09..KM-12). Mock-up seed: `MasterKpi.SEED` = the two reference tables (By Resources AGR..PBM plus PNJ, SRL, TFL: Total 28; By Trip AGR..VMB 100%, SGL SILVER not eligible) |
 
 ### Messages
 
@@ -75,7 +79,8 @@ flowchart TD
 |---|---|
 | KPI name blank / too long / used | KPI name is required. · KPI name must be at most 15 characters. · KPI {name} already exists. |
 | Company blank / inactive / already listed | Trucking Company is required. · Trucking Company {code} is not active in Master Trucking Company. · Trucking Company {code} is already registered in Master KPI. |
-| Value out of range | {Score / KPI / Order Sharing} must be a whole number between 0 and {max}. |
+| Value out of range | {Score / KPI / Order Sharing} must be a whole number between 0 and {max}. · Order Sharing (By Trip) must be a percentage between 0 and 100 with at most 2 decimals. · Trips per day (By Trip) must be a whole number between 0 and 999. |
+| Company already listed / total | Trucking Company {code} is already registered in Master KPI as {payment type}. · Total By Trip is {x}%; it must be 100.00%. |
 | Concurrency | Error in Update because of concurrency check. |
 | Success | KPI {name} has been added. … · Trucking Company {code} has been added. … · KPI data for {code} has been successfully updated. · … deleted … |
 
@@ -90,3 +95,8 @@ flowchart TD
 5. **Payment Type:** which other types exist besides *By Resources* (only those rows count in Total By Resource)?
 6. **KPI item:** is a maximum or weight needed per item, and is deleting an item allowed when it was already used?
 7. **Period:** is Master KPI one current set, or per period (month), with history?
+8. **By Trip Order Sharing %:** typed (mock-up) or calculated? The reference values look linear on Total (share ≈ (Total − 623.6) / Σ), but the formula is not confirmed.
+9. **Trips per day (By Trip):** fixed value (20 in the reference), equal to Total By Resource, or the planned trips of each day? Who maintains it?
+10. **Daily trip allocation rule:** confirmed as "1 trip per company, the rest by %" (matches the reference table)? An alternative that also matches 20 trips is a round robin by rank; it differs for other totals.
+11. **Not eligible By Trip company (SGL, SILVER, hatched):** is eligibility decided by Grade (only GOLD) or by an empty Order Sharing?
+12. **Trucking company codes on the reference:** IBT (allocation table) vs IBL "Iron Bird Logistics" (KPI table), and PS (2 characters, Master Trucking Company expects 3).

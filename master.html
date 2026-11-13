@@ -172,6 +172,25 @@
   .kpi-foot .right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
   .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
   .kpi-tbr b { font-size: 15px; margin-right: 110px; }
+  .kleft { display: flex; flex-direction: column; gap: 10px; }
+  .kalloc { border: 1px solid #d5d9e0; border-radius: 6px; padding: 6px 10px; background: #fff; min-width: 360px; }
+  .kalloc summary { cursor: pointer; font-weight: 700; font-size: 10.5px; color: #0b1a3a; }
+  .kalloc-in { display: flex; align-items: center; gap: 8px; margin: 8px 0 6px; }
+  .kalloc-in input { width: 56px; height: 26px; border: 1px solid #d5d9e0; border-radius: 4px; text-align: center; font: inherit; font-weight: 700; }
+  .kalloc-in input.err { border-color: #e11d48; background: #fff1f3; } .kalloc-in .q { color: #6b7280; font-size: 9.5px; }
+  #kAlloc { border-collapse: collapse; font-size: 10.5px; width: 100%; }
+  #kAlloc th, #kAlloc td { border-bottom: 1px solid #eef0f3; padding: 3px 8px; text-align: center; }
+  #kAlloc th { background: #f3f6fb; font-size: 9.5px; } #kAlloc td.l { text-align: left; } #kAlloc td.p { background: #d1fae5; font-weight: 700; }
+  #kAlloc td.n { color: #1d4ed8; font-weight: 700; } #kAlloc tr.tot td { font-weight: 700; background: #f8fafc; }
+  .kpi-tbr.trip { background: #0f766e; } .kpi-tbr.trip.bad { background: #dc2626; }
+  .kpi-tbr.trip small { font-weight: 500; font-size: 9px; margin-left: 6px; }
+  .ktype { height: 32px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 11px; background: #fff; }
+  .kseg { display: inline-flex; border: 1px solid #d5d9e0; border-radius: 6px; overflow: hidden; margin-left: 6px; }
+  .kseg button { border: 0; background: #fff; padding: 0 10px; height: 30px; font: inherit; font-size: 10.5px; cursor: pointer; }
+  .kseg button.on { background: #0b1a3a; color: #fff; font-weight: 600; }
+  #kpiTable td.pt-res { background: #fef9c3; } #kpiTable td.pt-trip { background: #d1fae5; }
+  #kpiTable tr.inelig td { background: repeating-linear-gradient(-45deg, #f8fafc, #f8fafc 4px, #e5e7eb 4px, #e5e7eb 8px) !important; color: #6b7280; }
+  #kpiTable tr.grp td { background: #eef1f6; font-weight: 700; text-align: left; font-size: 10.5px; padding: 6px 10px; }
   #kAlert .form-alert-m { margin-bottom: 12px; }
   /* Master Route Percentage */
   .rp-entry { border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.07); padding: 0 18px 18px; margin-bottom: 24px; background: #fff; }
@@ -639,8 +658,10 @@
       <div class="kpi-bar">
         <input type="text" id="kNewKpi" placeholder="Enter New KPI" maxlength="15">
         <button class="btn-add" id="kAddKpi">Add New</button>
+        <select id="kType" class="ktype" aria-label="Payment Type" title="Payment Type of the new row"><option>By Resources</option><option>By Trip</option></select>
         <div class="combo" id="kPartner"></div>
         <button class="btn-add2" id="kAddPartner">+ Add Company</button>
+        <div class="kseg" id="kTabs"><button data-pt="" class="on">All</button><button data-pt="By Resources">By Resources</button><button data-pt="By Trip">By Trip</button></div>
         <span class="spacer"></span>
         <div class="search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
@@ -657,9 +678,13 @@
       </div>
       <div class="table-wrap"><table id="kpiTable"><thead id="kThead"></thead><tbody id="kTbody"></tbody></table></div>
       <div class="kpi-foot">
-        <span id="kInfo"></span>
+        <div class="kleft"><span id="kInfo"></span>
+          <details class="kalloc" id="kAllocBox" open><summary>By Trip - daily trip allocation</summary>
+            <div class="kalloc-in"><label for="kTrips">Trips per day</label><input id="kTrips" inputmode="numeric" value="20" maxlength="3"><span class="q" id="kAllocNote"></span></div>
+            <table id="kAlloc"></table></details></div>
         <div class="right">
           <div class="kpi-tbr"><span>Total By Resource</span><b id="kTbr">0</b></div>
+          <div class="kpi-tbr trip" id="kTbtBox"><span>Total By Trip</span><b id="kTbt">0%</b></div>
           <div class="pri-pager" id="kPager"></div>
         </div>
       </div>
@@ -715,15 +740,15 @@
 <script src="master-mileage.js?v=20261030d"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
-<script src="master-kpi.js?v=20261105a"></script>
+<script src="master-kpi.js?v=20261113a"></script>
 <script src="master-route-percentage.js?v=20261030a"></script>
 <script src="master-renban.js?v=20261101b"></script>
-<script src="master.js?v=20261101a"></script>
+<script src="master.js?v=20261113a"></script>
 <script src="location.js?v=20261030d"></script>
 <script src="mileage.js?v=20261030e"></script>
 <script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
-<script src="kpi.js?v=20261105a"></script>
+<script src="kpi.js?v=20261113a"></script>
 <script src="route-percentage.js?v=20261030a"></script>
 <script src="renban.js?v=20261101b"></script>
 </body>

@@ -7,7 +7,7 @@ const DTP_CFG = { backdateDays: 3, advanceDays: 14 };   // System Master: DTP da
 const LOC_FROM = { D1: 'Depo Sunter', D2: 'Depo Cikarang', D3: 'Depo Cakung Marunda' };
 const LOC_TO = { K1E: 'CY TMMIN Karawang (EMPTY)', S1E: 'CY TMMIN Sunter (EMPTY)' };
 const DCTX = { lps: SUPPLIERS.map(s => s[1]), from: Object.keys(LOC_FROM), to: Object.keys(LOC_TO), containerError: W.containerError };
-const NAMES = { lp: c => SUP_BY_CODE[c] || c, from: c => LOC_FROM[c] || c, to: c => LOC_TO[c] || c };
+const NAMES = { lp: c => SUP_BY_CODE[c] || window.MasterKpi?.NAMES?.[c] || c, from: c => LOC_FROM[c] || c, to: c => LOC_TO[c] || c };
 const SRC_CLS = { [D.SOURCE.IPMS]: 'IPMS', [D.SOURCE.EXCEL]: 'EXCEL', [D.SOURCE.MANUAL]: 'MANUAL' };
 const ST_CLS = { [S.AVAILABLE]: 'av', [S.ERROR]: 'er', [S.READY]: 'rd', [S.SUBMITTED]: 'sb', [S.QUEUED]: 'qu', [S.PROCESSING]: 'pr', [S.PROCESSED]: 'ok', [S.FAILED]: 'fl' };
 const CAL_CLS = { [D.CAL.WAIT]: 'w', [D.CAL.ASSIGNED]: 'a', [D.CAL.REJECTED]: 'r', [D.CAL.FINISH]: 'f' };
@@ -419,8 +419,8 @@ const dc = { date: null, io: 'EXPORT', q: '', fStatus: '', fSource: '', fIo: '',
 const orderFor = r => r.orderNo ? DATA.find(o => o.orderNo === r.orderNo) : null;
 // Master KPI rows (single mock source MasterKpi.SEED, as on the Master KPI screen); Order Sharing = daily limit per trucking company
 const MK = window.MasterKpi;
-const KPI_ROWS = MK.SEED.map(([partner, score, orderSharing]) => ({ partner, paymentType: MK.PAYMENT_BY_RESOURCE, score, orderSharing, uom: MK.UOM }));
-const kpiMon = (date = dc.date) => D.kpiMonitor({ date, records: RECS, lps: DCTX.lps, kpiRows: KPI_ROWS, applicable: MK.applicable, byResource: MK.PAYMENT_BY_RESOURCE, rejected: r => !!orderFor(r)?.lpRejected });
+const KPI_ROWS = MK.SEED.map(({ partner, paymentType, score, orderSharing }) => ({ partner, paymentType, score, orderSharing, uom: MK.UOM }));
+const kpiMon = (date = dc.date) => D.kpiMonitor({ date, records: RECS, lps: DCTX.lps, kpiRows: KPI_ROWS, applicable: MK.applicable, byResource: MK.PAYMENT_BY_RESOURCE, byTrip: MK.PAYMENT_BY_TRIP, dailyTrips: MK.DAILY_TRIPS, tripLimits: MK.allocateTrip, rejected: r => !!orderFor(r)?.lpRejected });
 const swCheck = r => D.switchCheck(r, DATA, W);
 const drvStatus = r => { const o = r.status === S.PROCESSED ? orderFor(r) : null; return !o ? '-' : D.driverStarted(o, W) ? `Started (${o.status})` : `Not Started (${o.status})`; };
 
@@ -590,18 +590,31 @@ function renderGrid() {
 // DTP Creation vs Master KPI (KM-01 .. KM-08): recalculated from the DTP records on every grid change
 function renderKpi() {
   if (!$('dcKpi')) return;
-  const m = kpiMon(), name = c => `${c} - ${NAMES.lp(c)}`;
+  const m = kpiMon(), t = m.trip, name = c => `${c} - ${NAMES.lp(c)}`;
   const badge = r => r.kpi === 'NONE' ? '<span class="st sb">No Master KPI</span>' : r.kpi === 'NOT_BY_RESOURCE' ? `<span class="st sb">Not By Resources</span>`
-    : r.over ? `<span class="st fl">Over Allocation +${r.over}</span>` : r.level === 'full' ? '<span class="st fl">Full</span>' : r.level === 'warn' ? '<span class="st qu">Near Limit</span>' : '<span class="st av">Available</span>';
+    : r.kpi === 'BY_TRIP' ? '<span class="st rd">By Trip only</span>'
+    : r.over ? `<span class="st fl">Over Allocation +${r.over}</span>` : r.level === 'full' ? `<span class="st fl">Full</span>${r.trip ? ' <span class="st rd" title="Further trips go by trip">→ By Trip</span>' : ''}` : r.level === 'warn' ? '<span class="st qu">Near Limit</span>' : '<span class="st av">Available</span>';
   const bar = r => r.kpi !== 'OK' ? '-' : `<div class="kbar ${r.level}"><i style="width:${Math.min(100, r.usage ?? 100)}%"></i></div><b>${r.usage == null ? '-' : r.usage + '%'}</b>`;
-  $('dcKpi').innerHTML = `<table class="kpi-tbl"><tr><th>Trucking Company</th><th>Master KPI Limit<small>Order Sharing / day</small></th><th>Assigned DTP</th><th class="rem">Remaining Slot</th><th>Usage</th><th>Status</th><th>Selected<small>not submitted</small></th><th>After Submit</th><th>Rejected by LP<small>not counted</small></th></tr>
-    ${m.rows.map(r => `<tr class="lv-${r.level}"><td class="left">${esc(name(r.lp))}</td><td>${r.limit ?? '-'}</td><td>${r.assigned}</td>
+  const resRows = m.rows.filter(r => r.kpi !== 'BY_TRIP');
+  const tBadge = r => r.over ? `<span class="st fl">Over Limit +${r.over}</span>` : r.level === 'full' ? '<span class="st fl">Full</span>' : r.level === 'warn' ? '<span class="st qu">Near Limit</span>' : '<span class="st av">Available</span>';
+  const tBar = r => `<div class="kbar ${r.level}"><i style="width:${Math.min(100, r.usage ?? 100)}%"></i></div><b>${r.usage == null ? '-' : r.usage + '%'}</b>`;
+  const tripTbl = !t.rows.length ? '' : `<h5 class="kpi-sub">By Trip <small>trips per day <b>${t.dailyTrips}</b> shared by Order Sharing % (1 trip per company first, the rest by %) · trips above the By Resources limit, or of a By Trip only company, count here</small></h5>
+    ${t.sumOk ? '' : `<div class="kpi-warn">${esc(MK.MSG.pctSum(t.sumPct))} Check Master KPI.</div>`}
+    <table class="kpi-tbl kpi-trip"><tr><th>Trucking Company</th><th>Order Sharing<small>By Trip %</small></th><th>Trip Limit<small>per day</small></th><th>Trips by trip<small>today</small></th><th class="rem">Remaining Trip</th><th>Usage</th><th>Status</th><th>Selected<small>not submitted</small></th><th>After Submit</th></tr>
+    ${t.rows.map(r => `<tr class="lv-${r.level}"><td class="left">${esc(name(r.lp))}</td><td>${r.pct.toFixed(2)}%</td><td>${r.limit}</td><td>${r.trips}</td>
+      <td class="rem"><b>${r.remaining}</b>${r.over ? `<small class="over">over ${r.over}</small>` : ''}</td><td class="u">${tBar(r)}</td><td>${tBadge(r)}</td><td>${r.selected || '-'}</td>
+      <td>${r.selected ? `${r.after} / ${r.limit}${r.afterOver ? ` <small class="over">exceeds by ${r.afterOver}</small>` : ''}` : '-'}</td></tr>`).join('')}
+    <tr class="tot"><td class="left">Total By Trip</td><td>${t.sumPct.toFixed(2)}%</td><td>${t.limit}</td><td>${t.trips}</td><td class="rem"><b>${t.remaining}</b></td><td></td><td>${t.over ? `<span class="st fl">Over +${t.over}</span>` : ''}</td><td>${t.after - t.trips || '-'}</td><td></td></tr></table>`;
+  $('dcKpi').innerHTML = `<h5 class="kpi-sub">By Resources <small>daily limit in trucks (Order Sharing)</small></h5>
+    <table class="kpi-tbl"><tr><th>Trucking Company</th><th>Master KPI Limit<small>Order Sharing / day</small></th><th>Assigned DTP<small>by resource</small></th><th class="rem">Remaining Slot</th><th>Usage</th><th>Status</th><th>Selected<small>not submitted</small></th><th>After Submit</th><th>Rejected by LP<small>not counted</small></th></tr>
+    ${resRows.map(r => `<tr class="lv-${r.level}"><td class="left">${esc(name(r.lp))}${r.tripAssigned ? `<small>total ${r.total} = ${r.assigned} by resource + ${r.tripAssigned} by trip</small>` : ''}</td><td>${r.limit ?? '-'}</td><td>${r.assigned}</td>
       <td class="rem"><b>${r.kpi === 'OK' ? r.remaining : '-'}</b>${r.over ? `<small class="over">over ${r.over}</small>` : ''}</td><td class="u">${bar(r)}</td><td>${badge(r)}</td>
-      <td>${r.selected || '-'}</td><td>${r.selected ? `${r.after}${r.kpi === 'OK' ? ` / ${r.limit}` : ''}${r.afterOver ? ` <small class="over">exceeds by ${r.afterOver}</small>` : ''}` : '-'}</td><td>${r.rejected || '-'}</td></tr>`).join('')}
+      <td>${r.selected || '-'}</td><td>${r.selected ? `${r.after}${r.kpi === 'OK' ? ` / ${r.limit}` : ''}${r.afterOver ? ` <small class="over">exceeds by ${r.afterOver}</small>` : ''}${r.tripAfter > r.tripAssigned ? ` <small>+${r.tripAfter - r.tripAssigned} by trip</small>` : ''}` : '-'}</td><td>${r.rejected || '-'}</td></tr>`).join('')}
     <tr class="tot"><td class="left">Total (with Master KPI)${m.total.noKpiAssigned ? `<small>+ ${m.total.noKpiAssigned} assigned without Master KPI</small>` : ''}</td><td>${m.total.limit}</td><td>${m.total.assigned}</td><td class="rem"><b>${m.total.remaining}</b></td><td></td><td>${m.total.over ? `<span class="st fl">Over +${m.total.over}</span>` : ''}</td><td>${m.total.selected || '-'}</td><td></td><td></td></tr></table>
-    <p class="q-note kpi-note">Date ${D.fmtDmy(dc.date)} · Assigned = DTP records submitted to the trucking company (Submitted, Queued, Processing, Processed, Failed; rolled back and LP-rejected records do not count) · Remaining = Limit - Assigned · Yellow from ${D.KPI_WARN}% usage · Not blocking (no limit rule in DTP Creation).</p>`;
-  const full = m.rows.filter(r => r.kpi === 'OK' && r.level === 'full').length, none = m.rows.filter(r => r.kpi !== 'OK' && r.assigned + r.selected + r.open > 0).length;
-  $('dcKpiSum').textContent = `· ${D.fmtDmy(dc.date)} · remaining ${m.total.remaining} of ${m.total.limit}${full ? ` · ${full} full` : ''}${m.total.over ? ` · over allocation ${m.total.over}` : ''}${none ? ` · ${none} without Master KPI` : ''}`;
+    ${tripTbl}
+    <p class="q-note kpi-note">Date ${D.fmtDmy(dc.date)} · Assigned = DTP records submitted to the trucking company (Submitted, Queued, Processing, Processed, Failed; rolled back and LP-rejected records do not count) · By Resources: Remaining = Limit - Assigned, yellow from ${D.KPI_WARN}% usage · By Trip: Trip Limit = trips per day shared by Order Sharing %, Remaining = Limit - Trips by trip · Not blocking (no limit rule in DTP Creation).</p>`;
+  const full = m.rows.filter(r => r.kpi === 'OK' && r.level === 'full').length, none = m.rows.filter(r => (r.kpi === 'NONE' || r.kpi === 'NOT_BY_RESOURCE') && r.assigned + r.selected + r.open > 0).length;
+  $('dcKpiSum').textContent = `· ${D.fmtDmy(dc.date)} · remaining ${m.total.remaining} of ${m.total.limit}${full ? ` · ${full} full` : ''}${m.total.over ? ` · over allocation ${m.total.over}` : ''}${t.rows.length ? ` · by trip ${t.trips} of ${t.limit}` : ''}${none ? ` · ${none} without Master KPI` : ''}`;
 }
 function pagerFor(page, pages) {
   let h = `<button data-p="${page - 1}" ${page === 1 ? 'disabled' : ''}>‹</button>`;

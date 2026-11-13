@@ -34,6 +34,7 @@ const seedAt = new Date(2026, 0, 15, 9, 0);
   ['PT. PANCARAN LOGISTIK INDONESIA', 'PLI', '4000006963', '219.668.073.2-046.725'],
   ['PT. SERASI LOGISTICS', 'SRL', '4000006978', '219.889.245.9-073.304'],
   ['PT. TOYOFUJI LOGISTICS', 'TFL', '4000006984', '220.110.536.1-431.887'],
+  ['PT. PUTRA SOPUTAN', 'PS', '4000006990', '220.331.874.3-046.118'],   // 2-character code on the Master KPI reference (By Trip); see OP-02 Vendor Code format
 ].forEach(([name, code, sapCode, npwp, x = {}]) => VENDORS.push({
   name, code, sapCode, serviceType: 'MRO', npwp, contact: '', email: '', phone: '', mobile: '', address: '', deleted: false,
   createdBy: 'ielp1', createdAt: seedAt, updatedBy: 'ielp1', updatedAt: seedAt, version: 1, ...x,
