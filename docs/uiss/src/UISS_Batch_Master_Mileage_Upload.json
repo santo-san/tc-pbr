@@ -15,12 +15,19 @@
    "date": "13-Nov-26",
    "reviewed_by": "",
    "description": "Initial draft: backend of the Route Mileage Excel upload (template, temp table, validation, all-or-nothing save, log) - MM-20..MM-29"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "One call like the Planning Order upload: validate then save immediately when every row is valid (no preview / Confirm Upload); errors return Row / Column / Error (new temp column ERROR_COLUMN); removed VALIDATED / CANCELLED status, expiry, cancel and re-check messages"
   }
  ],
  "general": {
   "objective": [
    "To create and update many Route Mileage records at once from the Excel template uploaded on the Route Mileage screen.",
-   "To validate every row with the same rules as the screen and show the result per row before anything is saved.",
+   "To validate every row with the same rules as the screen and return the Row / Column / Error list when any row fails (nothing saved).",
    "To save all valid New and Update rows in one transaction (all-or-nothing) and keep a log of every upload."
   ],
   "operation_flow": {
@@ -29,12 +36,12 @@
     "nodes": [
      {
       "id": "s",
-      "label": "Route Mileage screen: Upload Excel",
+      "label": "Route Mileage screen: Choose File",
       "type": "screen"
      },
      {
       "id": "v",
-      "label": "Upload + validation (phase A)",
+      "label": "Upload: validate, then save",
       "type": "process"
      },
      {
@@ -43,14 +50,9 @@
       "type": "db"
      },
      {
-      "id": "p",
-      "label": "Upload Preview (screen)",
+      "id": "x",
+      "label": "Error modal: Row / Column / Error",
       "type": "screen"
-     },
-     {
-      "id": "c",
-      "label": "Confirm Upload (phase B)",
-      "type": "process"
      },
      {
       "id": "m",
@@ -69,18 +71,13 @@
      },
      {
       "from": "v",
-      "to": "p",
-      "label": "result per row"
+      "to": "x",
+      "label": "any error"
      },
      {
-      "from": "p",
-      "to": "c",
-      "label": "Confirm"
-     },
-     {
-      "from": "c",
+      "from": "v",
       "to": "m",
-      "label": "1 transaction"
+      "label": "all valid: 1 transaction"
      }
     ]
    }
@@ -140,11 +137,11 @@
     "rows": [
      [
       "Trigger",
-      "Online: [Upload Excel] (phase A), [Confirm Upload] (phase B) on Route Mileage"
+      "Online: [Choose File] in the Upload Excel accordion of Route Mileage"
      ],
      [
       "Transaction",
-      "Phase B: one transaction, all-or-nothing"
+      "Same call, one transaction, all-or-nothing"
      ],
      [
       "Lock",
@@ -168,7 +165,7 @@
    "nodes": [
     {
      "id": "s",
-     "label": "START (Upload Excel)",
+     "label": "START (Choose File)",
      "type": "start"
     },
     {
@@ -226,13 +223,18 @@
     },
     {
      "id": "p5",
-     "label": "Log VALIDATED / ERROR, preview",
-     "type": "process",
+     "label": "Any row error / nothing to save?",
+     "type": "decision",
      "step": 6
     },
     {
+     "id": "x5",
+     "label": "Log ERROR, return Row / Column / Error",
+     "type": "message"
+    },
+    {
      "id": "p6",
-     "label": "Confirm: check log, re-validate (UPDLOCK)",
+     "label": "BEGIN TRAN, re-read routes (UPDLOCK)",
      "type": "process",
      "step": 7
     },
@@ -264,6 +266,10 @@
     [
      "d2",
      "x2"
+    ],
+    [
+     "p5",
+     "x5"
     ]
    ],
    "edges": [
@@ -311,8 +317,13 @@
     },
     {
      "from": "p5",
+     "to": "x5",
+     "label": "Yes"
+    },
+    {
+     "from": "p5",
      "to": "p6",
-     "label": "user Confirm"
+     "label": "No"
     },
     {
      "from": "p6",
@@ -334,9 +345,9 @@
   },
   "steps": [
    {
-    "text": "Phase A - [Upload Excel]: create UPLOAD_ID (sequence) and insert TB_R_MILEAGE_UPLOAD_LOG with STATUS 'PROCESSING', FILE_NAME, START_DT; log message no. 1.",
+    "text": "[Choose File] (one call, like the Planning Order upload): create UPLOAD_ID (sequence) and insert TB_R_MILEAGE_UPLOAD_LOG with STATUS 'PROCESSING', FILE_NAME, START_DT; log message no. 1.",
     "children": [
-     "Lock: the user has another upload in PROCESSING / VALIDATED: log message no. 2. Stop."
+     "Lock: the user has another upload in PROCESSING: log message no. 2. Stop."
     ]
    },
    {
@@ -354,29 +365,27 @@
    {
     "text": "Validate every row and collect all its errors (Functional Description 4.2): format / mandatory -> Master Location (active) -> From <> To -> Mileage > 0, 2 decimals -> duplicate route in the file -> existing route (Inactive = error; Active same mileage = SAME; other mileage = UPDATE; none = NEW).",
     "children": [
-     "Each failed row: log message no. 7; temp VALIDATION_STATUS 'E', ERROR_MSG, ACTION 'ERROR'. Valid rows: 'V' with ACTION."
+     "Each failed row: log message no. 7; temp VALIDATION_STATUS 'E', ERROR_COLUMN, ERROR_MSG, ACTION 'ERROR'. Valid rows: 'V' with ACTION."
     ]
    },
    {
-    "text": "Update TB_R_MILEAGE_UPLOAD_LOG counts. Errors: STATUS 'ERROR', log message no. 8. All SAME: STATUS 'ERROR', log message no. 9. Otherwise STATUS 'VALIDATED', log message no. 10. Return the rows (ROW_NO, codes, names, mileage, ACTION, ERROR_MSG, old mileage) to the Upload Preview.",
+    "text": "Update TB_R_MILEAGE_UPLOAD_LOG counts. Decision: any error or nothing to save?",
     "children": [
-     "[Cancel] on the preview: log 'CANCELLED', delete temp rows; log message no. 15."
+     "Errors: STATUS 'ERROR', END_DT, log message no. 8; return the error list (ROW_NO, ERROR_COLUMN, ERROR_MSG) for the modal 'Upload validation failed'. Stop, nothing saved.",
+     "All SAME: STATUS 'ERROR', log message no. 9. Stop."
     ]
    },
    {
-    "text": "Phase B - [Confirm Upload]: the log must be VALIDATED, of the same user and not older than the time limit (TBD, proposed 30 min). BEGIN TRANSACTION; re-validate the temp rows against the current master with UPDLOCK on the routes.",
+    "text": "No error: BEGIN TRANSACTION in the same call (no preview / confirm step); read the routes of the file again with UPDLOCK so the result of step 5 is still valid."
+   },
+   {
+    "text": "INSERT Route Mileage Master (TBD) for ACTION 'NEW'; UPDATE Route Mileage Master (TBD) for ACTION 'UPDATE' (WHERE route AND VERSION read in step 7); INSERT TB_H_MILEAGE for each update (old / new mileage, proposed); COMMIT (all-or-nothing).",
     "children": [
-     "Not valid: log message no. 11. Result changed (route created / changed / deactivated meanwhile): ROLLBACK, log message no. 12."
+     "DB error: ROLLBACK, log 'ERROR', log message no. 10."
     ]
    },
    {
-    "text": "INSERT Route Mileage Master (TBD) for ACTION 'NEW'; UPDATE Route Mileage Master (TBD) for ACTION 'UPDATE' (WHERE route AND VERSION); INSERT TB_H_MILEAGE for each update (old / new mileage, proposed); COMMIT (all-or-nothing).",
-    "children": [
-     "DB error: ROLLBACK, log 'ERROR', log message no. 13."
-    ]
-   },
-   {
-    "text": "Update TB_R_MILEAGE_UPLOAD_LOG: STATUS 'SUCCESS', ADDED_ROWS, UPDATED_ROWS, END_DT; delete the temp rows; log message no. 14. Unexpected error at any step: log message no. 16."
+    "text": "Update TB_R_MILEAGE_UPLOAD_LOG: STATUS 'SUCCESS', ADDED_ROWS, UPDATED_ROWS, END_DT; delete the temp rows; log message no. 11. Unexpected error at any step: log message no. 12."
    }
   ]
  },
@@ -493,6 +502,10 @@
       "description": "'N'"
      },
      {
+      "dest_field": "ERROR_COLUMN",
+      "description": "NULL"
+     },
+     {
       "dest_field": "ERROR_MSG",
       "description": "NULL"
      },
@@ -535,6 +548,10 @@
       "description": "'V' or 'E'"
      },
      {
+      "dest_field": "ERROR_COLUMN",
+      "description": "Column of each error, separated by ' | '"
+     },
+     {
       "dest_field": "ERROR_MSG",
       "description": "All errors of the row, separated by ' | '"
      }
@@ -547,7 +564,7 @@
     "destination": {
      "table": "TB_R_MILEAGE_UPLOAD_LOG",
      "operation": "Update",
-     "description": "Step 3 / 6 - validation result",
+     "description": "Step 3 / 6 - file or row errors",
      "keys": [
       {
        "field": "UPLOAD_ID",
@@ -558,7 +575,7 @@
     "mappings": [
      {
       "dest_field": "STATUS",
-      "description": "'VALIDATED' / 'ERROR' / 'CANCELLED'"
+      "description": "'ERROR'"
      },
      {
       "dest_field": "TOTAL_ROWS / ADDED_ROWS / UPDATED_ROWS / SAME_ROWS / ERROR_ROWS",
@@ -570,7 +587,7 @@
      },
      {
       "dest_field": "END_DT",
-      "description": "Server date-time (ERROR / CANCELLED)"
+      "description": "Server date-time"
      }
     ]
    },
@@ -797,7 +814,7 @@
     "destination": {
      "table": "TB_T_MILEAGE_UPLOAD",
      "operation": "Delete",
-     "description": "Step 6 / 9 - success or cancel",
+     "description": "Step 9 - success",
      "keys": [
       {
        "field": "UPLOAD_ID",
@@ -822,7 +839,7 @@
   },
   {
    "type": "text",
-   "text": "Backend of the Excel upload on the Route Mileage screen (Master > Mileage). Two calls: phase A uploads and validates the file (nothing saved in the master, result shown in the Upload Preview); phase B (Confirm Upload) saves all New and Update rows in one transaction.",
+   "text": "Backend of the Excel upload on the Route Mileage screen (Master > Mileage). One call, like the Planning Order upload: [Choose File] uploads and validates the file; with any error nothing is saved and the Row / Column / Error list is returned (modal on the screen); without errors all New and Update rows are saved at once in one transaction.",
    "level": 1,
    "bold": false
   },
@@ -953,7 +970,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "All-or-nothing (MM-25): Confirm only when ERROR_ROWS = 0 and ADDED + UPDATED > 0. Phase B re-validates against the current master; a different result rejects the confirm.",
+   "text": "All-or-nothing (MM-25): saved only when ERROR_ROWS = 0 and ADDED + UPDATED > 0, in the same call (no preview / confirm). The routes are re-read with UPDLOCK inside the transaction.",
    "level": 2
   },
   {
@@ -965,7 +982,7 @@
   {
    "type": "item",
    "marker": "c.",
-   "text": "One open upload per user (lock); a VALIDATED upload expires after the time limit (TBD).",
+   "text": "One upload per user at a time (lock while PROCESSING).",
    "level": 2
   },
   {
@@ -1006,7 +1023,7 @@
     ],
     [
      "OQ-05",
-     "Time limit between preview and confirm; keep error uploads how many days?"
+     "Keep temp rows of error uploads how many days?"
     ],
     [
      "OQ-06",
@@ -1031,13 +1048,13 @@
   },
   {
    "event": "Lock",
-   "cause": "Another upload of the user is still PROCESSING / VALIDATED",
+   "cause": "Another upload of the user is still PROCESSING",
    "type": "Error",
    "msg_id": "TBD",
-   "message": "Another Route Mileage upload is still in progress. Finish or cancel it first.",
+   "message": "Another Route Mileage upload is still in progress. Please wait.",
    "action": {
     "system": "Reject request; nothing changed",
-    "user": "Confirm or cancel the open upload"
+    "user": "Wait and upload again"
    }
   },
   {
@@ -1102,8 +1119,8 @@
    "msg_id": "TBD",
    "message": "<n> row(s) have errors. Nothing was saved; correct the file and upload again.",
    "action": {
-    "system": "Log ERROR with counts; preview with errors",
-    "user": "Correct the rows shown"
+    "system": "Log ERROR with counts; return Row / Column / Error list (modal on screen)",
+    "user": "Correct the file, upload again"
    }
   },
   {
@@ -1115,39 +1132,6 @@
    "action": {
     "system": "Log ERROR (nothing to save)",
     "user": "-"
-   }
-  },
-  {
-   "event": "Row validation",
-   "cause": "All rows valid",
-   "type": "Info",
-   "msg_id": "TBD",
-   "message": "Upload <UPLOAD_ID> validated: <n> new, <n> update, <n> no change.",
-   "action": {
-    "system": "Log VALIDATED; preview, Confirm enabled",
-    "user": "Confirm Upload"
-   }
-  },
-  {
-   "event": "Confirm",
-   "cause": "Upload not VALIDATED / of another user / older than the time limit",
-   "type": "Error",
-   "msg_id": "TBD",
-   "message": "The upload is no longer valid. Please upload the file again.",
-   "action": {
-    "system": "Reject; nothing changed",
-    "user": "Upload again"
-   }
-  },
-  {
-   "event": "Confirm",
-   "cause": "Re-check finds a changed result (route created / changed / deactivated meanwhile)",
-   "type": "Error",
-   "msg_id": "TBD",
-   "message": "Route data has changed since the preview (<n> row(s)). Please upload the file again.",
-   "action": {
-    "system": "Rollback; log ERROR",
-    "user": "Upload again"
    }
   },
   {
@@ -1169,17 +1153,6 @@
    "message": "Upload completed: <n> route(s) created, <m> route(s) updated.",
    "action": {
     "system": "Commit; log SUCCESS; delete temp rows",
-    "user": "-"
-   }
-  },
-  {
-   "event": "Cancel",
-   "cause": "User closed the preview",
-   "type": "Info",
-   "msg_id": "TBD",
-   "message": "Route Mileage upload <UPLOAD_ID> cancelled by <USER>.",
-   "action": {
-    "system": "Log CANCELLED; delete temp rows",
     "user": "-"
    }
   },
@@ -1337,6 +1310,13 @@
      "N new / V valid / E error"
     ],
     [
+     "ERROR_COLUMN",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     "Column of each error (FROM CODE / TO CODE / MILEAGE (KM) / ROUTE)"
+    ],
+    [
      "ERROR_MSG",
      "VARCHAR(2000)",
      "",
@@ -1391,7 +1371,7 @@
      "VARCHAR(12)",
      "",
      "N",
-     "PROCESSING / VALIDATED / ERROR / CANCELLED / SUCCESS"
+     "PROCESSING / ERROR / SUCCESS"
     ],
     [
      "TOTAL_ROWS",

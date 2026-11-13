@@ -170,18 +170,25 @@
   .kact button.del { color: #e11d48; } .kact button.ok { color: #16a34a; }
   .kpi-foot { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14px; font-size: 10px; color: #4b5563; gap: 12px; flex-wrap: wrap; }
   .kpi-foot .right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-  #muYes:disabled { opacity: .35; cursor: not-allowed; }
-  .btn-upl { height: 35px; border: 0; border-radius: 6px; background: #0f766e; color: #fff; font: inherit; font-size: 11px; font-weight: 600; padding: 0 14px; cursor: pointer; }
-  .btn-tpl { height: 35px; border: 1px solid #d5d9e0; border-radius: 6px; background: #fff; color: #0b1a3a; font: inherit; font-size: 11px; font-weight: 600; padding: 0 12px; cursor: pointer; }
-  .mu-sum { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; }
-  .mu-sum span { padding: 4px 10px; border-radius: 12px; font-size: 10.5px; font-weight: 600; }
-  .mu-sum .n { background: #dcfce7; color: #166534; } .mu-sum .u { background: #dbeafe; color: #1d4ed8; } .mu-sum .s { background: #f3f4f6; color: #4b5563; } .mu-sum .e { background: #fee2e2; color: #b91c1c; }
-  .mu-wrap { max-height: 360px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
-  .mu-tbl { width: 100%; border-collapse: collapse; font-size: 10.5px; }
-  .mu-tbl th { position: sticky; top: 0; background: #eef1f6; padding: 6px 8px; text-align: left; }
-  .mu-tbl td { padding: 5px 8px; border-top: 1px solid #f0f2f5; vertical-align: top; }
-  .mu-tbl tr.err td { background: #fff1f3; } .mu-tbl td.act { font-weight: 700; white-space: nowrap; }
-  .mu-tbl .a-New { color: #166534; } .mu-tbl .a-Update { color: #1d4ed8; } .mu-tbl .a-No { color: #6b7280; } .mu-tbl .a-Error { color: #b91c1c; }
+  /* Upload Excel / Manual Entry accordions, as Planning Order (DTP Creation) */
+  #milContent { position: relative; }
+  .acc { border: 1px solid #eceef2; border-radius: 8px; margin: 0 0 12px; overflow: hidden; }
+  .acc > summary { list-style: none; cursor: pointer; padding: 11px 16px; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; background: #fafbfc; }
+  .acc > summary::-webkit-details-marker { display: none; }
+  .acc > summary::after { content: ''; margin-left: auto; width: 6px; height: 6px; border-right: 1.5px solid #6b7280; border-bottom: 1.5px solid #6b7280; transform: rotate(45deg); }
+  .acc[open] > summary::after { transform: rotate(-135deg); } .acc[open] > summary { color: #2f80ed; }
+  .acc .body { padding: 12px 16px 14px; font-size: 10.5px; }
+  .acc .body .form-actions { margin-bottom: 0; }
+  .up-row { display: flex; gap: 8px; align-items: center; }
+  .up-row input[type=text] { flex: 0 1 380px; height: 30px; border: 1px solid #e2e5ea; background: #eef0f3; border-radius: 5px; padding: 0 10px; font-size: 10.5px; }
+  .link { background: none; border: 0; color: #0b2b5c; font-weight: 600; font-size: 10px; padding: 0; cursor: pointer; text-decoration: underline; }
+  .q-note { font-size: 9.5px; color: #6b7280; }
+  .err-table { width: 100%; border-collapse: collapse; font-size: 10px; } .err-table th, .err-table td { border: 1px solid #eceef2; padding: 5px 7px; text-align: left; }
+  .err-table th { background: #f3f5f8; } .err-scroll { max-height: 300px; overflow: auto; }
+  .busy-mask { display: none; position: absolute; inset: 0; background: rgba(255,255,255,.7); z-index: 5; align-items: center; justify-content: center; gap: 10px; font-size: 11px; font-weight: 600; border-radius: 10px; }
+  .busy-mask.show { display: flex; }
+  .spin { width: 18px; height: 18px; border: 2.5px solid #cfd6e4; border-top-color: #2f80ed; border-radius: 50%; animation: spin .8s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+  #milTable tr.flash td { background: #ecfdf5; transition: background 1.5s; }
   .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
   .kpi-tbr b { font-size: 15px; margin-right: 110px; }
   .ksums { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
@@ -486,6 +493,13 @@
       </section>
     </div>
     <section class="mcard" id="milContent" style="display:none">
+      <details class="acc" id="mAccUp" open><summary>&#128196; Upload Excel</summary><div class="body">
+        <div style="font-weight:600;margin-bottom:6px">Filename</div>
+        <div class="up-row"><input type="text" id="mFileName" readonly placeholder="No file chosen"><button class="btn-dark" id="mChoose">Choose File</button>
+          <input type="file" id="mFile" accept=".xlsx,.xls" hidden></div>
+        <div style="margin-top:8px">*) <button class="link" id="mTemplate">Download Template</button> <span class="q-note">· new route = created, existing Active route = mileage updated · one error in the file = nothing is saved</span></div>
+      </div></details>
+      <details class="acc" id="mAccMan" open><summary>&#128421; Manual Entry</summary><div class="body">
       <form id="mForm" class="mil-form" onsubmit="return false" novalidate autocomplete="off">
         <div id="mfAlert"></div>
         <div class="mil-grid">
@@ -502,6 +516,8 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Cancel
         </button>
       </div>
+      </div></details>
+      <div class="busy-mask" id="mBusy"><span class="spin"></span><span id="mBusyText"></span></div>
 
       <div class="list-head">
         <h2 class="list-title">Route Mileage List</h2>
@@ -517,9 +533,6 @@
           </button>
           <div class="dd-menu" id="mViewMenu"></div>
         </div>
-        <button class="btn-upl" id="mUpload" title="Upload routes from the Excel template">&#11014; Upload Excel</button>
-        <input type="file" id="mFile" accept=".xlsx,.xls" hidden>
-        <button class="btn-tpl" id="mTemplate" title="Download the Excel template">&#128196; Download Template</button>
         <button class="btn-xls" id="mExport">&#11015; Export .xls</button>
       </div>
       <div class="table-wrap"><table id="milTable"><thead id="mThead"></thead><tbody id="mTbody"></tbody></table></div>
@@ -762,7 +775,7 @@
 <script src="master-trucking.js?v=20261030b"></script>
 <script src="master-location.js?v=20261030c"></script>
 <script src="vendor/xlsx/xlsx.full.min.js"></script>
-<script src="master-mileage.js?v=20261113a"></script>
+<script src="master-mileage.js?v=20261113b"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
 <script src="master-kpi.js?v=20261113b"></script>
@@ -770,7 +783,7 @@
 <script src="master-renban.js?v=20261101b"></script>
 <script src="master.js?v=20261113a"></script>
 <script src="location.js?v=20261030d"></script>
-<script src="mileage.js?v=20261113a"></script>
+<script src="mileage.js?v=20261113b"></script>
 <script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
 <script src="kpi.js?v=20261113b"></script>

@@ -24,6 +24,13 @@
    "date": "13-Nov-26",
    "reviewed_by": "",
    "description": "Added Excel upload: Upload Excel / Download Template buttons, upload preview dialog (New / Update / No change / Error per row), Confirm Upload; backend refer UISS-Batch Master Mileage - Route Mileage Upload"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Excel upload aligned with Planning Order: accordions Upload Excel (Filename, Choose File, *) Download Template) and Manual Entry; file validated on Choose File and saved immediately when valid (no preview / Confirm Upload); errors shown in modal 'Upload validation failed' (Row / Column / Error, Download error list); busy indicator; uploaded rows highlighted"
   }
  ],
  "general": {
@@ -31,7 +38,7 @@
    "To add, view and edit the distance (KM) between two locations registered in Master Location.",
    "To provide the mileage used by TC-PBR to calculate the variable cost of each delivery: Variable Cost = Mileage (KM) x Price per KM.",
    "To prevent invalid routes: same From / To, mileage <= 0, duplicate From + To, or locations that are not active in Master Location.",
-   "To create or update many routes at once from an Excel template, with a preview of the result of every row before saving."
+   "To create or update many routes at once from an Excel template (same layout and function as the Planning Order upload): the file is validated when chosen and saved at once when every row is valid."
   ],
   "display_order": [
    {
@@ -86,22 +93,45 @@
     "function": "To move between pages and set rows per page."
    },
    {
-    "name": "Upload Excel",
-    "function": "To select the Excel file and show the upload preview (nothing saved yet)."
+    "name": "Choose File",
+    "function": "To select the Excel file; the file is validated and, when every row is valid, saved immediately (all-or-nothing)."
    },
    {
     "name": "Download Template",
-    "function": "To download the Excel template (Route Mileage, Active Locations, Notes)."
+    "function": "Link '*) Download Template': downloads the Excel template (Route Mileage, Active Locations, Notes)."
    },
    {
-    "name": "Confirm Upload",
-    "function": "To save all New and Update rows of the previewed file (all-or-nothing)."
+    "name": "Download error list",
+    "function": "Error modal: downloads the Row / Column / Error list as CSV."
+   },
+   {
+    "name": "Close and correct the file",
+    "function": "Error modal: closes the modal; nothing was saved."
    }
   ],
   "screen_modes": [
    {
     "mode": "Add Mode (initial)",
     "sections": [
+     {
+      "section": "Upload Excel (accordion)",
+      "description": "Filename 'No file chosen', open by default, refer below 3)",
+      "buttons": {
+       "From / To": "D",
+       "Mileage": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Row click": "D",
+       "Pagination": "D",
+       "Choose File": "E",
+       "Download Template": "E",
+       "Download error list": "D",
+       "Close and correct the file": "D"
+      }
+     },
      {
       "section": "Input",
       "description": "From / To = placeholder, Mileage blank",
@@ -115,9 +145,10 @@
        "Export .xls": "D",
        "Row click": "D",
        "Pagination": "D",
-       "Upload Excel": "D",
-       "Download Template": "D",
-       "Confirm Upload": "D"
+       "Choose File": "E",
+       "Download Template": "E",
+       "Download error list": "D",
+       "Close and correct the file": "D"
       }
      },
      {
@@ -133,9 +164,10 @@
        "Export .xls": "E",
        "Row click": "E",
        "Pagination": "E",
-       "Upload Excel": "E",
+       "Choose File": "E",
        "Download Template": "E",
-       "Confirm Upload": "D"
+       "Download error list": "D",
+       "Close and correct the file": "D"
       }
      }
     ]
@@ -156,9 +188,10 @@
        "Export .xls": "D",
        "Row click": "D",
        "Pagination": "D",
-       "Upload Excel": "D",
+       "Choose File": "D",
        "Download Template": "D",
-       "Confirm Upload": "D"
+       "Download error list": "D",
+       "Close and correct the file": "D"
       }
      },
      {
@@ -174,9 +207,10 @@
        "Export .xls": "E",
        "Row click": "E",
        "Pagination": "E",
-       "Upload Excel": "D",
+       "Choose File": "D",
        "Download Template": "D",
-       "Confirm Upload": "D"
+       "Download error list": "D",
+       "Close and correct the file": "D"
       }
      }
     ]
@@ -197,9 +231,10 @@
        "Export .xls": "D",
        "Row click": "D",
        "Pagination": "D",
-       "Upload Excel": "D",
+       "Choose File": "D",
        "Download Template": "D",
-       "Confirm Upload": "D"
+       "Download error list": "D",
+       "Close and correct the file": "D"
       }
      },
      {
@@ -215,18 +250,43 @@
        "Export .xls": "E",
        "Row click": "E",
        "Pagination": "E",
-       "Upload Excel": "D",
+       "Choose File": "D",
        "Download Template": "D",
-       "Confirm Upload": "D"
+       "Download error list": "D",
+       "Close and correct the file": "D"
       }
      }
     ]
    },
    {
-    "mode": "Upload Preview (dialog)",
+    "mode": "Upload Validating (busy)",
     "sections": [
      {
-      "section": "Upload preview",
+      "section": "Whole screen",
+      "description": "'Validating Excel file...' mask",
+      "buttons": {
+       "From / To": "D",
+       "Mileage": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Row click": "D",
+       "Pagination": "D",
+       "Choose File": "D",
+       "Download Template": "D",
+       "Download error list": "D",
+       "Close and correct the file": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Upload validation failed (modal)",
+    "sections": [
+     {
+      "section": "Error modal",
       "description": "refer below 4)",
       "buttons": {
        "From / To": "D",
@@ -238,9 +298,10 @@
        "Export .xls": "D",
        "Row click": "D",
        "Pagination": "D",
-       "Upload Excel": "D",
+       "Choose File": "D",
        "Download Template": "D",
-       "Confirm Upload": "E"
+       "Download error list": "E",
+       "Close and correct the file": "E"
       }
      }
     ]
@@ -249,7 +310,8 @@
   "screen_mode_remarks": [
    "1) Empty list shows message no. 11; empty search result shows message no. 12.",
    "2) Save shows 'Saving...' and is disabled together with Cancel until the server responds (prevents double submission).",
-   "4) Upload Preview: Confirm Upload is enabled only when no row has an error and at least one row is New or Update; Cancel / \u00d7 close the dialog without saving."
+   "3) Accordions as in Planning Order: 'Upload Excel' above 'Manual Entry'; both open by default, the header collapses / expands them. Clicking a list row opens Manual Entry in Edit Mode.",
+   "4) Upload validation failed: opened for a file error (one message) or row errors (Row / Column / Error table); nothing is saved. Valid file: no modal, saved immediately."
   ]
  },
  "screen_flow": [
@@ -728,8 +790,13 @@
      },
      {
       "id": "ev",
-      "label": "On Click of Upload Excel, select file",
+      "label": "Upload Excel accordion: Choose File",
       "type": "event"
+     },
+     {
+      "id": "bz",
+      "label": "Validating Excel file...",
+      "type": "process"
      },
      {
       "id": "q1",
@@ -737,44 +804,30 @@
       "type": "decision"
      },
      {
-      "id": "e1",
-      "label": "Message no. 14-17",
-      "type": "message"
-     },
-     {
-      "id": "pv",
-      "label": "Check rows, show Upload Preview",
-      "type": "process"
-     },
-     {
       "id": "q2",
-      "label": "No error and New / Update rows?",
+      "label": "Every row valid?",
       "type": "decision"
      },
      {
-      "id": "e2",
-      "label": "Confirm disabled, message no. 18 / 19",
+      "id": "e1",
+      "label": "Modal 'Upload validation failed' msg 16-20, nothing saved",
       "type": "message"
      },
      {
-      "id": "cf",
-      "label": "Confirm Upload: re-check, save all (UISS-Batch)",
+      "id": "sv",
+      "label": "Save all rows (UISS-Batch)",
       "type": "process"
      },
      {
       "id": "e",
-      "label": "Refresh list, message no. 20",
+      "label": "Refresh list, highlight rows, msg 22",
       "type": "end"
      }
     ],
     "same_rank": [
      [
-      "q1",
-      "e1"
-     ],
-     [
       "q2",
-      "e2"
+      "e1"
      ]
     ],
     "edges": [
@@ -784,6 +837,10 @@
      },
      {
       "from": "ev",
+      "to": "bz"
+     },
+     {
+      "from": "bz",
       "to": "q1"
      },
      {
@@ -793,25 +850,21 @@
      },
      {
       "from": "q1",
-      "to": "pv",
+      "to": "q2",
       "label": "Yes"
      },
      {
-      "from": "pv",
-      "to": "q2"
-     },
-     {
       "from": "q2",
-      "to": "e2",
+      "to": "e1",
       "label": "No"
      },
      {
       "from": "q2",
-      "to": "cf",
+      "to": "sv",
       "label": "Yes"
      },
      {
-      "from": "cf",
+      "from": "sv",
       "to": "e"
      }
     ]
@@ -824,7 +877,7 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/img/u08_route_mileage.png"
   },
   {
-   "caption": "2. Add Mode - initial display with Upload Excel / Download Template (rev 0.2)",
+   "caption": "2. Add Mode - accordions Upload Excel / Manual Entry, like Planning Order (rev 0.3)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u01_buttons.png"
   },
   {
@@ -856,19 +909,19 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/img/a08_table_view.png"
   },
   {
-   "caption": "10. Upload Preview - rows with errors, Confirm disabled (rev 0.2)",
-   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u02_preview_errors.png"
+   "caption": "10. Choose File - validating Excel file (rev 0.3)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u03_validating.png"
   },
   {
-   "caption": "11. Upload Preview - all rows valid (New / Update / No change)",
-   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u03_preview_ok.png"
+   "caption": "11. Upload validation failed - Row / Column / Error, nothing saved (rev 0.3)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u02_upload_errors.png"
   },
   {
-   "caption": "12. After Confirm Upload - list refreshed",
+   "caption": "12. Valid file - saved immediately, list refreshed, uploaded rows highlighted (rev 0.3)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u04_saved.png"
   },
   {
-   "caption": "13. Upload failed - template columns not found",
+   "caption": "13. Upload validation failed - template columns not found (rev 0.3)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u05_wrong_template.png"
   }
  ],
@@ -1258,10 +1311,40 @@
    "description": "msg 11 when no data; msg 12 when Search returns nothing."
   },
   {
-   "group": "<Route Mileage List Section - Upload>"
+   "group": "<Upload Excel Accordion> (top of page, like Planning Order)"
   },
   {
-   "name": "Upload Excel",
+   "name": "Upload Excel (accordion header)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Accordion",
+   "justified": "Center",
+   "initial": "Open",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Collapses / expands the upload area."
+  },
+  {
+   "name": "Filename",
+   "source": "File",
+   "field": "File name",
+   "type": "Char",
+   "len": "TBD",
+   "io": "O",
+   "control": "Text Box (read only)",
+   "justified": "Left",
+   "initial": "'No file chosen'",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Name of the last chosen file."
+  },
+  {
+   "name": "Choose File",
    "source": "",
    "field": "",
    "type": "",
@@ -1273,25 +1356,76 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Opens the file dialog (.xlsx / .xls). The file is read and checked (refer UISS-Batch 'Master Mileage - Route Mileage Upload'); file errors: msg 14-17; otherwise the Upload Preview dialog opens."
+   "description": "Opens the file dialog (.xlsx / .xls). Shows 'Validating Excel file...' and validates the file (refer UISS-Batch 'Master Mileage - Route Mileage Upload'). File / row errors: modal 'Upload validation failed' (msg 16-20, 21); valid: all rows saved, list refreshed, uploaded rows highlighted, msg 22."
   },
   {
-   "name": "Download Template",
+   "name": "*) Download Template",
    "source": "",
    "field": "",
    "type": "",
    "len": "",
    "io": "I",
-   "control": "Button",
+   "control": "Link",
    "justified": "Center",
    "initial": "",
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Downloads 'Template_Route_Mileage.xlsx': sheet Route Mileage (FROM CODE, TO CODE, MILEAGE (KM) + 2 examples), Active Locations (code, name), Notes (msg 21)."
+   "description": "Downloads 'Template_Route_Mileage.xlsx': sheet Route Mileage (FROM CODE, TO CODE, MILEAGE (KM) + 2 examples), Active Locations (code, name), Notes (msg 23)."
   },
   {
-   "group": "<Upload Preview Dialog>"
+   "name": "Upload note",
+   "source": "System",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'new route = created, existing Active route = mileage updated \u00b7 one error in the file = nothing is saved'."
+  },
+  {
+   "group": "<Manual Entry Accordion>"
+  },
+  {
+   "name": "Manual Entry (accordion header)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Accordion",
+   "justified": "Center",
+   "initial": "Open",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains the Input Section (From, To, Mileage, Save, Cancel). Opened automatically by a row click (Edit Mode)."
+  },
+  {
+   "group": "<Busy Indicator>"
+  },
+  {
+   "name": "Validating Excel file...",
+   "source": "System",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Spinner mask over the screen while the file is read and validated."
+  },
+  {
+   "group": "<Upload validation failed Modal>"
   },
   {
    "name": "Title",
@@ -1306,41 +1440,41 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "'Upload Route Mileage - {file name}'."
+   "description": "'Upload validation failed'."
   },
   {
-   "name": "Summary chips",
-   "source": "Calculation",
-   "field": "",
-   "type": "",
-   "len": "",
-   "io": "O",
-   "control": "Label",
-   "justified": "Center",
-   "initial": "",
-   "required": "N",
-   "format": "",
-   "validation": "",
-   "description": "New n (green) \u00b7 Update n (blue) \u00b7 No change n (grey) \u00b7 Error n (red) \u00b7 Rows n."
-  },
-  {
-   "name": "Result message",
+   "name": "Message",
    "source": "System",
    "field": "",
    "type": "",
    "len": "",
    "io": "O",
    "control": "Label",
-   "justified": "Center",
+   "justified": "Left",
    "initial": "",
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Errors: msg 18; nothing to save: msg 19; otherwise 'All rows are valid. Click Confirm Upload ...'."
+   "description": "Row errors: msg 20; file error: msg 16-19; nothing to save: msg 21."
+  },
+  {
+   "name": "File",
+   "source": "File",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'File: {file name}'."
   },
   {
    "name": "Row",
-   "source": "File",
+   "source": "Validation",
    "field": "Excel row number",
    "type": "Number",
    "len": 5,
@@ -1351,12 +1485,27 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": ""
+   "description": "One line per error (a row can have several)."
   },
   {
-   "name": "From / To",
-   "source": "File / Master Location",
-   "field": "FROM CODE / TO CODE + location name",
+   "name": "Column",
+   "source": "Validation",
+   "field": "",
+   "type": "Char",
+   "len": 20,
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "FROM CODE / TO CODE / MILEAGE (KM) / ROUTE."
+  },
+  {
+   "name": "Error",
+   "source": "Validation",
+   "field": "",
    "type": "Char",
    "len": "TBD",
    "io": "O",
@@ -1366,55 +1515,10 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Code in upper case with the location name below ('(not in Master Location)' if unknown)."
+   "description": "Error message of the row (screen validation messages, 'Route is repeated in the file (row n).', inactive route)."
   },
   {
-   "name": "Mileage (Km)",
-   "source": "File",
-   "field": "MILEAGE (KM)",
-   "type": "Char",
-   "len": 20,
-   "io": "O",
-   "control": "Label",
-   "justified": "Center",
-   "initial": "",
-   "required": "N",
-   "format": "",
-   "validation": "",
-   "description": "As typed in the file."
-  },
-  {
-   "name": "Result",
-   "source": "Calculation",
-   "field": "",
-   "type": "",
-   "len": "",
-   "io": "O",
-   "control": "Label",
-   "justified": "Center",
-   "initial": "",
-   "required": "N",
-   "format": "",
-   "validation": "",
-   "description": "New / Update / No change / Error (colour per result); error rows highlighted red."
-  },
-  {
-   "name": "Remark",
-   "source": "Calculation",
-   "field": "",
-   "type": "",
-   "len": "",
-   "io": "O",
-   "control": "Label",
-   "justified": "Left",
-   "initial": "",
-   "required": "N",
-   "format": "",
-   "validation": "",
-   "description": "Error: all reasons of the row; Update: 'old \u2192 new Km'; No change: 'Same mileage, skipped'; New: 'New route'."
-  },
-  {
-   "name": "Cancel / \u00d7",
+   "name": "Download error list",
    "source": "",
    "field": "",
    "type": "",
@@ -1426,10 +1530,10 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Close without saving."
+   "description": "Downloads 'Route_Mileage_Upload_Errors.csv' (Row, Column, Error); shown only for row errors."
   },
   {
-   "name": "Confirm Upload",
+   "name": "Close and correct the file / \u00d7",
    "source": "",
    "field": "",
    "type": "",
@@ -1441,7 +1545,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Enabled only without errors and with New / Update rows; saves all rows (refer UISS-Batch), closes the dialog, refreshes the list, msg 20."
+   "description": "Closes the modal; nothing was saved."
   }
  ],
  "data_map": {
@@ -1799,31 +1903,37 @@
   },
   {
    "type": "heading",
-   "text": "5.10 Excel Upload (MM-20 to MM-29, refer UISS-Batch 'Master Mileage - Route Mileage Upload')",
+   "text": "5.10 Excel Upload, layout and function like Planning Order (MM-20 to MM-29, refer UISS-Batch 'Master Mileage - Route Mileage Upload')",
    "level": 0
   },
   {
    "type": "item",
    "marker": "a.",
-   "text": "Download Template: Excel with sheet Route Mileage (header FROM CODE | TO CODE | MILEAGE (KM)), Active Locations and Notes (msg 21).",
+   "text": "Placement: accordion 'Upload Excel' (Filename, Choose File, *) Download Template) on top, accordion 'Manual Entry' (Input Section) below; both open by default.",
    "level": 2
   },
   {
    "type": "item",
    "marker": "b.",
-   "text": "Upload Excel: the file is checked (type, template columns, 1-1,000 rows; msg 14 / 15 / 16 / 17) and every row is validated with the screen rules (MM-01..MM-03, MM-06), duplicates in the file and inactive existing routes. Nothing is saved yet.",
+   "text": "*) Download Template: Excel with sheet Route Mileage (header FROM CODE | TO CODE | MILEAGE (KM)), Active Locations and Notes (msg 23).",
    "level": 2
   },
   {
    "type": "item",
    "marker": "c.",
-   "text": "Upload Preview: result per row New (route not existing), Update (existing Active route, other mileage), No change (same mileage), Error (reasons).",
+   "text": "Choose File: 'Validating Excel file...' is shown; the file is checked (type, template columns, 1-1,000 rows; msg 16 / 17 / 18 / 19) and every row is validated with the screen rules (MM-01..MM-03, MM-06), duplicates in the file and inactive existing routes.",
    "level": 2
   },
   {
    "type": "item",
    "marker": "d.",
-   "text": "Confirm Upload (only without errors and with New / Update rows): all rows are checked again and saved in one transaction (all-or-nothing); list refreshed, msg 20. With errors: msg 18; nothing to save: msg 19.",
+   "text": "Any error: modal 'Upload validation failed' with Row / Column / Error (msg 20), Download error list (CSV) and Close and correct the file; nothing is saved. All routes with the same mileage: msg 21.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "e.",
+   "text": "No error: saved immediately in one transaction (all-or-nothing): New route = insert Active, existing Active route with other mileage = update, same mileage = skipped. List refreshed, uploaded rows highlighted, msg 22 (+ 'n route(s) unchanged').",
    "level": 2
   }
  ],
@@ -1945,7 +2055,7 @@
    "group": "Excel Upload"
   },
   {
-   "event": "Click [Upload Excel]",
+   "event": "Click [Choose File]",
    "cause": "File is not .xlsx / .xls or cannot be read (MM-27)",
    "type": "Error",
    "msg_id": "TBD",
@@ -1953,7 +2063,7 @@
    "action": "Use the template"
   },
   {
-   "event": "Click [Upload Excel]",
+   "event": "Click [Choose File]",
    "cause": "Template columns not found (MM-21)",
    "type": "Error",
    "msg_id": "TBD",
@@ -1961,7 +2071,7 @@
    "action": "Download Template"
   },
   {
-   "event": "Click [Upload Excel]",
+   "event": "Click [Choose File]",
    "cause": "No data row",
    "type": "Error",
    "msg_id": "TBD",
@@ -1969,7 +2079,7 @@
    "action": "Fill the template"
   },
   {
-   "event": "Click [Upload Excel]",
+   "event": "Click [Choose File]",
    "cause": "More than 1,000 data rows",
    "type": "Error",
    "msg_id": "TBD",
@@ -1977,15 +2087,15 @@
    "action": "Split the file"
   },
   {
-   "event": "Upload Preview",
+   "event": "Click [Choose File]",
    "cause": "One or more rows with errors (MM-25)",
    "type": "Error",
    "msg_id": "TBD",
    "message": "{n} row(s) have errors. Nothing was saved; correct the file and upload again.",
-   "action": "Correct the rows shown"
+   "action": "Modal Row / Column / Error; correct the file"
   },
   {
-   "event": "Upload Preview",
+   "event": "Click [Choose File]",
    "cause": "Every route already has the same mileage",
    "type": "Info",
    "msg_id": "TBD",
@@ -1993,7 +2103,7 @@
    "action": "-"
   },
   {
-   "event": "Click [Confirm Upload]",
+   "event": "Click [Choose File] (valid file)",
    "cause": "Saved (MM-26)",
    "type": "Info",
    "msg_id": "TBD",
@@ -2001,7 +2111,7 @@
    "action": "-"
   },
   {
-   "event": "Click [Download Template]",
+   "event": "Click [*) Download Template]",
    "cause": "Template downloaded",
    "type": "Info",
    "msg_id": "TBD",

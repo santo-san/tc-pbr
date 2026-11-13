@@ -82,7 +82,7 @@ function mRender() {
   const cols = MCOLS.filter(([k]) => !mState.hidden.has(k));
   $('mThead').innerHTML = `<tr>${cols.map(([, l]) => `<th>${l}</th>`).join('')}</tr>`;
   $('mTbody').innerHTML = view.length
-    ? view.map(m => `<tr data-row="${MILEAGES.indexOf(m)}" class="${mEditing?.rec === m ? 'editing' : ''}" title="Klik untuk edit">${cols.map(([k]) => `<td>${esc(mVal(m, k))}</td>`).join('')}</tr>`).join('')
+    ? view.map(m => `<tr data-row="${MILEAGES.indexOf(m)}" class="${mEditing?.rec === m ? 'editing' : ''} ${typeof mFlash !== 'undefined' && mFlash.has(m.from + '>' + m.to) ? 'flash' : ''}" title="Klik untuk edit">${cols.map(([k]) => `<td>${esc(mVal(m, k))}</td>`).join('')}</tr>`).join('')
     : `<tr><td colspan="${cols.length}" class="empty" style="text-align:center">${MILEAGES.length ? 'No mileage data found for the selected criteria.' : 'No mileage data found.'}</td></tr>`;
   $('mInfo').textContent = rows.length ? `Showing ${start + 1} to ${start + view.length} of ${rows.length} records` : '';
   let html = `<button data-p="${mState.page - 1}" ${mState.page === 1 ? 'disabled' : ''}>‹</button>`;
@@ -134,7 +134,7 @@ $('mfSave').addEventListener('click', () => {
 $('mTbody').addEventListener('click', e => {
   const tr = e.target.closest('tr[data-row]'); if (!tr) return;
   const rec = MILEAGES[+tr.dataset.row];
-  setForm(rec); $('mfMileage').focus();
+  $('mAccMan').open = true; setForm(rec); $('mfMileage').focus();
   toast(`Edit ${rec.from} → ${rec.to}: ubah Mileage lalu Save, atau Cancel`);
 });
 
@@ -158,8 +158,8 @@ ${rows.map(m => `<Row>${cols.map(([k]) => k === 'mileage'
   toast(`${rows.length} baris diexport`);
 });
 
-// ---------- Excel upload (MM-20 .. MM-29): template, preview with validation per row, all-or-nothing save ----------
-const pvWide = on => { document.querySelector('#preview .pv').style.width = on ? '860px' : ''; };
+// ---------- Excel upload (MM-20 .. MM-29), as the DTP upload of Planning Order: Choose File -> validate -> save all, or error list ----------
+var mFlash = new Set();
 $('mTemplate').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([MM.UPLOAD.HEADERS, ['SNT', 'CKR', 42], ['DPCMR', 'CYSTR', 16.5]]);
@@ -174,10 +174,24 @@ $('mTemplate').addEventListener('click', () => {
   XLSX.writeFile(wb, 'Template_Route_Mileage.xlsx');
   toast('Template downloaded');
 });
-$('mUpload').addEventListener('click', () => { $('mFile').value = ''; $('mFile').click(); });
-$('mFile').addEventListener('change', e => { const f = e.target.files[0]; if (f) mileageUpload(f); });
+$('mChoose').addEventListener('click', () => $('mFile').click());
+$('mFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) mileageUpload(f); });
+const mBusy = (on, text) => { $('mBusy').classList.toggle('show', on); $('mBusyText').textContent = text || ''; };
+function mUploadError(error, rowErrors, name) {
+  showPreview('Upload validation failed', `<div class="form-alert">${esc(error)}</div><p class="q-note" style="margin:0 0 6px">File: ${esc(name)}</p>
+    ${rowErrors?.length ? `<div class="err-scroll"><table class="err-table"><tr><th>Row</th><th>Column</th><th>Error</th></tr>${rowErrors.map(e => `<tr><td>${e.row}</td><td>${esc(e.column)}</td><td>${esc(e.message)}</td></tr>`).join('')}</table></div>` : ''}`,
+    `${rowErrors?.length ? '<button class="btn-outline" id="mueCsv">Download error list</button>' : ''}<button class="btn-sm-blue" style="height:30px" id="mueOk">Close and correct the file</button>`);
+  $('mueOk').onclick = closePreview;
+  if ($('mueCsv')) $('mueCsv').onclick = () => {
+    const q = v => `"${String(v).replace(/"/g, '""')}"`, a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + [['Row', 'Column', 'Error'], ...rowErrors.map(e => [e.row, e.column, e.message])].map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv' }));
+    a.download = `${name.replace(/\.\w+$/, '')}_errors.csv`; a.click(); URL.revokeObjectURL(a.href);
+  };
+}
 function mileageUpload(f) {
-  if (!/\.(xlsx|xls)$/i.test(f.name)) { toast(MM.UMSG.fileType); return; }
+  $('mFileName').value = f.name;
+  if (!/\.(xlsx|xls)$/i.test(f.name)) { toast(MM.UMSG.fileType); return mUploadError(MM.UMSG.fileType, [], f.name); }
+  mBusy(true, 'Validating Excel file...');
   const reader = new FileReader();
   reader.onload = () => {
     let read;
@@ -186,29 +200,17 @@ function mileageUpload(f) {
       const name = wb.SheetNames.find(n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1 }).some(r => r.some(c => /FROM CODE/i.test(String(c))))) || wb.SheetNames[0];
       read = MM.readSheet(XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: '' }));
     } catch (err) { read = { ok: false, error: MM.UMSG.fileType }; }
-    if (!read.ok) {
-      pvWide(false);
-      showPreview('Upload failed', `<div class="form-alert-m">${esc(read.error)}</div><p style="font-size:10.5px;margin:6px 0 0">File: ${esc(f.name)}</p>`, '<button class="btn-outline" id="muClose">Close</button>');
-      $('muClose').onclick = closePreview; toast(read.error); return;
-    }
-    const chk = MM.checkUpload(read.data, MILEAGES, LOCATIONS), A = MM.ACTION, c = chk.counts;
-    const nm = code => code ? `${esc(code)}<br><small style="color:#6b7280">${esc(locName(code))}</small>` : '-';
-    pvWide(true);
-    showPreview(`Upload Route Mileage - ${f.name}`, `
-      <div class="mu-sum"><span class="n">New ${c[A.NEW]}</span><span class="u">Update ${c[A.UPDATE]}</span><span class="s">No change ${c[A.SAME]}</span><span class="e">Error ${c[A.ERROR]}</span><span class="s">Rows ${chk.rows.length}</span></div>
-      ${chk.error ? `<div class="form-alert-m">${esc(chk.error)}</div>` : '<p style="font-size:10.5px;margin:0 0 8px">All rows are valid. Click <b>Confirm Upload</b> to save the New and Update rows.</p>'}
-      <div class="mu-wrap"><table class="mu-tbl"><tr><th>Row</th><th>From</th><th>To</th><th>Mileage (Km)</th><th>Result</th><th>Remark</th></tr>
-      ${chk.rows.map(r => `<tr class="${r.action === A.ERROR ? 'err' : ''}"><td>${r.row}</td><td>${nm(r.from)}</td><td>${nm(r.to)}</td><td>${esc(r.mileage)}</td>
-        <td class="act a-${r.action.split(' ')[0]}">${r.action}</td><td>${r.action === A.ERROR ? r.errors.map(esc).join('<br>') : r.action === A.UPDATE ? `${km(r.old)} → ${km(r.value)} Km` : r.action === A.SAME ? 'Same mileage, skipped' : 'New route'}</td></tr>`).join('')}</table></div>`,
-      `<button class="btn-outline" id="muNo">Cancel</button><button class="btn-save" id="muYes" ${chk.ok ? '' : 'disabled'} style="height:32px">Confirm Upload</button>`);
-    $('muNo').onclick = () => { closePreview(); pvWide(false); };
-    $('muYes').onclick = () => {
-      // re-check against the current data right before saving (the list may have changed while the preview was open)
-      const res = MM.applyUpload(MM.checkUpload(read.data, MILEAGES, LOCATIONS), MILEAGES, USER, new Date());
-      closePreview(); pvWide(false);
-      toast(res.ok ? res.message : res.error);
-      if (res.ok) { mState.q = ''; $('mQuick').value = ''; mRender(); }
-    };
+    setTimeout(() => {
+      mBusy(false);
+      if (!read.ok) { toast(read.error); return mUploadError(read.error, [], f.name); }
+      const chk = MM.checkUpload(read.data, MILEAGES, LOCATIONS);
+      if (!chk.ok) { toast(chk.error); return mUploadError(chk.error, chk.rowErrors, f.name); }
+      const res = MM.applyUpload(chk, MILEAGES, USER, new Date());
+      mFlash = new Set(chk.rows.filter(r => r.action === MM.ACTION.NEW || r.action === MM.ACTION.UPDATE).map(r => `${r.from}>${r.to}`));
+      mState.q = ''; $('mQuick').value = ''; mRender(); mFlash.clear();
+      const same = chk.counts[MM.ACTION.SAME];
+      toast(`${res.message}${same ? ` ${same} route(s) unchanged.` : ''} (${f.name})`);
+    }, 400);
   };
   reader.readAsArrayBuffer(f);
 }

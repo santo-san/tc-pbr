@@ -141,24 +141,26 @@
   function checkUpload(data, list, locations) {
     const seen = new Map();
     const rows = data.map(d => {
-      const errors = [];
-      if (!d.from) errors.push(MSG.fromRequired);
-      else if (!isActiveLoc(findLoc(locations, d.from))) errors.push(`Location ${d.from} is not an active location in Master Location.`);
-      if (!d.to) errors.push(MSG.toRequired);
-      else if (!isActiveLoc(findLoc(locations, d.to))) errors.push(`Location ${d.to} is not an active location in Master Location.`);
-      if (d.from && d.to && d.from === d.to) errors.push(MSG.sameLocation);
+      const errors = [], cols = [], err = (col, msg) => { errors.push(msg); cols.push(col); };
+      const [CF, CT, CM] = UPLOAD.HEADERS;
+      if (!d.from) err(CF, MSG.fromRequired);
+      else if (!isActiveLoc(findLoc(locations, d.from))) err(CF, `Location ${d.from} is not an active location in Master Location.`);
+      if (!d.to) err(CT, MSG.toRequired);
+      else if (!isActiveLoc(findLoc(locations, d.to))) err(CT, `Location ${d.to} is not an active location in Master Location.`);
+      if (d.from && d.to && d.from === d.to) err(CT, MSG.sameLocation);
       const value = parseMileage(d.mileage);
-      if (!d.mileage) errors.push(MSG.mileageRequired); else if (!(value > 0)) errors.push(MSG.mileageInvalid);
+      if (!d.mileage) err(CM, MSG.mileageRequired); else if (!(value > 0)) err(CM, MSG.mileageInvalid);
       const k = key(d.from, d.to);
-      if (d.from && d.to && seen.has(k)) errors.push(UMSG.dupFile(seen.get(k))); else if (d.from && d.to) seen.set(k, d.row);
+      if (d.from && d.to && seen.has(k)) err('ROUTE', UMSG.dupFile(seen.get(k))); else if (d.from && d.to) seen.set(k, d.row);
       const ex = list.find(m => key(m.from, m.to) === k);
-      if (!errors.length && ex && ex.status !== STATUS.ACTIVE) errors.push(UMSG.inactive(d.from, d.to));
+      if (!errors.length && ex && ex.status !== STATUS.ACTIVE) err('ROUTE', UMSG.inactive(d.from, d.to));
       const action = errors.length ? ACTION.ERROR : !ex ? ACTION.NEW : ex.mileage === value ? ACTION.SAME : ACTION.UPDATE;
-      return { ...d, value: errors.length ? null : value, old: ex ? ex.mileage : null, action, errors, existing: ex || null };
+      return { ...d, value: errors.length ? null : value, old: ex ? ex.mileage : null, action, errors, cols, existing: ex || null };
     });
     const counts = Object.fromEntries(Object.values(ACTION).map(a => [a, rows.filter(r => r.action === a).length]));
     const error = counts[ACTION.ERROR] ? UMSG.rowErrors(counts[ACTION.ERROR]) : !counts[ACTION.NEW] && !counts[ACTION.UPDATE] ? UMSG.nothing : null;
-    return { ok: !error, error, rows, counts };
+    const rowErrors = rows.flatMap(r => r.errors.map((message, i) => ({ row: r.row, column: r.cols[i], message })));
+    return { ok: !error, error, rows, counts, rowErrors };
   }
   // All-or-nothing: saves only when no row has an error (MM-25); insert New, update Update, skip No change
   function applyUpload(check, list, user, at) {
