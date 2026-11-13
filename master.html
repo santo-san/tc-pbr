@@ -172,16 +172,16 @@
   .kpi-foot .right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
   .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
   .kpi-tbr b { font-size: 15px; margin-right: 110px; }
-  .kleft { display: flex; flex-direction: column; gap: 10px; }
-  .kalloc { border: 1px solid #d5d9e0; border-radius: 6px; padding: 6px 10px; background: #fff; min-width: 360px; }
-  .kalloc summary { cursor: pointer; font-weight: 700; font-size: 10.5px; color: #0b1a3a; }
-  .kalloc-in { display: flex; align-items: center; gap: 8px; margin: 8px 0 6px; }
-  .kalloc-in input { width: 56px; height: 26px; border: 1px solid #d5d9e0; border-radius: 4px; text-align: center; font: inherit; font-weight: 700; }
-  .kalloc-in input.err { border-color: #e11d48; background: #fff1f3; } .kalloc-in .q { color: #6b7280; font-size: 9.5px; }
-  #kAlloc { border-collapse: collapse; font-size: 10.5px; width: 100%; }
-  #kAlloc th, #kAlloc td { border-bottom: 1px solid #eef0f3; padding: 3px 8px; text-align: center; }
-  #kAlloc th { background: #f3f6fb; font-size: 9.5px; } #kAlloc td.l { text-align: left; } #kAlloc td.p { background: #d1fae5; font-weight: 700; }
-  #kAlloc td.n { color: #1d4ed8; font-weight: 700; } #kAlloc tr.tot td { font-weight: 700; background: #f8fafc; }
+  .ksums { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .ksum { width: 300px; border-radius: 6px; padding: 8px 12px; color: #fff; font-size: 10.5px; }
+  .ksum.res { background: #16a34a; } .ksum.trip { background: #0f766e; }
+  .ksum h6 { margin: 0 0 6px; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,.35); padding-bottom: 4px; }
+  .ksum .kl { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  .ksum .kl small { display: block; font-weight: 400; font-size: 8.5px; opacity: .85; }
+  .ksum .kl b { font-size: 15px; } .ksum .kl.bad b { color: #fecaca; } .ksum .kl.bad small { color: #fecaca; opacity: 1; font-weight: 700; }
+  .ksum input { width: 54px; height: 24px; border: 0; border-radius: 4px; text-align: center; font: inherit; font-weight: 700; font-size: 13px; }
+  .ksum input.err { outline: 2px solid #fecaca; background: #fff1f3; }
+  #kpiTable td.calc { font-style: italic; color: #0f766e; }
   .kpi-tbr.trip { background: #0f766e; } .kpi-tbr.trip.bad { background: #dc2626; }
   .kpi-tbr.trip small { font-weight: 500; font-size: 9px; margin-left: 6px; }
   .ktype { height: 32px; border: 1px solid #d5d9e0; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 11px; background: #fff; }
@@ -678,13 +678,17 @@
       </div>
       <div class="table-wrap"><table id="kpiTable"><thead id="kThead"></thead><tbody id="kTbody"></tbody></table></div>
       <div class="kpi-foot">
-        <div class="kleft"><span id="kInfo"></span>
-          <details class="kalloc" id="kAllocBox" open><summary>By Trip - daily trip allocation</summary>
-            <div class="kalloc-in"><label for="kTrips">Trips per day</label><input id="kTrips" inputmode="numeric" value="20" maxlength="3"><span class="q" id="kAllocNote"></span></div>
-            <table id="kAlloc"></table></details></div>
+        <span id="kInfo"></span>
         <div class="right">
-          <div class="kpi-tbr"><span>Total By Resource</span><b id="kTbr">0</b></div>
-          <div class="kpi-tbr trip" id="kTbtBox"><span>Total By Trip</span><b id="kTbt">0%</b></div>
+          <div class="ksums">
+            <div class="ksum res" id="kSumRes"><h6>By Resources</h6>
+              <div class="kl"><span>Total Order Sharing %<small>information only, Daily Trip is typed</small></span><b id="kSumResPct">0%</b></div>
+              <div class="kl"><span>Total Daily Trip<small>Total By Resource</small></span><b id="kTbr">0</b></div></div>
+            <div class="ksum trip" id="kSumTrip"><h6>By Trip</h6>
+              <div class="kl" id="kTbtBox"><span>Total Order Sharing %<small id="kTbtNote">must be 100%</small></span><b id="kTbt">0%</b></div>
+              <div class="kl"><span>Trips per day<small>shared by Order Sharing %</small></span><input id="kTrips" inputmode="numeric" value="20" maxlength="3"></div>
+              <div class="kl"><span>Total Daily Trip<small>1 per company, rest by %</small></span><b id="kSumTripQty">0</b></div></div>
+          </div>
           <div class="pri-pager" id="kPager"></div>
         </div>
       </div>
@@ -740,7 +744,7 @@
 <script src="master-mileage.js?v=20261030d"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
-<script src="master-kpi.js?v=20261113a"></script>
+<script src="master-kpi.js?v=20261113b"></script>
 <script src="master-route-percentage.js?v=20261030a"></script>
 <script src="master-renban.js?v=20261101b"></script>
 <script src="master.js?v=20261113a"></script>
@@ -748,7 +752,7 @@
 <script src="mileage.js?v=20261030e"></script>
 <script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
-<script src="kpi.js?v=20261113a"></script>
+<script src="kpi.js?v=20261113b"></script>
 <script src="route-percentage.js?v=20261030a"></script>
 <script src="renban.js?v=20261101b"></script>
 </body>

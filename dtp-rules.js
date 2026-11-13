@@ -246,12 +246,12 @@
         if (!res) return { ...base, ...tripOnly, kpi: 'NONE', limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
         return { ...base, ...tripOnly, kpi: 'NOT_BY_RESOURCE', paymentType: res.paymentType, limit: null, remaining: null, over: 0, usage: null, level: 'none', after: assigned + selected, afterOver: 0 };
       }
-      const limit = +res.orderSharing || 0, after = assigned + selected;
+      const limit = +(res.dailyTrip ?? res.orderSharing) || 0, after = assigned + selected;   // By Resources: Daily Trip (typed)
       // with a By Trip share the trips above the limit go by trip instead of over allocation
       const used = tripOk ? Math.min(assigned, limit) : assigned, usedAfter = tripOk ? Math.min(after, limit) : after;
       const usage = limit > 0 ? Math.round(used / limit * 100) : (used > 0 ? null : 0);
       const level = used >= limit ? 'full' : usage >= KPI_WARN ? 'warn' : 'ok';
-      return { ...base, assigned: used, kpi: 'OK', limit, remaining: Math.max(0, limit - used), over: Math.max(0, used - limit), usage, level, after: usedAfter, afterOver: Math.max(0, usedAfter - limit),
+      return { ...base, assigned: used, kpi: 'OK', pct: res.dailyTrip != null ? +res.orderSharing || 0 : null, limit, remaining: Math.max(0, limit - used), over: Math.max(0, used - limit), usage, level, after: usedAfter, afterOver: Math.max(0, usedAfter - limit),
         tripAssigned: tripOk ? assigned - used : 0, tripAfter: tripOk ? after - usedAfter : 0 };
     });
     const withKpi = rows.filter(r => r.kpi === 'OK');

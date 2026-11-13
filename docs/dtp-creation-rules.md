@@ -167,21 +167,21 @@ stateDiagram-v2
 ## 4a. DTP Creation vs Master KPI monitoring
 
 A collapsible panel above the delivery grid shows, for the planning date shown and per trucking company, two tables:
-- **By Resources:** Master KPI Limit (Order Sharing, trucks per day), Assigned DTP (by resource), **Remaining Slot**, Usage %, Status, Selected (not yet submitted), After Submit, Rejected by LP. A company that is also By Trip shows "total n = x by resource + y by trip" and *Full → By Trip* when its limit is reached.
-- **By Trip:** Order Sharing %, **Trip Limit per day** (trips per day shared by %, KP-15), Trips by trip today, **Remaining Trip**, Usage %, Status, Selected, After Submit, and the Total By Trip row (red warning when the % total ≠ 100).
+- **By Resources:** Order Sharing % (information only), **Daily Trip** (typed limit per day), Assigned DTP (by resource), **Remaining Slot**, Usage %, Status, Selected (not yet submitted), After Submit, Rejected by LP. A company that is also By Trip shows "total n = x by resource + y by trip" and *Full → By Trip* when its limit is reached.
+- **By Trip:** Order Sharing %, **Daily Trip** (limit per day = trips per day shared by %, KP-15), Trips by trip today, **Remaining Trip**, Usage %, Status, Selected, After Submit, and the Total By Trip row (red warning when the % total ≠ 100).
 
 | ID | Rule |
 |---|---|
 | KM-01 | **Per date and trucking company:** quantities of different dates are never combined. Rows are the LP codes of the data mapping, plus any LP found in the records of the date. |
-| KM-02 | **Limit** = Order Sharing of the applicable Master KPI row (`MasterKpi.applicable`). Master KPI has one current row per company and no validity period (KP-01); with an effective period the rule is DTP date within effective from – to (TBD). Payment Type must be *By Resources*. |
+| KM-02 | **Limit** = Daily Trip of the applicable By Resources Master KPI row (typed; the Order Sharing % is only shown) (`MasterKpi.applicable`). Master KPI has one current row per company and no validity period (KP-01); with an effective period the rule is DTP date within effective from – to (TBD). Payment Type must be *By Resources*. |
 | KM-03 | **Unit:** Order Sharing is the daily order share (daily QTY of PR Creation, KP-08 / KP-09). One DTP record = one Daily order, so **Assigned** = number of DTP records of the date and LP that consume the allocation. |
 | KM-04 | **Consuming:** Submitted, Queued, Processing, Processed, Failed. **Not consuming:** Available, Ready to Submit, Validation Error, rolled back by DTP Switching (back to Available), and a Processed order rejected by the LP Admin (shown as *Rejected by LP*). The Failed and LP-rejected rules are TBD. |
 | KM-05 | **Remaining** = max(0, Limit − Assigned); **Over Allocation** = Assigned − Limit when > 0 (red, never hidden); **Usage %** = Assigned / Limit × 100. Colours: green < 80 %, yellow ≥ 80 % (threshold TBD), red ≥ 100 % (existing status badge colours). |
 | KM-06 | **Dynamic:** recalculated from the records on every grid change (select, submit, queue result, DTP Switching, LP reject); no page reload. |
 | KM-07 | **No blocking:** DTP Creation has no limit rule, so Submit is not blocked. The confirmation shows a warning when *After Submit* exceeds the limit or the LP has no Master KPI. |
 | KM-09 | **Trips by trip:** for a company with a By Resources row and a By Trip row, the trips up to its By Resources limit count *by resource*, the trips above it count *by trip* (not as over allocation). For a By Trip only company every trip counts by trip. A By Resources only company keeps the over allocation of KM-05. |
-| KM-10 | **Trip Limit** of a By Trip company = its part of the **trips per day** (Master KPI KP-15 / KP-16: 1 trip each, the rest by Order Sharing %; reference 20 trips → 2 / 1). Every eligible By Trip company (share > 0) is listed, also without trips on the date. |
-| KM-11 | **Remaining Trip** = max(0, Trip Limit − Trips by trip); **Over Limit** when trips exceed the limit; Usage % and colours as KM-05. After Submit adds the selected records the same way (first up to the By Resources limit, the rest by trip). |
+| KM-10 | **Daily Trip** (trip limit) of a By Trip company = its part of the **trips per day** (Master KPI KP-15 / KP-16: 1 trip each, the rest by Order Sharing %; reference 20 trips → 2 / 1). Every eligible By Trip company (share > 0) is listed, also without trips on the date. |
+| KM-11 | **Remaining Trip** = max(0, Daily Trip − Trips by trip); **Over Limit** when trips exceed the limit; Usage % and colours as KM-05. After Submit adds the selected records the same way (first up to the By Resources limit, the rest by trip). |
 | KM-12 | **Total By Trip** of Master KPI must be 100.00%; otherwise a warning is shown above the By Trip table (not blocking). |
 | KM-08 | **No Master KPI:** status *No Master KPI*, limit and remaining "-", not treated as 0. A KPI row with another payment type shows *Not By Resources*. |
 

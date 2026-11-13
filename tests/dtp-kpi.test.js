@@ -77,12 +77,15 @@ test('Master KPI: one row per company and payment type; By Trip share is a % wit
   assert.ok(MK.addCompany(rows, [], vendors, 'AGR', 'u', new Date(), BT).ok);
   assert.strictEqual(MK.addCompany(rows, [], vendors, 'AGR', 'u', new Date(), BT).error, 'Trucking Company AGR is already registered in Master KPI as By Trip.');
   assert.strictEqual(MK.addCompany(rows, [], vendors, 'DNX', 'u', new Date(), 'Fixed').error, MK.MSG.typeReq);
-  assert.deepStrictEqual([MK.validateRow({ score: 700, orderSharing: '10.09', values: {} }, [], BT), MK.validateRow({ score: 700, orderSharing: '4', values: {} }, [], BR)], [{}, {}]);
+  // both types: Order Sharing % (2 decimals); By Resources also a typed Daily Trip (whole number); By Trip Daily Trip is calculated
+  assert.deepStrictEqual([MK.validateRow({ score: 700, orderSharing: '10.09', values: {} }, [], BT), MK.validateRow({ score: 700, orderSharing: '14.29', dailyTrip: '4', values: {} }, [], BR)], [{}, {}]);
   assert.ok(MK.validateRow({ score: 700, orderSharing: '10.123', values: {} }, [], BT).orderSharing);
   assert.ok(MK.validateRow({ score: 700, orderSharing: '100.5', values: {} }, [], BT).orderSharing);
-  assert.ok(MK.validateRow({ score: 700, orderSharing: '4.5', values: {} }, [], BR).orderSharing);
-  assert.deepStrictEqual([MK.totalByTrip(MK.SEED), MK.totalByResource(MK.SEED), MK.grade(667), MK.grade(665), MK.fmtShare({ paymentType: BT, orderSharing: 4.25 })], [100, 28, 'GOLD', 'SILVER', '4.25%']);
-  assert.strictEqual(MK.dailyQty(MK.SEED, 'PBM'), 4);   // By Resources row, not the By Trip %
+  assert.deepStrictEqual(Object.keys(MK.validateRow({ score: 700, orderSharing: '14.299', dailyTrip: '4.5', values: {} }, [], BR)).sort(), ['dailyTrip', 'orderSharing']);
+  assert.deepStrictEqual([MK.totalByTrip(MK.SEED), MK.totalPct(MK.SEED, BR), MK.totalByResource(MK.SEED), MK.grade(667), MK.grade(665), MK.fmtShare({ paymentType: BR, orderSharing: 14.29 })], [100, 100, 28, 'GOLD', 'SILVER', '14.29%']);
+  assert.strictEqual(MK.dailyQty(MK.SEED, 'PBM'), 4);   // By Resources typed Daily Trip
+  const alloc = MK.allocateTrip(MK.SEED, 20), pbm = r => MK.SEED.find(s => s.partner === 'PBM' && s.paymentType === r);
+  assert.deepStrictEqual([MK.dailyTripOf(pbm(BR), alloc), MK.dailyTripOf(pbm(BT), alloc)], [4, 2]);
 });
 test('KP-15 allocateTrip: 20 trips per day as the reference table (1 each, rest by %), fewer trips than companies, 0 % not eligible', () => {
   const a = MK.allocateTrip(MK.SEED, 20);
@@ -91,8 +94,8 @@ test('KP-15 allocateTrip: 20 trips per day as the reference table (1 each, rest 
   assert.deepStrictEqual(Object.entries(MK.allocateTrip(MK.SEED, 3)).filter(([, n]) => n).map(([c]) => c), ['GIB', 'VMB', 'JMP']);
   assert.deepStrictEqual([MK.DAILY_TRIPS, 'SGL' in a, MK.validTrips('20'), MK.validTrips('2.5')], [20, false, true, false]);
 });
-const KT = [{ partner: 'TCA', paymentType: BR, orderSharing: 2 }, { partner: 'TCA', paymentType: BT, orderSharing: 60 }, { partner: 'TCB', paymentType: BT, orderSharing: 40 },
-  { partner: 'TCC', paymentType: BR, orderSharing: 3 }, { partner: 'TCD', paymentType: BT, orderSharing: 0 }];
+const KT = [{ partner: 'TCA', paymentType: BR, orderSharing: 40, dailyTrip: 2 }, { partner: 'TCA', paymentType: BT, orderSharing: 60 }, { partner: 'TCB', paymentType: BT, orderSharing: 40 },
+  { partner: 'TCC', paymentType: BR, orderSharing: 60, dailyTrip: 3 }, { partner: 'TCD', paymentType: BT, orderSharing: 0 }];
 const monT = (records, extra = {}) => D.kpiMonitor(Object.assign({ date: '2026-11-05', records, lps: ['TCA', 'TCB', 'TCC', 'TCD'], kpiRows: KT, applicable: MK.applicable, byResource: BR, byTrip: BT, dailyTrips: 5, tripLimits: MK.allocateTrip }, extra));
 test('KM-09/10: trips above the By Resources limit go by trip (not over allocation); By Trip only company; resource only keeps over allocation', () => {
   const m = monT([...recs('TCA', '2026-11-05', S.PROCESSED, 5), ...recs('TCB', '2026-11-05', S.SUBMITTED, 1), ...recs('TCC', '2026-11-05', S.PROCESSED, 4)]);
