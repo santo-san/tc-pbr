@@ -88,7 +88,7 @@
 .st.sb { background: #ede9fe; color: #5b21b6; } .st.qu { background: #fef3c7; color: #92400e; } .st.pr { background: #fde68a; color: #78350f; }
 .st.ok { background: #0b2b5c; color: #fff; } .st.fl { background: #f43f5e; color: #fff; cursor: help; }
 .src { font-size: 8.5px; border: 1px solid #d5d9e0; border-radius: 3px; padding: 1px 5px; color: #374151; }
-.src.BEST { border-color: #93c5fd; color: #1d4ed8; } .src.EXCEL { border-color: #86efac; color: #166534; } .src.MANUAL { border-color: #fcd34d; color: #92400e; }
+.src.IPMS { border-color: #93c5fd; color: #1d4ed8; } .src.EXCEL { border-color: #86efac; color: #166534; } .src.MANUAL { border-color: #fcd34d; color: #92400e; }
 .opt { display: flex; gap: 3px; } .opt button { width: 22px; height: 22px; border: 1px solid #d5d9e0; background: #fff; border-radius: 4px; font-size: 10px; color: var(--blue); cursor: pointer; }
 .opt button.del { color: #e11d48; } .opt button:disabled { opacity: .3; cursor: default; }
 .dc-foot { display: flex; align-items: center; gap: 10px; border-top: 1px solid #eef0f3; padding-top: 14px; margin-top: 12px; }

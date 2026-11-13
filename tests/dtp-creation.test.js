@@ -59,7 +59,7 @@ test('Excel upload: invalid format or rows reject the whole file with row-level 
 });
 
 test('duplicates against grid and submitted records', () => {
-  const grid = [D.makeRecord(good, { id: 1, date: '2026-11-10', source: D.SOURCE.BEST, grid: [], ctx })];
+  const grid = [D.makeRecord(good, { id: 1, date: '2026-11-10', source: D.SOURCE.IPMS, grid: [], ctx })];
   const again = D.upload(sheet([row(1)]), { io: 'EXPORT', grid, ctx });
   assert(again.rowErrors[0].message.includes('already exists in the grid'));
   D.submit([grid[0]], { at: new Date(), actor: planner, date: '2026-11-10', today: '2026-11-02', cfg });
@@ -71,7 +71,7 @@ test('duplicates against grid and submitted records', () => {
 
 test('interface records keep Validation Error and can be corrected', () => {
   const grid = [];
-  const r = D.makeRecord({ ...good, lp: '' }, { id: 7, date: '2026-11-10', source: D.SOURCE.BEST, grid, ctx });
+  const r = D.makeRecord({ ...good, lp: '' }, { id: 7, date: '2026-11-10', source: D.SOURCE.IPMS, grid, ctx });
   assert.strictEqual(r.status, D.STATUS.ERROR); assert(!D.selectable(r));
   grid.push(r);
   assert(!D.revalidate(r, { lp: 'ABC' }, grid, ctx).ok);

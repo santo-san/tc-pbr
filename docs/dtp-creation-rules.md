@@ -13,7 +13,7 @@
   - [`UISS_Batch_DTP_Queue_Processing.xlsx`](uiss/UISS_Batch_DTP_Queue_Processing.xlsx) (processing queue)
 
 ```
-DTP Calendar → Select Date → Universal DTP → DTP Creation → Upload Excel / Manual Entry / BEST Interface
+DTP Calendar → Select Date → Universal DTP → DTP Creation → Upload Excel / Manual Entry / IPMS Interface
 → Delivery Grid → Select Deliveries → Submit DTP → Processing Queue → LP Admin (Daily order: Planning Order / DTP Creation Release)
 ```
 
@@ -69,10 +69,10 @@ Opened by clicking a calendar entry (`#planning-order/maint/YYYY-MM-DD/<type>`).
 
 | Section | Content |
 |---|---|
-| Header | **Daily Plan Date**, **DTP Model: Universal DTP**, **Operation Type** Import / Export (applies to uploaded and manual records), **Planner** (logged-in user), Demo menu (simulate BEST error, simulate submission failure, reset demo data) |
+| Header | **Daily Plan Date**, **DTP Model: Universal DTP**, **Operation Type** Import / Export (applies to uploaded and manual records), **Planner** (logged-in user), Demo menu (simulate IPMS error, simulate submission failure, reset demo data) |
 | Upload Excel | Filename, **Choose File** (.xlsx / .xls), **Download Template** |
 | Manual Entry | Form with all template fields plus Import/Export, Exporter, Importer CD; **+ Add to Grid** / Clear |
-| Interface Data (BEST) | Number of records received for the date; **Load / Refresh from BEST** |
+| Interface Data (IPMS) | Number of records received for the date; **Load / Refresh from IPMS** |
 | Grid toolbar | **Select All** (eligible rows of the current filter) with "n Selected", **Delete** (selected Excel / Manual records), filters Status / Source / Import-Export, Search, Kolom |
 | Grid | ☐, Options (✎ Edit, 🗑 Delete, ↻ Retry, ⓘ History), **Import/Export, Exporter, Importer CD, Container No., Renban, ETD Based, Vessel Name, Data Source, Status**, LP, Order No. Other template columns are available via Kolom. Header click sorts; 25 / 50 / 100 rows per page |
 | Footer | ← Back (calendar); summary "n record(s) selected · n validation error · n in queue · n processed"; **Cancel** (clear selection); **Submit DTP (n)** |
@@ -85,7 +85,7 @@ Rows that are not selectable are greyed and their check box is disabled. Rows wi
 
 | Source | How it arrives | Notes |
 |---|---|---|
-| **BEST Interface** | Received automatically per planning date; **Load / Refresh from BEST** asks for new records | Invalid interface records stay in the grid with **Validation Error** (never dropped) and can be corrected with Edit. They cannot be deleted |
+| **IPMS Interface** | Received automatically per planning date; **Load / Refresh from IPMS** asks for new records | Invalid interface records stay in the grid with **Validation Error** (never dropped) and can be corrected with Edit. They cannot be deleted |
 | **Excel Upload** | Template upload | Operation Type from the header. Exporter / Importer CD are not in the template |
 | **Manual Entry** | Form | Same validation as upload and interface |
 
@@ -120,8 +120,8 @@ Download Template creates `Format_DTP_Universal.xlsx` with the same layout and b
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Available : valid record (BEST / Excel / Manual)
-  [*] --> ValidationError : invalid record (BEST)
+  [*] --> Available : valid record (IPMS / Excel / Manual)
+  [*] --> ValidationError : invalid record (IPMS)
   ValidationError --> Available : Edit and re-validate
   Available --> ReadyToSubmit : select
   ReadyToSubmit --> Available : unselect / Cancel
@@ -159,7 +159,7 @@ stateDiagram-v2
 | DT-17 | **Processed:** one Daily order per record (type `Universal`, status Planning Order / DTP Creation Release, supplier = LP, From / To names, Renban, Shift, Planned Cycle = 2 if ROUNDUSE = Y else 1). The LP Admin sees it in Daily Monitoring |
 | DT-18 | **Failed** shows the reason (e.g. LP Admin service timeout) and can be retried |
 | DT-19 | **Reject by LP** (new action for the LP Admin in Daily Monitoring, order still in Planning Order without truck, reason ≥ 10 characters). The calendar shows **Rejected by LP**; Assign Truck and Order Release are blocked for that order |
-| DT-20 | BEST interface error: message, nothing received, retry later |
+| DT-20 | IPMS interface error: message, nothing received, retry later |
 | DT-21 | **DTP Switching** (rollback): Submitted / Queued / Failed records, and Processed records whose driver has not started (Daily order Planning Order / Order Release, no Start Cycle), can be rolled back to **Available**. Processed: the Daily order is cancelled and the truck assignment released. Checked again immediately before the rollback; all-or-nothing; history kept. See [dtp-switching-spec.md](dtp-switching-spec.md) |
 
 ---
@@ -191,7 +191,7 @@ Mock-up: the Master KPI rows come from `MasterKpi.SEED`, the same seed as the Ma
 4. **Data mapping:** the final LP and location code lists. The template has only D1 / D2 / D3 and K1E / S1E, and the sample row uses D1, which is not in the template mapping. Also, "CY TEMMIN" in the template is probably a typo.
 5. **ROUNDUSE → Planned Cycle:** is Y = round use (2 cycles) correct?
 6. **Partial upload:** should valid rows be added while invalid rows are rejected? The mock-up rejects the whole file.
-7. **BEST interface:** schedule, record key, and how changes or cancellations from BEST after submission are handled.
+7. **IPMS interface:** schedule, record key, and how changes or cancellations from IPMS after submission are handled.
 8. **Queue failure rules:** which errors are retryable, how many retries, and who is notified.
 9. **Rejected by LP:** may the planner change the LP of a rejected order from DTP Creation, or must a new record be submitted?
 10. **Truck Assignment menu:** done, see [truck-assignment-spec.md](truck-assignment-spec.md).

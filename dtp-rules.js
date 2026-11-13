@@ -1,11 +1,11 @@
 // ELIPS TC-PBR DTP Creation (Daily Trucking Plan) with one Universal DTP model for Import and Export.
-// Records come from Excel upload, manual entry or the BEST interface; the planner submits them, a queue processes them
+// Records come from Excel upload, manual entry or the IPMS interface; the planner submits them, a queue processes them
 // and each processed record becomes a Daily order (Planning Order / DTP Creation Release) for the LP Admin.
 // Pure logic (no DOM) so it can be tested with Node.
 (function (root) {
   const MODEL = { code: 'UNIVERSAL', label: 'Universal DTP', desc: 'Import / Export' };
   const IO = ['IMPORT', 'EXPORT'];
-  const SOURCE = { BEST: 'BEST Interface', EXCEL: 'Excel Upload', MANUAL: 'Manual Entry' };
+  const SOURCE = { IPMS: 'IPMS Interface', EXCEL: 'Excel Upload', MANUAL: 'Manual Entry' };
   const STATUS = {
     AVAILABLE: 'Available', ERROR: 'Validation Error', READY: 'Ready to Submit', SUBMITTED: 'Submitted',
     QUEUED: 'Queued', PROCESSING: 'Processing', PROCESSED: 'Processed', FAILED: 'Failed',

@@ -1,4 +1,4 @@
-// ELIPS TC-PBR DTP Creation mock-up UI (Daily > Planning Order): calendar, Universal DTP, upload / manual / BEST interface,
+// ELIPS TC-PBR DTP Creation mock-up UI (Daily > Planning Order): calendar, Universal DTP, upload / manual / IPMS interface,
 // selectable grid, submission and processing queue. Uses app.js (DATA, state, helpers) and the rules in dtp-rules.js.
 const D = window.DtpRules, S = D.STATUS;
 
@@ -8,16 +8,16 @@ const LOC_FROM = { D1: 'Depo Sunter', D2: 'Depo Cikarang', D3: 'Depo Cakung Maru
 const LOC_TO = { K1E: 'CY TMMIN Karawang (EMPTY)', S1E: 'CY TMMIN Sunter (EMPTY)' };
 const DCTX = { lps: SUPPLIERS.map(s => s[1]), from: Object.keys(LOC_FROM), to: Object.keys(LOC_TO), containerError: W.containerError };
 const NAMES = { lp: c => SUP_BY_CODE[c] || c, from: c => LOC_FROM[c] || c, to: c => LOC_TO[c] || c };
-const SRC_CLS = { [D.SOURCE.BEST]: 'BEST', [D.SOURCE.EXCEL]: 'EXCEL', [D.SOURCE.MANUAL]: 'MANUAL' };
+const SRC_CLS = { [D.SOURCE.IPMS]: 'IPMS', [D.SOURCE.EXCEL]: 'EXCEL', [D.SOURCE.MANUAL]: 'MANUAL' };
 const ST_CLS = { [S.AVAILABLE]: 'av', [S.ERROR]: 'er', [S.READY]: 'rd', [S.SUBMITTED]: 'sb', [S.QUEUED]: 'qu', [S.PROCESSING]: 'pr', [S.PROCESSED]: 'ok', [S.FAILED]: 'fl' };
 const CAL_CLS = { [D.CAL.WAIT]: 'w', [D.CAL.ASSIGNED]: 'a', [D.CAL.REJECTED]: 'r', [D.CAL.FINISH]: 'f' };
 const todayStr = () => W.ymd(new Date());
 const isPlanner = () => D.canCreate(state.actor);
-const demo = { bestError: false, submitError: false, swError: false, swRace: false, mtError: false, mtRace: false };
+const demo = { ipmsError: false, submitError: false, swError: false, swRace: false, mtError: false, mtRace: false };
 
 // ---------- Records (persisted in this browser so a refresh cannot submit the same records again) ----------
 const STORE = 'tcpbr.dtp.v1';
-let RECS = [], recSeq = 1, PULLED = {};   // PULLED: BEST records received per date
+let RECS = [], recSeq = 1, PULLED = {};   // PULLED: IPMS records received per date
 function persist() {
   try { localStorage.setItem(STORE, JSON.stringify({ RECS, recSeq, PULLED })); } catch (e) { /* storage not available */ }
 }
@@ -26,6 +26,7 @@ function restore() {
     const s = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (!s) return false;
     ({ RECS, recSeq, PULLED } = s);
+    RECS.forEach(r => { if (r.source === 'BEST Interface') r.source = D.SOURCE.IPMS; });   // records stored before the source was renamed to IPMS
     RECS.forEach(r => { r.history.forEach(h => { h.at = new Date(h.at); }); if (r.submittedAt) r.submittedAt = new Date(r.submittedAt); });
     // processed records: their Daily orders are part of the order data again
     RECS.filter(r => r.status === S.PROCESSED && r.orderNo && !DATA.some(o => o.orderNo === r.orderNo)).forEach(r => DATA.push(orderOf(r, new Date(r.history.at(-1).at))));
@@ -33,9 +34,9 @@ function restore() {
   } catch (e) { return false; }
 }
 
-// ---------- BEST interface (simulated: a fixed pool of records per planning date) ----------
-function bestPool(date) {
-  const r = rng(hash('BEST' + date)), pick = a => a[Math.floor(r() * a.length)], n = 10;
+// ---------- IPMS interface (simulated: a fixed pool of records per planning date) ----------
+function ipmsPool(date) {
+  const r = rng(hash('IPMS' + date)), pick = a => a[Math.floor(r() * a.length)], n = 10;
   return Array.from({ length: n }, (_, i) => {
     const io = i % 3 === 2 ? 'IMPORT' : 'EXPORT';
     const c10 = pick(['TCNU', 'MSKU', 'CMAU', 'ONEU']) + String(Math.floor(r() * 1e6)).padStart(6, '0');
@@ -50,11 +51,11 @@ function bestPool(date) {
   });
 }
 // Receives the next records of the pool: 7 at the first call, the rest at the next call
-function pullBest(date) {
-  const pool = bestPool(date), from = PULLED[date] || 0, to = from ? pool.length : 7;
+function pullIpms(date) {
+  const pool = ipmsPool(date), from = PULLED[date] || 0, to = from ? pool.length : 7;
   const got = pool.slice(from, to);
   PULLED[date] = to;
-  got.forEach(raw => addRecord(raw, date, D.SOURCE.BEST));
+  got.forEach(raw => addRecord(raw, date, D.SOURCE.IPMS));
   return got.length;
 }
 function addRecord(raw, date, source) {
@@ -109,7 +110,7 @@ function resumeQueue() { enqueue(RECS.filter(r => [S.SUBMITTED, S.QUEUED, S.PROC
 // ---------- Initial data ----------
 if (!restore()) {
   const t = todayStr();
-  pullBest(t); pullBest(D.addDays(t, 1));
+  pullIpms(t); pullIpms(D.addDays(t, 1));
   // three of today's records were submitted earlier and are processed; one of their orders already has a truck
   RECS.filter(r => r.date === t && r.status === S.AVAILABLE).slice(0, 3).forEach((r, i) => {
     const at = new Date(Date.now() - (60 - i) * 60000);
@@ -438,14 +439,14 @@ function openCreate(date) {
       <span><span class="k">Planner :</span> <b>${esc(state.actor.name)}</b> <span class="k">(${esc(W.roleLabel(state.actor))})</span></span>
       <span class="spacer"></span>
       <div class="dd demo-dd" id="ddDemo"><button class="btn-light" style="height:28px">Demo &#9662;</button><div class="dd-menu">
-        <label><input type="checkbox" data-demo="bestError" ${demo.bestError ? 'checked' : ''}> Simulate BEST interface error</label>
+        <label><input type="checkbox" data-demo="ipmsError" ${demo.ipmsError ? 'checked' : ''}> Simulate IPMS interface error</label>
         <label><input type="checkbox" data-demo="submitError" ${demo.submitError ? 'checked' : ''}> Simulate submission failure</label>
         <label><input type="checkbox" data-demo="swError" ${demo.swError ? 'checked' : ''}> Simulate DTP Switching failure (DB)</label>
         <label><input type="checkbox" data-demo="swRace" ${demo.swRace ? 'checked' : ''}> Driver starts during DTP Switching confirmation</label>
         <button data-demo-start>Driver starts the first assigned order</button>
         <button data-demo-reset>Reset DTP demo data</button></div></div>
     </div>
-    ${ro ? `<div class="view-only ro-strong"><b>&#128274; ${esc(err || D.MSG.noAuth)}</b> Upload Excel, Manual Entry and Interface Data (BEST) are locked; the data is shown read only.
+    ${ro ? `<div class="view-only ro-strong"><b>&#128274; ${esc(err || D.MSG.noAuth)}</b> Upload Excel, Manual Entry and Interface Data (IPMS) are locked; the data is shown read only.
       ${err ? '' : '<button class="btn-sm-blue" id="dcAsPlanner">Login sebagai Planner VPLD</button>'}</div>` : ''}
     <details class="acc ${ro ? 'acc-ro' : ''}" ${ro ? '' : 'open'}><summary>&#128196; Upload Excel${roTag}</summary><div class="body">
       <div style="font-weight:600;margin-bottom:6px">Filename</div>
@@ -454,8 +455,8 @@ function openCreate(date) {
       <div style="margin-top:8px">*) <button class="link" id="dcTemplate">Download Template</button> <span class="q-note">· Operation Type of uploaded rows = ${'<b id="dcIoNote">' + dc.io + '</b>'} (header)</span></div></div></details>
     <details class="acc ${ro ? 'acc-ro' : ''}"><summary>&#128421; Manual Entry${roTag}</summary><div class="body"><form id="dcManual" onsubmit="return false">${manualForm({ io: dc.io, roundUse: 'N', truckType: 'TRAILER', arrDate: date })}</form>
       <div style="display:flex;gap:8px"><button class="btn-sm-blue" id="dcAdd">+ Add to Grid</button><button class="btn-outline" id="dcClearForm" style="height:27px">Clear</button></div></div></details>
-    <details class="acc ${ro ? 'acc-ro' : ''}"><summary>&#128260; Interface Data (BEST)${roTag}</summary><div class="body">
-      <span id="dcBestInfo"></span> <button class="btn-sm-blue" id="dcBest" style="margin-left:8px">Load / Refresh from BEST</button></div></details>
+    <details class="acc ${ro ? 'acc-ro' : ''}"><summary>&#128260; Interface Data (IPMS)${roTag}</summary><div class="body">
+      <span id="dcIpmsInfo"></span> <button class="btn-sm-blue" id="dcIpms" style="margin-left:8px">Load / Refresh from IPMS</button></div></details>
     <details class="kpi-mon" id="dcKpiBox" ${dc.kpiOpen === false ? '' : 'open'}><summary>&#128202; DTP Creation vs Master KPI <span class="q-note" id="dcKpiSum"></span></summary><div id="dcKpi"></div></details>
     <div class="grid-bar">
       <label class="selall"><input type="checkbox" id="dcAll" ${ro ? 'disabled' : ''}><span><b>Select All</b><small id="dcSelCount">0 Selected</small></span></label>
@@ -506,7 +507,7 @@ function bindCreate(ro) {
   $('dcBack').onclick = () => { location.hash = '#planning-order'; };
   document.querySelectorAll('#dtpCreate .dd > button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const dd = b.parentElement; document.querySelectorAll('.dd').forEach(x => x !== dd && x.classList.remove('open')); dd.classList.toggle('open'); }));
   document.querySelectorAll('#dtpCreate .dd-menu').forEach(m => m.addEventListener('click', e => e.stopPropagation()));
-  $('ddDemo').addEventListener('change', e => { const k = e.target.dataset.demo; if (k) { demo[k] = e.target.checked; toast(`Demo: ${{ bestError: 'BEST interface error', submitError: 'submission failure', swError: 'DTP Switching failure', swRace: 'driver starts during confirmation' }[k]} ${e.target.checked ? 'ON' : 'OFF'}`); } });
+  $('ddDemo').addEventListener('change', e => { const k = e.target.dataset.demo; if (k) { demo[k] = e.target.checked; toast(`Demo: ${{ ipmsError: 'IPMS interface error', submitError: 'submission failure', swError: 'DTP Switching failure', swRace: 'driver starts during confirmation' }[k]} ${e.target.checked ? 'ON' : 'OFF'}`); } });
   $('ddDemo').querySelector('[data-demo-start]').onclick = () => { const r = dateRecs().find(x => x.status === S.PROCESSED && orderFor(x)?.truck && !D.driverStarted(orderFor(x), W)); toast(r ? driverStart(orderFor(r)) : 'No assigned order waiting for the driver on this date'); renderGrid(); };
   $('ddDemo').querySelector('[data-demo-reset]').onclick = () => { try { localStorage.removeItem(STORE); } catch (e) { /* ignore */ } location.reload(); };
   $('dcColMenu').addEventListener('change', e => { const k = e.target.dataset.k; e.target.checked ? dc.hidden.delete(k) : dc.hidden.add(k); renderGrid(); });
@@ -532,7 +533,7 @@ function bindCreate(ro) {
   $('dcTemplate').onclick = downloadTemplate;
   $('dcAdd').onclick = addManual;
   $('dcClearForm').onclick = () => { $('dcManual').innerHTML = manualForm({ io: dc.io, roundUse: 'N', truckType: 'TRAILER', arrDate: dc.date }); };
-  $('dcBest').onclick = loadBest;
+  $('dcIpms').onclick = loadIpms;
   $('dcDelete').onclick = deleteSelected;
 }
 
@@ -564,7 +565,7 @@ function renderGrid() {
       <td>${D.SWITCHABLE.includes(r.status) || r.status === S.PROCESSING
         ? `<input type="checkbox" class="sw-chk" data-sw="${r.id}" ${canSw ? '' : 'disabled'} ${dc.sw.has(r.id) ? 'checked' : ''} aria-label="Select record ${r.id} for DTP Switching" title="${esc(swTip)}">`
         : `<input type="checkbox" data-sel="${r.id}" ${sel ? '' : 'disabled'} ${r.status === S.READY ? 'checked' : ''} aria-label="Select record ${r.id}" title="${sel ? '' : r.status === S.ERROR ? 'Fix the validation error first' : ''}">`}</td>
-      <td><div class="opt"><button data-edit="${r.id}" title="Edit" ${ro || locked ? 'disabled' : ''}>&#9998;</button><button class="del" data-del="${r.id}" title="Delete" ${ro || locked || r.source === D.SOURCE.BEST ? 'disabled' : ''}>&#128465;</button>
+      <td><div class="opt"><button data-edit="${r.id}" title="Edit" ${ro || locked ? 'disabled' : ''}>&#9998;</button><button class="del" data-del="${r.id}" title="Delete" ${ro || locked || r.source === D.SOURCE.IPMS ? 'disabled' : ''}>&#128465;</button>
         <button data-retry="${r.id}" title="Retry" ${!ro && D.canRetry(r) ? '' : 'disabled'}>&#8635;</button><button data-hist="${r.id}" title="History">&#9432;</button>
         <button class="swb" data-switch="${r.id}" title="${canSw ? 'DTP Switching (rollback)' : esc(swE?.code === 'NOT_SUBMITTED' ? 'DTP Switching: only for submitted DTP' : swE?.msg || '')}" ${canSw ? '' : 'disabled'}>&#8644;</button></div></td>
       ${cols.map(([k]) => `<td>${cell(k)}</td>`).join('')}</tr>`;
@@ -580,11 +581,11 @@ function renderGrid() {
   $('dcCnt').innerHTML = `<b>${ready.length}</b> record(s) selected · ${all.filter(r => r.status === S.ERROR).length} validation error · ${all.filter(r => [S.SUBMITTED, S.QUEUED, S.PROCESSING].includes(r.status)).length} in queue · ${all.filter(r => r.status === S.PROCESSED).length} processed${dc.sw.size ? ` · <b>${dc.sw.size}</b> selected for DTP Switching` : ''}`;
   $('dcSubmit').disabled = ro || !ready.length;
   $('dcSubmit').innerHTML = `&#10003; Submit DTP${ready.length ? ` (${ready.length})` : ''}`;
-  $('dcDelete').disabled = ro || !ready.some(r => r.source !== D.SOURCE.BEST);
+  $('dcDelete').disabled = ro || !ready.some(r => r.source !== D.SOURCE.IPMS);
   $('dcPager').innerHTML = pagerFor(dc.page, pages);
   renderKpi();
-  const bestN = all.filter(r => r.source === D.SOURCE.BEST).length;
-  if ($('dcBestInfo')) $('dcBestInfo').innerHTML = `Records received from BEST for ${D.fmtDmy(dc.date)}: <b>${bestN}</b>${PULLED[dc.date] ? '' : ' (not loaded yet)'}`;
+  const ipmsN = all.filter(r => r.source === D.SOURCE.IPMS).length;
+  if ($('dcIpmsInfo')) $('dcIpmsInfo').innerHTML = `Records received from IPMS for ${D.fmtDmy(dc.date)}: <b>${ipmsN}</b>${PULLED[dc.date] ? '' : ' (not loaded yet)'}`;
 }
 // DTP Creation vs Master KPI (KM-01 .. KM-08): recalculated from the DTP records on every grid change
 function renderKpi() {
@@ -656,14 +657,14 @@ function addManual() {
   $('dcManual').innerHTML = manualForm({ io: dc.io, roundUse: 'N', truckType: 'TRAILER', arrDate: dc.date });
 }
 
-// BEST interface
-function loadBest() {
-  busy(true, 'Receiving data from BEST interface...');
+// IPMS interface
+function loadIpms() {
+  busy(true, 'Receiving data from IPMS interface...');
   setTimeout(() => {
     busy(false);
-    if (demo.bestError) { showPreview('Interface error', `<div class="form-alert">BEST interface is not responding (simulated). No record was received. Please try again later.</div>`, '<button class="btn-outline" id="bClose">Close</button>'); $('bClose').onclick = closePreview; return; }
-    const n = pullBest(dc.date); persist(); renderGrid();
-    toast(n ? `${n} record(s) received from BEST` : 'No new data from BEST');
+    if (demo.ipmsError) { showPreview('Interface error', `<div class="form-alert">IPMS interface is not responding (simulated). No record was received. Please try again later.</div>`, '<button class="btn-outline" id="bClose">Close</button>'); $('bClose').onclick = closePreview; return; }
+    const n = pullIpms(dc.date); persist(); renderGrid();
+    toast(n ? `${n} record(s) received from IPMS` : 'No new data from IPMS');
   }, 900);
 }
 
@@ -718,9 +719,9 @@ function downloadTemplate() {
 }
 
 function deleteSelected() {
-  const list = dateRecs().filter(r => r.status === S.READY && r.source !== D.SOURCE.BEST);
-  if (!list.length) { toast('Select Excel / Manual records to delete (BEST records cannot be deleted)'); return; }
-  showPreview('Delete records', `<p style="font-size:11px;margin:0">Delete ${list.length} selected record(s) from the grid? BEST interface records are kept.</p>`,
+  const list = dateRecs().filter(r => r.status === S.READY && r.source !== D.SOURCE.IPMS);
+  if (!list.length) { toast('Select Excel / Manual records to delete (IPMS records cannot be deleted)'); return; }
+  showPreview('Delete records', `<p style="font-size:11px;margin:0">Delete ${list.length} selected record(s) from the grid? IPMS interface records are kept.</p>`,
     '<button class="btn-outline" id="dNo">Batal</button><button class="btn-del" id="dYes">Delete</button>');
   $('dNo').onclick = closePreview;
   $('dYes').onclick = () => { list.forEach(r => RECS.splice(RECS.indexOf(r), 1)); persist(); closePreview(); renderGrid(); toast(`${list.length} record(s) deleted`); };
