@@ -158,4 +158,59 @@ ${rows.map(m => `<Row>${cols.map(([k]) => k === 'mileage'
   toast(`${rows.length} baris diexport`);
 });
 
+// ---------- Excel upload (MM-20 .. MM-29): template, preview with validation per row, all-or-nothing save ----------
+const pvWide = on => { document.querySelector('#preview .pv').style.width = on ? '860px' : ''; };
+$('mTemplate').addEventListener('click', () => {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([MM.UPLOAD.HEADERS, ['SNT', 'CKR', 42], ['DPCMR', 'CYSTR', 16.5]]);
+  ws['!cols'] = [{ wch: 14 }, { wch: 14 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, ws, 'Route Mileage');
+  const loc = XLSX.utils.aoa_to_sheet([['LOCATION CODE', 'LOCATION NAME'], ...LOCATIONS.filter(l => l.status === 'ACTIVE').map(l => [l.code, l.name])]);
+  loc['!cols'] = [{ wch: 16 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, loc, 'Active Locations');
+  const info = XLSX.utils.aoa_to_sheet([['Route Mileage upload template'], ['FROM CODE / TO CODE: active Master Location codes (sheet Active Locations); the route is directional.'],
+    ['MILEAGE (KM): number > 0, max 2 decimals. Existing Active route = the mileage is updated; new route = created.'], [`Max ${MM.UPLOAD.MAX_ROWS} rows. One error in the file = nothing is saved.`]]);
+  XLSX.utils.book_append_sheet(wb, info, 'Notes');
+  XLSX.writeFile(wb, 'Template_Route_Mileage.xlsx');
+  toast('Template downloaded');
+});
+$('mUpload').addEventListener('click', () => { $('mFile').value = ''; $('mFile').click(); });
+$('mFile').addEventListener('change', e => { const f = e.target.files[0]; if (f) mileageUpload(f); });
+function mileageUpload(f) {
+  if (!/\.(xlsx|xls)$/i.test(f.name)) { toast(MM.UMSG.fileType); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    let read;
+    try {
+      const wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
+      const name = wb.SheetNames.find(n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1 }).some(r => r.some(c => /FROM CODE/i.test(String(c))))) || wb.SheetNames[0];
+      read = MM.readSheet(XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: '' }));
+    } catch (err) { read = { ok: false, error: MM.UMSG.fileType }; }
+    if (!read.ok) {
+      pvWide(false);
+      showPreview('Upload failed', `<div class="form-alert-m">${esc(read.error)}</div><p style="font-size:10.5px;margin:6px 0 0">File: ${esc(f.name)}</p>`, '<button class="btn-outline" id="muClose">Close</button>');
+      $('muClose').onclick = closePreview; toast(read.error); return;
+    }
+    const chk = MM.checkUpload(read.data, MILEAGES, LOCATIONS), A = MM.ACTION, c = chk.counts;
+    const nm = code => code ? `${esc(code)}<br><small style="color:#6b7280">${esc(locName(code))}</small>` : '-';
+    pvWide(true);
+    showPreview(`Upload Route Mileage - ${f.name}`, `
+      <div class="mu-sum"><span class="n">New ${c[A.NEW]}</span><span class="u">Update ${c[A.UPDATE]}</span><span class="s">No change ${c[A.SAME]}</span><span class="e">Error ${c[A.ERROR]}</span><span class="s">Rows ${chk.rows.length}</span></div>
+      ${chk.error ? `<div class="form-alert-m">${esc(chk.error)}</div>` : '<p style="font-size:10.5px;margin:0 0 8px">All rows are valid. Click <b>Confirm Upload</b> to save the New and Update rows.</p>'}
+      <div class="mu-wrap"><table class="mu-tbl"><tr><th>Row</th><th>From</th><th>To</th><th>Mileage (Km)</th><th>Result</th><th>Remark</th></tr>
+      ${chk.rows.map(r => `<tr class="${r.action === A.ERROR ? 'err' : ''}"><td>${r.row}</td><td>${nm(r.from)}</td><td>${nm(r.to)}</td><td>${esc(r.mileage)}</td>
+        <td class="act a-${r.action.split(' ')[0]}">${r.action}</td><td>${r.action === A.ERROR ? r.errors.map(esc).join('<br>') : r.action === A.UPDATE ? `${km(r.old)} → ${km(r.value)} Km` : r.action === A.SAME ? 'Same mileage, skipped' : 'New route'}</td></tr>`).join('')}</table></div>`,
+      `<button class="btn-outline" id="muNo">Cancel</button><button class="btn-save" id="muYes" ${chk.ok ? '' : 'disabled'} style="height:32px">Confirm Upload</button>`);
+    $('muNo').onclick = () => { closePreview(); pvWide(false); };
+    $('muYes').onclick = () => {
+      // re-check against the current data right before saving (the list may have changed while the preview was open)
+      const res = MM.applyUpload(MM.checkUpload(read.data, MILEAGES, LOCATIONS), MILEAGES, USER, new Date());
+      closePreview(); pvWide(false);
+      toast(res.ok ? res.message : res.error);
+      if (res.ok) { mState.q = ''; $('mQuick').value = ''; mRender(); }
+    };
+  };
+  reader.readAsArrayBuffer(f);
+}
+
 setForm(null);

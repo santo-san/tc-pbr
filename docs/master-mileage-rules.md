@@ -15,7 +15,7 @@ The screen follows the existing **Route Mileage** screen exactly.
 |---|---|
 | Header | Title "Route Mileage", breadcrumb "Master - Route Mileage" |
 | Form | From ("Select From Location"), To ("Select To Location"): dropdowns from Master Location (active only, searchable by code / name); Mileage (Km). Save / Cancel |
-| Route Mileage List | Search, Table View (show / hide columns), Export .xls, pagination |
+| Route Mileage List | Search, Table View (show / hide columns), **Upload Excel**, **Download Template**, Export .xls, pagination |
 | Columns | From Code, From, To Code, To, Mileage (Km), Created Date, Change Date (Created By and Changed By available via Table View) |
 | Edit | Click a row: the route is loaded into the form (From / To locked), change Mileage, Save. Cancel clears the form |
 | States | Save disabled while saving ("Saving..."); empty list shows "No mileage data found." / "No mileage data found for the selected criteria." |
@@ -71,6 +71,36 @@ flowchart TD
 
 ---
 
+## 3a. Excel upload (added 13-Nov-2026)
+
+Mass maintenance of routes from an Excel file. Screen part: buttons and the preview dialog on Route Mileage
+(UISS-Screen Master Mileage rev 0.2). Backend: [UISS-Batch Master Mileage - Route Mileage Upload](uiss/UISS_Batch_Master_Mileage_Upload.xlsx).
+Rules: `master-mileage.js` `readSheet`, `checkUpload`, `applyUpload`; tests `tests/master-mileage-upload.test.js` (6).
+
+```mermaid
+flowchart TD
+  T["Download Template"] --> F["Fill FROM CODE / TO CODE / MILEAGE (KM)"] --> U["Upload Excel"]
+  U --> C{"File OK? (type, template header, rows 1-1000)"}
+  C -- "No" --> CE["Upload failed: one message, nothing loaded"]
+  C -- "Yes" --> V["Check every row (MM-22..MM-24)"] --> P["Preview: New / Update / No change / Error per row"]
+  P --> Q{"Any Error, or nothing to save?"}
+  Q -- "Yes" --> X["Confirm Upload disabled: correct the file, upload again"]
+  Q -- "No" --> Y["Confirm Upload: re-check + save all in one transaction"] --> R["'Upload completed: n route(s) created, m route(s) updated.'"]
+```
+
+| ID | Rule |
+|---|---|
+| MM-20 | Route Mileage List has **Upload Excel** and **Download Template** next to Export .xls |
+| MM-21 | **Template** (`Template_Route_Mileage.xlsx`): sheet *Route Mileage* with header `FROM CODE`, `TO CODE`, `MILEAGE (KM)` (the header row may be below a title; other columns are ignored), sheet *Active Locations* (code, name), sheet *Notes*. File .xlsx / .xls, max 1,000 data rows; empty rows are skipped |
+| MM-22 | Every row is checked with the screen rules: mandatory From / To / Mileage (MM-01), From and To active in Master Location (MM-06), From ≠ To (MM-02), Mileage > 0 with up to 2 decimals, comma accepted as decimal sign (MM-03). Codes are converted to upper case |
+| MM-23 | The same route twice in the file is an error on the later row ("Route is repeated in the file (row n)"). An existing **Inactive** route is an error (activate it on the screen first) |
+| MM-24 | Result per row: **New** (route not in Master Mileage), **Update** (existing Active route, other mileage: old → new), **No change** (same mileage, skipped), **Error** (all reasons of the row) |
+| MM-25 | **Preview first**: nothing is saved by Upload. **Confirm Upload** is enabled only when no row has an error and at least one row is New or Update (**all-or-nothing**) |
+| MM-26 | Confirm Upload checks the rows again against the current data and saves in one transaction: New = insert (Active, Created / Updated By = user); Update = new mileage, Updated By / Date, version + 1, Created By / Date kept. The list is refreshed |
+| MM-27 | File errors stop the upload with one message: wrong file type, template columns not found, no data, more than 1,000 rows |
+| MM-28 | Messages: "Upload completed: n route(s) created, m route(s) updated." · "n row(s) have errors. Nothing was saved; correct the file and upload again." · "All routes in the file already have the same mileage. Nothing to save." |
+| MM-29 | Backend log and temp rows per upload (Upload ID, counts, status, error per row) as in the UISS-Batch (proposed tables) |
+
 ## 4. Assumptions / open questions
 
 1. **Duplicate check includes Inactive records**, so an old route is edited instead of re-created.
@@ -80,3 +110,7 @@ flowchart TD
 5. **Location codes** follow the reference (DPCMR, DPSTR, PRTGP, WHCKR, KRWP1, CYSTR) and are registered in Master Location.
 6. **Edit trigger:** the reference has no Action column, so the mock-up edits by clicking a row. Is there an Edit button in the real screen?
 7. **Deactivate / Status:** the requirement asks for Active / Inactive and Deactivate, but the reference screen has no Status column or Deactivate action. Should they be added (e.g. via Table View column and row action)?
+6. **Upload of an existing route:** update the mileage (mock-up) or reject it (only new routes by upload)?
+7. **Upload of an Inactive route:** error (mock-up) or update and re-activate?
+8. **Upload limits:** max rows (1,000 assumed), partial save of the valid rows instead of all-or-nothing?
+9. **Mileage history:** keep the old / new mileage per change (history table) for audit of the cost calculation?

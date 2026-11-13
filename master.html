@@ -170,6 +170,18 @@
   .kact button.del { color: #e11d48; } .kact button.ok { color: #16a34a; }
   .kpi-foot { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14px; font-size: 10px; color: #4b5563; gap: 12px; flex-wrap: wrap; }
   .kpi-foot .right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  #muYes:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-upl { height: 35px; border: 0; border-radius: 6px; background: #0f766e; color: #fff; font: inherit; font-size: 11px; font-weight: 600; padding: 0 14px; cursor: pointer; }
+  .btn-tpl { height: 35px; border: 1px solid #d5d9e0; border-radius: 6px; background: #fff; color: #0b1a3a; font: inherit; font-size: 11px; font-weight: 600; padding: 0 12px; cursor: pointer; }
+  .mu-sum { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; }
+  .mu-sum span { padding: 4px 10px; border-radius: 12px; font-size: 10.5px; font-weight: 600; }
+  .mu-sum .n { background: #dcfce7; color: #166534; } .mu-sum .u { background: #dbeafe; color: #1d4ed8; } .mu-sum .s { background: #f3f4f6; color: #4b5563; } .mu-sum .e { background: #fee2e2; color: #b91c1c; }
+  .mu-wrap { max-height: 360px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
+  .mu-tbl { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  .mu-tbl th { position: sticky; top: 0; background: #eef1f6; padding: 6px 8px; text-align: left; }
+  .mu-tbl td { padding: 5px 8px; border-top: 1px solid #f0f2f5; vertical-align: top; }
+  .mu-tbl tr.err td { background: #fff1f3; } .mu-tbl td.act { font-weight: 700; white-space: nowrap; }
+  .mu-tbl .a-New { color: #166534; } .mu-tbl .a-Update { color: #1d4ed8; } .mu-tbl .a-No { color: #6b7280; } .mu-tbl .a-Error { color: #b91c1c; }
   .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
   .kpi-tbr b { font-size: 15px; margin-right: 110px; }
   .ksums { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
@@ -505,6 +517,9 @@
           </button>
           <div class="dd-menu" id="mViewMenu"></div>
         </div>
+        <button class="btn-upl" id="mUpload" title="Upload routes from the Excel template">&#11014; Upload Excel</button>
+        <input type="file" id="mFile" accept=".xlsx,.xls" hidden>
+        <button class="btn-tpl" id="mTemplate" title="Download the Excel template">&#128196; Download Template</button>
         <button class="btn-xls" id="mExport">&#11015; Export .xls</button>
       </div>
       <div class="table-wrap"><table id="milTable"><thead id="mThead"></thead><tbody id="mTbody"></tbody></table></div>
@@ -746,7 +761,8 @@
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="master-trucking.js?v=20261030b"></script>
 <script src="master-location.js?v=20261030c"></script>
-<script src="master-mileage.js?v=20261030d"></script>
+<script src="vendor/xlsx/xlsx.full.min.js"></script>
+<script src="master-mileage.js?v=20261113a"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
 <script src="master-kpi.js?v=20261113b"></script>
@@ -754,7 +770,7 @@
 <script src="master-renban.js?v=20261101b"></script>
 <script src="master.js?v=20261113a"></script>
 <script src="location.js?v=20261030d"></script>
-<script src="mileage.js?v=20261030e"></script>
+<script src="mileage.js?v=20261113a"></script>
 <script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
 <script src="kpi.js?v=20261113b"></script>

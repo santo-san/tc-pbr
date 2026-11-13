@@ -105,7 +105,73 @@
     return { ok: true, mileage: m.mileage, pricePerKm: price, cost: Math.round(m.mileage * price) };
   }
 
-  const api = { STATUS, MSG, MAX_DECIMALS, parseMileage, validate, add, update, setStatus, lookup, variableCost };
+  // ---------- Excel upload (MM-20 .. MM-29) ----------
+  // Template: one sheet, header row FROM CODE | TO CODE | MILEAGE (KM); other columns are ignored.
+  const UPLOAD = { HEADERS: ['FROM CODE', 'TO CODE', 'MILEAGE (KM)'], MAX_ROWS: 1000 };
+  const ACTION = { NEW: 'New', UPDATE: 'Update', SAME: 'No change', ERROR: 'Error' };
+  const UMSG = {
+    fileType: 'File format is not valid. Please upload the Excel template (.xlsx / .xls).',
+    header: miss => `Template is not valid: column ${miss.join(', ')} not found. Please use the Download Template file.`,
+    empty: 'The file has no mileage data.',
+    tooMany: n => `The file has ${n} rows; maximum ${UPLOAD.MAX_ROWS} rows per upload.`,
+    rowErrors: n => `${n} row(s) have errors. Nothing was saved; correct the file and upload again.`,
+    nothing: 'All routes in the file already have the same mileage. Nothing to save.',
+    dupFile: r => `Route is repeated in the file (row ${r}).`,
+    inactive: (f, t) => `Route ${f} → ${t} exists but is Inactive; activate it on the screen first.`,
+    saved: (n, u) => `Upload completed: ${n} route(s) created, ${u} route(s) updated.`,
+  };
+  const normHead = h => String(h ?? '').toUpperCase().replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+  // rows = array of arrays (sheet_to_json header:1). Header row = first row that contains FROM CODE.
+  function readSheet(rows) {
+    const hi = (rows || []).findIndex(r => (r || []).some(c => normHead(c) === 'FROM CODE'));
+    if (hi < 0) return { ok: false, error: UMSG.header(UPLOAD.HEADERS) };
+    const head = rows[hi].map(normHead), idx = UPLOAD.HEADERS.map(h => head.indexOf(h));
+    const miss = UPLOAD.HEADERS.filter((h, i) => idx[i] < 0);
+    if (miss.length) return { ok: false, error: UMSG.header(miss) };
+    const data = [];
+    rows.slice(hi + 1).forEach((r, i) => {
+      const v = idx.map(j => clean((r || [])[j]));
+      if (v.some(Boolean)) data.push({ row: hi + i + 2, from: v[0].toUpperCase(), to: v[1].toUpperCase(), mileage: v[2] });
+    });
+    if (!data.length) return { ok: false, error: UMSG.empty };
+    if (data.length > UPLOAD.MAX_ROWS) return { ok: false, error: UMSG.tooMany(data.length) };
+    return { ok: true, data };
+  }
+  // Validates every row against Master Location and the existing routes; nothing is saved here (preview).
+  function checkUpload(data, list, locations) {
+    const seen = new Map();
+    const rows = data.map(d => {
+      const errors = [];
+      if (!d.from) errors.push(MSG.fromRequired);
+      else if (!isActiveLoc(findLoc(locations, d.from))) errors.push(`Location ${d.from} is not an active location in Master Location.`);
+      if (!d.to) errors.push(MSG.toRequired);
+      else if (!isActiveLoc(findLoc(locations, d.to))) errors.push(`Location ${d.to} is not an active location in Master Location.`);
+      if (d.from && d.to && d.from === d.to) errors.push(MSG.sameLocation);
+      const value = parseMileage(d.mileage);
+      if (!d.mileage) errors.push(MSG.mileageRequired); else if (!(value > 0)) errors.push(MSG.mileageInvalid);
+      const k = key(d.from, d.to);
+      if (d.from && d.to && seen.has(k)) errors.push(UMSG.dupFile(seen.get(k))); else if (d.from && d.to) seen.set(k, d.row);
+      const ex = list.find(m => key(m.from, m.to) === k);
+      if (!errors.length && ex && ex.status !== STATUS.ACTIVE) errors.push(UMSG.inactive(d.from, d.to));
+      const action = errors.length ? ACTION.ERROR : !ex ? ACTION.NEW : ex.mileage === value ? ACTION.SAME : ACTION.UPDATE;
+      return { ...d, value: errors.length ? null : value, old: ex ? ex.mileage : null, action, errors, existing: ex || null };
+    });
+    const counts = Object.fromEntries(Object.values(ACTION).map(a => [a, rows.filter(r => r.action === a).length]));
+    const error = counts[ACTION.ERROR] ? UMSG.rowErrors(counts[ACTION.ERROR]) : !counts[ACTION.NEW] && !counts[ACTION.UPDATE] ? UMSG.nothing : null;
+    return { ok: !error, error, rows, counts };
+  }
+  // All-or-nothing: saves only when no row has an error (MM-25); insert New, update Update, skip No change
+  function applyUpload(check, list, user, at) {
+    if (!check.ok) return { ok: false, error: check.error || UMSG.rowErrors(check.counts?.[ACTION.ERROR] || 0) };
+    let n = 0, u = 0;
+    check.rows.forEach(r => {
+      if (r.action === ACTION.NEW) { list.push({ from: r.from, to: r.to, mileage: r.value, status: STATUS.ACTIVE, createdBy: user, createdAt: at, updatedBy: user, updatedAt: at, version: 1 }); n++; }
+      if (r.action === ACTION.UPDATE) { Object.assign(r.existing, { mileage: r.value, updatedBy: user, updatedAt: at, version: r.existing.version + 1 }); u++; }
+    });
+    return { ok: true, created: n, updated: u, message: UMSG.saved(n, u) };
+  }
+
+  const api = { STATUS, MSG, MAX_DECIMALS, parseMileage, validate, add, update, setStatus, lookup, variableCost, UPLOAD, ACTION, UMSG, readSheet, checkUpload, applyUpload };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MasterMileage = api;
 })(this);
