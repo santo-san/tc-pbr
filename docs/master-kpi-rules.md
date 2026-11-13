@@ -8,7 +8,7 @@ Master KPI holds the **performance value of each trucking company** and its **Or
 - **Payment Type By Trip** (added 13-Nov-2026). **Both payment types have the same columns: Order Sharing % and Daily Trip** (rev 13-Nov-2026 b):
   - **By Resources:** Daily Trip is **typed** (trucks per day). Order Sharing % is typed too, but it is **information only**: it does not change the Daily Trip yet.
   - **By Trip:** Order Sharing % is typed (total = **100%**); Daily Trip is **calculated** from the **trips per day** (reference **20**): 1 trip per company, the rest by % (KP-15).
-  - A company can be registered both By Resources and By Trip. Each payment type has its own **summary** under the grid.
+  - A company can be registered both By Resources and By Trip. Each payment type has its own **summary** shown above the grid.
 
 Mock-up: `master.html#kpi` (Master > KPI). Rules live in [`master-kpi.js`](../master-kpi.js). UISS: [`docs/uiss/UISS_Screen_Master_KPI.xlsx`](uiss/UISS_Screen_Master_KPI.xlsx). The screen follows the existing **Master KPI** screen.
 
@@ -21,7 +21,8 @@ Mock-up: `master.html#kpi` (Master > KPI). Rules live in [`master-kpi.js`](../ma
 | Header | Title "Master KPI", breadcrumb "Master - Master KPI" |
 | Toolbar | **Enter New KPI** + **Add New**: adds a KPI item as a new column. **Payment Type** (By Resources / By Trip) + **Select Trucking Company** + **+ Add Company**: adds a company row of that payment type from Master Trucking Company *(not on the reference screen; see open question 2)*. Tabs **All / By Resources / By Trip**. Search, Kolom (show / hide columns), Export XLS |
 | Grid | Action (✎ / 🗑; while editing ✓ / ✕), Payment Type (yellow By Resources, green By Trip), **No** (per payment type), Trucking Company (`Code - Name`), Score, Grade, **one column per KPI item** (coloured header: Safety, Comm., Flexi., Legal, KPI, TPS, Tax, QCC, …), **Total**, **Order Sharing %** (`x.xx%`, both types), **Daily Trip** (typed for By Resources; calculated, italic, for By Trip), UoM (Truck), Created Dt, Created By, Changed Dt, Changed By. Rows are grouped By Resources first, then By Trip (as the two reference tables). A By Trip row without Order Sharing (e.g. SGL, SILVER) is hatched: not eligible |
-| Footer | "Menampilkan x - y dari z data", pager and **one summary per payment type**: **By Resources** (green): Total Order Sharing % (information only), Total Daily Trip (= Total By Resource). **By Trip** (teal): Total Order Sharing % (must be 100%, red otherwise), **Trips per day** input (default 20), Total Daily Trip. The tab By Resources / By Trip shows only its own summary. The separate daily trip allocation table was removed: the allocation is the Daily Trip column of the grid |
+| Summary (above the grid) | **One summary per payment type**: **By Resources** (green): Total Order Sharing % (information only), Total Daily Trip (= Total By Resource). **By Trip** (teal): Total Order Sharing % (must be 100%, red otherwise), **Trips per day** input (default 20), Total Daily Trip. The tab By Resources / By Trip shows only its own summary. The separate daily trip allocation table was removed: the allocation is the Daily Trip column of the grid |
+| Footer | "Menampilkan x - y dari z data", pager |
 
 ### Editing in the grid
 

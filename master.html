@@ -173,6 +173,11 @@
   .kpi-tbr { display: flex; justify-content: space-between; align-items: center; width: 340px; background: #16a34a; color: #fff; border-radius: 5px; padding: 6px 14px; font-weight: 700; font-size: 10.5px; }
   .kpi-tbr b { font-size: 15px; margin-right: 110px; }
   .ksums { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .ksums.ktop { justify-content: flex-start; margin: 0 0 12px; }
+  .ksums.ktop .ksum { flex: 1 1 320px; max-width: 520px; display: grid; grid-template-columns: auto 1fr 1fr 1fr; column-gap: 18px; align-items: center; }
+  .ksums.ktop .ksum h6 { grid-row: span 1; margin: 0; border: 0; border-right: 1px solid rgba(255,255,255,.35); padding: 0 14px 0 0; font-size: 12px; }
+  .ksums.ktop .ksum .kl { flex-direction: column; align-items: flex-start; gap: 2px; padding: 0; }
+  .ksums.ktop .ksum .kl b { font-size: 18px; }
   .ksum { width: 300px; border-radius: 6px; padding: 8px 12px; color: #fff; font-size: 10.5px; }
   .ksum.res { background: #16a34a; } .ksum.trip { background: #0f766e; }
   .ksum h6 { margin: 0 0 6px; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,.35); padding-bottom: 4px; }
@@ -676,11 +681,7 @@
         </div>
         <button class="btn-xls2" id="kExport"><span style="background:#16a34a;color:#fff;border-radius:3px;font-size:9px;padding:1px 3px;font-weight:700">X</span> Export XLS</button>
       </div>
-      <div class="table-wrap"><table id="kpiTable"><thead id="kThead"></thead><tbody id="kTbody"></tbody></table></div>
-      <div class="kpi-foot">
-        <span id="kInfo"></span>
-        <div class="right">
-          <div class="ksums">
+      <div class="ksums ktop">
             <div class="ksum res" id="kSumRes"><h6>By Resources</h6>
               <div class="kl"><span>Total Order Sharing %<small>information only, Daily Trip is typed</small></span><b id="kSumResPct">0%</b></div>
               <div class="kl"><span>Total Daily Trip<small>Total By Resource</small></span><b id="kTbr">0</b></div></div>
@@ -689,6 +690,10 @@
               <div class="kl"><span>Trips per day<small>shared by Order Sharing %</small></span><input id="kTrips" inputmode="numeric" value="20" maxlength="3"></div>
               <div class="kl"><span>Total Daily Trip<small>1 per company, rest by %</small></span><b id="kSumTripQty">0</b></div></div>
           </div>
+      <div class="table-wrap"><table id="kpiTable"><thead id="kThead"></thead><tbody id="kTbody"></tbody></table></div>
+      <div class="kpi-foot">
+        <span id="kInfo"></span>
+        <div class="right">
           <div class="pri-pager" id="kPager"></div>
         </div>
       </div>
