@@ -1,0 +1,1169 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch",
+  "function_name": "TBD DTP Creation - Queue Processing",
+  "created_date": "02-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "02-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft (processing queue of submitted DTP records) 02-Nov-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Payment Type of the DTP record (PAY_TYPE) is copied to the Daily order (By Resources / By Trip) for slot monitoring and later processes"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To process the DTP records submitted on DTP Creation: create one Daily order per record for the LP Admin (Planning Order / DTP Creation Release).",
+   "In case of an error the record is set to FAILED with the reason; the planner can retry it. Successful records are never processed twice."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "a",
+      "label": "DTP Creation: Submit DTP",
+      "type": "event"
+     },
+     {
+      "id": "b",
+      "label": "TB_R_DTP_RECORD (SUBMITTED / QUEUED)",
+      "type": "db"
+     },
+     {
+      "id": "c",
+      "label": "Queue processing batch",
+      "type": "process"
+     },
+     {
+      "id": "d",
+      "label": "Daily Order (Planning Order)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "LP Admin: Daily Monitoring",
+      "type": "screen"
+     }
+    ],
+    "edges": [
+     {
+      "from": "a",
+      "to": "b"
+     },
+     {
+      "from": "b",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "d",
+      "label": "Processed"
+     },
+     {
+      "from": "d",
+      "to": "e"
+     }
+    ]
+   }
+  },
+  "inputs": [
+   {
+    "name": "TB_R_DTP_RECORD",
+    "type": "DB",
+    "description": "STATUS SUBMITTED / QUEUED (Retry sets QUEUED)"
+   },
+   {
+    "name": "System Master (TB_M_SYSTEM, TBD)",
+    "type": "DB",
+    "description": "Batch size, max attempts (TBD)"
+   },
+   {
+    "name": "Trucking Company Master (TBD) / Location Master / DTP Data Mapping (TBD)",
+    "type": "DB",
+    "description": "LP and location names, re-check"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Daily Order (TB_R_DAILY_ORDER, TBD)",
+    "type": "DB",
+    "description": "if processed (existing Daily order table)"
+   },
+   {
+    "name": "Daily Order Cycle (TBD)",
+    "type": "DB",
+    "description": "first cycle DTP Creation Release"
+   },
+   {
+    "name": "TB_R_DTP_RECORD",
+    "type": "DB",
+    "description": "PROCESSED / FAILED"
+   },
+   {
+    "name": "TB_H_DTP_RECORD_STS",
+    "type": "DB",
+    "description": "status history"
+   }
+  ],
+  "extra_tables": [
+   {
+    "title": "Execution Schedule",
+    "columns": [
+     {
+      "title": "Item",
+      "width": 12
+     },
+     {
+      "title": "Description",
+      "width": 30
+     }
+    ],
+    "rows": [
+     [
+      "Trigger",
+      "Job scheduler every N seconds (TBD) or message queue"
+     ],
+     [
+      "Concurrency",
+      "Row lock / skip locked; one record per transaction"
+     ],
+     [
+      "Re-run",
+      "Safe: only SUBMITTED / QUEUED are selected"
+     ],
+     [
+      "Retry",
+      "Planner Retry on Failed; max attempts TBD"
+     ]
+    ]
+   }
+  ],
+  "constraints": [
+   "Table names are proposed; align them with the project naming convention.",
+   "Daily order table and order number format follow the existing Daily Monitoring design (TBD)."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START",
+     "type": "start"
+    },
+    {
+     "id": "p1",
+     "label": "Retrieve parameters",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "sm",
+     "label": "System Master (TB_M_SYSTEM, TBD)",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "p2",
+     "label": "Select SUBMITTED / QUEUED records",
+     "type": "process",
+     "step": 2
+    },
+    {
+     "id": "rq",
+     "label": "TB_R_DTP_RECORD",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "d2",
+     "label": "Any record?",
+     "type": "decision"
+    },
+    {
+     "id": "p3",
+     "label": "Set PROCESSING, attempt + 1",
+     "type": "process",
+     "step": 3
+    },
+    {
+     "id": "p4",
+     "label": "Re-check LP and location mapping",
+     "type": "process",
+     "step": 4
+    },
+    {
+     "id": "d4",
+     "label": "Still valid?",
+     "type": "decision"
+    },
+    {
+     "id": "p5",
+     "label": "Create Daily order + cycle",
+     "type": "process",
+     "step": 5
+    },
+    {
+     "id": "ord",
+     "label": "Daily Order (TBD)",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "d5",
+     "label": "Created?",
+     "type": "decision"
+    },
+    {
+     "id": "p6",
+     "label": "Set PROCESSED + ORDER_NO",
+     "type": "process",
+     "step": 6
+    },
+    {
+     "id": "p7",
+     "label": "Set FAILED + reason",
+     "type": "process",
+     "step": 7
+    },
+    {
+     "id": "d8",
+     "label": "More records?",
+     "type": "decision",
+     "step": 8
+    },
+    {
+     "id": "e",
+     "label": "END",
+     "type": "end"
+    },
+    {
+     "id": "x4",
+     "label": "Not valid: go to step 7",
+     "type": "message"
+    },
+    {
+     "id": "e0",
+     "label": "END (nothing to do)",
+     "type": "end"
+    },
+    {
+     "id": "x8",
+     "label": "Next record: back to step 3",
+     "type": "message"
+    }
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "p1"
+    },
+    {
+     "from": "sm",
+     "to": "p1"
+    },
+    {
+     "from": "p1",
+     "to": "p2"
+    },
+    {
+     "from": "rq",
+     "to": "p2"
+    },
+    {
+     "from": "p2",
+     "to": "d2"
+    },
+    {
+     "from": "d2",
+     "to": "e0",
+     "label": "No"
+    },
+    {
+     "from": "d2",
+     "to": "p3",
+     "label": "Yes"
+    },
+    {
+     "from": "p3",
+     "to": "p4"
+    },
+    {
+     "from": "p4",
+     "to": "d4"
+    },
+    {
+     "from": "d4",
+     "to": "x4",
+     "label": "No"
+    },
+    {
+     "from": "d4",
+     "to": "p5",
+     "label": "Yes"
+    },
+    {
+     "from": "p5",
+     "to": "ord"
+    },
+    {
+     "from": "p5",
+     "to": "d5"
+    },
+    {
+     "from": "d5",
+     "to": "p6",
+     "label": "Yes"
+    },
+    {
+     "from": "d5",
+     "to": "p7",
+     "label": "No"
+    },
+    {
+     "from": "p6",
+     "to": "d8"
+    },
+    {
+     "from": "p7",
+     "to": "d8"
+    },
+    {
+     "from": "d8",
+     "to": "x8",
+     "label": "Yes"
+    },
+    {
+     "from": "d8",
+     "to": "e",
+     "label": "No"
+    }
+   ],
+   "same_rank": [
+    [
+     "d2",
+     "e0"
+    ],
+    [
+     "d4",
+     "x4"
+    ],
+    [
+     "d8",
+     "x8"
+    ]
+   ]
+  },
+  "steps": [
+   {
+    "text": "Log message no. 1. Retrieve DTP_QUEUE_BATCH_SIZE and DTP_QUEUE_MAX_ATTEMPT from System Master (TB_M_SYSTEM, TBD) (TBD).",
+    "children": [
+     "Not configured: log message no. 3. Stop.",
+     "DB connection error: log message no. 2. Stop."
+    ]
+   },
+   {
+    "text": "Select up to the batch size from TB_R_DTP_RECORD WHERE STATUS IN ('SUBMITTED', 'QUEUED') ORDER BY SUBMITTED_DT, DTP_REC_ID (row lock, skip locked); SUBMITTED records are set to QUEUED first.",
+    "children": [
+     "None: log message no. 4. End."
+    ]
+   },
+   {
+    "text": "Per record (own transaction): set STATUS 'PROCESSING', ATTEMPT_CNT + 1, history."
+   },
+   {
+    "text": "Re-check that LP is active and FROM / TO are still in the data mapping.",
+    "children": [
+     "Not valid: go to step 7 with message no. 5."
+    ]
+   },
+   {
+    "text": "Create the Daily order (Planning Order) and its first cycle (DTP Creation Release) with a new ORDER_NO (refer 4.2).",
+    "children": [
+     "Error / timeout: rollback the order, go to step 7 with message no. 6."
+    ]
+   },
+   {
+    "text": "Set the record PROCESSED with ORDER_NO, clear FAIL_REASON, history; commit. Log message no. 8. The order is visible for the LP Admin (Daily Monitoring)."
+   },
+   {
+    "text": "Set the record FAILED with FAIL_REASON, history; commit. The planner can Retry (status back to QUEUED).",
+    "children": [
+     "ATTEMPT_CNT >= max: log message no. 7."
+    ]
+   },
+   {
+    "text": "Next record; when all are handled, log message no. 9. Exit."
+   }
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "STATUS",
+       "value": "'SUBMITTED'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_R_DTP_RECORD",
+     "operation": "Update",
+     "description": "Step 2",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'QUEUED'"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_H_DTP_RECORD_STS",
+     "operation": "Insert",
+     "description": "Status QUEUED"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "source_field": "DTP_REC_ID",
+      "dest_field": "DTP_REC_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'QUEUED'"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'In processing queue'"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "STATUS",
+       "value": "'QUEUED'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_R_DTP_RECORD",
+     "operation": "Update",
+     "description": "Step 3",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING'"
+     },
+     {
+      "dest_field": "ATTEMPT_CNT",
+      "description": "ATTEMPT_CNT + 1"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_H_DTP_RECORD_STS",
+     "operation": "Insert",
+     "description": "Status PROCESSING"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "source_field": "DTP_REC_ID",
+      "dest_field": "DTP_REC_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING'"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'Picked up by the queue service'"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "Daily Order (TB_R_DAILY_ORDER, TBD)",
+     "operation": "Insert",
+     "description": "Step 5"
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO",
+      "description": "YYMMDD + 'C2' + running number (existing format, TBD)"
+     },
+     {
+      "source_field": "PLAN_DT",
+      "dest_field": "ORDER_DT"
+     },
+     {
+      "dest_field": "DTP_TYPE",
+      "description": "'UNIVERSAL'"
+     },
+     {
+      "source_field": "LP_CD",
+      "dest_field": "SUPPLIER (LP)",
+      "description": "LP code / name from master"
+     },
+     {
+      "source_field": "FROM_LOC_CD / TO_LOC_CD",
+      "dest_field": "FROM_LOC / TO_LOC",
+      "description": "Location from data mapping"
+     },
+     {
+      "source_field": "RENBAN",
+      "dest_field": "RENBAN"
+     },
+     {
+      "source_field": "SHIFT",
+      "dest_field": "SHIFT",
+      "description": "'-' when blank"
+     },
+     {
+      "source_field": "ROUND_USE",
+      "dest_field": "PLANNED_CYCLE",
+      "description": "2 if 'Y' else 1 (TBD OP-05)"
+     },
+     {
+      "dest_field": "ORDER_STATUS",
+      "description": "'Planning Order'"
+     },
+     {
+      "dest_field": "TRUCK_NO / DRIVER",
+      "description": "NULL"
+     },
+     {
+      "source_field": "DTP_REC_ID, IO_TYPE, EXPORTER, IMPORTER_CD, CONTAINER_NO, DEST_CD, VESSEL_NAME",
+      "dest_field": "DTP reference fields (TBD)",
+      "description": "Traceability to the DTP record"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DT",
+      "description": "Submitting planner (SUBMITTED_BY) / server date-time"
+     },
+     {
+      "source_field": "PAY_TYPE",
+      "dest_field": "PAY_TYPE (proposed)",
+      "description": "Payment Type of the DTP record (By Resources / By Trip)"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "Daily Order Cycle (TBD)",
+     "operation": "Insert",
+     "description": "Step 5"
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO",
+      "description": "New order"
+     },
+     {
+      "dest_field": "CYCLE_NO",
+      "description": "1"
+     },
+     {
+      "dest_field": "CYCLE_STATUS",
+      "description": "'DTP Creation Release'"
+     },
+     {
+      "source_field": "FROM_LOC_CD / TO_LOC_CD",
+      "dest_field": "FROM_LOC / TO_LOC"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_R_DTP_RECORD",
+     "operation": "Update",
+     "description": "Step 6",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSED'"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "New order number"
+     },
+     {
+      "dest_field": "FAIL_REASON",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_H_DTP_RECORD_STS",
+     "operation": "Insert",
+     "description": "Status PROCESSED"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "source_field": "DTP_REC_ID",
+      "dest_field": "DTP_REC_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSED'"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'Daily order <ORDER_NO> created for LP Admin'"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_R_DTP_RECORD",
+     "operation": "Update",
+     "description": "Step 7",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'FAILED'"
+     },
+     {
+      "dest_field": "FAIL_REASON",
+      "description": "Error message (no. 5 / 6)"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_DTP_RECORD",
+     "keys": [
+      {
+       "field": "DTP_REC_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_H_DTP_RECORD_STS",
+     "operation": "Insert",
+     "description": "Status FAILED"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "source_field": "DTP_REC_ID",
+      "dest_field": "DTP_REC_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'FAILED'"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "FAIL_REASON"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "4. DESCRIPTION",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "Background service for the records submitted on DTP Creation. Each record is handled in its own transaction so one failure never blocks the others.",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "heading",
+   "text": "4.1 Status flow of a record",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "From",
+     "width": 10
+    },
+    {
+     "title": "To",
+     "width": 10
+    },
+    {
+     "title": "By",
+     "width": 22
+    }
+   ],
+   "rows": [
+    [
+     "READY",
+     "SUBMITTED",
+     "Screen [Confirm Submit]"
+    ],
+    [
+     "SUBMITTED",
+     "QUEUED",
+     "Batch step 2"
+    ],
+    [
+     "QUEUED",
+     "PROCESSING",
+     "Batch step 3"
+    ],
+    [
+     "PROCESSING",
+     "PROCESSED",
+     "Batch step 6"
+    ],
+    [
+     "PROCESSING",
+     "FAILED",
+     "Batch step 7"
+    ],
+    [
+     "FAILED",
+     "QUEUED",
+     "Screen [Retry]"
+    ]
+   ],
+   "level": 1,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "4.2 Daily order",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "One order per DTP record; type UNIVERSAL; status Planning Order; first cycle DTP Creation Release (same as orders created by DTP Check & Submit).",
+    "LP name and location names come from the masters / data mapping; Planned Cycle = 2 when ROUND_USE = 'Y', else 1 (TBD OP-05).",
+    "The LP Admin sees the order in Daily Monitoring (Truck Assignment menu TBD); Reject by LP returns it to the planner (calendar: Rejected by LP)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "4.3 No double processing",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Only SUBMITTED / QUEUED records are selected; PROCESSED is final.",
+    "Row lock (skip locked) prevents two runs from taking the same record.",
+    "ORDER_NO is written in the same transaction as the order; a rollback leaves the record without order (FAILED)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "4.4 Errors",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Master changed since submit (no. 5): FAILED; correct master, then Retry.",
+    "Order creation error / timeout (no. 6): FAILED, retryable.",
+    "Attempts >= max (no. 7): stays FAILED, notification TBD (OP-08)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "level": 1,
+   "bold": true,
+   "text": "4.x Payment Type (rev 0.2)"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "level": 2,
+   "text": "The Daily order keeps the Payment Type of its DTP record. Submit already guarantees a valid Payment Type for companies with Master KPI (DTP Creation KM-15); the queue does not change it."
+  }
+ ],
+ "func_desc_layout": "two",
+ "logging_messages": [
+  {
+   "event": "Batch start",
+   "cause": "Scheduler run",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP queue processing started (<N> record(s) waiting).",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Connect to database",
+   "cause": "Cannot connect",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Database cannot be connected.",
+   "action": {
+    "system": "Stop; retry next run",
+    "user": "Contact administrator"
+   }
+  },
+  {
+   "event": "Retrieve parameters",
+   "cause": "Batch size / max attempts not configured",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "System Master parameter <PARAM> for DTP queue is not configured.",
+   "action": {
+    "system": "Stop",
+    "user": "Maintain System Master"
+   }
+  },
+  {
+   "event": "Select queue",
+   "cause": "No record waiting",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No DTP record waiting in the queue.",
+   "action": {
+    "system": "End",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Re-check master",
+   "cause": "LP inactive / location mapping removed since submit",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_REC_ID>: <COLUMN> <VALUE> is no longer valid. Record set to FAILED.",
+   "action": {
+    "system": "Set FAILED (not retryable until corrected)",
+    "user": "Correct master data, then Retry"
+   }
+  },
+  {
+   "event": "Create Daily order",
+   "cause": "DB error / timeout",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_REC_ID>: Daily order could not be created (<ERROR>). Record set to FAILED (retryable).",
+   "action": {
+    "system": "Rollback order; set FAILED; continue with next record",
+    "user": "Retry on DTP Creation"
+   }
+  },
+  {
+   "event": "Create Daily order",
+   "cause": "Attempts exceeded the maximum (TBD)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_REC_ID> failed <ATTEMPT_CNT> times.",
+   "action": {
+    "system": "Keep FAILED; notify (TBD)",
+    "user": "Contact administrator"
+   }
+  },
+  {
+   "event": "Create Daily order",
+   "cause": "Order created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_REC_ID> processed: Daily order <ORDER_NO> (<LP_CD>, <PLAN_DT>).",
+   "action": {
+    "system": "Set PROCESSED",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Batch end",
+   "cause": "All selected records handled",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP queue processing finished: <PROCESSED> processed, <FAILED> failed.",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Any step",
+   "cause": "Unexpected error",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "DTP queue processing stopped: <EXCEPTION>.",
+   "action": {
+    "system": "Rollback current record; stop",
+    "user": "Contact administrator"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "TB_H_DTP_RECORD_STS",
+   "kind": "history",
+   "proposed": true,
+   "description": "Status history per DTP record",
+   "columns": [
+    [
+     "HIST_ID",
+     "BIGINT",
+     "Y",
+     "N",
+     "Sequence"
+    ],
+    [
+     "DTP_REC_ID",
+     "BIGINT",
+     "",
+     "N",
+     "Record"
+    ],
+    [
+     "STATUS",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "New status"
+    ],
+    [
+     "NOTE",
+     "VARCHAR(1000)",
+     "",
+     "Y",
+     "Note / reason"
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "User / batch ID"
+    ],
+    [
+     "CREATED_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Server date-time"
+    ]
+   ]
+  }
+ ]
+}

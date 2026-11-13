@@ -70,7 +70,7 @@ flowchart TD
 ## 4. Asumsi yang perlu dikonfirmasi
 
 1. **Pilihan Service Type** selain MRO belum diketahui; saat ini hanya MRO.
-2. **Format Vendor Code** diasumsikan 3 karakter, mengikuti contoh data (ALS, DNX, PNJ). **SAP Vendor Code** diasumsikan 10 digit angka. Data lama "PNJ" dengan SAP Vendor Code "PNJ" tidak memenuhi aturan ini.
+2. **Format Vendor Code** diasumsikan 3 karakter, mengikuti contoh data (ALS, DNX, PNJ). **SAP Vendor Code** diasumsikan 10 digit angka. Data lama "PNJ" dengan SAP Vendor Code "PNJ" tidak memenuhi aturan ini. Referensi Master KPI (By Trip) memakai kode **PS** (PT. Putra Soputan, 2 karakter); di mock-up PS ditambahkan sebagai pengecualian (13-Nov-2026). Iron Bird tertulis IBT (tabel alokasi) dan IBL (tabel KPI); mock-up memakai IBT.
 3. **NPWP** diasumsikan 16 digit dengan format `999.999.999.9-999.999`, sesuai contoh di desain. Apakah NPWP 15 digit lama masih perlu diterima?
 4. **Keunikan** Vendor Code, SAP Vendor Code, dan NPWP hanya dicek terhadap vendor yang belum dihapus, sehingga kode milik vendor yang sudah dihapus boleh dipakai lagi (contoh: PNJ lama dihapus, PT. Puninar Jaya memakai PNJ).
 5. **Transaksi yang menghalangi Delete** (MT-21) perlu dipastikan: Daily Order aktif, PR/PO Monthly yang belum selesai, atau yang lain?

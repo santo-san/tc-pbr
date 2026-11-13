@@ -1,0 +1,2274 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD Planning Truck Assignment",
+  "created_date": "02-Nov-26",
+  "created_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "02-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on Planning Truck Assignment requirement, reference screens and HTML mock-up (docs/truck-assignment-spec.md) 02-Nov-26"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To let the LP Admin of a trucking company confirm (accept / reject) the orders sent by the VPLD Planner through DTP Creation.",
+   "To assign a truck of the trucking company to each accepted order and change it when needed; the order follows the truck's license plate to the Driver app.",
+   "To keep an audit trail of every status and truck change."
+  ],
+  "display_order": [
+   {
+    "section": "Order List",
+    "fields": [
+     {
+      "field": "Delivery Date",
+      "order": "Descending"
+     },
+     {
+      "field": "DTP / Order Number",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Calendar / List",
+    "function": "To switch between the calendar and the order list."
+   },
+   {
+    "name": "Refresh",
+    "function": "To reload the orders."
+   },
+   {
+    "name": "Filters",
+    "function": "Search, delivery date, statuses, license plate, sort, paging."
+   },
+   {
+    "name": "Accept",
+    "function": "To accept the order (confirmation)."
+   },
+   {
+    "name": "Reject",
+    "function": "To reject the order with a reason (confirmation)."
+   },
+   {
+    "name": "Assign",
+    "function": "To link an available truck of the LP to an accepted order."
+   },
+   {
+    "name": "Change Truck",
+    "function": "To replace the truck of an assigned order (confirmation)."
+   },
+   {
+    "name": "View Detail",
+    "function": "To show the order detail and audit trail."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Waiting for Confirmation",
+    "sections": [
+     {
+      "section": "Order row / modal",
+      "description": "LP Admin, refer below 1)",
+      "buttons": {
+       "Calendar / List": "E",
+       "Refresh": "E",
+       "Filters": "E",
+       "Accept": "E",
+       "Reject": "E",
+       "Assign": "D",
+       "Change Truck": "D",
+       "View Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Accepted - Waiting for Truck Assignment",
+    "sections": [
+     {
+      "section": "Order row / modal",
+      "description": "LP Admin",
+      "buttons": {
+       "Calendar / List": "E",
+       "Refresh": "E",
+       "Filters": "E",
+       "Accept": "D",
+       "Reject": "D",
+       "Assign": "E",
+       "Change Truck": "D",
+       "View Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Truck Assigned (before Start Order)",
+    "sections": [
+     {
+      "section": "Order row / modal",
+      "description": "LP Admin",
+      "buttons": {
+       "Calendar / List": "E",
+       "Refresh": "E",
+       "Filters": "E",
+       "Accept": "D",
+       "Reject": "D",
+       "Assign": "D",
+       "Change Truck": "E",
+       "View Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Rejected / Started / Finished",
+    "sections": [
+     {
+      "section": "Order row / modal",
+      "description": "no action",
+      "buttons": {
+       "Calendar / List": "E",
+       "Refresh": "E",
+       "Filters": "E",
+       "Accept": "D",
+       "Reject": "D",
+       "Assign": "D",
+       "Change Truck": "D",
+       "View Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "View only (not LP Admin)",
+    "sections": [
+     {
+      "section": "Order row / modal",
+      "description": "refer below 2)",
+      "buttons": {
+       "Calendar / List": "E",
+       "Refresh": "E",
+       "Filters": "E",
+       "Accept": "D",
+       "Reject": "D",
+       "Assign": "D",
+       "Change Truck": "D",
+       "View Detail": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) In the modal the buttons are always shown for the LP Admin; each selected order is checked by the rules (TA-10).",
+   "2) Supplier viewer: own company; IP Admin / Planner: all companies; msg 1."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Planning Truck Assignment",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "dc",
+      "label": "DTP Creation (VPLD Planner)",
+      "type": "screen"
+     },
+     {
+      "id": "q",
+      "label": "DTP queue: Daily order",
+      "type": "subprocess"
+     },
+     {
+      "id": "s",
+      "label": "Planning Truck Assignment",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "d",
+      "label": "Driver app (plate)",
+      "type": "screen"
+     },
+     {
+      "id": "m",
+      "label": "Daily Monitoring",
+      "type": "screen"
+     }
+    ],
+    "edges": [
+     {
+      "from": "dc",
+      "to": "q",
+      "label": "Submit"
+     },
+     {
+      "from": "q",
+      "to": "s"
+     },
+     {
+      "from": "s",
+      "to": "d",
+      "label": "Assign / Change"
+     },
+     {
+      "from": "d",
+      "to": "m",
+      "label": "Start Order"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Accept / Reject",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Accept / Reject",
+      "type": "event"
+     },
+     {
+      "id": "q0",
+      "label": "Waiting, no truck, LP Admin?",
+      "type": "decision"
+     },
+     {
+      "id": "e0",
+      "label": "Show message no. 5 / 7",
+      "type": "message"
+     },
+     {
+      "id": "q",
+      "label": "Which?",
+      "type": "decision"
+     },
+     {
+      "id": "ca",
+      "label": "Confirmation no. 3",
+      "type": "message"
+     },
+     {
+      "id": "a",
+      "label": "LP_STATUS = ACCEPTED + audit",
+      "type": "process"
+     },
+     {
+      "id": "rr",
+      "label": "Reject Order: reason >= 10?",
+      "type": "decision"
+     },
+     {
+      "id": "re",
+      "label": "Show message no. 6",
+      "type": "message"
+     },
+     {
+      "id": "r",
+      "label": "LP_STATUS = REJECTED + reason + audit",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "TB_R_DAILY_ORDER (TBD)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Refresh list / calendar",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q0"
+     },
+     {
+      "from": "q0",
+      "to": "e0",
+      "label": "No"
+     },
+     {
+      "from": "q0",
+      "to": "q",
+      "label": "Yes"
+     },
+     {
+      "from": "q",
+      "to": "ca",
+      "label": "Accept"
+     },
+     {
+      "from": "ca",
+      "to": "a",
+      "label": "Confirm"
+     },
+     {
+      "from": "q",
+      "to": "rr",
+      "label": "Reject"
+     },
+     {
+      "from": "rr",
+      "to": "re",
+      "label": "No"
+     },
+     {
+      "from": "rr",
+      "to": "r",
+      "label": "Yes"
+     },
+     {
+      "from": "a",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "r",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "db",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q0",
+      "e0"
+     ],
+     [
+      "rr",
+      "re"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Assign Truck",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Assign Truck",
+      "type": "event"
+     },
+     {
+      "id": "q0",
+      "label": "Accepted, not rejected, no truck?",
+      "type": "decision"
+     },
+     {
+      "id": "e0",
+      "label": "Show message no. 12 / 13 / 14",
+      "type": "message"
+     },
+     {
+      "id": "p",
+      "label": "Truck picker: trucks of the LP with status",
+      "type": "process"
+     },
+     {
+      "id": "q1",
+      "label": "Truck available (V-05..V-10)?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Disabled with reason / error message",
+      "type": "message"
+     },
+     {
+      "id": "w",
+      "label": "Insert active assignment, order = Order Release, audit",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Message no. 21; Driver app of the plate",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q0"
+     },
+     {
+      "from": "q0",
+      "to": "e0",
+      "label": "No"
+     },
+     {
+      "from": "q0",
+      "to": "p",
+      "label": "Yes"
+     },
+     {
+      "from": "p",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "w",
+      "label": "Yes"
+     },
+     {
+      "from": "w",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "w",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q0",
+      "e0"
+     ],
+     [
+      "q1",
+      "e1"
+     ],
+     [
+      "w",
+      "db"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Change Truck",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Change Truck",
+      "type": "event"
+     },
+     {
+      "id": "q0",
+      "label": "Order Release, not started?",
+      "type": "decision"
+     },
+     {
+      "id": "e0",
+      "label": "Show message no. 22",
+      "type": "message"
+     },
+     {
+      "id": "p",
+      "label": "Picker: current truck + replacement",
+      "type": "process"
+     },
+     {
+      "id": "q1",
+      "label": "Different and available?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 23 / V-05..V-10",
+      "type": "message"
+     },
+     {
+      "id": "c",
+      "label": "Confirmation no. 24",
+      "type": "message"
+     },
+     {
+      "id": "w",
+      "label": "Old assignment inactive, new active, audit",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Message no. 25; only new plate sees the order",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q0"
+     },
+     {
+      "from": "q0",
+      "to": "e0",
+      "label": "No"
+     },
+     {
+      "from": "q0",
+      "to": "p",
+      "label": "Yes"
+     },
+     {
+      "from": "p",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "c",
+      "label": "Yes"
+     },
+     {
+      "from": "c",
+      "to": "w",
+      "label": "Confirm"
+     },
+     {
+      "from": "w",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "w",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q0",
+      "e0"
+     ],
+     [
+      "q1",
+      "e1"
+     ],
+     [
+      "w",
+      "db"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Planning Truck Assignment calendar - reference screen (from user)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/ref_calendar.png"
+  },
+  {
+   "caption": "2. Assignment order list - reference screen (from user)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/ref_modal.png"
+  },
+  {
+   "caption": "3. Calendar - LP Admin PBM (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t02_lp_calendar.png"
+  },
+  {
+   "caption": "4. Assignment order list modal (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t03_batch_modal.png"
+  },
+  {
+   "caption": "5. Accept confirmation (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t04_accept_confirm.png"
+  },
+  {
+   "caption": "6. Reject Order - reason required (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t05_reject.png"
+  },
+  {
+   "caption": "7. Order List with filters and actions (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t07_order_list.png"
+  },
+  {
+   "caption": "8. Assign Truck picker - availability per truck (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t08_assign_picker.png"
+  },
+  {
+   "caption": "9. Change Truck confirmation (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t09_change_confirm.png"
+  },
+  {
+   "caption": "10. Order Detail with Audit Trail (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t10_detail.png"
+  },
+  {
+   "caption": "11. Driver app view of the new plate (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t11_driver.png"
+  },
+  {
+   "caption": "12. View only - IP Admin (HTML mock-up)",
+   "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t01_ip_view.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title / breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Planning Truck Assignment', 'Order - planning assignment'. Menu Daily > Planning Truck Assignment."
+  },
+  {
+   "name": "Calendar / Order List",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (toggle)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Switch between the calendar (reference screen) and the order list."
+  },
+  {
+   "name": "Role notice",
+   "source": "System",
+   "field": "Login user",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "LP Admin: 'orders of your trucking company only'; others: msg 1."
+  },
+  {
+   "name": "Last refresh / Refresh",
+   "source": "System",
+   "field": "--",
+   "type": "Datetime",
+   "len": 16,
+   "io": "O",
+   "control": "Label / Button",
+   "justified": "",
+   "initial": "",
+   "required": "",
+   "format": "DD/MM/YYYY HH:MI",
+   "validation": "",
+   "description": "Reload the data (msg 27)."
+  },
+  {
+   "group": "<Calendar Section>"
+  },
+  {
+   "name": "Previous / Next / Today / Month / Week / Day",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Calendar navigation and view."
+  },
+  {
+   "name": "Calendar entry",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "ORDER_DT, DTP_TYPE, LP_STATUS, ACTIVE_PLATE, STATUS",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Button (coloured bar)",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "(DTP n) {name} [ count ]",
+   "validation": "",
+   "description": "One bar per date + DTP type of the visible orders. Colour 5.2. Click opens the assignment order list. Max 6 per cell, +n more opens Day view."
+  },
+  {
+   "name": "Legend",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Waiting Assignment, Order Already Assign, Complete Order, Rejected."
+  },
+  {
+   "group": "<Assignment Order List Modal>"
+  },
+  {
+   "name": "Modal title",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Assignment order list {DTP} On Period : dd/mm/yyyy'."
+  },
+  {
+   "name": "Truck",
+   "source": "Truck Master (TBD)",
+   "field": "PLATE_NO, TRUCK_TYPE, STATUS, LICENSE_DT, DRIVER",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'Select an option'",
+   "required": "Y",
+   "format": "PLATE \u00b7 TYPE \u00b7 STATUS \u00b7 DRIVER",
+   "validation": "Mandatory for Assign / Change Truck (msg 9)",
+   "description": "Trucks of the LP only."
+  },
+  {
+   "name": "Select All / Search",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Check box / Text box",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Select all listed orders; search on order no, plate, from, to, vessel, booking, status."
+  },
+  {
+   "name": "Select (row)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Check box",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Enabled for the LP Admin."
+  },
+  {
+   "name": "Assign To",
+   "source": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+   "field": "PLATE_NO (active), DRIVER",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Plate and driver; row green when assigned, light red when rejected."
+  },
+  {
+   "name": "Order Status / Assignment",
+   "source": "System",
+   "field": "LP_STATUS, ACTIVE_PLATE",
+   "type": "Varchar",
+   "len": 30,
+   "io": "O",
+   "control": "Grid (badge)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "5.3."
+  },
+  {
+   "name": "Order No, From, To, Agent, Vessel, Ctr Book No, Ctr Size",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "ORDER_NO, FROM, TO, AGENT, VESSEL, CTR_BOOKING_NO, CTR_SIZE (from DTP)",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "From / To as Code - Name."
+  },
+  {
+   "name": "Seal No",
+   "source": "TBD",
+   "field": "TBD",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Reference column; source TBD (OP-07). '-' in the mock-up."
+  },
+  {
+   "name": "Detail (link)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Opens Order Detail."
+  },
+  {
+   "name": "Accept / Assign / Change Truck / Reject",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "For the selected orders (5.5); Assign one order at a time (msg 11); confirmations msg 3 / 24; Reject opens Reject Order."
+  },
+  {
+   "group": "<Order List Section>"
+  },
+  {
+   "name": "Search Order / DTP",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Order number (partial)."
+  },
+  {
+   "name": "Delivery Date From / To",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "DD/MM/YYYY",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Order Status / Assignment Status",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Varchar",
+   "len": 30,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "All",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Values of 5.3."
+  },
+  {
+   "name": "License Plate",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": 10,
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains; spaces ignored."
+  },
+  {
+   "name": "Clear",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Reset the filters."
+  },
+  {
+   "name": "DTP / Order Number",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": 20,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Default sort Delivery Date descending; header click sorts."
+  },
+  {
+   "name": "Delivery Date",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "ORDER_DT",
+   "type": "Date",
+   "len": 10,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "DD/MM/YYYY",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Trucking Company",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "LP_CD (name)",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Origin / Destination",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "FROM_LOC, TO_LOC",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Code - Name."
+  },
+  {
+   "name": "Truck Type",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "TRUCK_TYPE (DTP)",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Assigned License Plate / Driver",
+   "source": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+   "field": "PLATE_NO, DRIVER (ACTIVE_FLAG = Y)",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'-' when none."
+  },
+  {
+   "name": "Order Status",
+   "source": "System",
+   "field": "LP_STATUS",
+   "type": "Varchar",
+   "len": 25,
+   "io": "O",
+   "control": "Grid (badge)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Waiting for Confirmation (amber), Accepted (blue), Rejected (red)."
+  },
+  {
+   "name": "Assignment Status",
+   "source": "System",
+   "field": "derived",
+   "type": "Varchar",
+   "len": 30,
+   "io": "O",
+   "control": "Grid (badge)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'-', Waiting for Truck Assignment, Truck Assigned."
+  },
+  {
+   "name": "Action",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Accept + Reject / Assign Truck / Change Truck by status; View Detail always (5.3)."
+  },
+  {
+   "name": "Paging",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Combo / Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50 rows; pager."
+  },
+  {
+   "group": "<Dialogs>"
+  },
+  {
+   "name": "Reject Reason",
+   "source": "Key-in",
+   "field": "LP_REJECT_REASON",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text area",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "",
+   "validation": "Min 10 characters (msg 6)",
+   "description": ""
+  },
+  {
+   "name": "Truck picker",
+   "source": "Truck Master (TBD)",
+   "field": "PLATE_NO, TRUCK_TYPE, Truck Status, DRIVER",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Grid (radio) + Search",
+   "justified": "Left",
+   "initial": "None",
+   "required": "Y",
+   "format": "",
+   "validation": "V-05..V-10",
+   "description": "Trucks of the order's LP (current truck excluded); unavailable trucks disabled with reason; Search License Plate."
+  },
+  {
+   "name": "Current truck",
+   "source": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+   "field": "PLATE_NO, DRIVER",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Change Truck only."
+  },
+  {
+   "name": "Change reason",
+   "source": "Key-in",
+   "field": "REASON",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text area",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Optional (TBD OP-05)."
+  },
+  {
+   "name": "Order Detail",
+   "source": "TB_R_DAILY_ORDER (TBD)",
+   "field": "order fields",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Modal",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Delivery date, company, origin, destination, shift, truck type, statuses, plate, driver, daily status, reject reason."
+  },
+  {
+   "name": "Audit Trail",
+   "source": "TB_H_ORDER_ASSIGN (proposed)",
+   "field": "UPDATED_DT, ACTION, PREV/NEW_LP_STATUS, PREV/NEW_PLATE, REASON, UPDATED_BY",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Newest first (TA-09)."
+  },
+  {
+   "name": "Open Driver app view",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Mock-up helper: shows the Driver app of the assigned plate."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Selected order",
+    "destination": {
+     "table": "TB_R_DAILY_ORDER (TBD)",
+     "operation": "Update",
+     "description": "[Accept] - confirmed",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected order"
+      },
+      {
+       "field": "VERSION",
+       "value": "Version shown"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "LP_STATUS",
+      "description": "'ACCEPTED'"
+     },
+     {
+      "dest_field": "LP_ACCEPTED_BY / LP_ACCEPTED_DT",
+      "description": "Login user / server date-time"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY / CHANGED_DT",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "TB_H_ORDER_ASSIGN (proposed)",
+     "operation": "Insert",
+     "description": "Accept Order"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Order"
+     },
+     {
+      "dest_field": "ACTION",
+      "description": "'Accept Order'"
+     },
+     {
+      "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
+      "description": "Before / after"
+     },
+     {
+      "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
+      "description": "Daily status before / after"
+     },
+     {
+      "dest_field": "PREV_PLATE / NEW_PLATE",
+      "description": "Active plate before / after"
+     },
+     {
+      "dest_field": "REASON",
+      "description": "Reject / change reason"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Reject Order",
+    "destination": {
+     "table": "TB_R_DAILY_ORDER (TBD)",
+     "operation": "Update",
+     "description": "[Reject]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected order"
+      },
+      {
+       "field": "VERSION",
+       "value": "Version shown"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "LP_STATUS",
+      "description": "'REJECTED'"
+     },
+     {
+      "source_field": "Reject Reason",
+      "dest_field": "LP_REJECT_REASON",
+      "description": "Trimmed"
+     },
+     {
+      "dest_field": "LP_REJECT_BY / LP_REJECT_DT",
+      "description": "Login user / server date-time"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY / CHANGED_DT",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "TB_H_ORDER_ASSIGN (proposed)",
+     "operation": "Insert",
+     "description": "Reject by LP"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Order"
+     },
+     {
+      "dest_field": "ACTION",
+      "description": "'Reject by LP'"
+     },
+     {
+      "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
+      "description": "Before / after"
+     },
+     {
+      "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
+      "description": "Daily status before / after"
+     },
+     {
+      "dest_field": "PREV_PLATE / NEW_PLATE",
+      "description": "Active plate before / after"
+     },
+     {
+      "dest_field": "REASON",
+      "description": "Reject / change reason"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Truck picker",
+    "destination": {
+     "table": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+     "operation": "Insert",
+     "description": "[Assign Truck]",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "ASSIGN_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Order"
+     },
+     {
+      "source_field": "Truck",
+      "dest_field": "PLATE_NO"
+     },
+     {
+      "dest_field": "DRIVER_ID",
+      "description": "Active driver registered on the truck (NULL if none)"
+     },
+     {
+      "dest_field": "ACTIVE_FLAG",
+      "description": "'Y' (unique active per order)"
+     },
+     {
+      "dest_field": "ASSIGNED_BY / ASSIGNED_DT",
+      "description": "Login user / server date-time"
+     },
+     {
+      "dest_field": "RELEASED_BY / RELEASED_DT",
+      "description": "NULL"
+     }
+    ]
+   },
+   {
+    "source": "Truck picker",
+    "destination": {
+     "table": "TB_R_DAILY_ORDER (TBD)",
+     "operation": "Update",
+     "description": "[Assign Truck]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected order"
+      },
+      {
+       "field": "VERSION",
+       "value": "Version shown"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "ACTIVE_PLATE / DRIVER_ID",
+      "description": "New plate / driver"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'Order Release'"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY / CHANGED_DT",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "TB_H_ORDER_ASSIGN (proposed)",
+     "operation": "Insert",
+     "description": "Assign Truck"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Order"
+     },
+     {
+      "dest_field": "ACTION",
+      "description": "'Assign Truck'"
+     },
+     {
+      "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
+      "description": "Before / after"
+     },
+     {
+      "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
+      "description": "Daily status before / after"
+     },
+     {
+      "dest_field": "PREV_PLATE / NEW_PLATE",
+      "description": "Active plate before / after"
+     },
+     {
+      "dest_field": "REASON",
+      "description": "Reject / change reason"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Current assignment",
+    "destination": {
+     "table": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+     "operation": "Update",
+     "description": "[Change Truck] - old",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Order"
+      },
+      {
+       "field": "ACTIVE_FLAG",
+       "value": "'Y'"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "ACTIVE_FLAG",
+      "description": "'N'"
+     },
+     {
+      "dest_field": "RELEASED_BY / RELEASED_DT",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Truck picker",
+    "destination": {
+     "table": "TB_R_ORDER_TRUCK_ASSIGN (proposed)",
+     "operation": "Insert",
+     "description": "[Change Truck] - new",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "(as Assign Truck insert)",
+      "description": "Replacement plate, ACTIVE_FLAG 'Y'"
+     }
+    ]
+   },
+   {
+    "source": "Truck picker",
+    "destination": {
+     "table": "TB_R_DAILY_ORDER (TBD)",
+     "operation": "Update",
+     "description": "[Change Truck]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected order"
+      },
+      {
+       "field": "VERSION",
+       "value": "Version shown"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "ACTIVE_PLATE / DRIVER_ID",
+      "description": "Replacement plate / driver"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "CHANGED_BY / CHANGED_DT",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "TB_H_ORDER_ASSIGN (proposed)",
+     "operation": "Insert",
+     "description": "Change Truck"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Order"
+     },
+     {
+      "dest_field": "ACTION",
+      "description": "'Change Truck'"
+     },
+     {
+      "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
+      "description": "Before / after"
+     },
+     {
+      "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
+      "description": "Daily status before / after"
+     },
+     {
+      "dest_field": "PREV_PLATE / NEW_PLATE",
+      "description": "Active plate before / after"
+     },
+     {
+      "dest_field": "REASON",
+      "description": "Reject / change reason"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Calendar view of the current month; Order List view available by the toggle. LP Admin: orders of its trucking company only (TA-02).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Other users: view only, no action buttons (message no. 1).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Calendar",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "One bar per date + DTP type: '(DTP n) {name} [ count ]'; click opens the assignment order list of that date and type.",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Colour",
+     "width": 14
+    },
+    {
+     "title": "Condition (orders not rejected)",
+     "width": 32
+    }
+   ],
+   "rows": [
+    [
+     "Complete Order (navy)",
+     "All Finish / SA / PO"
+    ],
+    [
+     "Order Already Assign (green)",
+     "All have a truck"
+    ],
+    [
+     "Waiting Assignment (blue)",
+     "Otherwise"
+    ],
+    [
+     "Rejected (red)",
+     "All orders rejected"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Status and Actions",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Order Status",
+     "width": 12
+    },
+    {
+     "title": "Assignment Status",
+     "width": 13
+    },
+    {
+     "title": "Actions",
+     "width": 20
+    }
+   ],
+   "rows": [
+    [
+     "Waiting for Confirmation",
+     "-",
+     "Accept, Reject, View Detail"
+    ],
+    [
+     "Accepted",
+     "Waiting for Truck Assignment",
+     "Assign Truck, View Detail"
+    ],
+    [
+     "Accepted",
+     "Truck Assigned (not started)",
+     "Change Truck, View Detail"
+    ],
+    [
+     "Accepted",
+     "Truck Assigned (started)",
+     "View Detail"
+    ],
+    [
+     "Rejected",
+     "-",
+     "View Detail"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Accept / Reject (TA-03, TA-04)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Accept: confirmation no. 3 -> LP_STATUS ACCEPTED, audit, message no. 4. Blocked cases: no. 5.",
+    "Reject: Reject Order dialog with Reject Reason (>= 10 chars, no. 6) -> LP_STATUS REJECTED, reason, audit (no. 8). Not after Accept (no. 7).",
+    "The rejected order shows 'Rejected by LP' on the planner's calendar (Planning Order)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Assign Truck (TA-05 to TA-07)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Only Accepted orders without truck (no. 12 / 13 / 14).",
+    "Picker lists the trucks of the order's LP with Truck Type, Truck Status for this order and Driver; Search License Plate; unavailable trucks disabled with the reason.",
+    "Checks on submit: registered (no. 15), same LP (no. 16), not maintenance (no. 17), license (no. 18), not busy same date + shift (no. 19), type (no. 20).",
+    "Save in one transaction: active assignment, order plate / driver, status Order Release, audit (no. 21). The driver logging in with this plate sees the order."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Change Truck (TA-08)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Only Order Release with truck, before Start Order (no. 22).",
+    "Picker shows the current truck and the replacement candidates (current excluded); different truck (no. 23); same availability checks; reason optional (TBD OP-05).",
+    "Confirmation no. 24; one transaction: old assignment ACTIVE_FLAG N, new assignment Y, order plate / driver, audit (no. 25).",
+    "The old plate no longer sees the order in the Driver app; the old truck is free again."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Assignment Order List (modal)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Truck selection + selected orders; Accept / Assign / Change Truck / Reject run per order (TA-10): failures listed (no. 26); Assign one order at a time (no. 11); truck required (no. 9).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Order List",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Filters: Search Order / DTP, Delivery Date From / To, Order Status, Assignment Status, License Plate; Clear. Default sort Delivery Date descending; header sort; 10 / 25 / 50 rows; Refresh. No match: no. 28.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 Detail and Audit Trail (TA-09)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Order detail and audit trail (date-time, action, order status prev -> new, plate prev -> new, reason / note, user).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.10 Business Rules",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Rule",
+     "width": 42
+    }
+   ],
+   "rows": [
+    [
+     "TA-01",
+     "Orders come from the DTP queue (Daily order, Planning Order / DTP Creation Release)"
+    ],
+    [
+     "TA-02",
+     "LP Admin sees and acts only on its own trucking company; others view only"
+    ],
+    [
+     "TA-03",
+     "Order from DTP Creation must be Accepted before any truck link (also IP Assign / Order Release)"
+    ],
+    [
+     "TA-04",
+     "Reject: reason >= 10 chars, only before Accept and before a truck; no further assignment"
+    ],
+    [
+     "TA-05",
+     "Truck: same LP, not Maintenance, license valid on delivery date, not active same date + shift, type as ordered"
+    ],
+    [
+     "TA-06",
+     "Assign: plate + driver of the truck on the order, status Order Release, Driver app of that plate"
+    ],
+    [
+     "TA-07",
+     "One active assignment per order; second Assign not possible"
+    ],
+    [
+     "TA-08",
+     "Change Truck: Order Release, not started, different available truck; replaces the active assignment; confirmation"
+    ],
+    [
+     "TA-09",
+     "Audit for every action: statuses, plates, reason, user, date-time"
+    ],
+    [
+     "TA-10",
+     "Batch in the modal checked per order; failures listed; Assign one order at a time"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.11 Open Questions",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Question",
+     "width": 42
+    }
+   ],
+   "rows": [
+    [
+     "OP-01",
+     "Accept for the whole DTP or per order (mock-up: per order, batch selection)"
+    ],
+    [
+     "OP-02",
+     "Truck availability statuses; several orders per truck per day in different shifts"
+    ],
+    [
+     "OP-03",
+     "Truck type list and matching (COMBO for TRAILER order?)"
+    ],
+    [
+     "OP-04",
+     "Driver fixed per truck or chosen at assignment"
+    ],
+    [
+     "OP-05",
+     "Change Truck: reason mandatory? allowed after Start Order (breakdown)?"
+    ],
+    [
+     "OP-06",
+     "Rejected order: planner reassigns to another LP or creates a new DTP"
+    ],
+    [
+     "OP-07",
+     "Seal No source"
+    ],
+    [
+     "OP-08",
+     "Notifications to driver / planner after assign, change, reject"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Access"
+  },
+  {
+   "event": "Open screen",
+   "cause": "User is not LP Admin of the trucking company (TA-02)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{Role}: view only. Accept / Reject / Assign / Change Truck are for the LP Admin of the trucking company.",
+   "action": "Login as LP Admin"
+  },
+  {
+   "event": "Any action",
+   "cause": "Order of another trucking company (TA-02, V-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Anda tidak memiliki akses ke order ini.",
+   "action": "-"
+  },
+  {
+   "group": "Accept / Reject"
+  },
+  {
+   "event": "Click [Accept]",
+   "cause": "Confirmation",
+   "type": "Confirmation",
+   "msg_id": "TBD",
+   "message": "Accept {n} order(s)? They can then be assigned to a truck.",
+   "action": "Cancel or Confirm"
+  },
+  {
+   "event": "Click [Confirm]",
+   "cause": "Accepted (TA-03)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Accept Order: {n} order(s).",
+   "action": "-"
+  },
+  {
+   "event": "Click [Accept]",
+   "cause": "Not Planning Order / already truck / rejected / already accepted (V-02)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Accept hanya bisa saat status Planning Order dan belum ada truck. / Order sudah ditolak LP. / Order sudah di-Accept.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Reject] in Reject Order",
+   "cause": "Reason blank / shorter than 10 (TA-04, V-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Reject Reason wajib diisi. / Reason minimal 10 karakter.",
+   "action": "Fill in the reason"
+  },
+  {
+   "event": "Click [Reject]",
+   "cause": "Already accepted / truck linked (V-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Order sudah di-Accept, tidak bisa di-Reject. / Reject hanya bisa saat status Planning Order dan belum ada truck.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Reject] in Reject Order",
+   "cause": "Rejected",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Reject by LP: {n} order(s).",
+   "action": "-"
+  },
+  {
+   "group": "Assign Truck / Change Truck"
+  },
+  {
+   "event": "Click [Assign] / [Change Truck] (modal)",
+   "cause": "Truck not selected (V-12)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck is required.",
+   "action": "Select a truck"
+  },
+  {
+   "event": "Click any action (modal)",
+   "cause": "No order selected",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Select at least one order.",
+   "action": "Select orders"
+  },
+  {
+   "event": "Click [Assign] (modal)",
+   "cause": "More than one order selected (TA-10)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Assign links one truck to one order: select one order at a time.",
+   "action": "Select one order"
+  },
+  {
+   "event": "Assign",
+   "cause": "Order not accepted (V-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Order harus di-Accept terlebih dahulu.",
+   "action": "Accept the order first"
+  },
+  {
+   "event": "Assign",
+   "cause": "Order rejected (V-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Order Rejected tidak dapat di-assign truck.",
+   "action": "-"
+  },
+  {
+   "event": "Assign",
+   "cause": "Order already has a truck (TA-07)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Order sudah punya truck, gunakan Change Truck.",
+   "action": "Use Change Truck"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "Truck not registered (V-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck tidak terdaftar.",
+   "action": "-"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "Truck of another LP (V-06)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck bukan milik trucking company order ini.",
+   "action": "-"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "Truck in maintenance (V-07)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck sedang maintenance.",
+   "action": "Select another truck"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "License expired before delivery date (V-08)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Lisensi truck habis ({date}) sebelum tanggal order.",
+   "action": "Select another truck"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "Truck active on another order same date + shift (V-09)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck sudah di-assign ke order {Order No} ({shift} {date}).",
+   "action": "Select another truck"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "Truck type not as ordered (V-10)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck type {type} tidak sesuai order ({type}).",
+   "action": "Select another truck"
+  },
+  {
+   "event": "Click [Assign Truck] / [Confirm]",
+   "cause": "Assigned (TA-06)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Truck {plate} assigned: the order is now in the Driver app of {plate}.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Change Truck]",
+   "cause": "Not Order Release / driver started (V-11)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Change Truck hanya bisa untuk order Order Release yang sudah punya truck. / Order sudah dimulai driver, truck tidak bisa diganti.",
+   "action": "-"
+  },
+  {
+   "event": "Change Truck",
+   "cause": "Same truck selected (V-11)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck pengganti harus berbeda dari truck saat ini.",
+   "action": "Select another truck"
+  },
+  {
+   "event": "Click [Change Truck] in picker / modal",
+   "cause": "Confirmation (TA-08)",
+   "type": "Confirmation",
+   "msg_id": "TBD",
+   "message": "Change the truck of order {Order No} from {old plate} to {new plate}? The order disappears from the driver of {old plate} and appears for {new plate}.",
+   "action": "Cancel or Confirm"
+  },
+  {
+   "event": "Click [Confirm]",
+   "cause": "Changed",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Truck changed to {plate}: the order moved to that driver's app.",
+   "action": "-"
+  },
+  {
+   "event": "Batch action (modal)",
+   "cause": "Some orders failed (TA-10)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "{n} order(s) done. {Order No}: {reason} (one line per failed order)",
+   "action": "Correct and retry the failed orders"
+  },
+  {
+   "group": "Common"
+  },
+  {
+   "event": "Click [Refresh]",
+   "cause": "Data reloaded",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Data refreshed.",
+   "action": "-"
+  },
+  {
+   "event": "Search / filter",
+   "cause": "No matching order",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No order found for the selected criteria.",
+   "action": "Change the criteria"
+  },
+  {
+   "event": "Any action",
+   "cause": "Order changed by another user",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Error in Update because of concurrency check.",
+   "action": "Refresh and retry"
+  },
+  {
+   "event": "Any action",
+   "cause": "DB / server error (rollback)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "System error. Please contact administrator. ({Error ID})",
+   "action": "Retry or contact administrator"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Accept / Reject / Assign / Change Truck",
+   "cause": "Action saved",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{Action} {Order No} by {user}: LP status {prev} -> {new}, plate {prev} -> {new}, reason {reason}.",
+   "exception": "N",
+   "action": "TB_H_ORDER_ASSIGN (proposed) row (audit trail)"
+  },
+  {
+   "event": "Assign / Change Truck",
+   "cause": "Driver app assignment changed",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Order {Order No} assigned to plate {new} (released from {old}).",
+   "exception": "N",
+   "action": "Driver app reads the active assignment"
+  },
+  {
+   "event": "Any action",
+   "cause": "Concurrency / DB error",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Action} {Order No} failed: {error}. Rolled back.",
+   "exception": "Y",
+   "action": "Display Message no. 29 / 30"
+  }
+ ]
+}

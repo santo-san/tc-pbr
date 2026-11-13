@@ -1,0 +1,916 @@
+{
+ "doc_type": "report",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Report",
+  "function_name": "TBD Download Daily Order Monitoring",
+  "created_date": "03-Nov-26",
+  "created_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "03-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft: Excel export of Daily Order Monitoring Order List"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To describe the layout and data source of the Download Daily Order Monitoring report (Excel).",
+   "The report exports the Order List of the Daily Monitoring screen with the same criteria, data visibility and sort order as the screen, including all pages."
+  ],
+  "printing_order": [
+   {
+    "section": "Body",
+    "fields": [
+     {
+      "field": "Current sort column of the grid (default No. Order)",
+      "order": "Ascending / Descending as on screen"
+     }
+    ]
+   }
+  ],
+  "calling_screens": [
+   {
+    "screen_id": "TBD",
+    "description": "Daily Order Monitoring - [Export] > [Export ke Excel (.xlsx)]"
+   }
+  ],
+  "report_file": {
+   "file_name": "Daily Order Monitoring_YYYYMMDDHHMISS.xlsx",
+   "path": "Client browser download folder (not stored on server)",
+   "keeping_period": "Not applicable - file is generated on request and not kept on server."
+  },
+  "generation_keys": [
+   {
+    "section": "Daily Order Monitoring",
+    "fields": [
+     {
+      "field": "Date From",
+      "description": "Starting order date criteria. Optional."
+     },
+     {
+      "field": "Date To",
+      "description": "Ending order date criteria. Optional."
+     },
+     {
+      "field": "From Loc.",
+      "description": "DTP location from. Optional."
+     },
+     {
+      "field": "To Loc.",
+      "description": "DTP location to. Optional."
+     },
+     {
+      "field": "DTP Type",
+      "description": "Selected tab: ALL, DTP 1..DTP 4."
+     },
+     {
+      "field": "Search",
+      "description": "Keyword of the Order List search box. Optional."
+     },
+     {
+      "field": "Sort",
+      "description": "Current sort column and direction of the grid."
+     },
+     {
+      "field": "Login User",
+      "description": "Role / trucking company / truck for data visibility."
+     }
+    ]
+   }
+  ]
+ },
+ "layout": {
+  "attributes": [
+   {
+    "report_id": "TBD",
+    "report_name": "Download Daily Order Monitoring",
+    "paper_size": "A4",
+    "form_type": "Blank",
+    "paper_layout": "Landscape",
+    "printer_type": "Laser",
+    "template_type": "Dynamic",
+    "template_by_user": "N",
+    "type_application": "On-demand",
+    "type_business": "Status Check",
+    "need_screen": "Y",
+    "file_type": "Excel",
+    "preview": "N",
+    "direct_print": "N",
+    "copies": "-",
+    "signature": "-"
+   }
+  ],
+  "figures": [
+   {
+    "caption": "Figure 1  Daily Order Monitoring Excel - columns A-R",
+    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/expuiss/p1.png",
+    "notes": [
+     "Rows 1-9: Header and print criteria",
+     "Rows 11-12: column header (CYCLE n merged over 3 columns)",
+     "Row 13 onwards: one row per order",
+     "Last row: Total"
+    ]
+   },
+   {
+    "caption": "Figure 2  Daily Order Monitoring Excel - columns S-AD (A-C repeated for reference)",
+    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/expuiss/p2.png",
+    "notes": [
+     "Cycle 3-5, Order Status, SA Approved At, PO Number"
+    ]
+   },
+   {
+    "caption": "Figure 3  Report calling screen - Daily Order Monitoring [Export] button",
+    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/../images/28.png",
+    "notes": [
+     "[Export] > [Export ke Excel (.xlsx)]"
+    ]
+   }
+  ]
+ },
+ "items": [
+  {
+   "group": "<HEADER>"
+  },
+  {
+   "name": "Report Title",
+   "type": "Char",
+   "len": 22,
+   "justified": "Left",
+   "format": "X..22..X",
+   "source": "-",
+   "field": "-",
+   "condition": "-",
+   "remarks": "Fixed \"DAILY ORDER MONITORING\". Cell A1 merged A1:AD1."
+  },
+  {
+   "name": "Printed By",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "Printed by : X..n..X (X..n..X)",
+   "source": "Login session",
+   "field": "User Name, Role",
+   "condition": "-",
+   "remarks": "Cell A2."
+  },
+  {
+   "name": "Printed Date",
+   "type": "Datetime",
+   "len": 19,
+   "justified": "Left",
+   "format": "Printed date : YYYY-MM-DD HH:MI:SS",
+   "source": "System Date",
+   "field": "-",
+   "condition": "-",
+   "remarks": "Cell O2. Same time as file name."
+  },
+  {
+   "group": "<<Print Criteria>>"
+  },
+  {
+   "name": "Date From",
+   "type": "Date",
+   "len": 10,
+   "justified": "Left",
+   "format": "DD/MM/YYYY",
+   "source": "Screen",
+   "field": "Date From",
+   "condition": "-",
+   "remarks": "\"All\" if empty."
+  },
+  {
+   "name": "Date To",
+   "type": "Date",
+   "len": 10,
+   "justified": "Left",
+   "format": "DD/MM/YYYY",
+   "source": "Screen",
+   "field": "Date To",
+   "condition": "-",
+   "remarks": "\"All\" if empty."
+  },
+  {
+   "name": "From Loc.",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Screen",
+   "field": "From Loc.",
+   "condition": "-",
+   "remarks": "Selected location name; \"All\" if not selected."
+  },
+  {
+   "name": "To Loc.",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Screen",
+   "field": "To Loc.",
+   "condition": "-",
+   "remarks": "Selected location name; \"All\" if not selected."
+  },
+  {
+   "name": "DTP Type",
+   "type": "Char",
+   "len": 5,
+   "justified": "Left",
+   "format": "X..5..X",
+   "source": "Screen",
+   "field": "DTP tab",
+   "condition": "-",
+   "remarks": "ALL / DTP 1 / DTP 2 / DTP 3 / DTP 4."
+  },
+  {
+   "name": "Search",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Screen",
+   "field": "Search keyword",
+   "condition": "-",
+   "remarks": "\"-\" if empty."
+  },
+  {
+   "group": "<BODY>  (row 11-12 column header, row 13 onwards data)"
+  },
+  {
+   "name": "No",
+   "type": "Numeric",
+   "len": 6,
+   "justified": "Right",
+   "format": "ZZZZZ9",
+   "source": "System",
+   "field": "-",
+   "condition": "-",
+   "remarks": "Running number in sort order."
+  },
+  {
+   "name": "Date",
+   "type": "Date",
+   "len": 10,
+   "justified": "Left",
+   "format": "DD/MM/YYYY",
+   "source": "Daily Order (TBD)",
+   "field": "Order Date (TBD)",
+   "condition": "Criteria in Operation 2.3",
+   "remarks": ""
+  },
+  {
+   "name": "No. Order",
+   "type": "Char",
+   "len": 18,
+   "justified": "Left",
+   "format": "999999C99999999999",
+   "source": "Daily Order (TBD)",
+   "field": "Order No. (TBD)",
+   "condition": "Criteria in Operation 2.3",
+   "remarks": ""
+  },
+  {
+   "name": "Type",
+   "type": "Char",
+   "len": 9,
+   "justified": "Left",
+   "format": "X..9..X",
+   "source": "Daily Order (TBD)",
+   "field": "DTP Type (TBD)",
+   "condition": "Criteria in Operation 2.3",
+   "remarks": "DTP1..DTP4 / Universal."
+  },
+  {
+   "name": "Trucking Comp.",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Master Trucking Company (TBD)",
+   "field": "Company Name (TBD)",
+   "condition": "Supplier of the order",
+   "remarks": ""
+  },
+  {
+   "name": "License Plate",
+   "type": "Char",
+   "len": 10,
+   "justified": "Left",
+   "format": "X..10..X",
+   "source": "Daily Order (TBD)",
+   "field": "Truck Plate (TBD)",
+   "condition": "-",
+   "remarks": "\"-\" if no truck assigned."
+  },
+  {
+   "name": "Driver",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Daily Order (TBD)",
+   "field": "Driver Name (TBD)",
+   "condition": "-",
+   "remarks": "\"-\" if empty. Not shown on grid (OQ-04)."
+  },
+  {
+   "name": "DTP Loc. From",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Daily Order / Master Location (TBD)",
+   "field": "From Location Name (TBD)",
+   "condition": "-",
+   "remarks": ""
+  },
+  {
+   "name": "DTP Loc. To",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Daily Order / Master Location (TBD)",
+   "field": "To Location Name (TBD)",
+   "condition": "-",
+   "remarks": ""
+  },
+  {
+   "name": "Renban",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Daily Order (TBD)",
+   "field": "Renban (TBD)",
+   "condition": "-",
+   "remarks": ""
+  },
+  {
+   "name": "Shift",
+   "type": "Char",
+   "len": 5,
+   "justified": "Left",
+   "format": "X..5..X",
+   "source": "Daily Order (TBD)",
+   "field": "Shift (TBD)",
+   "condition": "-",
+   "remarks": "DAY / NIGHT."
+  },
+  {
+   "name": "FA",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "X..n..X",
+   "source": "Daily Order (TBD)",
+   "field": "FA (TBD)",
+   "condition": "-",
+   "remarks": "Empty if none."
+  },
+  {
+   "group": "<BODY> Cycle n, n = 1..5 (columns M-O, P-R, S-U, V-X, Y-AA)"
+  },
+  {
+   "name": "Cycle n - Time",
+   "type": "Char",
+   "len": 19,
+   "justified": "Left",
+   "format": "YYYY-MM-DD HH:MI:SS",
+   "source": "Daily Cycle (TBD)",
+   "field": "Finish / Pick Up / Start time (TBD)",
+   "condition": "Cycle sequence = n",
+   "remarks": "Latest of Finish Cycle, Pick Up, Start Cycle. \"-\" if empty or no cycle n."
+  },
+  {
+   "name": "Cycle n - Status",
+   "type": "Char",
+   "len": 20,
+   "justified": "Left",
+   "format": "X..20..X",
+   "source": "Daily Cycle (TBD)",
+   "field": "Cycle Status (TBD)",
+   "condition": "Cycle sequence = n",
+   "remarks": "DTP Creation Release / Start Cycle / Pickup Container / Finish Cycle. \"-\" if no cycle n."
+  },
+  {
+   "name": "Cycle n - Container No.",
+   "type": "Char",
+   "len": 11,
+   "justified": "Left",
+   "format": "XXXX9999999",
+   "source": "Daily Cycle (TBD)",
+   "field": "Container No. (TBD)",
+   "condition": "Cycle sequence = n",
+   "remarks": "\"-\" if empty or no cycle n."
+  },
+  {
+   "group": "<BODY> continued"
+  },
+  {
+   "name": "Order Status",
+   "type": "Char",
+   "len": 27,
+   "justified": "Left",
+   "format": "X..27..X",
+   "source": "Daily Order (TBD)",
+   "field": "Order Status (TBD)",
+   "condition": "-",
+   "remarks": "Planning Order / Order Release / Start Daily Order / Finish Daily Order / SA Approved / SA Approved with PO Number."
+  },
+  {
+   "name": "SA Approved At",
+   "type": "Datetime",
+   "len": 19,
+   "justified": "Left",
+   "format": "YYYY-MM-DD HH:MI:SS",
+   "source": "Daily Order (TBD)",
+   "field": "SA Approved Date (TBD)",
+   "condition": "-",
+   "remarks": "\"-\" if not approved."
+  },
+  {
+   "name": "PO Number",
+   "type": "Char",
+   "len": 10,
+   "justified": "Left",
+   "format": "9999999999",
+   "source": "Daily Order (TBD)",
+   "field": "PO Number from PAS (TBD)",
+   "condition": "-",
+   "remarks": "\"-\" if empty."
+  },
+  {
+   "group": "<FOOTER>"
+  },
+  {
+   "name": "Total",
+   "type": "Char",
+   "len": "TBD",
+   "justified": "Left",
+   "format": "Total : ZZZZZ9 record(s)",
+   "source": "System",
+   "field": "-",
+   "condition": "-",
+   "remarks": "Count of exported rows; one empty row after the last data row."
+  }
+ ],
+ "operation": [
+  {
+   "type": "heading",
+   "text": "Get Parameters",
+   "num": "1."
+  },
+  {
+   "type": "text",
+   "text": "The report is generated on demand when the user clicks [Export] > [Export ke Excel (.xlsx)] on the Daily Order Monitoring screen. It uses the parameters in General Description \"Report Generation Keys\" exactly as they are on the screen at the time of the click (the user does not need to click [Find] again).",
+   "level": 2,
+   "bold": false
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Header filters: Date From, Date To, From Loc., To Loc.",
+    "DTP tab: ALL / DTP 1 / DTP 2 / DTP 3 / DTP 4.",
+    "Search keyword of the Order List.",
+    "Current sort column and direction of the Order List.",
+    "Login user (role, trucking company, truck) for data visibility."
+   ],
+   "level": 3,
+   "marker": "-"
+  },
+  {
+   "type": "text",
+   "text": "[Print / PDF] in the same menu calls the browser print of the screen and is not part of this report.",
+   "level": 2,
+   "bold": false
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "flow",
+   "spec": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "a",
+      "label": "Export > Export ke Excel",
+      "type": "event"
+     },
+     {
+      "id": "p",
+      "label": "Get screen criteria & user",
+      "type": "process"
+     },
+     {
+      "id": "d0",
+      "label": "Session valid?",
+      "type": "decision"
+     },
+     {
+      "id": "m0",
+      "label": "Session expired",
+      "type": "message"
+     },
+     {
+      "id": "r",
+      "label": "Retrieve orders by criteria",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "Daily Order / Cycle (TBD)",
+      "type": "db"
+     },
+     {
+      "id": "d1",
+      "label": "Record found?",
+      "type": "decision"
+     },
+     {
+      "id": "m1",
+      "label": "No data message",
+      "type": "message"
+     },
+     {
+      "id": "g",
+      "label": "Generate Excel file",
+      "type": "process"
+     },
+     {
+      "id": "o",
+      "label": "Download .xlsx",
+      "type": "document"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "a"
+     },
+     {
+      "from": "a",
+      "to": "p"
+     },
+     {
+      "from": "p",
+      "to": "d0"
+     },
+     {
+      "from": "d0",
+      "to": "m0",
+      "label": "No"
+     },
+     {
+      "from": "d0",
+      "to": "r",
+      "label": "Yes"
+     },
+     {
+      "from": "r",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "r",
+      "to": "d1"
+     },
+     {
+      "from": "d1",
+      "to": "m1",
+      "label": "No"
+     },
+     {
+      "from": "d1",
+      "to": "g",
+      "label": "Yes"
+     },
+     {
+      "from": "g",
+      "to": "o"
+     },
+     {
+      "from": "o",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "d0",
+      "m0"
+     ],
+     [
+      "r",
+      "db"
+     ],
+     [
+      "d1",
+      "m1"
+     ]
+    ]
+   },
+   "caption": "Operation Overview - Download Daily Order Monitoring",
+   "max_rows": 40
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Create Report",
+   "num": "2."
+  },
+  {
+   "type": "text",
+   "text": "2.1 Check session",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "If the session is expired - cancel export. Log item No.1 in Logging Message Table.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "2.2 Connect to database",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "CONNECTED - go to 2.3. CANNOT CONNECT - Log item No.2 in Logging Message Table; cancel export.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "2.3 Retrieve data (same rule as the Order List grid)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Data visibility by login user: IP Admin / Planner VPLD - all orders; Supplier (Viewer / LP Admin) - orders of own trucking company; Driver - orders of own truck.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Filter: Order Date >= Date From (if filled) and <= Date To (if filled); DTP Loc. From = From Loc. (if selected); DTP Loc. To = To Loc. (if selected); Type = DTP tab (if not ALL).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Search keyword (if filled, case-insensitive, contains) on: No. Order, Trucking Comp., License Plate, Driver, DTP Loc. From/To, Renban, Shift, Type, Date, Order Status, PO Number, Container No. and status of every cycle.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Sort by the current sort column / direction of the grid (default No. Order ascending).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "e.",
+   "text": "All matching records are exported, not only the current page of the grid.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "f.",
+   "text": "If no record - show message, no file. Log item No.3 in Logging Message Table.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "g.",
+   "text": "If record count > maximum rows (TBD) - show message, no file. Log item No.4 in Logging Message Table.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "Generate Excel Report File",
+   "num": "3."
+  },
+  {
+   "type": "item",
+   "marker": "3.1",
+   "text": "Create file \"Daily Order Monitoring_YYYYMMDDHHMISS.xlsx\" (system date-time of the click) with one sheet \"Daily Order Monitoring\" using the template in Figure 1 / Figure 2 of Report Layout.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.2",
+   "text": "Header (rows 1-9): report title, Printed by (user name + role), Printed date, and the criteria used; empty criteria printed as \"All\" (Search as \"-\").",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.3",
+   "text": "Column header (rows 11-12): single columns merged over 2 rows; CYCLE 1..5 merged over 3 columns with sub-header Time, Status, Container No.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.4",
+   "text": "Body (row 13 onwards): one row per order, No = running number 1..n in the sort order of 2.3.d.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.5",
+   "text": "Cycle n columns: if the order has no cycle n, print \"-\" in Time, Status and Container No. Time = latest activity time of the cycle (Finish Cycle, else Pick Up, else Start Cycle).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.6",
+   "text": "Footer: one empty row, then \"Total : n record(s)\".",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.7",
+   "text": "If generation fails - Log item No.5 in Logging Message Table; no file.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "Download",
+   "num": "4."
+  },
+  {
+   "type": "item",
+   "marker": "4.1",
+   "text": "Send the file to the browser download; show message with the number of rows. Log item No.6 in Logging Message Table.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "4.2",
+   "text": "The file is not stored on the server (Report File Keeping Period: not applicable).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "REMARK >> Export does not change any data. Cell styling (bold header, borders, freeze pane): TBD.",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Open Questions",
+   "num": "5."
+  },
+  {
+   "type": "table",
+   "level": 2,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Open question",
+     "width": 41
+    }
+   ],
+   "rows": [
+    [
+     "OQ-01",
+     "Report ID and calling Screen ID of Daily Order Monitoring."
+    ],
+    [
+     "OQ-02",
+     "Should columns hidden with [Kolom] also be hidden in the Excel? (mock: all columns exported)"
+    ],
+    [
+     "OQ-03",
+     "Maximum rows per export, and behaviour when exceeded (block / split file)."
+    ],
+    [
+     "OQ-04",
+     "Driver column is not on the grid but is in the export; keep it?"
+    ],
+    [
+     "OQ-05",
+     "Cell styling required (bold, borders, colours, freeze pane, auto filter)?"
+    ],
+    [
+     "OQ-06",
+     "Date-time format in Excel: text \"YYYY-MM-DD HH:MI:SS\" (as grid) or Excel date type?"
+    ],
+    [
+     "OQ-07",
+     "Is an audit log of export (who, when, criteria, row count) required?"
+    ],
+    [
+     "OQ-08",
+     "Should Print / PDF become a formatted report too, or stay as browser print?"
+    ]
+   ],
+   "row_lines": "all"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Check session / access",
+   "cause": "Session expired or user not logged in",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Session expired. Please login again.",
+   "exception": "Y",
+   "action": {
+    "system": "Cancel export, redirect to login",
+    "user": "Login again"
+   }
+  },
+  {
+   "event": "Connect to database server",
+   "cause": "Cannot connect to database",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Database cannot be connected.",
+   "exception": "Y",
+   "action": {
+    "system": "Cancel export",
+    "user": "Retry / contact system administrator"
+   }
+  },
+  {
+   "event": "Retrieve data",
+   "cause": "No record matches the criteria",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No data to export. (screen text: Tidak ada data untuk diexport)",
+   "exception": "N",
+   "action": {
+    "system": "No file generated",
+    "user": "Change search criteria"
+   }
+  },
+  {
+   "event": "Retrieve data",
+   "cause": "Record count exceeds the maximum rows (TBD)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Data exceeds the maximum export rows ({0}). Please narrow the criteria.",
+   "exception": "N",
+   "action": {
+    "system": "No file generated",
+    "user": "Narrow the criteria"
+   }
+  },
+  {
+   "event": "Generate Excel file",
+   "cause": "Failure in generation of report",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Failed to generate Daily Order Monitoring report.",
+   "exception": "Y",
+   "action": {
+    "system": "Cancel export, log error",
+    "user": "Retry / contact system administrator"
+   }
+  },
+  {
+   "event": "Report generated",
+   "cause": "Excel file generated and downloaded",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{0} row(s) exported.",
+   "exception": "N",
+   "action": {
+    "system": "Send file to browser",
+    "user": "-"
+   }
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+[
+ ["OQ-01", "ELIPS interface status: a separate ELIPS table (placeholder <ELIPS_SA_INTERFACE_STATUS>) or columns on the SA header (the PAS block proposed in the SA Monitoring spec)? Physical names and lengths.", "ELIPS"],
+ ["OQ-02", "ELIPS source tables / columns for SA header, detail and sub item, and the exact 'approved and ready to send' condition (<ELIPS_APPROVAL_HISTORY>). Who sets READY?", "ELIPS"],
+ ["OQ-03", "Where are the FIX_PARAMETER values (PR_TYPE, DIVISION_ID, VALUATION_CLASS, SOURCE_TYPE, DEFAULT_VALUES, ...) stored in ELIPS, and by which key (global, per SA type, per trucking company)?", "ELIPS"],
+ ["OQ-04", "PR numbering loop: when the next number is already used (TB_H_DOCUMENT_NUMBER USED_STATUS 'Y') CURRENT_NUMBER is not advanced, so the WHILE loop never ends. Can PAS fix the block (advance the number, read TB_M_DOC_NUMBERING WITH (UPDLOCK))? Until then Talend only adds a query timeout.", "PAS"],
+ ["OQ-05", "Do SP_ILS_GENERATE_PR_ITEM, sp_prcreation_budgetProcessing and sp_PutLog open / commit / roll back their own transaction or use TRY-CATCH that swallows errors? Can they run inside the Talend transaction? What do they return on error (RESULT values, RAISERROR, return code)?", "PAS"],
+ ["OQ-06", "fn_get_last_process_id(): a function cannot write, so how is a unique PROCESS_ID guaranteed when PAS online users and Talend run at the same time? Is the TB_R_LOG_H insert the reservation?", "PAS"],
+ ["OQ-07", "TB_R_LOG_H: keep MODULE_ID / FUNCTION_ID '1' / '1', END_DT = start and PROCESS_STATUS 1, or update END_DT / PROCESS_STATUS at the end (status codes)? Must PAS log rows survive a rollback (separate connection)?", "PAS"],
+ ["OQ-08", "PR_NOTES (Observation C): keep NULL (as-is) or insert 'ILSTC_yyyyMMdd_1' as the code computes?", "Business / PAS"],
+ ["OQ-09", "SA_DET_NUMBER (Observation D): should it be sent to PAS for traceability (the old commented code put it in MAT_DESC)?", "Business"],
+ ["OQ-10", "SERVICE_TYPE (Observation E): does PAS need it, and in which column? No target is mapped until confirmed.", "Business / PAS"],
+ ["OQ-11", "Amounts: header LOCAL_AMOUNT comes from FIX (not the sum of item COST); item ORI_AMOUNT = COST (not COST x PR_QTY); sub item amount = TARIF. Is an item without sub item allowed? Must the sum of sub item TARIF equal the item COST?", "Business / PAS"],
+ ["OQ-12", "Observations A / B: header DELIVERY_PLAN_DT and PROC_MONTH use the run date. Correct for an SA of the previous month that is sent after month end?", "Business / PAS"],
+ ["OQ-13", "PR_DESC as idempotency key: is there a unique index? Can a PAS user create a PR with the same description? If the PR is cancelled in PAS, may the SA be sent again?", "PAS"],
+ ["OQ-14", "Run schedule, maximum retry (proposed 3), PROCESSING timeout (proposed 30 min). Who resets FAILED to READY (SA Monitoring Resend)?", "Business / ELIPS"],
+ ["OQ-15", "PO number back to ELIPS: separate interface (SA Monitoring PO feedback). PAS PO table / column names are not in the supplied information.", "PAS"],
+ ["OQ-16", "Terminology: 'SA' is Service Acceptance in ELIPS TC-PBR; the request also mentions 'Shipping Advice'. Confirm the meaning.", "Business"],
+ ["OQ-17", "SA type: do both SA by resource (daily orders) and the monthly fixed-cost SA use this interface with the same FIX parameters?", "Business"],
+ ["OQ-18", "CREATED_BY: FIX CREATED_BY overrides the SA creator (as-is). Which PAS user id must be used (must it exist in PAS for budget processing)?", "PAS"],
+ ["OQ-20", "Are ELIPS and PAS databases on the same SQL Server instance (or is MSDTC / a linked server allowed)? Only then can the ELIPS SUCCESS update be inside the PAS transaction (requirement step 13).", "Infra"],
+ ["OQ-19", "DOC_DT / CREATED_DT use the Talend server clock, other dates use the PAS GETDATE(). Same time zone / clock?", "Infra"]
+]
