@@ -8,7 +8,7 @@
   const monthStart = ym => `${ym.slice(0, 4)}-${ym.slice(4, 6)}-01`;
   const monthEnd = ym => { const d = new Date(+ym.slice(0, 4), +ym.slice(4, 6), 0); return SA.ymd(d); };
   const isVPLD = () => state.actor.role === 'PLANNER';
-  const canSeeApproval = () => ['PLANNER', 'IP_ADMIN'].includes(state.actor.role);
+  const canSeeApproval = () => ['PLANNER', 'IELP_ADMIN'].includes(state.actor.role);
 
   // ---------- Reference data (mock mirror of Master Location / Master Mileage / PO Inquiry) ----------
   // Daily Monitoring location name -> Master Location code (a name without code gives Route Not Found).
@@ -133,7 +133,7 @@
   }
   function render() {
     const root = $('saRoot'); if (!root || $('pgSA').style.display === 'none') return;
-    if (!canSeeApproval()) { root.innerHTML = `<section class="cal-card"><p class="q-note">SA Approval is only available for VPLD (approve) and IP Admin (view). Login: ${esc(W.roleLabel(state.actor))}.</p></section>`; return; }
+    if (!canSeeApproval()) { root.innerHTML = `<section class="cal-card"><p class="q-note">SA Approval is only available for VPLD (approve) and IELP Admin (view). Login: ${esc(W.roleLabel(state.actor))}.</p></section>`; return; }
     const mon = sa.tab === 'monthly';
     const all = sa.tab === 'regular' ? rows() : mon ? monthlyRows().map(r => ({ o: { orderNo: r.poNo }, r })) : [];
     const pages = Math.max(1, Math.ceil(all.length / sa.size)); sa.page = Math.min(sa.page, pages);

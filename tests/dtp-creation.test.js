@@ -23,7 +23,7 @@ test('date range from System Master: backdate / advance, not configured', () => 
 });
 
 test('only the VPLD Planner may create DTP', () => {
-  assert(D.canCreate(planner) && !D.canCreate({ role: 'IP_ADMIN' }) && !D.canCreate({ role: 'SUPPLIER', lpAdmin: true }));
+  assert(D.canCreate(planner) && !D.canCreate({ role: 'IELP_ADMIN' }) && !D.canCreate({ role: 'SUPPLIER', lpAdmin: true }));
 });
 
 test('field validation: required, options, data mapping, format, container check digit', () => {
@@ -80,7 +80,7 @@ test('interface records keep Validation Error and can be corrected', () => {
 
 test('submit: eligible only, authorized, inside the date range; no second submission', () => {
   const recs = [1, 2].map(i => D.makeRecord({ ...good, bookNo: `B${i}` }, { id: i, date: '2026-11-10', source: D.SOURCE.EXCEL, grid: [], ctx }));
-  assert.strictEqual(D.submit(recs, { at: new Date(), actor: { role: 'IP_ADMIN', name: 'x' }, date: '2026-11-10', today: '2026-11-02', cfg }).error, D.MSG.noAuth);
+  assert.strictEqual(D.submit(recs, { at: new Date(), actor: { role: 'IELP_ADMIN', name: 'x' }, date: '2026-11-10', today: '2026-11-02', cfg }).error, D.MSG.noAuth);
   assert.strictEqual(D.submit(recs, { at: new Date(), actor: planner, date: '2026-12-31', today: '2026-11-02', cfg }).error, D.MSG.advance('31-Dec-2026', 14));
   assert.strictEqual(D.submit([], { at: new Date(), actor: planner, date: '2026-11-10', today: '2026-11-02', cfg }).error, D.MSG.noSelect);
   assert(D.submit(recs, { at: new Date(), actor: planner, date: '2026-11-10', today: '2026-11-02', cfg }).ok);
@@ -116,7 +116,7 @@ test('LP Admin can reject a planned order; the planner flow sees Rejected by LP'
   const c = { orders: [ord], master: { trucks: [], drivers: [] } };
   assert(!W.perform(ord, 'lpReject', { reason: 'short' }, lp, new Date(), c).ok);
   assert(W.perform(ord, 'lpReject', { reason: 'Truck tidak tersedia untuk shift ini' }, lp, new Date(), c).ok);
-  assert(ord.lpRejected && W.blockReason(ord, 'assignTruck', { role: 'IP_ADMIN', name: 'IP' }, c).includes('ditolak LP'));
+  assert(ord.lpRejected && W.blockReason(ord, 'assignTruck', { role: 'IELP_ADMIN', name: 'IP' }, c).includes('ditolak LP'));
 });
 
 console.log(`\n${n} tests passed`);

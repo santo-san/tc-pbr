@@ -24,7 +24,7 @@
   const currentPic = pr => pr.createdBy;
 
   function canView(actor, doc) {
-    if (['IP_ADMIN', 'APPROVER', 'GA', 'SYSTEM', 'VPLD_STAFF'].includes(actor.role)) return true;
+    if (['IELP_ADMIN', 'APPROVER', 'GA', 'SYSTEM', 'VPLD_STAFF'].includes(actor.role)) return true;
     if (actor.role === 'SUPPLIER') return doc.supplierCode === actor.supplierCode;
     return false;
   }
@@ -133,7 +133,7 @@
 
   function roleLabel(a) {
     return a.role === 'APPROVER' ? `${a.level} ${a.division || 'VPLD'}`
-      : a.role === 'IP_ADMIN' ? 'IP Admin' : a.role === 'VPLD_STAFF' ? 'Staff VPLD' : a.role === 'GA' ? 'General Affair' : a.role === 'SUPPLIER' ? 'Supplier' : 'System';
+      : a.role === 'IELP_ADMIN' ? 'IELP Admin' : a.role === 'VPLD_STAFF' ? 'Staff VPLD' : a.role === 'GA' ? 'General Affair' : a.role === 'SUPPLIER' ? 'Supplier' : 'System';
   }
 
   const api = {

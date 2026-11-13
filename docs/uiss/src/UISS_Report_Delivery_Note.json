@@ -6,7 +6,9 @@
   "block_name": "Report",
   "function_name": "TBD Delivery Note (Surat Jalan)",
   "created_date": "03-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,6 +17,13 @@
    "date": "03-Nov-26",
    "reviewed_by": "",
    "description": "Initial draft: on-the-fly Surat Jalan PDF, Base64 API, PAS GR attachment"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -606,7 +615,7 @@
   {
    "type": "item",
    "marker": "c.",
-   "text": "If the user may not view the delivery (same visibility as Daily Monitoring: IP Admin / Planner all; Supplier own trucking company; Driver own truck) - Return HTTP 403 FORBIDDEN without Base64 (DN-R05). Log item No.7 in Logging Message Table. 403 vs 404 for enumeration protection: TBD (OQ-04).",
+   "text": "If the user may not view the delivery (same visibility as Daily Monitoring: IELP Admin / Planner all; Supplier own trucking company; Driver own truck) - Return HTTP 403 FORBIDDEN without Base64 (DN-R05). Log item No.7 in Logging Message Table. 403 vs 404 for enumeration protection: TBD (OQ-04).",
    "level": 2
   },
   {
@@ -1039,7 +1048,7 @@
     ],
     [
      "OQ-08",
-     "Which roles may view/download (Driver, Supplier Viewer, LP Admin, Planner, IP Admin)?"
+     "Which roles may view/download (Driver, Supplier Viewer, LP Admin, Planner, IELP Admin)?"
     ],
     [
      "OQ-09",

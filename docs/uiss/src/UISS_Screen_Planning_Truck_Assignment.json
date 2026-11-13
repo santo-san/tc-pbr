@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD Planning Truck Assignment",
   "created_date": "02-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,6 +17,13 @@
    "date": "02-Nov-26",
    "reviewed_by": "",
    "description": "Initial draft based on Planning Truck Assignment requirement, reference screens and HTML mock-up (docs/truck-assignment-spec.md) 02-Nov-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -171,7 +180,7 @@
   ],
   "screen_mode_remarks": [
    "1) In the modal the buttons are always shown for the LP Admin; each selected order is checked by the rules (TA-10).",
-   "2) Supplier viewer: own company; IP Admin / Planner: all companies; msg 1."
+   "2) Supplier viewer: own company; IELP Admin / Planner: all companies; msg 1."
   ]
  },
  "screen_flow": [
@@ -654,7 +663,7 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t11_driver.png"
   },
   {
-   "caption": "12. View only - IP Admin (HTML mock-up)",
+   "caption": "12. View only - IELP Admin (HTML mock-up)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/tuiss/img/t01_ip_view.png"
   }
  ],
@@ -1899,7 +1908,7 @@
     ],
     [
      "TA-03",
-     "Order from DTP Creation must be Accepted before any truck link (also IP Assign / Order Release)"
+     "Order from DTP Creation must be Accepted before any truck link (also IELP Admin Assign / Order Release)"
     ],
     [
      "TA-04",

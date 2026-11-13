@@ -6,7 +6,9 @@
   "block_name": "Batch",
   "function_name": "TBD Driver Order Sync - HiveMQ (TC-PBR to Driver APK)",
   "created_date": "03-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,6 +17,13 @@
    "date": "03-Nov-26",
    "reviewed_by": "",
    "description": "Initial draft: sync of assigned orders (DTP Creation -> Truck Assignment) to Driver APK via HiveMQ background service"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -1516,7 +1525,7 @@
      "Remove if a card exists"
     ],
     [
-     "LP Admin / IP Admin Assign Truck",
+     "LP Admin / IELP Admin Assign Truck",
      "ASSIGN",
      "ADD card for NEW_PLATE"
     ],

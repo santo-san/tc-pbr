@@ -4,8 +4,8 @@ const P = require('../sa-pas-rules.js');
 const SA = require('../sa-rules.js');
 
 const at = h => new Date(2026, 10, 4, h, 0);
-const SYS = { role: 'SYSTEM', name: 'PAS Interface' }, VPLD = { role: 'PLANNER', name: 'planner1' }, IP = { role: 'IP_ADMIN', name: 'admin' };
-const canRetry = a => a.role === 'IP_ADMIN';
+const SYS = { role: 'SYSTEM', name: 'PAS Interface' }, VPLD = { role: 'PLANNER', name: 'planner1' }, IP = { role: 'IELP_ADMIN', name: 'admin' };
+const canRetry = a => a.role === 'IELP_ADMIN';
 const sa = (no = 'ILS/TR/DNX/2611040001', over = {}) => Object.assign({
   saNo: no, lpCode: 'DNX', poNo: 'PO-RATE-001', totalKm: 100, totalCost: 2000000, currency: 'IDR', approvedAt: at(9),
   details: [{ orderNo: 'DLV-001', totalKm: 100, rate: 20000, cost: 2000000, poNo: 'PO-RATE-001', route: 'D3S1' }], pas: P.init(), pasLog: [],

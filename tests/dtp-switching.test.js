@@ -4,7 +4,7 @@ const D = require('../dtp-rules.js');
 const W = require('../workflow.js');
 const S = D.STATUS;
 
-const PLANNER = { role: 'PLANNER', name: 'Planner VPLD' }, IP = { role: 'IP_ADMIN', name: 'Admin' };
+const PLANNER = { role: 'PLANNER', name: 'Planner VPLD' }, IP = { role: 'IELP_ADMIN', name: 'Admin' };
 const CTX = { lps: ['PBM', 'PNJ'], from: ['D1', 'D3'], to: ['K1E', 'S1E'], containerError: W.containerError };
 const at = new Date(2026, 10, 5, 9, 0);
 const raw = n => ({ io: 'EXPORT', roundUse: 'N', lp: 'PBM', renban: `C12${n}`, from: 'D1', to: 'K1E', dest: 'STM', etd: '2026-11-06', ctrSize: '40', truckType: 'TRAILER',

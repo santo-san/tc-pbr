@@ -67,7 +67,7 @@ The layout follows the TMMIN **SURAT JALAN** reference: one A4 portrait page per
 | DN-R02 | The PDF shows only the items in §2. An empty optional value prints as `-`. |
 | DN-R03 | On-the-fly: the PDF is generated on each click (View / Download / API / PAS attach) from the latest data. No PDF is stored, pre-generated or batch-generated. |
 | DN-R04 | Same data gives the same document. Only the printed date differs. The `dataHash` (hash of the document data without printed date) is equal for View, Download and API. Viewing changes no data. |
-| DN-R05 | Access follows Daily Monitoring visibility (`W.canView`). IP Admin and Planner see all; a Supplier sees only its own trucking company; a Driver sees only its truck. A request for another company's delivery returns 403 with no Base64. |
+| DN-R05 | Access follows Daily Monitoring visibility (`W.canView`). IELP Admin and Planner see all; a Supplier sees only its own trucking company; a Driver sees only its truck. A request for another company's delivery returns 403 with no Base64. |
 | DN-R06 | Output check before sending: the Base64 must be valid, the decoded file must start with `%PDF-` and end with `%%EOF`. Otherwise the API returns 500 `INVALID_BASE64` / `CORRUPTED_PDF`. |
 | DN-R07 | In-flight guard: while a request for a delivery is running, a repeated click or a second request for the same delivery is refused with "sedang diproses". |
 | DN-R08 | PAS GR attachment: one attachment per Delivery ID (idempotency key). A retry with the same `dataHash` gives `ALREADY_ATTACHED` and adds no file. Changed data gives `REPLACED` and Rev + 1. A PAS failure leaves the existing attachment unchanged and can be retried. |
@@ -116,6 +116,6 @@ The checks run in this order:
 | OQ-05 | When data changes after the GR attachment: replace the attachment, add a new version, or block? |
 | OQ-06 | Is the PAS attachment pushed by ELIPS, or pulled by PAS through the Base64 API? Which key links it to the GR (GR No., PO No., Delivery ID)? |
 | OQ-07 | "printed by" is always `System`; should it be the requesting user? When is the `COPY` watermark printed? |
-| OQ-08 | Which roles may view/download (Driver, Supplier Viewer, LP Admin, Planner, IP Admin)? |
+| OQ-08 | Which roles may view/download (Driver, Supplier Viewer, LP Admin, Planner, IELP Admin)? |
 | OQ-09 | Is an audit log of each generation needed? |
 | OQ-10 | What is the content / source of KETERANGAN? |

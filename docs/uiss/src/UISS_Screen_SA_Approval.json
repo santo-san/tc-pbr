@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD TC-PBR SA Approval (Service Acceptance)",
   "created_date": "04-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -22,6 +24,13 @@
    "date": "04-Nov-26",
    "reviewed_by": "",
    "description": "Added monthly truck cost (Fixed Cost PO): tab Monthly Truck, SA per released monthly PO"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -106,7 +115,7 @@
     ]
    },
    {
-    "mode": "IP Admin",
+    "mode": "IELP Admin",
     "sections": [
      {
       "section": "Order List",
@@ -286,7 +295,7 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/sauiss/img/a07_result.png"
   },
   {
-   "caption": "10. IP Admin - view only",
+   "caption": "10. IELP Admin - view only",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/sauiss/img/a00_ipadmin.png"
   },
   {
@@ -1429,7 +1438,7 @@
   {
    "type": "item",
    "marker": "b.",
-   "text": "Access: VPLD (Planner) - approve; IP Admin - view only (message no. 1); Supplier / Driver - no access (message no. 2). The backend checks the role again on every call.",
+   "text": "Access: VPLD (Planner) - approve; IELP Admin - view only (message no. 1); Supplier / Driver - no access (message no. 2). The backend checks the role again on every call.",
    "level": 2
   },
   {
@@ -1890,7 +1899,7 @@
  "display_messages": [
   {
    "event": "Open screen",
-   "cause": "User is not VPLD (IP Admin)",
+   "cause": "User is not VPLD (IELP Admin)",
    "type": "Info",
    "msg_id": "TBD",
    "message": "{Role}: view only. Approve is for VPLD.",
@@ -1901,7 +1910,7 @@
    "cause": "Supplier / Driver",
    "type": "Error",
    "msg_id": "TBD",
-   "message": "SA Approval is only available for VPLD (approve) and IP Admin (view).",
+   "message": "SA Approval is only available for VPLD (approve) and IELP Admin (view).",
    "action": "-"
   },
   {

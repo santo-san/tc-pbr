@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD PR Approval",
   "created_date": "28-Oct-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,6 +17,13 @@
    "date": "28-Oct-26",
    "reviewed_by": "",
    "description": "Initial draft based on screenshots, HTML mock-up (monthly.html) and confirmed rules (docs/monthly-pr-po-rules.md) 28-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -1809,7 +1818,7 @@
    ],
    "rows": [
     [
-     "IP Admin",
+     "IELP Admin",
      "All",
      "View"
     ],
@@ -2063,7 +2072,7 @@
    "type": "Error",
    "msg_id": "TBD",
    "message": "You are not authorized to access {Document No}.",
-   "action": "Contact IP Admin"
+   "action": "Contact IELP Admin"
   },
   {
    "group": "Approve / Reject Operation"

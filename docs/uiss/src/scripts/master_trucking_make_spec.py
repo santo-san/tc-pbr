@@ -278,14 +278,14 @@ op = [
   I("a.", "Rows per page (Tampilkan) 10 / 25 / 50, default 10; ‹ pages ›; 'Showing n to m of x records (filtered from y total entries)'."),
   H("5.8 Concurrency, Security and Audit"),
   I("a.", "Optimistic locking with VERSION on Update and Delete; each Save / Delete is one DB transaction."),
-  I("b.", "Access: IP Admin (assumed; View / Add / Update / Delete / Export, TBD OP-07)."),
+  I("b.", "Access: IELP Admin (assumed; View / Add / Update / Delete / Export, TBD OP-07)."),
   I("c.", "MT-22: CREATED_BY / CREATED_DT on insert; CHANGED_BY / CHANGED_DT on update and delete (login user, server time)."),
   H("5.9 Open points"),
   TB([("ID", 5), ("Question", 40)], [
      ["OP-01", "Service Type options besides MRO?"], ["OP-02", "Vendor Code 3 characters and SAP Vendor Code 10 digits confirmed? Old data 'PNJ' with SAP code 'PNJ' does not meet the rule. The Master KPI reference uses 'PS' (PT. Putra Soputan, 2 characters) and 'IBL' / 'IBT' for Iron Bird; PS is in the mock-up data as an exception."],
      ["OP-03", "NPWP 16 digits only, or must old 15-digit NPWP still be accepted?"], ["OP-04", "Uniqueness only among active vendors (codes of deleted vendors re-usable) - confirm."],
      ["OP-05", "Which open transactions block Delete (active Daily Order, PR / PO Monthly pending, SA not completed, ...)?"], ["OP-06", "Restore of a deleted vendor needed?"],
-     ["OP-07", "Who may add / update / delete (IP Admin assumed)?"], ["OP-08", "Vendor Code = Trucking Code in Daily / Monthly / DTP (e.g. DNX, PBM) - confirm; physical table / column names."]]),
+     ["OP-07", "Who may add / update / delete (IELP Admin assumed)?"], ["OP-08", "Vendor Code = Trucking Code in Daily / Monthly / DTP (e.g. DNX, PBM) - confirm; physical table / column names."]]),
 ]
 
 spec = {"doc_type": "screen",

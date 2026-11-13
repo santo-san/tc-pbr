@@ -75,7 +75,7 @@ test('MT-06 another trucking company releases the truck and the LP decision', ()
 test('unchanged rows are not counted; no authorisation -> 403; DB error -> 500 and nothing applied', () => {
   const s = setup();
   assert.strictEqual(D.maintSave([{ key: 'A', o: s.o, r: s.r, values: { ...s.v } }], s.ctx).updated, 0);
-  assert.strictEqual(D.maintSave([{ key: 'A', o: s.o, r: s.r, cancel: true }], { ...s.ctx, actor: { role: 'IP', name: 'IP Admin' } }).status, 403);
+  assert.strictEqual(D.maintSave([{ key: 'A', o: s.o, r: s.r, cancel: true }], { ...s.ctx, actor: { role: 'IP', name: 'IELP Admin' } }).status, 403);
   const res = D.maintSave([{ key: 'A', o: s.o, r: s.r, cancel: true }], { ...s.ctx, fail: true });
   assert.deepStrictEqual([res.status, s.orders.length, s.recs.length], [500, 1, 1]);
   assert.strictEqual(D.maintSave([], s.ctx).status, 400);

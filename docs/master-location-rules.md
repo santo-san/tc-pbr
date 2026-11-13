@@ -97,5 +97,5 @@ Jika lokasi tujuan berstatus **Auto Finish Order = Yes** dan trigger Auto Finish
 5. **Trigger Auto Finish** (misalnya driver masuk radius tujuan, gate-in, atau event lain) mengikuti proses TC-PBR existing dan belum dijelaskan.
 6. **Aturan Auto Generate Cycle** dan **Cycle To Area** (kolom di tabel existing) mengikuti sistem existing; di mock-up hanya ditampilkan, tidak diubah logikanya.
 7. **Reactivate** lokasi INACTIVE tidak ada di kebutuhan, jadi belum dibuat.
-8. **Hak akses** (View, Add, Edit, Deactivate, Export) mengikuti role existing; di mock-up semua aksi tersedia untuk IP Admin.
+8. **Hak akses** (View, Add, Edit, Deactivate, Export) mengikuti role existing; di mock-up semua aksi tersedia untuk IELP Admin.
 9. **Lokasi dengan nama sama** (contoh dua "WAREHOUSE CIKARANG") diizinkan selama Alias berbeda.

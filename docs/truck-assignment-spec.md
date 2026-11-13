@@ -43,8 +43,8 @@ Entry points:
 | ID | Rule |
 |---|---|
 | TA-01 | Orders reach the screen when the DTP queue has processed them (Daily order in Planning Order / DTP Creation Release) |
-| TA-02 | The LP Admin sees only the orders of its own trucking company. Other users are view only: Supplier viewers see their own company, IP Admin and Planner see all |
-| TA-03 | **Waiting for Confirmation** → Accept or Reject. An order from DTP Creation must be **accepted** before any truck can be linked. This also blocks the IP Admin Assign Truck and the LP Order Release |
+| TA-02 | The LP Admin sees only the orders of its own trucking company. Other users are view only: Supplier viewers see their own company, IELP Admin and Planner see all |
+| TA-03 | **Waiting for Confirmation** → Accept or Reject. An order from DTP Creation must be **accepted** before any truck can be linked. This also blocks the IELP Admin Assign Truck and the LP Order Release |
 | TA-04 | **Reject** needs a Reject Reason (min. 10 characters) and is only possible before Accept and before a truck is linked. A rejected order cannot be accepted or assigned and goes back to the planner (calendar of Planning Order: *Rejected by LP*) |
 | TA-05 | **Assign Truck** only for Accepted orders without a truck. The truck must belong to the order's trucking company, must not be in **Maintenance**, its license must be valid on the delivery date, it must not be active (Order Release / Start Daily Order) on another order of the same date and shift, and its type must match the order's truck type (when given) |
 | TA-06 | After assignment: plate stored on the order, driver = active driver registered on the truck (if any), Daily status **Order Release**. The order is visible in the Driver app for that plate only |
@@ -221,7 +221,7 @@ stateDiagram-v2
 | 6 | Batch accept 3 orders in the modal | 3 Accepted | Positive |
 | 7 | Filter by plate / Rejected / delivery date | Matching rows only | Positive |
 | 8 | Reject with empty / short reason | "Reject Reason wajib diisi" / "Reason minimal 10 karakter" | Negative |
-| 9 | Assign before Accept (LP, IP Admin, Order Release) | "Order harus di-Accept terlebih dahulu" | Negative |
+| 9 | Assign before Accept (LP, IELP Admin, Order Release) | "Order harus di-Accept terlebih dahulu" | Negative |
 | 10 | Assign a rejected order | "Order Rejected tidak dapat di-assign truck" | Negative |
 | 11 | Assign a truck of another LP / in maintenance / expired license / COMBO for a TRAILER order | Matching V-06..V-10 message; truck disabled in the picker | Negative |
 | 12 | Assign a truck already active on another order of the same date + shift | "Truck sudah di-assign ke order …" | Negative |
@@ -229,7 +229,7 @@ stateDiagram-v2
 | 14 | Change Truck to the same truck | "Truck pengganti harus berbeda …" | Negative |
 | 15 | Change Truck after the driver started | "Change Truck hanya bisa …" | Negative |
 | 16 | LP SRL tries to act on a PBM order | No access | Negative |
-| 17 | Supplier viewer / IP Admin / Planner | View only, no action buttons | Negative |
+| 17 | Supplier viewer / IELP Admin / Planner | View only, no action buttons | Negative |
 | 18 | Assign without selecting a truck in the modal | "Truck is required" | Negative |
 
 Scenarios 1–18 are covered by `tests/truck-assignment.test.js` (rules) and the Playwright end-to-end run of the mock-up.

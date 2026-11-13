@@ -90,7 +90,7 @@ flowchart TD
 
 | ID | Rule |
 |---|---|
-| MM-20 | Same placement as Planning Order: on top of the page an accordion **Upload Excel** (Filename, **Choose File**, link **\*) Download Template**) and below it an accordion **Manual Entry** (the From / To / Mileage form). Upload Excel is open and Manual Entry is collapsed when the screen opens (as in Planning Order); both headers show the badge **IP Admin only**; clicking a list row opens Manual Entry |
+| MM-20 | Same placement as Planning Order: on top of the page an accordion **Upload Excel** (Filename, **Choose File**, link **\*) Download Template**) and below it an accordion **Manual Entry** (the From / To / Mileage form). Upload Excel is open and Manual Entry is collapsed when the screen opens (as in Planning Order); both headers show the badge **IELP Admin only**; clicking a list row opens Manual Entry |
 | MM-21 | **Template** (`Template_Route_Mileage.xlsx`): sheet *Route Mileage* with header `FROM CODE`, `TO CODE`, `MILEAGE (KM)` (the header row may be below a title; other columns are ignored), sheet *Active Locations* (code, name), sheet *Notes*. File .xlsx / .xls, max 1,000 data rows; empty rows are skipped |
 | MM-22 | Every row is checked with the screen rules: mandatory From / To / Mileage (MM-01), From and To active in Master Location (MM-06), From ≠ To (MM-02), Mileage > 0 with up to 2 decimals, comma accepted as decimal sign (MM-03). Codes are converted to upper case |
 | MM-23 | The same route twice in the file is an error on the later row ("Route is repeated in the file (row n)"). An existing **Inactive** route is an error (activate it on the screen first) |
@@ -114,4 +114,4 @@ flowchart TD
 9. **Upload of an Inactive route:** error (mock-up) or update and re-activate?
 10. **Upload limits:** max rows (1,000 assumed), partial save of the valid rows instead of all-or-nothing?
 11. **Mileage history:** keep the old / new mileage per change (history table) for audit of the cost calculation?
-12. **Role:** only IP Admin maintains Master Mileage (upload and manual entry), as shown by the badge? Other roles view only?
+12. **Role:** only IELP Admin maintains Master Mileage (upload and manual entry), as shown by the badge? Other roles view only?

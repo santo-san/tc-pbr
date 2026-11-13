@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD Master Trucking Company",
   "created_date": "12-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -22,6 +24,13 @@
    "date": "13-Nov-26",
    "reviewed_by": "",
    "description": "Mock-up data aligned with Master KPI By Trip: PT. PUTRA SOPUTAN (PS, 2-character code, exception to MT-03, OP-02) added; Iron Bird kept as IBT; screenshots refreshed"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -1816,7 +1825,7 @@
   {
    "type": "item",
    "marker": "b.",
-   "text": "Access: IP Admin (assumed; View / Add / Update / Delete / Export, TBD OP-07).",
+   "text": "Access: IELP Admin (assumed; View / Add / Update / Delete / Export, TBD OP-07).",
    "level": 2
   },
   {
@@ -1869,7 +1878,7 @@
     ],
     [
      "OP-07",
-     "Who may add / update / delete (IP Admin assumed)?"
+     "Who may add / update / delete (IELP Admin assumed)?"
     ],
     [
      "OP-08",

@@ -57,10 +57,10 @@ test('reject needs a reason; rejected order cannot be accepted or assigned', () 
   assert(go(o1, 'lpAssign', { truck: 'B1111AAA' }, lp, ctx).errors._.includes('Rejected'));
 });
 
-test('no truck assignment before Accept (also not by IP Admin / Order Release)', () => {
+test('no truck assignment before Accept (also not by IELP Admin / Order Release)', () => {
   const { ctx, o1 } = setup();
   assert(go(o1, 'lpAssign', { truck: 'B1111AAA' }, lp, ctx).errors._.includes('Accept'));
-  assert(go(o1, 'assignTruck', { truck: 'B1111AAA' }, { role: 'IP_ADMIN', name: 'IP' }, ctx).errors._.includes('Accept'));
+  assert(go(o1, 'assignTruck', { truck: 'B1111AAA' }, { role: 'IELP_ADMIN', name: 'IP' }, ctx).errors._.includes('Accept'));
   assert(go(o1, 'lpRelease', { reason: 'Release manual oleh LP Admin', driver: 'DRV-1' }, lp, ctx).errors._.includes('Accept'));
 });
 

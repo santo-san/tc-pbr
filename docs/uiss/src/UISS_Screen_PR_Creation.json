@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD PR Creation",
   "created_date": "01-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,6 +17,13 @@
    "date": "01-Nov-26",
    "reviewed_by": "",
    "description": "Initial draft based on PR Creation requirement, reference screens and HTML mock-up (docs/pr-creation-rules.md) 01-Nov-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -665,7 +674,7 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/cuiss/img/ref_detail.png"
   },
   {
-   "caption": "3. View only - IP Admin (HTML mock-up)",
+   "caption": "3. View only - IELP Admin (HTML mock-up)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/cuiss/img/c01_ip_view_only.png"
   },
   {

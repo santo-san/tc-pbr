@@ -75,5 +75,5 @@ flowchart TD
 4. **Keunikan** Vendor Code, SAP Vendor Code, dan NPWP hanya dicek terhadap vendor yang belum dihapus, sehingga kode milik vendor yang sudah dihapus boleh dipakai lagi (contoh: PNJ lama dihapus, PT. Puninar Jaya memakai PNJ).
 5. **Transaksi yang menghalangi Delete** (MT-21) perlu dipastikan: Daily Order aktif, PR/PO Monthly yang belum selesai, atau yang lain?
 6. **Restore** (mengaktifkan kembali vendor yang sudah dihapus) tidak ada di desain, jadi belum dibuat.
-7. **Hak akses**: siapa yang boleh menambah, mengubah, dan menghapus (diasumsikan IP Admin)?
+7. **Hak akses**: siapa yang boleh menambah, mengubah, dan menghapus (diasumsikan IELP Admin)?
 8. **Hubungan dengan data lain**: Vendor Code diasumsikan sama dengan Trucking Code di menu Daily dan Monthly (contoh DNX, PBM).

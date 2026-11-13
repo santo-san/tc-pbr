@@ -23,7 +23,7 @@ test('header validation: type, month and partner are mandatory', () => {
 test('authorization: VPLD Staff and VPLD Section Head only', () => {
   assert(PC.canCreate(staff, PR_CREATORS) && PC.canCreate(sh, PR_CREATORS));
   assert(!PC.canCreate({ role: 'APPROVER', level: 'DpH', division: 'VPLD' }, PR_CREATORS));
-  assert(!PC.canCreate({ role: 'IP_ADMIN' }, PR_CREATORS) && !PC.canCreate({ role: 'SUPPLIER' }, PR_CREATORS) && !PC.canCreate({ role: 'GA' }, PR_CREATORS));
+  assert(!PC.canCreate({ role: 'IELP_ADMIN' }, PR_CREATORS) && !PC.canCreate({ role: 'SUPPLIER' }, PR_CREATORS) && !PC.canCreate({ role: 'GA' }, PR_CREATORS));
 });
 
 test('creation period: Month N-1 allowed, Month N per System Master, never assumed', () => {

@@ -21,8 +21,8 @@ const mkCtx = (orders, lk = look) => ({
   resolve: id => orders.flatMap(o => o.cycles.map((c, i) => ({ o, i }))).filter(x => lk.sjNo(x.o, x.i) === id),
   canView, look: lk, generate: (m, ts) => { gens++; return DNPDF.render(jsPDF, m, ts); }, now: () => NOW,
 });
-const canView = (a, o) => a.role === 'IP_ADMIN' || (a.role === 'SUPPLIER' && a.supplier === o.supplier);
-const IP = { role: 'IP_ADMIN' }, PBM = { role: 'SUPPLIER', supplier: 'PBM' }, SRL = { role: 'SUPPLIER', supplier: 'SRL' };
+const canView = (a, o) => a.role === 'IELP_ADMIN' || (a.role === 'SUPPLIER' && a.supplier === o.supplier);
+const IP = { role: 'IELP_ADMIN' }, PBM = { role: 'SUPPLIER', supplier: 'PBM' }, SRL = { role: 'SUPPLIER', supplier: 'SRL' };
 const ID1 = '261027C2PBM510', ID2 = '261027C2PBM511';
 const req = (id, o = {}) => Object.assign({ deliveryId: id, token: 't', actor: IP, simulate: '' }, o);
 const tests = [];

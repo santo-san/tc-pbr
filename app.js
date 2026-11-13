@@ -49,7 +49,7 @@ const DATES = ['2026-10-25', '2026-10-26', '2026-10-27'];
 
 const DATA = [];
 const CTX = { orders: DATA, master: MASTER };
-const IP = { role: 'IP_ADMIN', name: 'Admin IELP' };
+const IP = { role: 'IELP_ADMIN', name: 'Admin IELP' };
 const SYS = { role: 'SYSTEM', name: 'Batch SA/PAS' };
 const lpActor = sup => ({ role: 'SUPPLIER', lpAdmin: true, supplier: sup, name: `LP Admin ${SUPPLIERS.find(s => s[0] === sup)[1]}` });
 const driverActor = d => ({ role: 'DRIVER', userId: d.userId, name: d.name, supplier: d.supplier, truck: d.truck });
@@ -227,7 +227,7 @@ function render() {
       th.insertAdjacentHTML('beforeend', `<span class="arrow">${state.sortDir === 1 ? '▲' : '▼'}</span>`);
     }
   });
-  $('btnCreateDTP').style.display = state.actor.role === 'IP_ADMIN' ? '' : 'none';
+  $('btnCreateDTP').style.display = state.actor.role === 'IELP_ADMIN' ? '' : 'none';
   applyColumns();
 }
 function applyColumns() {

@@ -23,7 +23,7 @@
   const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const blank = v => !String(v ?? '').trim();
   const cur = o => o.cycles[o.cycles.length - 1];
-  const roleLabel = a => a.role === 'IP_ADMIN' ? 'IP Admin'
+  const roleLabel = a => a.role === 'IELP_ADMIN' ? 'IELP Admin'
     : a.role === 'PLANNER' ? 'Planner VPLD'
     : a.role === 'DRIVER' ? 'Driver'
     : a.role === 'SYSTEM' ? 'System'
@@ -55,7 +55,7 @@
 
   // ---------- Visibility ----------
   function canView(actor, o) {
-    if (actor.role === 'IP_ADMIN' || actor.role === 'PLANNER' || actor.role === 'SYSTEM') return true;
+    if (actor.role === 'IELP_ADMIN' || actor.role === 'PLANNER' || actor.role === 'SYSTEM') return true;
     if (actor.role === 'SUPPLIER') return o.supplier === actor.supplier;
     if (actor.role === 'DRIVER') return o.supplier === actor.supplier && !!o.truck && o.truck === actor.truck;
     return false;
@@ -83,7 +83,7 @@
   const DTP_FIELDS = ['date', 'type', 'supplier', 'from', 'to', 'renban', 'shift', 'planned'];
   function checkDTP(p, actor, ctx, at) {
     const errors = {};
-    if (actor.role !== 'IP_ADMIN') return { _: 'Hanya IP Admin yang dapat membuat DTP' };
+    if (actor.role !== 'IELP_ADMIN') return { _: 'Hanya IELP Admin yang dapat membuat DTP' };
     const labels = { date: 'Date', type: 'Type', supplier: 'Trucking Comp.', from: 'DTP Loc. From', to: 'DTP Loc. To', renban: 'Renban', shift: 'Shift', planned: 'Planned Cycle' };
     DTP_FIELDS.forEach(f => { if (blank(p[f])) errors[f] = `${labels[f]} wajib diisi`; });
     if (!errors.date && p.date < ymd(at)) errors.date = 'Tanggal DTP tidak boleh di masa lalu';
@@ -155,7 +155,7 @@
 
   const ACTIONS = {
     assignTruck: {
-      label: 'Assign Truck', allow: a => a.role === 'IP_ADMIN',
+      label: 'Assign Truck', allow: a => a.role === 'IELP_ADMIN',
       fields: () => [{ name: 'truck', label: 'Truck Number', type: 'truck', required: true }],
       guard: o => o.status !== ORDER.PLAN ? `Assign Truck hanya bisa saat status ${ORDER.PLAN}`
         : o.lpRejected ? 'Order ditolak LP, ubah Truck Company di Planning Order terlebih dahulu'
@@ -181,7 +181,7 @@
         if (!d) e.driver = 'Driver tidak terdaftar';
         else if (d.supplier !== o.supplier) e.driver = 'Driver bukan milik supplier order ini';
         else if (!d.active) e.driver = 'Driver tidak aktif';
-        else if (!o.truck && !d.truck) e.driver = 'Driver belum punya truck terdaftar, minta IP Admin melakukan Assign Truck';
+        else if (!o.truck && !d.truck) e.driver = 'Driver belum punya truck terdaftar, minta IELP Admin melakukan Assign Truck';
         return e;
       },
       apply(o, p, a, at, ctx) {

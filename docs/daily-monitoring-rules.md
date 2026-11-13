@@ -15,7 +15,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | # | Order Status | Kapan terjadi |
 |---|---|---|
 | 1 | **Planning Order** | DTP dibuat lewat Check & Submit |
-| 2 | **Order Release** | IP Admin meng-assign order ke truck number (atau LP Admin melakukan Order Release) |
+| 2 | **Order Release** | IELP Admin meng-assign order ke truck number (atau LP Admin melakukan Order Release) |
 | 3 | **Start Daily Order** | Driver memulai order |
 | 4 | **Finish Daily Order** | Driver (atau LP Admin) menyelesaikan order |
 | 5 | **SA Approved** | Order di-approve VPLD di menu **SA Approval** (TC-PBR); SA Number `ILS/TR/{kode trucking}/{YYMMDD}{NNNN}` dan timestamp SA disimpan. Lihat [sa-approval-spec.md](sa-approval-spec.md) |
@@ -36,7 +36,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 
 | Aktor | Data yang bisa dilihat | Aksi yang boleh dilakukan |
 |---|---|---|
-| **IP Admin** | Semua order | DTP Check & Submit, Assign Truck (SA Approval / SA Monitoring hanya lihat, Retry Interface PAS) |
+| **IELP Admin** | Semua order | DTP Check & Submit, Assign Truck (SA Approval / SA Monitoring hanya lihat, Retry Interface PAS) |
 | **Driver** | Hanya order yang di-assign ke truck yang dipakai saat login | Start Order, Pickup Container, Finish Cycle, Start Next Cycle, Finish Order |
 | **Supplier (Viewer)** | Hanya order milik supplier sendiri | Tidak ada (hanya lihat) |
 | **Supplier (LP Admin)** | Hanya order milik supplier sendiri | Order Release, Pickup Container, Finish Cycle, Finish Order (selalu dengan Reason) |
@@ -45,7 +45,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 
 ### Matriks aksi per status
 
-| Aksi | Status awal yang diizinkan | IP Admin | Driver | LP Admin | Field wajib |
+| Aksi | Status awal yang diizinkan | IELP Admin | Driver | LP Admin | Field wajib |
 |---|---|:-:|:-:|:-:|---|
 | DTP Check & Submit | (order baru) | ✔ | | | Date, Type, Trucking Comp., Shift, From, To, Renban, Planned Cycle |
 | Assign Truck | Planning Order | ✔ | | | Truck Number |
@@ -65,8 +65,8 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 
 | Langkah | Aktor | Aktivitas | Input | Hasil (Order Status / Cycle Status) |
 |---|---|---|---|---|
-| 1 | IP Admin | Membuat DTP lalu **Check & Submit** | Date, Type DTP, Trucking Comp., Shift, From/To, Renban, Planned Cycle | Planning Order / DTP Creation Release |
-| 2 | IP Admin | **Assign** order ke truck number | Truck Number | Order Release / DTP Creation Release |
+| 1 | IELP Admin | Membuat DTP lalu **Check & Submit** | Date, Type DTP, Trucking Comp., Shift, From/To, Renban, Planned Cycle | Planning Order / DTP Creation Release |
+| 2 | IELP Admin | **Assign** order ke truck number | Truck Number | Order Release / DTP Creation Release |
 | 3 | Driver | **Login** di Driver App | User ID, No. Truck, Tanggal Lisensi Truck | Tidak ada perubahan status (driver hanya melihat order truck-nya) |
 | 4 | Driver | **Start Order** | - | Start Daily Order / Start Cycle (Cycle 1) |
 | 5 | Driver | **Pickup Container** | Container Number | Start Daily Order / Pickup Container |
@@ -74,7 +74,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | 7 | Driver | **Start Next Cycle** (Cycle 2, 3, dst.), lalu ulangi langkah 5 sampai 6 | - | Start Daily Order / Start Cycle (cycle baru) |
 | 8 | Driver | **Finish Order** | - | Finish Daily Order / Finish Cycle |
 | 9 | VPLD | **SA Approval** (menu Service Acceptance) | PO, Route, Total KM, biaya | **SA Approved** + SA Number + timestamp SA |
-| 10 | System / IP Admin | Kirim ke **PAS**, terima PO Number | PO Number | **SA Approved with PO Number** + PO Number + timestamp |
+| 10 | System / IELP Admin | Kirim ke **PAS**, terima PO Number | PO Number | **SA Approved with PO Number** + PO Number + timestamp |
 
 **Jalur LP Admin (input manual oleh supplier):** Order Release (Reason, Driver) → Pickup Container (Reason, Container Number) → Finish Cycle (Reason) → Finish Order (Reason).
 - Pickup Container oleh LP Admin pada status Order Release otomatis mengisi Start Cycle untuk Cycle 1.
@@ -84,7 +84,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 
 ```mermaid
 flowchart LR
-  subgraph IP["IP Admin"]
+  subgraph IP["IELP Admin"]
     A1["Buat DTP<br/>Check & Submit"] --> A2["Assign Truck Number"]
   end
   subgraph DRV["Driver"]
@@ -115,12 +115,12 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  start([Mulai]) --> c1["IP Admin isi form DTP"]
+  start([Mulai]) --> c1["IELP Admin isi form DTP"]
   c1 --> c2{"Check:<br/>data valid?<br/>VR-01..VR-05"}
   c2 -- "Tidak" --> c1e["Tampilkan error per field"] --> c1
   c2 -- "Ya" --> c3["Submit<br/>Planning Order / DTP Creation Release"]
   c3 --> r0{"Siapa yang<br/>release?"}
-  r0 -- "IP Admin" --> r1{"Truck valid?<br/>VR-10..VR-13"}
+  r0 -- "IELP Admin" --> r1{"Truck valid?<br/>VR-10..VR-13"}
   r1 -- "Tidak" --> r1e["Error: pilih truck lain"] --> r1
   r1 -- "Ya" --> r2["Order Release"]
   r0 -- "LP Admin" --> r3{"Reason & Driver valid?<br/>VR-14..VR-16"}
@@ -166,8 +166,8 @@ stateDiagram-v2
   state "SA Approved" as SA
   state "SA Approved with PO Number" as PO
 
-  [*] --> PLAN : DTP Check & Submit (IP Admin)
-  PLAN --> REL : Assign Truck (IP Admin)
+  [*] --> PLAN : DTP Check & Submit (IELP Admin)
+  PLAN --> REL : Assign Truck (IELP Admin)
   PLAN --> REL : Order Release + Reason + Driver (LP Admin)
   REL --> REL : Order Release ulang / ganti driver (LP Admin)
   REL --> START : Start Order (Driver)
@@ -204,8 +204,8 @@ stateDiagram-v2
 
 | ID | Dari (Order / Cycle) | Event | Aktor | Guard | Ke (Order / Cycle) |
 |---|---|---|---|---|---|
-| T01 | - | DTP Check & Submit | IP Admin | VR-01..05 | Planning Order / DTP Creation Release |
-| T02 | Planning Order / DTP Creation Release | Assign Truck | IP Admin | VR-10..13 | Order Release / DTP Creation Release |
+| T01 | - | DTP Check & Submit | IELP Admin | VR-01..05 | Planning Order / DTP Creation Release |
+| T02 | Planning Order / DTP Creation Release | Assign Truck | IELP Admin | VR-10..13 | Order Release / DTP Creation Release |
 | T03 | Planning Order atau Order Release | Order Release | LP Admin | VR-14..16, VR-60 | Order Release / DTP Creation Release |
 | T04 | Order Release / DTP Creation Release | Start Order | Driver | VR-26, VR-30 | Start Daily Order / Start Cycle |
 | T05 | Start Daily Order / Start Cycle | Pickup Container | Driver, LP Admin | VR-40..43 (+VR-60) | Start Daily Order / Pickup Container |
@@ -214,7 +214,7 @@ stateDiagram-v2
 | T08 | Start Daily Order / Finish Cycle | Start Next Cycle | Driver | VR-50 | Start Daily Order / Start Cycle (cycle baru) |
 | T09 | Start Daily Order / Finish Cycle | Pickup Container | LP Admin | VR-50, VR-40..43, VR-60 | Start Daily Order / Pickup Container (cycle baru) |
 | T10 | Start Daily Order / Finish Cycle | Finish Order | Driver, LP Admin | VR-51 (+VR-60) | Finish Daily Order / Finish Cycle |
-| T11 | Finish Daily Order | Proses ke SA | System, IP Admin | VR-70, SA sukses | SA Approved (+ timestamp) |
+| T11 | Finish Daily Order | Proses ke SA | System, IELP Admin | VR-70, SA sukses | SA Approved (+ timestamp) |
 | T12 | SA Approved | Proses ke PAS (feedback PO dari PAS) | System | VR-71, PAS sukses | SA Approved with PO Number |
 
 Semua transisi lain ditolak sistem dengan pesan "*<Aksi> hanya bisa saat status ...*".
@@ -232,7 +232,7 @@ Semua transisi lain ditolak sistem dengan pesan "*<Aksi> hanya bisa saat status 
 | VR-03 | DTP Loc. From ≠ DTP Loc. To | DTP Loc. To tidak boleh sama dengan DTP Loc. From |
 | VR-04 | Renban 5 digit angka dan unik untuk kombinasi supplier + tanggal + shift | Renban harus 5 digit angka / Renban sudah dipakai ... |
 | VR-05 | Planned Cycle antara 1 sampai 5 | Planned Cycle harus 1 - 5 |
-| VR-06 | Hanya IP Admin yang dapat membuat DTP | Hanya IP Admin yang dapat membuat DTP |
+| VR-06 | Hanya IELP Admin yang dapat membuat DTP | Hanya IELP Admin yang dapat membuat DTP |
 
 Tombol **Check** hanya menjalankan validasi. Tombol **Submit** menjalankan validasi yang sama, lalu menyimpan order.
 
@@ -312,7 +312,7 @@ Asumsi berikut dipakai di mock-up karena belum dijelaskan di kebutuhan:
 2. **"Tanggal lisensi"** dianggap tanggal masa berlaku lisensi truck di master. Lisensi yang sudah lewat menolak login dan Assign Truck.
 3. **Maksimal 5 cycle** per order, mengikuti kolom CYCLE 1 sampai 5 di layar monitoring.
 4. **Finish Order** boleh dilakukan walaupun cycle aktual kurang dari Planned Cycle, dan dicatat di riwayat. Jika harus diblokir, ubah VR-52.
-5. **Order Release oleh LP Admin** boleh dari status Planning Order (tanpa Assign Truck dari IP Admin) maupun Order Release (ganti driver). Jika order belum punya truck, truck diambil dari truck terdaftar milik driver.
+5. **Order Release oleh LP Admin** boleh dari status Planning Order (tanpa Assign Truck dari IELP Admin) maupun Order Release (ganti driver). Jika order belum punya truck, truck diambil dari truck terdaftar milik driver.
 6. **Pickup Container oleh LP Admin** otomatis mencatat Start Cycle (dari Order Release) atau membuka cycle baru (setelah Finish Cycle), karena alur LP Admin tidak punya langkah Start terpisah.
 7. **Format PO Number** diasumsikan 10 digit diawali `45`.
 8. **Reason** minimal 10 karakter supaya tidak diisi asal-asalan.

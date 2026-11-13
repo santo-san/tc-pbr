@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD Daily Order Monitoring",
   "created_date": "28-Oct-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -22,13 +24,20 @@
    "date": "28-Oct-26",
    "reviewed_by": "",
    "description": "Screen Flow verified against workflow.js transitions: added LP Admin re-release, SA/PAS failure loops, LP Admin cycle path; split cycle diagram per actor; clarified Submit / SA / PAS error branches"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
   "objective": [
    "To monitor daily orders (DTP) per date, location and DTP type together with the status of every cycle (Cycle 1 - Cycle 5).",
    "To display the order detail per cycle: truck, driver, route, Container Number, activity time and supporting files (Foto Surat Jalan, Finish Cycle Foto, Surat Jalan ELIPS).",
-   "To let IP Admin assign an order to a truck number (Order Release) and trigger the SA / PAS process.",
+   "To let IELP Admin assign an order to a truck number (Order Release) and trigger the SA / PAS process.",
    "To let Supplier with LP Admin access process their own orders manually: Order Release -> Pickup Container -> Finish Cycle -> Finish Order.",
    "To restrict Supplier users to their own data only and keep a status history (who, when, from/to status, reason) for every status change."
   ],
@@ -100,7 +109,7 @@
    },
    {
     "name": "Assign Truck",
-    "function": "IP Admin: to assign the order to a truck number. Order Status becomes Order Release."
+    "function": "IELP Admin: to assign the order to a truck number. Order Status becomes Order Release."
    },
    {
     "name": "Order Release",
@@ -120,11 +129,11 @@
    },
    {
     "name": "Process to SA",
-    "function": "IP Admin: to send the finished order to SA. Order Status becomes SA Approved (with timestamp)."
+    "function": "IELP Admin: to send the finished order to SA. Order Status becomes SA Approved (with timestamp)."
    },
    {
     "name": "Process to PAS",
-    "function": "IP Admin: to send the SA Approved order to PAS and receive PO Number. Order Status becomes SA Approved with PO Number."
+    "function": "IELP Admin: to send the SA Approved order to PAS and receive PO Number. Order Status becomes SA Approved with PO Number."
    },
    {
     "name": "Cycle header",
@@ -214,7 +223,7 @@
     ]
    },
    {
-    "mode": "Order Detail Mode - IP Admin",
+    "mode": "Order Detail Mode - IELP Admin",
     "sections": [
      {
       "section": "Summary & Action",
@@ -433,7 +442,7 @@
   "screen_mode_remarks": [
    "1) A workflow button is displayed only when the login role is allowed to do the action AND the current Order Status / Cycle Status allows it (Operation Description 5.5).",
    "2) View 'Foto Surat Jalan' is enabled after Pickup Container; View 'Finish Cycle Foto' after Finish Cycle; Surat Jalan ELIPS and PDF after Start Cycle.",
-   "3) IP Admin sees all orders. Supplier (Viewer / LP Admin) sees only orders whose Trucking Company is the login supplier."
+   "3) IELP Admin sees all orders. Supplier (Viewer / LP Admin) sees only orders whose Trucking Company is the login supplier."
   ]
  },
  "screen_flow": [
@@ -578,12 +587,12 @@
      {
       "from": "s",
       "to": "p",
-      "label": "DTP Check & Submit (IP)"
+      "label": "DTP Check & Submit (IELP Admin)"
      },
      {
       "from": "p",
       "to": "r",
-      "label": "Assign Truck (IP) / Order Release (LP)"
+      "label": "Assign Truck (IELP Admin) / Order Release (LP)"
      },
      {
       "from": "r",
@@ -1199,7 +1208,7 @@
    ]
   },
   {
-   "caption": "4. Order Detail - IP Admin, order in Planning Order (HTML mock-up)",
+   "caption": "4. Order Detail - IELP Admin, order in Planning Order (HTML mock-up)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/uiss/img/04_mock_detail_ip_planning.png",
    "notes": [
     "Order summary, action section, cycle section and status history ('Riwayat Status')."
@@ -2536,7 +2545,7 @@
      {
       "source_field": "Reason",
       "dest_field": "REASON (TBD)",
-      "description": "Blank for IP Admin / Driver"
+      "description": "Blank for IELP Admin / Driver"
      },
      {
       "dest_field": "NOTE (TBD)",
@@ -2587,7 +2596,7 @@
    ],
    "rows": [
     [
-     "IP Admin",
+     "IELP Admin",
      "All orders",
      "Assign Truck, Process to SA, Process to PAS"
     ],
@@ -2761,7 +2770,7 @@
     ],
     [
      "Order Release",
-     "IP Admin assigns the order to a truck number, or LP Admin does Order Release (Reason, Driver)"
+     "IELP Admin assigns the order to a truck number, or LP Admin does Order Release (Reason, Driver)"
     ],
     [
      "Start Daily Order",
@@ -2857,7 +2866,7 @@
    "rows": [
     [
      "Assign Truck",
-     "IP Admin",
+     "IELP Admin",
      "Planning Order",
      "Order Release"
     ],
@@ -2905,13 +2914,13 @@
     ],
     [
      "Process to SA",
-     "IP Admin / Batch",
+     "IELP Admin / Batch",
      "Finish Daily Order",
      "SA Approved + timestamp"
     ],
     [
      "Process to PAS",
-     "IP Admin / Batch",
+     "IELP Admin / Batch",
      "SA Approved",
      "SA Approved with PO Number"
     ]
@@ -2931,7 +2940,7 @@
   },
   {
    "type": "text",
-   "text": "5.6.1 Assign Truck (IP Admin)",
+   "text": "5.6.1 Assign Truck (IELP Admin)",
    "level": 1,
    "bold": true
   },
@@ -3014,7 +3023,7 @@
   },
   {
    "type": "text",
-   "text": "5.6.6 Process to SA / Process to PAS (IP Admin)",
+   "text": "5.6.6 Process to SA / Process to PAS (IELP Admin)",
    "level": 1,
    "bold": true
   },
@@ -3089,7 +3098,7 @@
    "type": "Error",
    "msg_id": "TBD",
    "message": "You are not authorized to access order {Order No}.",
-   "action": "Contact IP Admin"
+   "action": "Contact IELP Admin"
   },
   {
    "event": "Click [PDF] button",
@@ -3124,7 +3133,7 @@
    "type": "Error",
    "msg_id": "TBD",
    "message": "{Role} is not allowed to perform {Action}.",
-   "action": "Contact LP Admin / IP Admin"
+   "action": "Contact LP Admin / IELP Admin"
   },
   {
    "event": "Click [Submit] button",
@@ -3193,8 +3202,8 @@
    "cause": "Order has no truck and driver has no registered truck",
    "type": "Error",
    "msg_id": "TBD",
-   "message": "Driver {Driver} has no registered truck. Please ask IP Admin to assign a truck.",
-   "action": "Contact IP Admin"
+   "message": "Driver {Driver} has no registered truck. Please ask IELP Admin to assign a truck.",
+   "action": "Contact IELP Admin"
   },
   {
    "group": "Pickup Container Operation"

@@ -139,7 +139,7 @@ func_desc = [
  T("4.6 Open questions"),
  tbl([("ID", 5), ("Question", 40)], [
    ["OQ-01", "Logical cancel of the Daily order (proposed) or delete? Visible in Daily Monitoring?"],
-   ["OQ-02", "Who may use DTP Switching (VPLD Planner only, or IP Admin)? Reason mandatory?"],
+   ["OQ-02", "Who may use DTP Switching (VPLD Planner only, or IELP Admin)? Reason mandatory?"],
    ["OQ-03", "Notify LP Admin / driver when an accepted / assigned order is rolled back?"],
    ["OQ-04", "All-or-nothing (implemented) or partial success with summary?"],
    ["OQ-05", "Allowed for planning dates outside the DTP date range?"],

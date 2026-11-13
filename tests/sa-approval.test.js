@@ -19,7 +19,7 @@ function mkCtx(orders, pos = [PO()], extra = {}) {
     commitOrder: (o, saNo, when) => { o.status = 'SA Approved'; o.saNo = saNo; o.saAt = when; },
   }, extra);
 }
-const VPLD = { role: 'PLANNER', name: 'planner1' }, IP = { role: 'IP_ADMIN', name: 'admin' };
+const VPLD = { role: 'PLANNER', name: 'planner1' }, IP = { role: 'IELP_ADMIN', name: 'admin' };
 const codes = r => r.errors.map(e => e.code);
 const tests = [];
 const test = (n, f) => tests.push([n, f]);
@@ -93,7 +93,7 @@ test('approve(): header, snapshot, Daily Monitoring update and audit', () => {
 });
 test('approve(): only VPLD (403) and at least one delivery (400)', () => {
   const c = mkCtx([order('A')]);
-  assert.strictEqual(SA.approve({ orderNos: ['A'] }, { role: 'IP_ADMIN', name: 'x' }, at('2026-11-04', 9), c).status, 403);
+  assert.strictEqual(SA.approve({ orderNos: ['A'] }, { role: 'IELP_ADMIN', name: 'x' }, at('2026-11-04', 9), c).status, 403);
   assert.strictEqual(SA.approve({ orderNos: [] }, VPLD, at('2026-11-04', 9), c).status, 400);
   assert.strictEqual(c.orders[0].saNo, '');
 });

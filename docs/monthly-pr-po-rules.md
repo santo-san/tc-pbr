@@ -21,7 +21,7 @@ Keempat menu memakai template yang sama dengan **PR Inquiry**:
 | Menu | Isi | Aksi |
 |---|---|---|
 | PR Approval | PR yang level login user masih Pending (default filter "Perlu approval saya") | Approve / Reject (bisa beberapa PR sekaligus) |
-| PO Approval | PO berstatus Pending (default filter) | General Affair: Approve / Reject manual. IP Admin: jalankan Auto Approve |
+| PO Approval | PO berstatus Pending (default filter) | General Affair: Approve / Reject manual. IELP Admin: jalankan Auto Approve |
 | PR Inquiry | Semua PR (default Prod. Month From = bulan berjalan) | Lihat detail, download |
 | PO Inquiry | Semua PO (default Prod. Month From = bulan berjalan) | Lihat detail, download |
 
@@ -37,7 +37,7 @@ Kolom PO: Production Month, PO Number, PR Number, PO Status, Auto Approve At (de
 
 | Aktor | Data yang dilihat | Aksi |
 |---|---|---|
-| IP Admin | Semua PR / PO | Jalankan Auto Approve PO secara manual (PR lama di mock-up dibuat oleh IP Admin) |
+| IELP Admin | Semua PR / PO | Jalankan Auto Approve PO secara manual (PR lama di mock-up dibuat oleh IELP Admin) |
 | Staff VPLD / SH VPLD (pembuat PR) | Semua PR / PO | PR Creation, lihat [pr-creation-rules.md](pr-creation-rules.md). PR yang dibuat SH: level SH Skip |
 | SH VPLD | Semua PR / PO | Approve / Reject PR di level SH |
 | DpH VPLD | Semua PR / PO | Approve / Reject PR di level DpH (level SH yang masih Pending menjadi Skip) |
@@ -174,7 +174,7 @@ stateDiagram-v2
 ## 7. Asumsi yang masih perlu dikonfirmasi
 
 1. **Day + 1** dihitung 24 jam sejak PO dibuat. Belum dipastikan apakah maksudnya pukul 00:00 hari berikutnya.
-2. **Nama parameter System Master** dan seberapa sering job auto approve berjalan. Mock-up menjalankan job setiap 15 detik dan saat IP Admin menekan tombol.
+2. **Nama parameter System Master** dan seberapa sering job auto approve berjalan. Mock-up menjalankan job setiap 15 detik dan saat IELP Admin menekan tombol.
 3. **Reject oleh level lebih tinggi** saat level di bawahnya masih Pending: level di bawahnya juga dibuat Skip, sama seperti approve.
 4. **PR yang di-reject oleh approver** (bukan karena PO) saya anggap direvisi dengan membuat PR baru, misalnya `10/2026-2`. Perlu konfirmasi apakah perlakuannya sama dengan PO Rejected (submit ulang dengan PR yang sama).
 5. **Route Percentage** = Qty route ÷ Total Qty PR (dibulatkan). Sharing Percentage diambil dari master sharing per trucking.

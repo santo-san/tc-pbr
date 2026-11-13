@@ -7,7 +7,7 @@
   "function_name": "TBD TC-PBR Service Acceptance Monitoring",
   "created_date": "04-Nov-26",
   "created_by": "Susanto",
-  "updated_date": "04-Nov-26",
+  "updated_date": "13-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -31,6 +31,13 @@
    "date": "04-Nov-26",
    "reviewed_by": "",
    "description": "SA Type (Delivery / Monthly Truck) column, filter, export and detail for the monthly truck cost SA"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -109,7 +116,7 @@
     ]
    },
    {
-    "mode": "IP Admin",
+    "mode": "IELP Admin",
     "sections": [
      {
       "section": "Lists",
@@ -167,7 +174,7 @@
    }
   ],
   "screen_mode_remarks": [
-   "1) Retry Interface only for FAILED send without PAS values (retry authorization, proposed IP Admin)."
+   "1) Retry Interface only for FAILED send without PAS values (retry authorization, proposed IELP Admin)."
   ]
  },
  "screen_flow": [
@@ -270,7 +277,7 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/samuiss/img/s07_detail_pas.png"
   },
   {
-   "caption": "9. IP Admin - Status Failed with Retry Interface",
+   "caption": "9. IELP Admin - Status Failed with Retry Interface",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/samuiss/img/s10_failed_ip.png"
   },
   {
@@ -1235,7 +1242,7 @@
   {
    "type": "item",
    "marker": "b.",
-   "text": "Access: VPLD / IP Admin all SA; Supplier own trucking company; Driver no access (message no. 1).",
+   "text": "Access: VPLD / IELP Admin all SA; Supplier own trucking company; Driver no access (message no. 1).",
    "level": 2
   },
   {
@@ -1407,7 +1414,7 @@
   {
    "type": "item",
    "marker": "1.",
-   "text": "Shown for FAILED SA without PAS values; enabled only with the retry authorization (IP Admin, proposed, OQ-08); backend checks again (message no. 6).",
+   "text": "Shown for FAILED SA without PAS values; enabled only with the retry authorization (IELP Admin, proposed, OQ-08); backend checks again (message no. 6).",
    "level": 2
   },
   {

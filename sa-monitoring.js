@@ -12,8 +12,8 @@
   const dt = d => d ? fmtDT(new Date(d)) : '-';
   const d10 = d => d ? SA.ymd(new Date(d)) : '';
   const lpCodeOf = name => (SUPPLIERS.find(s => s[0] === name) || [])[1] || '';
-  const canView = () => ['PLANNER', 'IP_ADMIN', 'SUPPLIER'].includes(state.actor.role);
-  const canRetry = a => a.role === 'IP_ADMIN'; // separate authorization (proposed): Retry Interface
+  const canView = () => ['PLANNER', 'IELP_ADMIN', 'SUPPLIER'].includes(state.actor.role);
+  const canRetry = a => a.role === 'IELP_ADMIN'; // separate authorization (proposed): Retry Interface
   const visible = () => SAS.filter(s => state.actor.role === 'SUPPLIER' ? s.lpCode === lpCodeOf(state.actor.supplier) : true);
   const ST_CLS = { NOT_SENT: 'ns', PROCESSING: 'pr', SENT: 'sn', PR_RECEIVED: 'rr', PO_RECEIVED: 'or', COMPLETED: 'cp', FAILED: 'fl' };
   const badge = p => `<span class="pas ${ST_CLS[p.status]}">${L[p.status]}</span>${SAPAS.overdue(p, new Date(), OVERDUE_H) ? ' <span class="pas od" title="No PAS feedback for more than ' + OVERDUE_H + ' h (TBD)">Overdue</span>' : ''}`;
@@ -113,7 +113,7 @@
         <th rowspan="2">Interface Status</th><th rowspan="2">Feedback</th><th rowspan="2">Last Update</th></tr><tr>${WBS.map(k => `<th>${k}</th>`).join('')}</tr></thead>
       <tbody>${view.map(h => { const w = wsum(h), retry = h.pas.status === ST.FAILED && !h.pas.prNo && !h.pas.poNo;
         return `<tr><td><div class="ta-act"><button class="act" data-smdet="${h.saNo}" title="View Detail">&#9776;</button><button class="act" data-smlog="${h.saNo}" title="View Interface Log">&#128203;</button>
-          ${retry ? `<button class="act" data-smretry="${h.saNo}" ${canRetry(state.actor) ? '' : 'disabled'} title="${canRetry(state.actor) ? 'Retry Interface' : 'Retry Interface needs the retry authorization (IP Admin)'}">&#8635;</button>` : ''}</div></td>
+          ${retry ? `<button class="act" data-smretry="${h.saNo}" ${canRetry(state.actor) ? '' : 'disabled'} title="${canRetry(state.actor) ? 'Retry Interface' : 'Retry Interface needs the retry authorization (IELP Admin)'}">&#8635;</button>` : ''}</div></td>
           <td>${h.saNo}${h.legacy ? ' <small class="q-note">legacy</small>' : ''}</td><td><span class="st ${typeOf(h) === 'MONTHLY' ? 'sb' : 'rd'}">${TYPE_L[typeOf(h)]}</span></td><td>${dt(h.approvedAt)}</td><td>${esc(h.approvedBy)}</td><td class="left">${h.lpCode} - ${esc(h.lpName)}</td><td class="num">${typeOf(h) === 'MONTHLY' ? '-' : h.deliveries}</td>
           <td class="num">${kmFmt(h.totalKm)}</td><td class="num sa-price">${money(h.totalCost)}</td><td>${h.currency}</td>${WBS.map(k => `<td class="num">${w[k] ? money(w[k]) : '-'}</td>`).join('')}
           <td>${h.pas.prNo || '-'}</td><td>${h.pas.prDate || '-'}</td><td>${h.pas.poNo || '-'}</td><td>${badge(h.pas)}</td>
@@ -125,7 +125,7 @@
     const root = $('samRoot'); if (!root || $('pgSAM').style.display === 'none') return;
     if (!canView()) { root.innerHTML = '<section class="cal-card"><p class="q-note">SA Monitoring is not available for this role.</p></section>'; return; }
     const f = sm.f, all = visible(), cnt = {}; all.forEach(s => { cnt[s.pas.status] = (cnt[s.pas.status] || 0) + 1; });
-    const simOn = ['PLANNER', 'IP_ADMIN'].includes(state.actor.role);
+    const simOn = ['PLANNER', 'IELP_ADMIN'].includes(state.actor.role);
     root.innerHTML = `<section class="cal-card">
       <div class="sam-filter">
         <div><label for="smFrom">SA Date From</label><input type="date" id="smFrom" value="${f.from}"></div>

@@ -24,6 +24,13 @@
    "date": "13-Nov-26",
    "reviewed_by": "",
    "description": "TB_R_DTP_RECORD.PAY_TYPE added (Payment Type per DTP): kept on rollback, so the corrected record is submitted again with the same Payment Type unless the planner changes it"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -1169,7 +1176,7 @@
     ],
     [
      "OQ-02",
-     "Who may use DTP Switching (VPLD Planner only, or IP Admin)? Reason mandatory?"
+     "Who may use DTP Switching (VPLD Planner only, or IELP Admin)? Reason mandatory?"
     ],
     [
      "OQ-03",

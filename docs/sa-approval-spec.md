@@ -53,7 +53,7 @@ flowchart LR
 | FR-04 | VPLD selects rows (or Select All valid rows of the filter) and clicks **Approve**. A confirmation shows the deliveries, Total KM and cost per trucking company + PO | C / P (confirmation) |
 | FR-05 | On Approve the server revalidates every selected row, generates the SA Number(s), saves header and detail with a calculation snapshot, updates Daily Monitoring and writes audit, all in one transaction | C |
 | FR-06 | Approved rows disappear from SA Approval and appear in SA Monitoring | C |
-| FR-07 | Only VPLD can approve (backend check). IP Admin is view only. Supplier and Driver have no access to SA Approval | C (VPLD) / P (IP Admin view, Supplier own data in SA Monitoring) |
+| FR-07 | Only VPLD can approve (backend check). IELP Admin is view only. Supplier and Driver have no access to SA Approval | C (VPLD) / P (IELP Admin view, Supplier own data in SA Monitoring) |
 | FR-08 | The same delivery can never be SA-approved twice | C |
 | FR-09 | Detail popup per row shows the calculation (legs, KM, PO, formula) and the validation messages. A second icon opens the Daily Monitoring Order Detail | C ("detail data consistent with Daily Monitoring") / P |
 | FR-10 | The Order Detail of Daily Monitoring no longer offers "Proses ke SA". SA status is set only through SA Approval | P (follows FR-07) |
@@ -251,7 +251,7 @@ Detailed design (PAS interface, PAS PR / PO feedback, statuses): [sa-monitoring-
 | Filter | Approval Date From / To, Trucking Company, Search (SA, PO, order, approver) |
 | Grid | SA Number (link), Approval Date, Approved By, Trucking Code, Trucking Company, Deliveries, PO Number, PO Validity, Total KM, Total Cost, Currency, SA Status |
 | Detail | Header data; deliveries with snapshot (Order, Date, Route, KM, Rate, Cost); audit |
-| Access | VPLD / IP Admin: all; Supplier: own trucking company; Driver: none (P) |
+| Access | VPLD / IELP Admin: all; Supplier: own trucking company; Driver: none (P) |
 
 ## 17. API endpoint recommendations (proposed)
 
@@ -320,7 +320,7 @@ approve(req, user):
 | Role | SA Approval | Approve | SA Monitoring |
 |---|---|---|---|
 | VPLD (Planner) | View | **Yes** (backend enforced) | All |
-| IP Admin | View | No | All |
+| IELP Admin | View | No | All |
 | Supplier (Viewer / LP Admin) | No access | No | Own trucking company |
 | Driver | No access | No | No access |
 
@@ -376,7 +376,7 @@ approve(req, user):
 5. **Given** another user approved one of the selected deliveries first, **when** VPLD confirms, **then** the request fails with *Already SA Approved* and nothing is approved.
 6. **Given** the PO rate changed after the list was shown, **when** VPLD confirms, **then** the request fails with *Cost Changed*.
 7. **Given** the Daily Monitoring update fails, **when** VPLD confirms, **then** no SA, SA Number or status change is saved.
-8. **Given** an IP Admin or Supplier, **when** they call the approval, **then** the API returns 403.
+8. **Given** an IELP Admin or Supplier, **when** they call the approval, **then** the API returns 403.
 9. **Given** an approved SA, **when** the PO rate is changed later, **then** SA Monitoring still shows the approved rate and cost.
 10. **Given** the same request id is sent twice, **then** only one SA is created and the second call returns the same result.
 
@@ -392,7 +392,7 @@ approve(req, user):
   - Daily status;
   - persistence after reload;
   - supplier sees own SA;
-  - IP Admin no longer has "Proses ke SA".
+  - IELP Admin no longer has "Proses ke SA".
 
 ## 27. Open questions / unclear business rules
 

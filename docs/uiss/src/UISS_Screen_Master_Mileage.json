@@ -38,6 +38,13 @@
    "date": "13-Nov-26",
    "reviewed_by": "",
    "description": "Accordions aligned with Planning Order: Upload Excel open and Manual Entry collapsed on screen open (row click opens Manual Entry); role badge 'IP Admin only' on both headers; upload note changed"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: badge 'IP Admin only' -> 'IELP Admin only'; login user role 'IELP Admin'"
   }
  ],
  "general": {
@@ -317,7 +324,7 @@
   "screen_mode_remarks": [
    "1) Empty list shows message no. 11; empty search result shows message no. 12.",
    "2) Save shows 'Saving...' and is disabled together with Cancel until the server responds (prevents double submission).",
-   "3) Accordions as in Planning Order: 'Upload Excel' (open) above 'Manual Entry' (collapsed on screen open); both headers carry the badge 'IP Admin only' and collapse / expand on click. Clicking a list row opens Manual Entry in Edit Mode.",
+   "3) Accordions as in Planning Order: 'Upload Excel' (open) above 'Manual Entry' (collapsed on screen open); both headers carry the badge 'IELP Admin only' and collapse / expand on click. Clicking a list row opens Manual Entry in Edit Mode.",
    "4) Upload validation failed: opened for a file error (one message) or row errors (Row / Column / Error table); nothing is saved. Valid file: no modal, saved immediately."
   ]
  },
@@ -1334,7 +1341,7 @@
    "format": "",
    "validation": "",
    "description": "Collapses / expands the upload area.",
-   "desc": "Collapses / expands the upload area. Badge 'IP Admin only' (role allowed to maintain Master Mileage, TBD)."
+   "desc": "Collapses / expands the upload area. Badge 'IELP Admin only' (role allowed to maintain Master Mileage, TBD)."
   },
   {
    "name": "Filename",
@@ -1414,7 +1421,7 @@
    "format": "",
    "validation": "",
    "description": "Contains the Input Section (From, To, Mileage, Save, Cancel). Opened automatically by a row click (Edit Mode).",
-   "desc": "Collapsed when the screen opens (as in Planning Order). Contains the Input Section (From, To, Mileage, Save, Cancel). Opened by clicking the header or a list row (Edit Mode). Badge 'IP Admin only'."
+   "desc": "Collapsed when the screen opens (as in Planning Order). Contains the Input Section (From, To, Mileage, Save, Cancel). Opened by clicking the header or a list row (Edit Mode). Badge 'IELP Admin only'."
   },
   {
    "group": "<Busy Indicator>"
@@ -1919,7 +1926,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "Placement as in Planning Order: accordion 'Upload Excel' (Filename, Choose File, *) Download Template) open on top, accordion 'Manual Entry' (Input Section) below and collapsed; both headers show 'IP Admin only'.",
+   "text": "Placement as in Planning Order: accordion 'Upload Excel' (Filename, Choose File, *) Download Template) open on top, accordion 'Manual Entry' (Input Section) below and collapsed; both headers show 'IELP Admin only'.",
    "level": 2
   },
   {

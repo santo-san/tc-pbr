@@ -8,7 +8,7 @@ H = lambda t, n=None: {"type": "heading", "text": t, **({"num": n} if n else {})
 T = lambda t, l=1, b=True: {"type": "text", "text": t, "level": l, "bold": b}
 I = lambda m, t, l=2: {"type": "item", "marker": m, "text": t, "level": l}
 def tbl(cols, rows, l=1): return {"type": "table", "level": l, "columns": [{"title": c, "width": w} for c, w in cols], "rows": rows, "row_lines": "all"}
-USER = "Login user (IP Admin, TBD)"
+USER = "Login user (IELP Admin, TBD)"
 
 LOG = [
  ("start", "Process start", "Upload requested", "Info", "Route Mileage upload <UPLOAD_ID> started by <USER>: file <FILE_NAME>.", "Insert upload log (PROCESSING)", "-"),

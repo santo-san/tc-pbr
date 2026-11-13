@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD PO Approval",
   "created_date": "28-Oct-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,12 +17,19 @@
    "date": "28-Oct-26",
    "reviewed_by": "",
    "description": "Initial draft based on screenshots, HTML mock-up (monthly.html) and confirmed rules (docs/monthly-pr-po-rules.md) 28-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
   "objective": [
    "To let General Affair Department approve or reject POs manually before the auto approve deadline.",
-   "To show the auto approve deadline (PO date + Day + 1 from System Master) and let IP Admin run the auto approve job.",
+   "To show the auto approve deadline (PO date + Day + 1 from System Master) and let IELP Admin run the auto approve job.",
    "To return the PR to PR Creation (resubmit required) when the PO is rejected."
   ],
   "display_order": [
@@ -83,7 +92,7 @@
    },
    {
     "name": "Run Auto Approve",
-    "function": "IP Admin: to run the PO auto approve job immediately."
+    "function": "IELP Admin: to run the PO auto approve job immediately."
    },
    {
     "name": "PO Number link",
@@ -262,7 +271,7 @@
    }
   ],
   "screen_mode_remarks": [
-   "1) Approve / Reject stay visible but disabled for roles other than General Affair. 'Jalankan Auto Approve sekarang' is shown for IP Admin only.",
+   "1) Approve / Reject stay visible but disabled for roles other than General Affair. 'Jalankan Auto Approve sekarang' is shown for IELP Admin only.",
    "2) Modal Approve / Reject are enabled only when the login user can process this PO; otherwise disabled with the reason text."
   ]
  },
@@ -726,7 +735,7 @@
  ],
  "screen_layout": [
   {
-   "caption": "1. IP Admin - buttons disabled, Run Auto Approve (HTML mock-up)",
+   "caption": "1. IELP Admin - buttons disabled, Run Auto Approve (HTML mock-up)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/muiss/img/poa_01_ipadmin_auto.png",
    "notes": [
     "Mock-up only: 'Login sebagai' combo box simulates the login role; not part of the real screen."
@@ -933,7 +942,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "IP Admin only. Runs the auto approve job immediately."
+   "description": "IELP Admin only. Runs the auto approve job immediately."
   },
   {
    "name": "Notice",
@@ -1797,7 +1806,7 @@
    ],
    "rows": [
     [
-     "IP Admin",
+     "IELP Admin",
      "All",
      "View, Run auto approve (PO)"
     ],
@@ -2001,7 +2010,7 @@
   {
    "type": "item",
    "marker": "b.",
-   "text": "IP Admin can run the job immediately with 'Jalankan Auto Approve sekarang'; result in message no. 12.",
+   "text": "IELP Admin can run the job immediately with 'Jalankan Auto Approve sekarang'; result in message no. 12.",
    "level": 2
   },
   {
@@ -2040,7 +2049,7 @@
    "type": "Error",
    "msg_id": "TBD",
    "message": "You are not authorized to access {Document No}.",
-   "action": "Contact IP Admin"
+   "action": "Contact IELP Admin"
   },
   {
    "group": "Approve / Reject Operation"

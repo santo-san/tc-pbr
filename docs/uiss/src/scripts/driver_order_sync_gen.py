@@ -265,7 +265,7 @@ func_desc = [
    ["DTP queue processed (Daily order created)", "DTP_PROCESSED", "None yet (no truck) - event skipped"],
    ["LP Admin Accept", "LP_ACCEPT", "None yet (no truck) - skipped"],
    ["LP Admin Reject", "LP_REJECT", "Remove if a card exists"],
-   ["LP Admin / IP Admin Assign Truck", "ASSIGN", "ADD card for NEW_PLATE"],
+   ["LP Admin / IELP Admin Assign Truck", "ASSIGN", "ADD card for NEW_PLATE"],
    ["LP Admin Change Truck", "CHANGE_TRUCK", "REMOVE for PREV_PLATE, ADD for NEW_PLATE"],
    ["Order data change (status, SA, cancel)", "ORDER_UPDATE", "UPDATE / HISTORY / REMOVE"],
    ["Cycle change (start, pick up, finish, next cycle)", "CYCLE_UPDATE", "UPDATE / ADD next cycle / HISTORY"]]),

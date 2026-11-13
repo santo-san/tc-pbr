@@ -110,7 +110,7 @@ DTP Switching rolls back a DTP record that was already submitted to the trucking
 | # | Question |
 |---|---|
 | OQ-01 | Cancel the Daily order logically (proposed) or delete it? Should cancelled orders be visible in Daily Monitoring (for example a filter)? |
-| OQ-02 | Who may use DTP Switching: only the VPLD Planner (as Submit), or also IP Admin? Is a reason mandatory? |
+| OQ-02 | Who may use DTP Switching: only the VPLD Planner (as Submit), or also IELP Admin? Is a reason mandatory? |
 | OQ-03 | Should the LP Admin / driver be notified when an accepted or assigned order is rolled back? |
 | OQ-04 | All-or-nothing (as Submit, implemented) or partial success with a summary? |
 | OQ-05 | Is DTP Switching allowed for past planning dates (outside the DTP date range of System Master)? |

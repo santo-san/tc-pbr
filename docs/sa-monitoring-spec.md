@@ -84,7 +84,7 @@ flowchart TD
 | SM-10 | Approved snapshot fields (SA Number, deliveries, trucking company, route, KM, ELIPS PO, rate, cost, approval) are never changed by PAS feedback | C |
 | SM-11 | An integration error never removes the SA from SA Monitoring | C |
 | SM-12 | Every interface and feedback event is audited (§21) | C |
-| SM-13 | Retry Interface is a separate authorization (IP Admin in the mock-up). Viewing does not allow modification | C (separate) / P (role, OQ-08) |
+| SM-13 | Retry Interface is a separate authorization (IELP Admin in the mock-up). Viewing does not allow modification | C (separate) / P (role, OQ-08) |
 | SM-14 | An SA waiting for feedback for more than 24 h (TBD) shows an **Overdue** flag. This is visual only; the status does not change | P (OQ-07) |
 
 ## 4. UI/UX design recommendation
@@ -355,7 +355,7 @@ The mock-up shows them in View Interface Log and in detail section G. (C)
 | Role | View | Retry Interface | Correction / cancel SA |
 |---|---|---|---|
 | VPLD (Planner) | All SA | No (button disabled) | Not in scope |
-| IP Admin | All SA | **Yes** (proposed retry permission) | Not in scope |
+| IELP Admin | All SA | **Yes** (proposed retry permission) | Not in scope |
 | Supplier | Own trucking company | No | No |
 | Driver | No access | No | No |
 | PAS (system account) | – | – | Feedback API only |
@@ -410,7 +410,7 @@ The mock-up shows them in View Interface Log and in detail section G. (C)
 ## 26. Positive test scenarios
 
 - **Send and feedback:** send OK; PR feedback; PO feedback; PR + PO in one feedback; PO before PR (PO_RECEIVED).
-- **Retry and resolution:** retry after timeout by IP Admin; PAS error and later resolution.
+- **Retry and resolution:** retry after timeout by IELP Admin; PAS error and later resolution.
 - **Screen:** filters (SA Number partial, status chip, PAS PO empty, delivery number); Export Excel; detail A–G; interface log.
 
 Covered by `tests/sa-monitoring.test.js` and the Playwright run of the mock-up.

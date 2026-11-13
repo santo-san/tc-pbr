@@ -6,7 +6,9 @@
   "block_name": "Report",
   "function_name": "TBD Download Daily Order Monitoring",
   "created_date": "03-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "13-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -15,6 +17,13 @@
    "date": "03-Nov-26",
    "reviewed_by": "",
    "description": "Initial draft: Excel export of Daily Order Monitoring Order List"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
   }
  ],
  "general": {
@@ -669,7 +678,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "Data visibility by login user: IP Admin / Planner VPLD - all orders; Supplier (Viewer / LP Admin) - orders of own trucking company; Driver - orders of own truck.",
+   "text": "Data visibility by login user: IELP Admin / Planner VPLD - all orders; Supplier (Viewer / LP Admin) - orders of own trucking company; Driver - orders of own truck.",
    "level": 2
   },
   {

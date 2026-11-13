@@ -63,7 +63,7 @@ function makeRoutes(code, ym, target) {
 
 const PRS = [], POS = [];
 const CTX = { master: MASTER, pos: POS, prs: PRS };
-const IP = { role: 'IP_ADMIN', userId: 'ielp1', name: 'Admin IELP' };
+const IP = { role: 'IELP_ADMIN', userId: 'ielp1', name: 'Admin IELP' };
 const approver = lv => ({ role: 'APPROVER', level: lv, division: MASTER.division, userId: MASTER.approvers[lv] });
 const supplier = code => ({ role: 'SUPPLIER', supplierCode: code, userId: `${code.toLowerCase()}.admin`, name: SUP[code] });
 const GA = { role: 'GA', userId: 'ga.staff', name: 'General Affair Dept' };
@@ -80,7 +80,7 @@ function seedPR(code, ym, rev, prDate, steps = []) {
     percentage: s[2], routes, qty: routes.reduce((a, x) => a + x.q20 + x.q40, 0), price: routes.reduce((a, x) => a + x.q20 * x.p20 + x.q40 * x.p40, 0),
     prDate, createdBy: 'ielp1', approval: M.newApproval(), history: [],
   };
-  pr.history.push({ at: prDate, user: 'ielp1', role: 'IP Admin', action: 'PR Creation', from: '-', to: M.prStatus(pr), reason: '', note: '' });
+  pr.history.push({ at: prDate, user: 'ielp1', role: 'IELP Admin', action: 'PR Creation', from: '-', to: M.prStatus(pr), reason: '', note: '' });
   PRS.push(pr);
   for (const [act, lv, at, reason] of steps) {
     if (act === 'A') M.approvePR(pr, approver(lv), at, CTX); else M.rejectPR(pr, approver(lv), reason, at);
@@ -240,7 +240,7 @@ function render() {
     bulk = `<button class="btn-green" data-bulk="approve" ${dis} title="${dis ? tip : ''}">Approve (${allowed ? sel.length : 0})</button><button class="btn-red2" data-bulk="reject" ${dis} title="${dis ? tip : ''}">Reject (${allowed ? sel.length : 0})</button>`;
     if (!allowed) notice = v.doc === 'pr' ? 'Approve / Reject PR hanya untuk approver VPLD (SH, DpH, DH). Ganti "Login sebagai" untuk mencoba.'
       : `PO di-auto approve oleh sistem pada Day + ${MASTER.poAutoApproveDays}. Approve / Reject manual sebelum batas waktu dilakukan oleh General Affair Department.`;
-    if (v.doc === 'po' && a.role === 'IP_ADMIN') bulk += '<button class="btn-blue" data-bulk="auto">Jalankan Auto Approve sekarang</button>';
+    if (v.doc === 'po' && a.role === 'IELP_ADMIN') bulk += '<button class="btn-blue" data-bulk="auto">Jalankan Auto Approve sekarang</button>';
   }
   $('bulk').innerHTML = bulk;
   $('notice').style.display = notice ? '' : 'none'; $('notice').textContent = notice;
