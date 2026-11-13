@@ -183,6 +183,7 @@
   .up-row input[type=text] { flex: 0 1 380px; height: 30px; border: 1px solid #e2e5ea; background: #eef0f3; border-radius: 5px; padding: 0 10px; font-size: 10.5px; }
   .link { background: none; border: 0; color: #0b2b5c; font-weight: 600; font-size: 10px; padding: 0; cursor: pointer; text-decoration: underline; }
   .q-note { font-size: 9.5px; color: #6b7280; }
+  .ro-tag { font-size: 9px; font-weight: 600; color: #92400e; background: #fef3c7; border-radius: 8px; padding: 1px 7px; margin-left: 6px; }
   .err-table { width: 100%; border-collapse: collapse; font-size: 10px; } .err-table th, .err-table td { border: 1px solid #eceef2; padding: 5px 7px; text-align: left; }
   .err-table th { background: #f3f5f8; } .err-scroll { max-height: 300px; overflow: auto; }
   .busy-mask { display: none; position: absolute; inset: 0; background: rgba(255,255,255,.7); z-index: 5; align-items: center; justify-content: center; gap: 10px; font-size: 11px; font-weight: 600; border-radius: 10px; }
@@ -493,13 +494,13 @@
       </section>
     </div>
     <section class="mcard" id="milContent" style="display:none">
-      <details class="acc" id="mAccUp" open><summary>&#128196; Upload Excel</summary><div class="body">
+      <details class="acc" id="mAccUp" open><summary>&#128196; Upload Excel <span class="ro-tag">IP Admin only</span></summary><div class="body">
         <div style="font-weight:600;margin-bottom:6px">Filename</div>
         <div class="up-row"><input type="text" id="mFileName" readonly placeholder="No file chosen"><button class="btn-dark" id="mChoose">Choose File</button>
           <input type="file" id="mFile" accept=".xlsx,.xls" hidden></div>
-        <div style="margin-top:8px">*) <button class="link" id="mTemplate">Download Template</button> <span class="q-note">· new route = created, existing Active route = mileage updated · one error in the file = nothing is saved</span></div>
+        <div style="margin-top:8px">*) <button class="link" id="mTemplate">Download Template</button> <span class="q-note">· Status of uploaded routes = <b>Active</b> (existing route = mileage updated)</span></div>
       </div></details>
-      <details class="acc" id="mAccMan" open><summary>&#128421; Manual Entry</summary><div class="body">
+      <details class="acc" id="mAccMan"><summary>&#128421; Manual Entry <span class="ro-tag">IP Admin only</span></summary><div class="body">
       <form id="mForm" class="mil-form" onsubmit="return false" novalidate autocomplete="off">
         <div id="mfAlert"></div>
         <div class="mil-grid">
@@ -775,7 +776,7 @@
 <script src="master-trucking.js?v=20261030b"></script>
 <script src="master-location.js?v=20261030c"></script>
 <script src="vendor/xlsx/xlsx.full.min.js"></script>
-<script src="master-mileage.js?v=20261113b"></script>
+<script src="master-mileage.js?v=20261113c"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-priority.js?v=20261030a"></script>
 <script src="master-kpi.js?v=20261113b"></script>
@@ -783,7 +784,7 @@
 <script src="master-renban.js?v=20261101b"></script>
 <script src="master.js?v=20261113a"></script>
 <script src="location.js?v=20261030d"></script>
-<script src="mileage.js?v=20261113b"></script>
+<script src="mileage.js?v=20261113c"></script>
 <script src="price.js?v=20261030e"></script>
 <script src="priority.js?v=20261030a"></script>
 <script src="kpi.js?v=20261113b"></script>

@@ -31,6 +31,13 @@
    "date": "13-Nov-26",
    "reviewed_by": "",
    "description": "Excel upload aligned with Planning Order: accordions Upload Excel (Filename, Choose File, *) Download Template) and Manual Entry; file validated on Choose File and saved immediately when valid (no preview / Confirm Upload); errors shown in modal 'Upload validation failed' (Row / Column / Error, Download error list); busy indicator; uploaded rows highlighted"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Accordions aligned with Planning Order: Upload Excel open and Manual Entry collapsed on screen open (row click opens Manual Entry); role badge 'IP Admin only' on both headers; upload note changed"
   }
  ],
  "general": {
@@ -134,7 +141,7 @@
      },
      {
       "section": "Input",
-      "description": "From / To = placeholder, Mileage blank",
+      "description": "inside Manual Entry (collapsed on open); From / To = placeholder, Mileage blank",
       "buttons": {
        "From / To": "E",
        "Mileage": "E",
@@ -310,7 +317,7 @@
   "screen_mode_remarks": [
    "1) Empty list shows message no. 11; empty search result shows message no. 12.",
    "2) Save shows 'Saving...' and is disabled together with Cancel until the server responds (prevents double submission).",
-   "3) Accordions as in Planning Order: 'Upload Excel' above 'Manual Entry'; both open by default, the header collapses / expands them. Clicking a list row opens Manual Entry in Edit Mode.",
+   "3) Accordions as in Planning Order: 'Upload Excel' (open) above 'Manual Entry' (collapsed on screen open); both headers carry the badge 'IP Admin only' and collapse / expand on click. Clicking a list row opens Manual Entry in Edit Mode.",
    "4) Upload validation failed: opened for a file error (one message) or row errors (Row / Column / Error table); nothing is saved. Valid file: no modal, saved immediately."
   ]
  },
@@ -877,7 +884,7 @@
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/img/u08_route_mileage.png"
   },
   {
-   "caption": "2. Add Mode - accordions Upload Excel / Manual Entry, like Planning Order (rev 0.3)",
+   "caption": "2. Add Mode - Upload Excel open, Manual Entry collapsed, like Planning Order (rev 0.4)",
    "image": "/tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchpad/miluiss/upl/u01_buttons.png"
   },
   {
@@ -1326,7 +1333,8 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Collapses / expands the upload area."
+   "description": "Collapses / expands the upload area.",
+   "desc": "Collapses / expands the upload area. Badge 'IP Admin only' (role allowed to maintain Master Mileage, TBD)."
   },
   {
    "name": "Filename",
@@ -1386,7 +1394,8 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "'new route = created, existing Active route = mileage updated \u00b7 one error in the file = nothing is saved'."
+   "description": "'new route = created, existing Active route = mileage updated \u00b7 one error in the file = nothing is saved'.",
+   "desc": "'\u00b7 Status of uploaded routes = Active (existing route = mileage updated)'."
   },
   {
    "group": "<Manual Entry Accordion>"
@@ -1400,11 +1409,12 @@
    "io": "I",
    "control": "Accordion",
    "justified": "Center",
-   "initial": "Open",
+   "initial": "Closed",
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Contains the Input Section (From, To, Mileage, Save, Cancel). Opened automatically by a row click (Edit Mode)."
+   "description": "Contains the Input Section (From, To, Mileage, Save, Cancel). Opened automatically by a row click (Edit Mode).",
+   "desc": "Collapsed when the screen opens (as in Planning Order). Contains the Input Section (From, To, Mileage, Save, Cancel). Opened by clicking the header or a list row (Edit Mode). Badge 'IP Admin only'."
   },
   {
    "group": "<Busy Indicator>"
@@ -1909,7 +1919,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "Placement: accordion 'Upload Excel' (Filename, Choose File, *) Download Template) on top, accordion 'Manual Entry' (Input Section) below; both open by default.",
+   "text": "Placement as in Planning Order: accordion 'Upload Excel' (Filename, Choose File, *) Download Template) open on top, accordion 'Manual Entry' (Input Section) below and collapsed; both headers show 'IP Admin only'.",
    "level": 2
   },
   {
