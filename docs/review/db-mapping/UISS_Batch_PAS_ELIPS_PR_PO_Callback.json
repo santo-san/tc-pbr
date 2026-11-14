@@ -1,0 +1,84 @@
+{
+ "uiss": "UISS_Batch_PAS_ELIPS_PR_PO_Callback",
+ "revision": "Database mapping revised (ELIPS side): target = ielp.SA_DETAIL (PAS_PR_NUMBER, PAS_PR_DATE, PAS_PO_NUMBER, PAS_PO_DATE, IS_PAS_CALLBACK, PAS_CALLBACK_*), SA key = SA_CODE / SA_DETAIL_ID (inferred), run logs -> LOG_ITGPAS (inferred); no sample data",
+ "replace": {
+  "<SA_NUMBER_COL>": "SA_CODE",
+  "<ITEM_NO_COL>": "SA_DETAIL_ID (inferred)",
+  "<ELIPS_PAS_CALLBACK_RUN_LOG>": "ielp.LOG_ITGPAS (inferred)",
+  "<ELIPS_PAS_CALLBACK_DETAIL_LOG>": "ielp.LOG_ITGPAS (inferred)",
+  "SA_DETAIL": "ielp.SA_DETAIL"
+ },
+ "fields": [
+  {
+   "ui": "PR number",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "PAS_PR_NUMBER",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "PR date",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "PAS_PR_DATE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "PO number",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "PAS_PO_NUMBER",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "PO date",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "PAS_PO_DATE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Callback flag / status",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "IS_PAS_CALLBACK",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "PAS_CALLBACK_STATUS, PAS_CALLBACK_DATE, LOG_ITG_CALLBACK_ID."
+  },
+  {
+   "ui": "Run log",
+   "items": [],
+   "table": "ielp.LOG_ITGPAS",
+   "column": "STS_CODE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  }
+ ],
+ "conflicts": [],
+ "tbd": [
+  "SA item key column",
+  "Callback status values"
+ ]
+}

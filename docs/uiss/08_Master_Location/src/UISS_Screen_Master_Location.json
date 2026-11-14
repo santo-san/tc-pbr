@@ -1,0 +1,2380 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD Master Location",
+  "created_date": "29-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "29-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on Master Location requirement, screenshot and HTML mock-up (docs/master-location-rules.md) 29-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema (ielp.MS_LOCATION): column names / types from the DDL; coordinates and radius are varchar in ELIPS; Active / Inactive and VERSION have no column (conflicts); no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To add and maintain locations used in TC-PBR operations, each with a unique Location Alias (e.g. A1, A2, K1E) used as reference in delivery transactions.",
+   "To set the location point (latitude / longitude) using the map: address search, map click or marker drag.",
+   "To set the geofence radius used to check the driver position when closing a delivery, and whether delivery to the location can finish automatically (Auto Finish).",
+   "To deactivate locations already used in deliveries instead of deleting them, so historical deliveries keep their location reference."
+  ],
+  "display_order": [
+   {
+    "section": "Location Registrations",
+    "fields": [
+     {
+      "field": "Location Code",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Save",
+    "function": "To validate and save the location (insert in Add Mode, update in Edit Mode)."
+   },
+   {
+    "name": "Cancel",
+    "function": "Clear the form and reset the screen to Add Mode."
+   },
+   {
+    "name": "Map pick",
+    "function": "Address suggestion, map click or marker drag: to set Latitude / Longitude (and address by reverse geocoding)."
+   },
+   {
+    "name": "Search",
+    "function": "To filter the list by keyword."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide columns of the list."
+   },
+   {
+    "name": "Export .xls",
+    "function": "To export the filtered list to Excel."
+   },
+   {
+    "name": "Opsi View",
+    "function": "To display the location detail."
+   },
+   {
+    "name": "Opsi Edit",
+    "function": "Change the screen into Edit Mode with the selected location loaded and its marker shown."
+   },
+   {
+    "name": "Opsi Deactivate / Delete",
+    "function": "Deactivate (used in delivery) or Delete (never used) the location after confirmation."
+   },
+   {
+    "name": "Confirm",
+    "function": "Deactivate / Delete button in the confirmation modal."
+   },
+   {
+    "name": "Batal",
+    "function": "To close the confirmation modal without change."
+   },
+   {
+    "name": "Close (x)",
+    "function": "To close the modal."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Add Mode (initial)",
+    "sections": [
+     {
+      "section": "Form & Map",
+      "description": "blank form, Auto Generate Cycle = No, map default centre, no marker",
+      "buttons": {
+       "Save": "E",
+       "Cancel": "E",
+       "Map pick": "E",
+       "Search": "D",
+       "Kolom": "D",
+       "Export .xls": "D",
+       "Opsi View": "D",
+       "Opsi Edit": "D",
+       "Opsi Deactivate / Delete": "D",
+       "Confirm": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     },
+     {
+      "section": "Location Registrations",
+      "description": "all locations, refer below 1)",
+      "buttons": {
+       "Save": "D",
+       "Cancel": "D",
+       "Map pick": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Export .xls": "E",
+       "Opsi View": "E",
+       "Opsi Edit": "E",
+       "Opsi Deactivate / Delete": "E",
+       "Confirm": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Edit Mode",
+    "sections": [
+     {
+      "section": "Form & Map",
+      "description": "selected location loaded; marker and circle on stored point; refer below 2)",
+      "buttons": {
+       "Save": "E",
+       "Cancel": "E",
+       "Map pick": "E",
+       "Search": "D",
+       "Kolom": "D",
+       "Export .xls": "D",
+       "Opsi View": "D",
+       "Opsi Edit": "D",
+       "Opsi Deactivate / Delete": "D",
+       "Confirm": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     },
+     {
+      "section": "Location Registrations",
+      "description": "edited row highlighted",
+      "buttons": {
+       "Save": "D",
+       "Cancel": "D",
+       "Map pick": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Export .xls": "E",
+       "Opsi View": "E",
+       "Opsi Edit": "E",
+       "Opsi Deactivate / Delete": "E",
+       "Confirm": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "View Modal Mode",
+    "sections": [
+     {
+      "section": "Modal",
+      "description": "read only",
+      "buttons": {
+       "Save": "D",
+       "Cancel": "D",
+       "Map pick": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Export .xls": "D",
+       "Opsi View": "D",
+       "Opsi Edit": "D",
+       "Opsi Deactivate / Delete": "D",
+       "Confirm": "D",
+       "Batal": "D",
+       "Close (x)": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Confirmation Modal Mode",
+    "sections": [
+     {
+      "section": "Modal",
+      "description": "Deactivate or Delete text",
+      "buttons": {
+       "Save": "D",
+       "Cancel": "D",
+       "Map pick": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Export .xls": "D",
+       "Opsi View": "D",
+       "Opsi Edit": "D",
+       "Opsi Deactivate / Delete": "D",
+       "Confirm": "E",
+       "Batal": "E",
+       "Close (x)": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) For INACTIVE rows only Opsi View is enabled. Options are shown according to permission (View / Add / Edit / Deactivate / Export Master Location).",
+   "2) Location Alias is read only when the location is already used in delivery transactions."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Master Location",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "Master Location screen",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "v",
+      "label": "View Location modal",
+      "type": "screen"
+     },
+     {
+      "id": "c",
+      "label": "Confirmation modal",
+      "type": "screen"
+     },
+     {
+      "id": "x",
+      "label": "Excel file",
+      "type": "document"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "v",
+      "label": "Opsi > View"
+     },
+     {
+      "from": "v",
+      "to": "s",
+      "label": "Close (x)"
+     },
+     {
+      "from": "s",
+      "to": "c",
+      "label": "Opsi > Deactivate / Delete"
+     },
+     {
+      "from": "c",
+      "to": "s",
+      "label": "Confirm / Batal"
+     },
+     {
+      "from": "s",
+      "to": "x",
+      "label": "Export .xls"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Save (Add / Edit)",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Save button",
+      "type": "event"
+     },
+     {
+      "id": "m",
+      "label": "Mandatory filled?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 1",
+      "type": "message"
+     },
+     {
+      "id": "v",
+      "label": "Format, range, Sub Area OK?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 2-7",
+      "type": "message"
+     },
+     {
+      "id": "u",
+      "label": "Alias unique / edit allowed?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Show message no. 3 / 8 / 9",
+      "type": "message"
+     },
+     {
+      "id": "w",
+      "label": "Insert or update location",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_LOCATION",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Reset to Add Mode, msg 10",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "m"
+     },
+     {
+      "from": "m",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "m",
+      "to": "v",
+      "label": "Yes"
+     },
+     {
+      "from": "v",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "v",
+      "to": "u",
+      "label": "Yes"
+     },
+     {
+      "from": "u",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "u",
+      "to": "w",
+      "label": "Yes"
+     },
+     {
+      "from": "w",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "w",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "m",
+      "e1"
+     ],
+     [
+      "v",
+      "e2"
+     ],
+     [
+      "u",
+      "e3"
+     ],
+     [
+      "w",
+      "db"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Map Point Selection",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "Pick suggestion / click map / drag marker",
+      "type": "event"
+     },
+     {
+      "id": "p",
+      "label": "Set Latitude / Longitude (7 decimals)",
+      "type": "process"
+     },
+     {
+      "id": "mk",
+      "label": "Move marker, draw radius circle",
+      "type": "process"
+     },
+     {
+      "id": "q",
+      "label": "Address from suggestion? (Yes: use it)",
+      "type": "decision"
+     },
+     {
+      "id": "rg",
+      "label": "Reverse geocode to address",
+      "type": "process"
+     },
+     {
+      "id": "gm",
+      "label": "Google Maps API (TBD)",
+      "type": "db"
+     },
+     {
+      "id": "a",
+      "label": "Fill Location Address Google Map",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "p"
+     },
+     {
+      "from": "p",
+      "to": "mk"
+     },
+     {
+      "from": "mk",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "a"
+     },
+     {
+      "from": "q",
+      "to": "rg",
+      "label": "No"
+     },
+     {
+      "from": "rg",
+      "to": "gm",
+      "style": "dashed"
+     },
+     {
+      "from": "rg",
+      "to": "a"
+     },
+     {
+      "from": "a",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "rg",
+      "gm"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Deactivate / Delete",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Opsi > Deactivate / Delete",
+      "type": "event"
+     },
+     {
+      "id": "q",
+      "label": "Location used in delivery?",
+      "type": "decision"
+     },
+     {
+      "id": "cd",
+      "label": "Confirm msg 13",
+      "type": "message"
+     },
+     {
+      "id": "cx",
+      "label": "Confirm msg 14",
+      "type": "message"
+     },
+     {
+      "id": "d",
+      "label": "Set Status = INACTIVE",
+      "type": "process"
+     },
+     {
+      "id": "x",
+      "label": "Delete location",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_LOCATION",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Refresh list, msg 16",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "cd",
+      "label": "Yes"
+     },
+     {
+      "from": "q",
+      "to": "cx",
+      "label": "No"
+     },
+     {
+      "from": "cd",
+      "to": "d",
+      "label": "Deactivate"
+     },
+     {
+      "from": "cx",
+      "to": "x",
+      "label": "Delete"
+     },
+     {
+      "from": "d",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "d",
+      "to": "e"
+     },
+     {
+      "from": "x",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "cd",
+      "cx"
+     ],
+     [
+      "d",
+      "x"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Geofence Check on Driver Closing (Driver App, uses this master)",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "Driver closes delivery (scan)",
+      "type": "event"
+     },
+     {
+      "id": "g",
+      "label": "Get driver GPS",
+      "type": "process"
+     },
+     {
+      "id": "l",
+      "label": "ielp.MS_LOCATION",
+      "type": "db"
+     },
+     {
+      "id": "d",
+      "label": "Distance to destination (Haversine)",
+      "type": "process"
+     },
+     {
+      "id": "q",
+      "label": "Distance <= Radius?",
+      "type": "decision"
+     },
+     {
+      "id": "o",
+      "label": "OUTSIDE GEOFENCE: warning msg 18, log event",
+      "type": "message"
+     },
+     {
+      "id": "i",
+      "label": "INSIDE GEOFENCE",
+      "type": "process"
+     },
+     {
+      "id": "f",
+      "label": "Finish mechanism = MANUAL/SCAN",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "g"
+     },
+     {
+      "from": "g",
+      "to": "d"
+     },
+     {
+      "from": "l",
+      "to": "d",
+      "style": "dashed"
+     },
+     {
+      "from": "d",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "i",
+      "label": "Yes"
+     },
+     {
+      "from": "q",
+      "to": "o",
+      "label": "No"
+     },
+     {
+      "from": "i",
+      "to": "f"
+     },
+     {
+      "from": "o",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "g",
+      "l"
+     ],
+     [
+      "i",
+      "o"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Auto Finish (system, uses this master)",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "Delivery event to destination",
+      "type": "event"
+     },
+     {
+      "id": "q1",
+      "label": "Destination Auto Finish = Yes?",
+      "type": "decision"
+     },
+     {
+      "id": "n",
+      "label": "Driver closes by scan (MANUAL/SCAN)",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "TC-PBR trigger met? (TBD)",
+      "type": "decision"
+     },
+     {
+      "id": "a",
+      "label": "Finish delivery: mechanism AUTO, time, destination, lat/lng, SYSTEM",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "Delivery Finish History (TBD)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "n",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "n",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "a",
+      "label": "Yes"
+     },
+     {
+      "from": "a",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "a",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "n"
+     ],
+     [
+      "a",
+      "db"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Master Location - Add Mode with map and Location Registrations (screenshot from user)",
+   "image": "img/UISS_Screen_Master_Location/u07_master_location.png"
+  },
+  {
+   "caption": "2. Add Mode - mandatory validation (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Location/l02_mandatory.png",
+   "notes": [
+    "Mock-up map uses Leaflet / OpenStreetMap (tiles not loaded in the capture environment); real screen uses the existing Google Maps."
+   ]
+  },
+  {
+   "caption": "3. Options menu per row (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Location/l03_options.png"
+  },
+  {
+   "caption": "4. Edit Mode - stored point loaded (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Location/l06_edit_mode.png"
+  },
+  {
+   "caption": "5. Deactivate confirmation (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Location/l04_deactivate.png"
+  },
+  {
+   "caption": "6. View Location modal (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Location/l05_view_geofence.png",
+   "notes": [
+    "The geofence simulation block in the mock-up is for demonstration only; it is not part of the real screen."
+   ]
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Download Driver App",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "name": "Landing Page",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "group": "<Form Section (left)>"
+  },
+  {
+   "name": "Location Name",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_NAME",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "X..100..X",
+   "validation": "Mandatory (msg 1), max 100 (msg 7)",
+   "description": "Full location name. Stored upper case, double spaces removed. Same name allowed with different Alias.\nDB: ielp.MS_LOCATION.LOCATION_NAME varchar(5000) NOT NULL [Revised] UI max 100 < DB 5000."
+  },
+  {
+   "name": "Location Alias",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "X..10..X",
+   "validation": "Mandatory; A-Z / 0-9 (msg 2); unique (msg 3)",
+   "description": "Unique location code used in TC-PBR transactions (e.g. A1, A2, K1E). Upper case, spaces removed. Read only in Edit when the location is used in delivery.\nDB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised] UI max 10 < DB 100; LOCATION_ID (PK) is a separate key."
+  },
+  {
+   "name": "Hint",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Kode unik lokasi untuk transaksi TC-PBR, contoh A1, A2, K1E.'"
+  },
+  {
+   "name": "Location Address Google Map",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ADDRESS_ORI",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "I",
+   "control": "Text box + suggestion list",
+   "justified": "Left",
+   "initial": "Placeholder 'Enter a location'",
+   "required": "N",
+   "format": "X..300..X",
+   "validation": "No result (msg 11)",
+   "description": "Typing shows address suggestions (Places autocomplete, TBD). Selecting one sets formatted address, Latitude, Longitude. Typing \"lat, lng\" jumps to that coordinate. Filled by reverse geocoding when the point is set on the map.\nDB: ielp.MS_LOCATION.LOCATION_ADDRESS_ORI varchar(5000) NULL [Revised] Link by name (inferred)."
+  },
+  {
+   "name": "Physical Location Address",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ADRESS",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "X..300..X",
+   "validation": "",
+   "description": "Detail / physical address; editable even when different from Google Map address.\nDB: ielp.MS_LOCATION.LOCATION_ADRESS varchar(5000) NULL [Revised] Column spelled LOCATION_ADRESS."
+  },
+  {
+   "name": "Location Sub Area",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_SUB",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "<Select an option>",
+   "required": "N",
+   "format": "",
+   "validation": "Must exist in Sub Area master (msg 6)",
+   "description": "List from Sub Area master (e.g. KARAWANG, CIKARANG, PORT AREA, DEPO). Not hard-coded.\nDB: ielp.MS_LOCATION.LOCATION_SUB varchar(10) NULL [TBD] LOCATION_SUB / LOCATION_AREA varchar(10); list source TBD."
+  },
+  {
+   "name": "Radius (m)",
+   "source": "ielp.MS_LOCATION",
+   "field": "RADIUS",
+   "type": "Varchar",
+   "len": "5",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Right",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "ZZ,ZZ9",
+   "validation": "Numeric > 0 (msg 5)",
+   "description": "Geofence radius in meter around the coordinate; drawn as circle on the map.\nDB: ielp.MS_LOCATION.RADIUS varchar(5) NULL default '50' [Conflict] varchar(5) default '50'."
+  },
+  {
+   "name": "Auto Finish Order",
+   "source": "ielp.MS_LOCATION",
+   "field": "AUTO_FINISH",
+   "type": "Varchar",
+   "len": "1",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "<Select an option>",
+   "required": "Y",
+   "format": "Yes / No",
+   "validation": "Mandatory (msg 1)",
+   "description": "Yes: delivery to this destination can finish automatically (AUTO) when the TC-PBR trigger is met (TBD, OP-05).\nDB: ielp.MS_LOCATION.AUTO_FINISH varchar(1) NULL default (0) [Revised]"
+  },
+  {
+   "name": "Auto Generate Cycle",
+   "source": "ielp.MS_LOCATION",
+   "field": "AUTO_CYCLE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "No",
+   "required": "N",
+   "format": "Yes / No",
+   "validation": "",
+   "description": "Rule follows existing TC-PBR process (TBD, OP-06).\nDB: ielp.MS_LOCATION.AUTO_CYCLE varchar(1) NULL default (0) [Revised]"
+  },
+  {
+   "name": "Latitude",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_LATITUDE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Right",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "-Z9.9999999",
+   "validation": "Mandatory; -90..90 (msg 4)",
+   "description": "Set by map search / click / drag, or typed. Stored with 7 decimals.\nDB: ielp.MS_LOCATION.LOCATION_LATITUDE varchar(100) NOT NULL [Conflict] varchar(100) NOT NULL; UI Number(10,7)."
+  },
+  {
+   "name": "Longitude",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_LANGITUDE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Right",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "-ZZ9.9999999",
+   "validation": "Mandatory; -180..180 (msg 4)",
+   "description": "Same as Latitude.\nDB: ielp.MS_LOCATION.LOCATION_LANGITUDE varchar(100) NOT NULL [Conflict] Column spelled LANGITUDE; varchar(100)."
+  },
+  {
+   "name": "Save",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.3."
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Clear the form, remove the marker, back to Add Mode."
+  },
+  {
+   "name": "Mode info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Mode: Add lokasi baru' / 'Mode: Edit <Alias> - <Name>' (+ alias locked note)."
+  },
+  {
+   "group": "<Map Section (right)>"
+  },
+  {
+   "name": "Map",
+   "source": "Google Maps (existing)",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I/O",
+   "control": "Map",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Interactive map. Click sets the point; marker is draggable; radius drawn as circle. In Edit, centred on the stored coordinate. Service unavailable: msg 12."
+  },
+  {
+   "name": "Marker",
+   "source": "Map",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I/O",
+   "control": "Map marker",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Current Latitude / Longitude."
+  },
+  {
+   "name": "Radius circle",
+   "source": "Map",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Map circle",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Circle with the Radius value around the marker."
+  },
+  {
+   "name": "Map / Satellite, Full screen, Street view, Zoom",
+   "source": "Google Maps",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Map controls",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Standard Google Maps controls (existing)."
+  },
+  {
+   "group": "<Location Registrations Section>"
+  },
+  {
+   "name": "Search",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "No data (msg 17)",
+   "description": "Searches Location Code, Name, Sub Area, Google Map Address, Physical Address."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column: show / hide. Default hidden: Physical Address, Created By, Created At."
+  },
+  {
+   "name": "Export .xls",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Export all rows matching the search (not only current page) with the visible columns."
+  },
+  {
+   "name": "Options (Opsi)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "View, Edit, Deactivate (used in delivery) / Delete (never used). Edit and Deactivate/Delete disabled for INACTIVE. Shown per permission."
+  },
+  {
+   "name": "Location Code",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "X..10..X",
+   "validation": "",
+   "description": "Default sort ascending.\nDB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised] UI max 10 < DB 100; LOCATION_ID (PK) is a separate key."
+  },
+  {
+   "name": "Loc Name",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_NAME",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_NAME varchar(5000) NOT NULL [Revised] UI max 100 < DB 5000."
+  },
+  {
+   "name": "Loc Sub Area",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_SUB",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Use code, display name.\nDB: ielp.MS_LOCATION.LOCATION_SUB varchar(10) NULL [TBD] LOCATION_SUB / LOCATION_AREA varchar(10); list source TBD."
+  },
+  {
+   "name": "Auto Cycle",
+   "source": "ielp.MS_LOCATION",
+   "field": "AUTO_CYCLE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YES / NO",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.AUTO_CYCLE varchar(1) NULL default (0) [Revised]"
+  },
+  {
+   "name": "Cycle To Area",
+   "source": "ielp.MS_LOCATION",
+   "field": "CYCLE_LOC_TO",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing column, display only; '-' when blank (TBD, OP-06).\nDB: ielp.MS_LOCATION.CYCLE_LOC_TO varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Auto Finish",
+   "source": "ielp.MS_LOCATION",
+   "field": "AUTO_FINISH",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YES / NO",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.AUTO_FINISH varchar(1) NULL default (0) [Revised]"
+  },
+  {
+   "name": "Coordinates",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_LATITUDE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "lat, lng",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_LATITUDE varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Radius (m)",
+   "source": "ielp.MS_LOCATION",
+   "field": "RADIUS",
+   "type": "Varchar",
+   "len": "5",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZ,ZZ9",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.RADIUS varchar(5) NULL default '50' [Conflict] varchar(5) default '50'."
+  },
+  {
+   "name": "G.Map Address",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ADDRESS_ORI",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_ADDRESS_ORI varchar(5000) NULL [Revised] Link by name (inferred)."
+  },
+  {
+   "name": "Physical Address",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ADRESS",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Hidden by default.\nDB: ielp.MS_LOCATION.LOCATION_ADRESS varchar(5000) NULL [Revised] Column spelled LOCATION_ADRESS."
+  },
+  {
+   "name": "Status",
+   "source": "ielp.MS_LOCATION",
+   "field": "IS_DELETE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Badge",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "ACTIVE / INACTIVE",
+   "validation": "",
+   "description": "INACTIVE rows shown in grey.\nDB: ielp.MS_LOCATION.IS_DELETE varchar(100) NULL default (0) [Conflict] No separate inactive state."
+  },
+  {
+   "name": "Created By / Created At",
+   "source": "ielp.MS_LOCATION",
+   "field": "CREATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY HH:MI",
+   "validation": "",
+   "description": "Hidden by default.\nDB: ielp.MS_LOCATION.CREATED_BY varchar(500) NOT NULL [Revised]"
+  },
+  {
+   "name": "Updated By / Updated At",
+   "source": "ielp.MS_LOCATION",
+   "field": "UPDATED_BY",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY HH:MI",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.UPDATED_BY varchar(5000) NULL [Revised]"
+  },
+  {
+   "name": "Paging info / Rows per page / Pagination",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label + Combo Box + Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Showing n to m of x records'; 10 / 25 / 50 rows."
+  },
+  {
+   "group": "<View Location Modal>"
+  },
+  {
+   "name": "Location details",
+   "source": "ielp.MS_LOCATION",
+   "field": "all fields",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Alias, Name, Sub Area, addresses, Coordinates, Radius, Auto Finish, Auto Generate Cycle, Status, used-in-delivery flag, Created / Updated."
+  },
+  {
+   "name": "Close (x)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "group": "<Deactivate / Delete Confirmation Modal>"
+  },
+  {
+   "name": "Confirmation text",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Deactivate: msg 13. Delete: msg 14."
+  },
+  {
+   "name": "Deactivate / Delete",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Batal",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_LOCATION",
+     "operation": "Insert",
+     "description": "Add Mode - [Save]",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "source_field": "Location Alias",
+      "dest_field": "LOCATION_ALIAS",
+      "description": "Upper case, spaces removed"
+     },
+     {
+      "source_field": "Location Name",
+      "dest_field": "LOCATION_NAME",
+      "description": "Upper case, double spaces removed"
+     },
+     {
+      "source_field": "Location Address Google Map",
+      "dest_field": "LOCATION_ADDRESS_ORI"
+     },
+     {
+      "source_field": "Physical Location Address",
+      "dest_field": "LOCATION_ADRESS"
+     },
+     {
+      "source_field": "Location Sub Area",
+      "dest_field": "LOCATION_SUB"
+     },
+     {
+      "source_field": "Latitude",
+      "dest_field": "LOCATION_LATITUDE",
+      "description": "Rounded to 7 decimals"
+     },
+     {
+      "source_field": "Longitude",
+      "dest_field": "LOCATION_LANGITUDE",
+      "description": "Rounded to 7 decimals"
+     },
+     {
+      "source_field": "Radius (m)",
+      "dest_field": "RADIUS"
+     },
+     {
+      "source_field": "Auto Finish Order",
+      "dest_field": "AUTO_FINISH",
+      "description": "Yes -> 'Y', No -> 'N' (TBD)"
+     },
+     {
+      "source_field": "Auto Generate Cycle",
+      "dest_field": "AUTO_CYCLE",
+      "description": "Yes -> 'Y', No -> 'N' (TBD)"
+     },
+     {
+      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "description": "'ACTIVE'"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "1"
+     },
+     {
+      "dest_field": "LOCATION_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_LOCATION",
+     "operation": "Update",
+     "description": "Edit Mode - [Save]",
+     "keys": [
+      {
+       "field": "LOCATION_ALIAS",
+       "value": "Alias of the selected row (original value)"
+      },
+      {
+       "field": "VERSION (no column in ELIPS - Conflict)",
+       "value": "Version loaded into the form"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Location Alias",
+      "dest_field": "LOCATION_ALIAS",
+      "description": "Only when the location is not used in delivery"
+     },
+     {
+      "source_field": "Location Name",
+      "dest_field": "LOCATION_NAME",
+      "description": "Upper case, double spaces removed"
+     },
+     {
+      "source_field": "Location Address Google Map",
+      "dest_field": "LOCATION_ADDRESS_ORI"
+     },
+     {
+      "source_field": "Physical Location Address",
+      "dest_field": "LOCATION_ADRESS"
+     },
+     {
+      "source_field": "Location Sub Area",
+      "dest_field": "LOCATION_SUB"
+     },
+     {
+      "source_field": "Latitude",
+      "dest_field": "LOCATION_LATITUDE",
+      "description": "Rounded to 7 decimals"
+     },
+     {
+      "source_field": "Longitude",
+      "dest_field": "LOCATION_LANGITUDE",
+      "description": "Rounded to 7 decimals"
+     },
+     {
+      "source_field": "Radius (m)",
+      "dest_field": "RADIUS"
+     },
+     {
+      "source_field": "Auto Finish Order",
+      "dest_field": "AUTO_FINISH",
+      "description": "Yes -> 'Y', No -> 'N' (TBD)"
+     },
+     {
+      "source_field": "Auto Generate Cycle",
+      "dest_field": "AUTO_CYCLE",
+      "description": "Yes -> 'Y', No -> 'N' (TBD)"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_LOCATION",
+     "operation": "Update",
+     "description": "Opsi > Deactivate",
+     "keys": [
+      {
+       "field": "LOCATION_ALIAS",
+       "value": "Alias of the selected row (original value)"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "description": "'INACTIVE'"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_LOCATION",
+     "operation": "Delete",
+     "description": "Opsi > Delete (never used)",
+     "keys": [
+      {
+       "field": "LOCATION_ALIAS",
+       "value": "Alias of the selected row (original value)"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "(whole record)",
+      "description": "Physical delete, only when not used in delivery"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Form blank (Add Mode); 'Location Sub Area' list from Sub Area master with '<Select an option>'; 'Auto Finish Order' = '<Select an option>'; 'Auto Generate Cycle' = No.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Map centred on the default area (TBD) without marker.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Location Registrations shows all locations (ACTIVE and INACTIVE) sorted by Location Code, 10 rows per page.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Map Operation",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Key-in 'Location Address Google Map': show address suggestions (Google Places, TBD). No result: message no. 11. Typing 'lat, lng' offers that coordinate.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Select a suggestion / click the map / drag the marker: set Latitude and Longitude (7 decimals), move the marker, draw the Radius circle, and fill the Google Map address (from the suggestion or by reverse geocoding).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Typing Latitude / Longitude / Radius updates marker and circle. If the map service is not available, display message no. 12; coordinates can still be typed.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Save (Add / Edit)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "If a mandatory field is blank, display message no. 1 on the field. Stop.",
+    "Check formats: Location Alias (no. 2), Latitude / Longitude range (no. 4), Radius > 0 (no. 5), Sub Area in master (no. 6), max lengths (no. 7). Stop on error.",
+    "Location Alias must be unique across ACTIVE and INACTIVE locations (no. 3).",
+    "Edit only: INACTIVE location or Alias change on a location used in delivery -> no. 8; record changed by another user -> no. 9.",
+    "Insert (Add) or update (Edit) in one DB transaction with audit fields, reset to Add Mode, refresh the list and display message no. 10."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "text",
+   "text": "Backend validation must apply the same rules as the screen.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Options",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "View: show the location detail in a modal (read only).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Edit: load all fields into the form, centre the map on the stored coordinate and show the marker; Location Alias read only when used in delivery. Disabled for INACTIVE.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Deactivate (location used in delivery): confirmation no. 13; Status = INACTIVE, not selectable in new transactions, history keeps the reference. Message no. 16.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Delete (location never used): confirmation no. 14; physical delete. If it became used meanwhile, message no. 15.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Search, Kolom, Export",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Search filters on Location Code, Name, Sub Area, Google Map Address, Physical Address (no data: message no. 17).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Kolom shows / hides columns. Export .xls exports all rows matching the search with the visible columns.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Geofence Rule (used by Driver App closing)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Distance between driver GPS and destination coordinate is calculated with the Haversine formula (Earth radius 6,371,008.8 m) or the geospatial function of the DB / service (TBD), not by comparing latitude / longitude directly.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Distance <= Radius: INSIDE GEOFENCE, closing follows the normal SOP. Distance > Radius: OUTSIDE GEOFENCE, show message no. 18 and record the event (delivery, location, GPS, distance, radius, time) for monitoring. The closing is not blocked.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Example: A2 Patimban, radius 100 m; driver at 65 m -> INSIDE; at 470 m -> OUTSIDE (warning).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Auto Finish Rule",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Auto Finish Order is a per-location setting. When the delivery destination has Auto Finish = Yes and the TC-PBR Auto Finish trigger is met (TBD, OP-05), the delivery is finished without driver scan.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Audit for AUTO: finish mechanism = AUTO, finish timestamp, destination location, trigger latitude / longitude when available, SYSTEM. Normal closing by driver: mechanism = MANUAL/SCAN.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Security and Audit",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Permissions (existing role framework): View, Add, Edit, Deactivate, Export Master Location. Buttons / options shown per permission.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Created By / At and Updated By / At filled by the system; history of deliveries keeps referring to INACTIVE locations.",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Location Name",
+     "ielp.MS_LOCATION.LOCATION_NAME",
+     "varchar(5000)",
+     "Y",
+     "R/W",
+     "TRIM, UPPER",
+     "Revised"
+    ],
+    [
+     "Location Alias (Code)",
+     "ielp.MS_LOCATION.LOCATION_ALIAS",
+     "varchar(100)",
+     "Y",
+     "R/W",
+     "UPPER, unique",
+     "Revised"
+    ],
+    [
+     "Location Address Google Map",
+     "ielp.MS_LOCATION.LOCATION_ADDRESS_ORI",
+     "varchar(5000)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Physical Location Address",
+     "ielp.MS_LOCATION.LOCATION_ADRESS",
+     "varchar(5000)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Location Sub Area",
+     "ielp.MS_LOCATION.LOCATION_SUB",
+     "varchar(10)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Radius (m)",
+     "ielp.MS_LOCATION.RADIUS",
+     "varchar(5)",
+     "N",
+     "R/W",
+     "Numeric > 0 stored as text",
+     "Conflict"
+    ],
+    [
+     "Auto Finish Order",
+     "ielp.MS_LOCATION.AUTO_FINISH",
+     "varchar(1)",
+     "N",
+     "R/W",
+     "Yes / No -> values TBD (default 0)",
+     "Revised"
+    ],
+    [
+     "Auto Generate Cycle",
+     "ielp.MS_LOCATION.AUTO_CYCLE",
+     "varchar(1)",
+     "N",
+     "R/W",
+     "Yes / No -> values TBD (default 0)",
+     "Revised"
+    ],
+    [
+     "Cycle To Area",
+     "ielp.MS_LOCATION.CYCLE_LOC_TO",
+     "varchar(10)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Latitude",
+     "ielp.MS_LOCATION.LOCATION_LATITUDE",
+     "varchar(100)",
+     "Y",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Longitude",
+     "ielp.MS_LOCATION.LOCATION_LANGITUDE",
+     "varchar(100)",
+     "Y",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Coordinates (list)",
+     "ielp.MS_LOCATION.LOCATION_LATITUDE",
+     "varchar(100)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Status Active / Inactive",
+     "ielp.MS_LOCATION.IS_DELETE",
+     "varchar(100)",
+     "N",
+     "R/W",
+     "Deactivate / Delete -> IS_DELETE (values TBD)",
+     "Conflict"
+    ],
+    [
+     "Created By / At",
+     "ielp.MS_LOCATION.CREATED_BY",
+     "varchar(500)",
+     "Y",
+     "W (insert)",
+     "-",
+     "Revised"
+    ],
+    [
+     "Updated By / At",
+     "ielp.MS_LOCATION.UPDATED_BY",
+     "varchar(5000)",
+     "N",
+     "W (update)",
+     "-",
+     "Revised"
+    ],
+    [
+     "(key) Location ID",
+     "ielp.MS_LOCATION.LOCATION_ID",
+     "varchar(10)",
+     "Y",
+     "W (insert)",
+     "Generated - rule TBD",
+     "TBD"
+    ],
+    [
+     "(system) App ID",
+     "ielp.MS_LOCATION.APP_ID",
+     "varchar(20)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MLC-01 Coordinates type: UISS / code: Number(10,7). DB: LOCATION_LATITUDE / LOCATION_LANGITUDE varchar(100) NOT NULL. Recommendation: Store as text with 7 decimals; validate in the application",
+    "G-MLC-02 Radius: UISS / code: Number. DB: RADIUS varchar(5) default '50'. Recommendation: Max 5 characters",
+    "G-MLC-03 Active / Inactive: UISS / code: STATUS + Deactivate. DB: Only IS_DELETE varchar(100). Recommendation: Confirm deactivate = IS_DELETE or add a status column",
+    "G-MLC-04 Concurrency: UISS / code: VERSION. DB: No VERSION column. Recommendation: Use UPDATED_DATE or add VERSION"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "LOCATION_ID generation; which key other tables use (FROM_LOC / TO_LOC varchar(10) = LOCATION_ID or LOCATION_ALIAS?)",
+    "Values of AUTO_FINISH / AUTO_CYCLE / IS_DELETE",
+    "Source of LOCATION_AREA / LOCATION_SUB",
+    "APP_ID value"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Save Operation (Add / Edit)"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Mandatory field not filled (Location Name, Location Alias, Radius, Auto Finish Order, Latitude / Longitude)",
+   "type": "Error",
+   "msg_id": "MSTD0075AERR",
+   "message": "Mandatory Field Not Entered",
+   "action": "Fill all mandatory field and click Save"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Location Alias not letters / numbers or longer than 10 characters",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for Location Alias. The format must be letters / numbers, max 10 characters",
+   "action": "Correct Location Alias"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Location Alias already used (ACTIVE or INACTIVE)",
+   "type": "Error",
+   "msg_id": "MSTD0039AERR",
+   "message": "Duplication found for Location Alias {Alias}",
+   "action": "Use another Location Alias"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Latitude not -90..90 or Longitude not -180..180",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for {Latitude / Longitude}. The format must be number between {-90 and 90 / -180 and 180}",
+   "action": "Pick the point on the map or correct the value"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Radius not numeric or <= 0",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for Radius. The format must be number greater than 0 (meter)",
+   "action": "Correct Radius"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Location Sub Area not in Sub Area master",
+   "type": "Error",
+   "msg_id": "MSTD0043AERR",
+   "message": "Invalid Location Sub Area",
+   "action": "Select from the list"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Text longer than allowed (Name 100, addresses 300)",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for {field name}. The format must be max {n} characters",
+   "action": "Shorten the text"
+  },
+  {
+   "event": "Click [Save] button (Edit Mode)",
+   "cause": "Location is INACTIVE, or Location Alias changed while the location is used in delivery",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Location {Alias} is INACTIVE and cannot be changed. / Location Alias cannot be changed because the location is used in delivery transactions.",
+   "action": "Cancel and check the location"
+  },
+  {
+   "event": "Click [Save] button (Edit Mode)",
+   "cause": "Record changed by another user",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Error in Update because of concurrency check.",
+   "action": "Cancel and edit again"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Saved successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Location {Alias} - {Name} has been saved successfully.",
+   "action": "-"
+  },
+  {
+   "group": "Map Operation"
+  },
+  {
+   "event": "Key-in Location Address Google Map",
+   "cause": "No address suggestion found",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Address not found.",
+   "action": "Change the keyword or click the point on the map"
+  },
+  {
+   "event": "Open screen / search address",
+   "cause": "Map / geocoding service not available",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Map service is not available. Please input Latitude and Longitude manually.",
+   "action": "Input coordinates manually or retry later"
+  },
+  {
+   "group": "Options Operation"
+  },
+  {
+   "event": "Click [Opsi] > [Deactivate]",
+   "cause": "Confirmation (location used in delivery)",
+   "type": "Confirm",
+   "msg_id": "TBD",
+   "message": "Are you sure you want to deactivate location {Alias}? It will no longer be available for new transactions.",
+   "action": "Click Deactivate or Batal"
+  },
+  {
+   "event": "Click [Opsi] > [Delete]",
+   "cause": "Confirmation (location never used in delivery)",
+   "type": "Confirm",
+   "msg_id": "MSTD0001ACFM",
+   "message": "Are you sure you want to delete the record ?",
+   "action": "Click Delete or Batal"
+  },
+  {
+   "event": "Click [Delete] (confirm)",
+   "cause": "Location already used in delivery transactions",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Location {Alias} is used in delivery transactions. Please use Deactivate.",
+   "action": "Use Deactivate"
+  },
+  {
+   "event": "Click [Deactivate] / [Delete] (confirm)",
+   "cause": "Processed successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Location {Alias} has been deactivated (INACTIVE). / Location {Alias} has been deleted.",
+   "action": "-"
+  },
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Key-in [Search]",
+   "cause": "No data matches the keyword",
+   "type": "Info",
+   "msg_id": "STD090001AINF",
+   "message": "No Data Found",
+   "action": "Change the keyword"
+  },
+  {
+   "group": "Geofence (Driver App closing, uses this master)"
+  },
+  {
+   "event": "Driver closes delivery (scan) in Driver App",
+   "cause": "Driver GPS distance to destination > Radius (OUTSIDE GEOFENCE)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Anda melakukan closing delivery di luar radius lokasi tujuan.",
+   "action": "Closing continues; event recorded for monitoring"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Click [Save] (Add)",
+   "cause": "Location created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Location {Alias} created by {User}.",
+   "exception": "N",
+   "action": "Audit: Created By / At"
+  },
+  {
+   "event": "Click [Save] (Edit)",
+   "cause": "Location updated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Location {Alias} updated by {User} (version {n}).",
+   "exception": "N",
+   "action": "Audit: Updated By / At"
+  },
+  {
+   "event": "Click [Deactivate] (confirm)",
+   "cause": "Location deactivated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Location {Alias} set to INACTIVE by {User}.",
+   "exception": "N",
+   "action": "Audit: Updated By / At"
+  },
+  {
+   "event": "Click [Delete] (confirm)",
+   "cause": "Location deleted",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Location {Alias} deleted by {User}.",
+   "exception": "N",
+   "action": "Audit log (TBD)"
+  },
+  {
+   "event": "Driver closing (Driver App)",
+   "cause": "OUTSIDE GEOFENCE",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Delivery {Delivery No} closed {distance} m from {Alias} (radius {Radius} m).",
+   "exception": "Y",
+   "action": "Display Message no. 18; insert into Geofence Event Log (TBD)"
+  },
+  {
+   "event": "Auto Finish (system)",
+   "cause": "Destination Auto Finish = Yes and trigger met",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Delivery {Delivery No} finished automatically (AUTO) at {Alias}.",
+   "exception": "N",
+   "action": "Insert into Delivery Finish History (TBD) (mechanism AUTO)"
+  }
+ ]
+}

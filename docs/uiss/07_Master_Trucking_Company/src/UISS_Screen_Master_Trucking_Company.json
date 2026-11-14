@@ -1,0 +1,2397 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD Master Trucking Company",
+  "created_date": "12-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "12-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on the Master Trucking Company HTML mock-up and rules (docs/master-trucking-company-rules.md, MT-01..MT-31)"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Mock-up data aligned with Master KPI By Trip: PT. PUTRA SOPUTAN (PS, 2-character code, exception to MT-03, OP-02) added; Iron Bird kept as IBT; screenshots refreshed"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema (ielp.MS_TRUCKING_COMPANY): column names, types and lengths from the DDL; Deletion = IS_DELETE; conflicts recorded (UI lengths vs DB, no VERSION / SERVICE_TYPE column); no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To register and maintain the trucking companies (vendors of TC-PBR): add, update, delete, search and export.",
+   "To keep Vendor Code, SAP Vendor Code and NPWP unique among active trucking companies, so that every vendor in Daily, Monthly, SA and PAS can be identified without ambiguity.",
+   "To keep deleted trucking companies for history (logical delete): they stay visible with Deletion = Yes but can no longer be updated or used in new transactions."
+  ],
+  "display_order": [
+   {
+    "section": "Trucking Company List",
+    "fields": [
+     {
+      "field": "Vendor Name",
+      "order": "Ascending (default, changeable by column header)"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Form fields",
+    "function": "Vendor Name, Vendor Code, SAP Vendor Code, Service Type, NPWP, Contact Name, E-Mail, Phone, Mobile Phone, Address."
+   },
+   {
+    "name": "Save",
+    "function": "To validate and save: insert in Add Mode, update in Update Mode."
+   },
+   {
+    "name": "Cancel",
+    "function": "Clear the form and reset the screen to Add Mode."
+   },
+   {
+    "name": "Search",
+    "function": "To filter the list by keyword (all columns)."
+   },
+   {
+    "name": "Table View",
+    "function": "To show / hide list columns."
+   },
+   {
+    "name": "Export .xls",
+    "function": "To export the filtered list (all pages) to Excel."
+   },
+   {
+    "name": "Sort",
+    "function": "To sort the list by the clicked column."
+   },
+   {
+    "name": "Update",
+    "function": "Change the screen into Update Mode with the selected row loaded."
+   },
+   {
+    "name": "Delete",
+    "function": "To delete the trucking company logically after confirmation."
+   },
+   {
+    "name": "Paging",
+    "function": "To move between pages and set rows per page."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Add Mode (initial)",
+    "sections": [
+     {
+      "section": "Input Form",
+      "description": "all fields blank, Service Type = MRO",
+      "buttons": {
+       "Form fields": "E",
+       "Save": "E",
+       "Cancel": "E",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Sort": "D",
+       "Update": "D",
+       "Delete": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Trucking Company List",
+      "description": "all rows, refer below 1)",
+      "buttons": {
+       "Form fields": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "E",
+       "Table View": "E",
+       "Export .xls": "E",
+       "Sort": "E",
+       "Update": "E",
+       "Delete": "E",
+       "Paging": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Update Mode",
+    "sections": [
+     {
+      "section": "Input Form",
+      "description": "row loaded; Vendor Code read only, refer below 2)",
+      "buttons": {
+       "Form fields": "E",
+       "Save": "E",
+       "Cancel": "E",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Sort": "D",
+       "Update": "D",
+       "Delete": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Trucking Company List",
+      "description": "edited row highlighted",
+      "buttons": {
+       "Form fields": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "E",
+       "Table View": "E",
+       "Export .xls": "E",
+       "Sort": "E",
+       "Update": "E",
+       "Delete": "E",
+       "Paging": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Saving Mode",
+    "sections": [
+     {
+      "section": "Input Form",
+      "description": "request in progress",
+      "buttons": {
+       "Form fields": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Sort": "D",
+       "Update": "D",
+       "Delete": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Trucking Company List",
+      "description": "unchanged until saved",
+      "buttons": {
+       "Form fields": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "E",
+       "Table View": "E",
+       "Export .xls": "E",
+       "Sort": "E",
+       "Update": "E",
+       "Delete": "E",
+       "Paging": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Delete Confirmation",
+    "sections": [
+     {
+      "section": "Input Form",
+      "description": "behind the dialog",
+      "buttons": {
+       "Form fields": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Sort": "D",
+       "Update": "D",
+       "Delete": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Trucking Company List",
+      "description": "behind the dialog",
+      "buttons": {
+       "Form fields": "D",
+       "Save": "D",
+       "Cancel": "D",
+       "Search": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Sort": "D",
+       "Update": "D",
+       "Delete": "D",
+       "Paging": "D"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Rows with Deletion = Yes: Update and Delete buttons are disabled (tooltip 'Already deleted').",
+   "2) Update Mode: all fields except Vendor Code can be changed; the VERSION of the row is kept for the concurrency check (MT-13).",
+   "3) Empty table or no search result: message no. 22 in the table body."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Master Trucking Company",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "Master Trucking Company",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_TRUCKING_COMPANY",
+      "type": "db"
+     },
+     {
+      "id": "x",
+      "label": "Excel file",
+      "type": "document"
+     },
+     {
+      "id": "u",
+      "label": "Daily / Monthly / SA / PAS interface (Trucking Code, SAP Vendor Code)",
+      "type": "subprocess"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "db",
+      "label": "Add / Update / Delete"
+     },
+     {
+      "from": "s",
+      "to": "x",
+      "label": "Export .xls"
+     },
+     {
+      "from": "db",
+      "to": "u",
+      "label": "active vendors"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Save - Validation",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Save button",
+      "type": "event"
+     },
+     {
+      "id": "n",
+      "label": "Normalise: trim, upper case, NPWP format",
+      "type": "process"
+     },
+     {
+      "id": "q1",
+      "label": "Mandatory filled?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Message no. 1 under the field",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "Formats OK (code, SAP, NPWP, e-mail, phones, length)?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Messages no. 2-12",
+      "type": "message"
+     },
+     {
+      "id": "q3",
+      "label": "Unique among active vendors?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Message no. 4 / 6 / 9",
+      "type": "message"
+     },
+     {
+      "id": "c",
+      "label": "Continue to Store",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "n"
+     },
+     {
+      "from": "n",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "q3",
+      "label": "Yes"
+     },
+     {
+      "from": "q3",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "c",
+      "label": "Yes"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "e1"
+     ],
+     [
+      "q2",
+      "e2"
+     ],
+     [
+      "q3",
+      "e3"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Save - Store",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "From validation",
+      "type": "start"
+     },
+     {
+      "id": "q",
+      "label": "Mode?",
+      "type": "decision"
+     },
+     {
+      "id": "i",
+      "label": "INSERT, DELETION_FLAG = N, VERSION = 1",
+      "type": "process"
+     },
+     {
+      "id": "q5",
+      "label": "Update: not deleted, code unchanged, VERSION unchanged?",
+      "type": "decision"
+     },
+     {
+      "id": "e5",
+      "label": "Message no. 13 / 14 / 15",
+      "type": "message"
+     },
+     {
+      "id": "u",
+      "label": "UPDATE ... VERSION = VERSION + 1",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_TRUCKING_COMPANY",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Reset to Add Mode, refresh list, message no. 16 / 17",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "i",
+      "label": "Add"
+     },
+     {
+      "from": "q",
+      "to": "q5",
+      "label": "Update"
+     },
+     {
+      "from": "q5",
+      "to": "e5",
+      "label": "No"
+     },
+     {
+      "from": "q5",
+      "to": "u",
+      "label": "Yes"
+     },
+     {
+      "from": "i",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "u",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "i",
+      "to": "e"
+     },
+     {
+      "from": "u",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q5",
+      "e5"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Delete (logical)",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Delete in a row",
+      "type": "event"
+     },
+     {
+      "id": "c",
+      "label": "Confirmation message no. 19",
+      "type": "message"
+     },
+     {
+      "id": "q",
+      "label": "Delete clicked?",
+      "type": "decision"
+     },
+     {
+      "id": "x",
+      "label": "Close dialog, no change",
+      "type": "end"
+     },
+     {
+      "id": "q2",
+      "label": "Used by an open transaction?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Message no. 20",
+      "type": "message"
+     },
+     {
+      "id": "d",
+      "label": "UPDATE DELETION_FLAG = Y, VERSION + 1",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_TRUCKING_COMPANY",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Row shows Deletion Yes, buttons disabled, message no. 21",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "x",
+      "label": "No"
+     },
+     {
+      "from": "q",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "e2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "d",
+      "label": "No"
+     },
+     {
+      "from": "d",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "d",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q",
+      "x"
+     ],
+     [
+      "q2",
+      "e2"
+     ],
+     [
+      "d",
+      "db"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Add Mode - initial display (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t01_initial.png"
+  },
+  {
+   "caption": "2. Validation - mandatory fields",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t02_mandatory.png"
+  },
+  {
+   "caption": "3. Validation - format errors (Vendor Code, SAP Vendor Code, NPWP, E-Mail, Phone, Mobile Phone)",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t03_format.png"
+  },
+  {
+   "caption": "4. Validation - Vendor Code / SAP Vendor Code / NPWP already used",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t04_duplicate.png"
+  },
+  {
+   "caption": "5. Add - form filled (NPWP formatted automatically)",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t05_add_filled.png"
+  },
+  {
+   "caption": "6. Add - saved: name in upper case, e-mail in lower case",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t06_added.png"
+  },
+  {
+   "caption": "7. Update Mode - Vendor Code read only, row highlighted",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t07_update.png"
+  },
+  {
+   "caption": "8. Update - concurrency check (changed by another user)",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t08_concurrency.png"
+  },
+  {
+   "caption": "9. Delete confirmation",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t09_delete_confirm.png"
+  },
+  {
+   "caption": "10. Deleted - Deletion = Yes, Update / Delete disabled",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t10_deleted.png"
+  },
+  {
+   "caption": "11. Delete rejected - vendor still used by an open transaction",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t11_delete_blocked.png"
+  },
+  {
+   "caption": "12. Deleted code re-used by an active vendor (PNJ)",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t12_deleted_rows.png"
+  },
+  {
+   "caption": "13. Search without result",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t13_no_result.png"
+  },
+  {
+   "caption": "14. Table View - show audit columns",
+   "image": "img/UISS_Screen_Master_Trucking_Company/t14_table_view.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Master Trucking Company'."
+  },
+  {
+   "name": "Breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Master - Trucking Company'. Menu: Master > Trucking Company (first submenu of Master)."
+  },
+  {
+   "group": "<Input Form Section>  (one form for Add and Update; * = mandatory)"
+  },
+  {
+   "name": "Vendor Name",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_NAME",
+   "type": "Varchar",
+   "len": "500",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "Upper case",
+   "validation": "Mandatory (msg 1); max 100 (msg 2)",
+   "description": "Trimmed, double spaces reduced to one, saved in upper case (e.g. \"pt.  maju bersama\" -> \"PT. MAJU BERSAMA\").\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_NAME varchar(500) NOT NULL [Revised] UI max 100 < DB 500."
+  },
+  {
+   "name": "Vendor Code",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "XXX upper",
+   "validation": "Mandatory; ^[A-Z0-9]{3}$ (msg 3); unique among active vendors (msg 4)",
+   "description": "Converted to upper case while typing (mbl -> MBL). Read only in Update Mode (MT-12). Same code as Trucking Code in Daily / Monthly (TBD, OP-08).\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
+  },
+  {
+   "name": "SAP Vendor Code",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "SAP_COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "9999999999",
+   "validation": "Mandatory; 10 digits (msg 5); unique among active vendors (msg 6)",
+   "description": "Vendor number in SAP / PAS (e.g. 4000006763). Numeric keyboard on mobile.\nDB: ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 10 digits vs DB varchar(20)."
+  },
+  {
+   "name": "Service Type",
+   "source": "Fixed list",
+   "field": "SERVICE_TYPE (no column in ELIPS - TBD)",
+   "type": "Varchar",
+   "len": 10,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'MRO'",
+   "required": "Y",
+   "format": "",
+   "validation": "In the list (msg 7)",
+   "description": "Options: MRO only (other types TBD, OP-01). Default MRO.\nDB: Conflict - No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
+  },
+  {
+   "name": "NPWP",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "NPWP",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Placeholder '999.999.999.9-999.999'",
+   "required": "Y",
+   "format": "999.999.999.9-999.999",
+   "validation": "Mandatory; 16 digits (msg 8); unique among active vendors (msg 9)",
+   "description": "Formatted automatically when leaving the field (3171234567890123 -> 317.123.456.7-890.123). 15-digit NPWP: TBD (OP-03).\nDB: ielp.MS_TRUCKING_COMPANY.NPWP varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Contact Name",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "CONTACT_NAME",
+   "type": "Varchar",
+   "len": "200",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "Max 100 (msg 2)",
+   "description": "PIC of the trucking company.\nDB: ielp.MS_TRUCKING_COMPANY.CONTACT_NAME varchar(200) NULL [Revised] UI max 100 < DB 200."
+  },
+  {
+   "name": "E-Mail",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "EMAIL",
+   "type": "Varchar",
+   "len": "50",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "Lower case",
+   "validation": "If filled: name@domain.xx (msg 10)",
+   "description": "Saved in lower case.\nDB: ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) NULL [Conflict] UI allows 100, DB varchar(50)."
+  },
+  {
+   "name": "Phone",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "PHONE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "If filled: numbers, space, + - ( ), 6-20 (msg 11)",
+   "description": "Office phone, e.g. 021-4401234.\nDB: ielp.MS_TRUCKING_COMPANY.PHONE varchar(20) NULL [Verified]"
+  },
+  {
+   "name": "Mobile Phone",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "MOBILE_PHONE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "If filled: 08 / +628 / 628, 10-15 digits (msg 12)",
+   "description": "e.g. 081234567801. Spaces and - are ignored in the check.\nDB: ielp.MS_TRUCKING_COMPANY.MOBILE_PHONE varchar(20) NULL [Verified]"
+  },
+  {
+   "name": "Address",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_ADDRESS",
+   "type": "Varchar",
+   "len": "500",
+   "io": "I",
+   "control": "Text area",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "Max 300 (msg 2)",
+   "description": "Full width field.\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_ADDRESS varchar(500) NULL [Revised] UI max 300 < DB 500."
+  },
+  {
+   "name": "Save",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Add Mode: insert; Update Mode: update (refer 5.3). Disabled until the server responds (no double submission)."
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Clear the form and errors and return to Add Mode (msg 18)."
+  },
+  {
+   "name": "Mode info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Mode: Add trucking company baru' / 'Mode: Update {code} - {name} (Vendor Code cannot be changed)'."
+  },
+  {
+   "name": "Error text (under field)",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label (red)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Field turns red and the message is shown under it; all errors are shown at once and the first error field gets the focus."
+  },
+  {
+   "group": "<Trucking Company List Section>"
+  },
+  {
+   "name": "Section title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Trucking Company List'."
+  },
+  {
+   "name": "Search",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Placeholder 'Search'",
+   "required": "N",
+   "format": "",
+   "validation": "No result: msg 22",
+   "description": "Filters while typing on all columns of the table (also Deletion Yes / No and dates); partial, case-insensitive; returns to page 1 (MT-30)."
+  },
+  {
+   "name": "Table View",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column to show / hide it. Default hidden: Created By, Created Date, Updated By, Updated Date."
+  },
+  {
+   "name": "Export .xls",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Exports ALL rows of the current search (all pages) with the visible columns (MT-31) to 'Master_Trucking_Company_YYYYMMDD.xls' (msg 23)."
+  },
+  {
+   "name": "Column header",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label (sortable)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Click to sort ascending / descending (▲ / ▼). Default sort: Vendor Name ascending."
+  },
+  {
+   "name": "Vendor Name",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_NAME",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.COMPANY_NAME varchar(500) NOT NULL [Revised] UI max 100 < DB 500."
+  },
+  {
+   "name": "Vendor Code",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
+  },
+  {
+   "name": "SAP Vendor Code",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "SAP_COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 10 digits vs DB varchar(20)."
+  },
+  {
+   "name": "Service Type",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "SERVICE_TYPE (no column in ELIPS - TBD)",
+   "type": "Varchar",
+   "len": 10,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: Conflict - No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
+  },
+  {
+   "name": "NPWP",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "NPWP",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "999.999.999.9-999.999",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.NPWP varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Contact Name",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "CONTACT_NAME",
+   "type": "Varchar",
+   "len": "200",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.CONTACT_NAME varchar(200) NULL [Revised] UI max 100 < DB 200."
+  },
+  {
+   "name": "E-Mail",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "EMAIL",
+   "type": "Varchar",
+   "len": "50",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) NULL [Conflict] UI allows 100, DB varchar(50)."
+  },
+  {
+   "name": "Phone",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "PHONE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.PHONE varchar(20) NULL [Verified]"
+  },
+  {
+   "name": "Mobile Phone",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "MOBILE_PHONE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.MOBILE_PHONE varchar(20) NULL [Verified]"
+  },
+  {
+   "name": "Address",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_ADDRESS",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Wrapped in the cell.\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_ADDRESS varchar(500) NULL [Revised] UI max 300 < DB 500."
+  },
+  {
+   "name": "Deletion",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "IS_DELETE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Badge",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "Yes / No",
+   "validation": "",
+   "description": "Y -> 'Yes' (red badge), N -> 'No' (green badge).\nDB: ielp.MS_TRUCKING_COMPANY.IS_DELETE varchar(1) NULL default (0) [Revised] UISS had DELETION_FLAG Y/N."
+  },
+  {
+   "name": "Created By / Created Date",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "CREATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY HH:MI",
+   "validation": "",
+   "description": "Hidden by default (Table View).\nDB: ielp.MS_TRUCKING_COMPANY.CREATED_BY varchar(500) NOT NULL [Revised]"
+  },
+  {
+   "name": "Updated By / Updated Date",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "UPDATED_BY",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY HH:MI",
+   "validation": "",
+   "description": "Hidden by default (Table View).\nDB: ielp.MS_TRUCKING_COMPANY.UPDATED_BY varchar(100) NULL [Revised]"
+  },
+  {
+   "name": "Delete (🗑)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (red)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Confirmation msg 19 (refer 5.5). Disabled when Deletion = Yes."
+  },
+  {
+   "name": "Update (✎)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (yellow)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Loads the row into the form (Update Mode); the row is highlighted. Disabled when Deletion = Yes."
+  },
+  {
+   "name": "Empty list text",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "msg 22 ('No Data Found')."
+  },
+  {
+   "group": "<Paging Section>"
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Showing n to m of x records' + '(filtered from y total entries)' when Search is used."
+  },
+  {
+   "name": "Rows per page (Tampilkan)",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Number",
+   "len": 2,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "10",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50. A change returns to page 1."
+  },
+  {
+   "name": "Previous / page number / Next (‹ 1 2 ›)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Current page highlighted; ‹ disabled on page 1, › disabled on the last page."
+  },
+  {
+   "group": "<Delete Confirmation Dialog>"
+  },
+  {
+   "name": "Title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Delete Trucking Company'."
+  },
+  {
+   "name": "Message",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "msg 19."
+  },
+  {
+   "name": "Cancel (Batal)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Close the dialog, nothing changes."
+  },
+  {
+   "name": "Delete",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (red)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Logical delete (refer 5.5)."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_TRUCKING_COMPANY",
+     "operation": "Insert",
+     "description": "Add Mode - [Save]",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "source_field": "Vendor Name",
+      "dest_field": "COMPANY_NAME",
+      "description": "TRIM, single spaces, UPPER"
+     },
+     {
+      "source_field": "Vendor Code",
+      "dest_field": "COMPANY_CODE",
+      "description": "TRIM + UPPER"
+     },
+     {
+      "source_field": "SAP Vendor Code",
+      "dest_field": "SAP_COMPANY_CODE",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "Service Type",
+      "dest_field": "SERVICE_TYPE (no column in ELIPS - TBD)",
+      "description": "Selected option"
+     },
+     {
+      "source_field": "NPWP",
+      "dest_field": "NPWP",
+      "description": "Formatted 999.999.999.9-999.999"
+     },
+     {
+      "source_field": "Contact Name",
+      "dest_field": "CONTACT_NAME",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "E-Mail",
+      "dest_field": "EMAIL",
+      "description": "TRIM + LOWER"
+     },
+     {
+      "source_field": "Phone",
+      "dest_field": "PHONE",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "Mobile Phone",
+      "dest_field": "MOBILE_PHONE",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "Address",
+      "dest_field": "COMPANY_ADDRESS",
+      "description": "TRIM"
+     },
+     {
+      "dest_field": "IS_DELETE",
+      "description": "'N'"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "1"
+     },
+     {
+      "dest_field": "COMPANY_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_TRUCKING_COMPANY",
+     "operation": "Update",
+     "description": "Update Mode - [Save]",
+     "keys": [
+      {
+       "field": "COMPANY_ID / COMPANY_CODE",
+       "value": "Row loaded into the form"
+      },
+      {
+       "field": "VERSION (no column in ELIPS - Conflict)",
+       "value": "Version loaded into the form"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Vendor Name",
+      "dest_field": "COMPANY_NAME",
+      "description": "TRIM, single spaces, UPPER"
+     },
+     {
+      "source_field": "Vendor Code",
+      "dest_field": "COMPANY_CODE",
+      "description": "Not changed (read only)"
+     },
+     {
+      "source_field": "SAP Vendor Code",
+      "dest_field": "SAP_COMPANY_CODE",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "Service Type",
+      "dest_field": "SERVICE_TYPE (no column in ELIPS - TBD)",
+      "description": "Selected option"
+     },
+     {
+      "source_field": "NPWP",
+      "dest_field": "NPWP",
+      "description": "Formatted 999.999.999.9-999.999"
+     },
+     {
+      "source_field": "Contact Name",
+      "dest_field": "CONTACT_NAME",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "E-Mail",
+      "dest_field": "EMAIL",
+      "description": "TRIM + LOWER"
+     },
+     {
+      "source_field": "Phone",
+      "dest_field": "PHONE",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "Mobile Phone",
+      "dest_field": "MOBILE_PHONE",
+      "description": "TRIM"
+     },
+     {
+      "source_field": "Address",
+      "dest_field": "COMPANY_ADDRESS",
+      "description": "TRIM"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "IS_DELETE, CREATED_BY / DT",
+      "description": "Not changed"
+     }
+    ]
+   },
+   {
+    "source": "Screen row",
+    "destination": {
+     "table": "ielp.MS_TRUCKING_COMPANY",
+     "operation": "Update",
+     "description": "[Delete] - confirmed (logical delete)",
+     "keys": [
+      {
+       "field": "COMPANY_ID / COMPANY_CODE",
+       "value": "Row loaded into the form"
+      },
+      {
+       "field": "VERSION (no column in ELIPS - Conflict)",
+       "value": "Version loaded into the form"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "IS_DELETE",
+      "description": "'Y'"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "VERSION + 1"
+     },
+     {
+      "dest_field": "(other columns)",
+      "description": "Not changed; the row is kept"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Title 'Master Trucking Company', breadcrumb 'Master - Trucking Company'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Form in Add Mode: all fields blank, Service Type = MRO, mode info 'Mode: Add'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "List: all trucking companies, active and deleted, sorted by Vendor Name; 10 rows per page; audit columns hidden. No data: message no. 22.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "SELECT VENDOR_NAME, VENDOR_CD, SAP_VENDOR_CD, SERVICE_TYPE, NPWP, CONTACT_NAME, EMAIL, PHONE, MOBILE_PHONE, ADDRESS, DELETION_FLAG, CREATED_BY, CREATED_DT, CHANGED_BY, CHANGED_DT, VERSION FROM ielp.MS_TRUCKING_COMPANY ORDER BY VENDOR_NAME (column names TBD)",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Input Normalisation (client and again server)",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Field",
+     "width": 10
+    },
+    {
+     "title": "Rule",
+     "width": 20
+    },
+    {
+     "title": "Example",
+     "width": 15
+    }
+   ],
+   "rows": [
+    [
+     "Vendor Name",
+     "Trim, double spaces -> one, UPPER",
+     "pt.  maju bersama -> PT. MAJU BERSAMA"
+    ],
+    [
+     "Vendor Code",
+     "Trim, UPPER while typing",
+     "mbl -> MBL"
+    ],
+    [
+     "NPWP",
+     "Digits only, then 999.999.999.9-999.999 (on leaving the field)",
+     "3171234567890123 -> 317.123.456.7-890.123"
+    ],
+    [
+     "E-Mail",
+     "Trim, lower case",
+     "Budi@Maju.co.id -> budi@maju.co.id"
+    ],
+    [
+     "Others",
+     "Trim",
+     "-"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Save (Add / Update)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Step 1 - Mandatory (MT-01): Vendor Name, Vendor Code, SAP Vendor Code, NPWP (message no. 1). Service Type always has a value.",
+    "Step 2 - Length and format (MT-02..MT-11): lengths (no. 2); Vendor Code 3 letters / numbers (no. 3); SAP Vendor Code 10 digits (no. 5); Service Type in list (no. 7); NPWP 16 digits (no. 8); E-Mail (no. 10), Phone (no. 11), Mobile Phone (no. 12) only when filled.",
+    "Step 3 - Uniqueness among ACTIVE vendors (DELETION_FLAG = 'N'), the edited row excluded: Vendor Code (no. 4), SAP Vendor Code (no. 6), NPWP compared on digits (no. 9). A code of a deleted vendor may be used again (OP-04).",
+    "Step 4 - Update only (MT-12 / MT-13): Vendor Code unchanged (no. 13); row not deleted (no. 14); VERSION unchanged (no. 15).",
+    "Step 5 - Add: INSERT (Data Map block 1). Update: UPDATE ... WHERE key AND VERSION = :version (block 2).",
+    "Step 6 - COMMIT; on exception ROLLBACK and message no. 24.",
+    "Success: form reset to Add Mode, search cleared, list refreshed; message no. 16 / 17.",
+    "All errors of steps 1-3 are shown together under their fields; the first error field gets the focus."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Case",
+     "width": 14
+    },
+    {
+     "title": "Input",
+     "width": 16
+    },
+    {
+     "title": "Result",
+     "width": 15
+    }
+   ],
+   "rows": [
+    [
+     "New vendor",
+     "MBL / 4000007001 / 3171234567890123",
+     "Saved (no. 16)"
+    ],
+    [
+     "Vendor Code used",
+     "DNX (active)",
+     "Rejected (no. 4)"
+    ],
+    [
+     "Code of deleted vendor",
+     "PNJ (old PNJ deleted)",
+     "Allowed"
+    ],
+    [
+     "Short codes",
+     "MB / 40001 / 12345",
+     "Rejected (no. 3, 5, 8)"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Update",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Update (✎) loads all fields and the VERSION into the form; Vendor Code is read only; the row is highlighted; the page scrolls to the form.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Cancel discards the changes and returns to Add Mode.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Rows with Deletion = Yes cannot be updated (button disabled; server check no. 14).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Delete (logical)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Delete (🗑) shows confirmation no. 19.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "MT-21: rejected when the vendor is used by an open transaction (message no. 20). Mock-up examples: PO Monthly in status Pending, active Daily Order, PR Monthly not finished. Exact list TBD (OP-05).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Otherwise UPDATE DELETION_FLAG = 'Y' (block 3) WHERE key AND VERSION; 0 rows -> no. 15. The row stays in the list with Deletion = Yes, Update / Delete disabled; message no. 21.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Deleted vendors cannot be selected in new transactions (Daily, Monthly, DTP data mapping). There is no Restore (OP-06).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Search, Sort, Table View, Export .xls",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Search (MT-30): while typing, partial and case-insensitive on all columns (Deletion as Yes / No, dates as DD.MM.YYYY HH:MI); returns to page 1; no match: no. 22.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Sort: click a column header; again to reverse. Default Vendor Name ascending.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Table View: show / hide columns; default hidden Created By / Date, Updated By / Date.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Export .xls (MT-31): SpreadsheetML (Excel), sheet 'Trucking Company', bold header; all rows of the current search (all pages), visible columns only; file 'Master_Trucking_Company_YYYYMMDD.xls'; message no. 23.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Paging",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Rows per page (Tampilkan) 10 / 25 / 50, default 10; ‹ pages ›; 'Showing n to m of x records (filtered from y total entries)'.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Concurrency, Security and Audit",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Optimistic locking with VERSION on Update and Delete; each Save / Delete is one DB transaction.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Access: IELP Admin (assumed; View / Add / Update / Delete / Export, TBD OP-07).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "MT-22: CREATED_BY / CREATED_DT on insert; CHANGED_BY / CHANGED_DT on update and delete (login user, server time).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 Open points",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Question",
+     "width": 40
+    }
+   ],
+   "rows": [
+    [
+     "OP-01",
+     "Service Type options besides MRO?"
+    ],
+    [
+     "OP-02",
+     "Vendor Code 3 characters and SAP Vendor Code 10 digits confirmed? Old data 'PNJ' with SAP code 'PNJ' does not meet the rule. The Master KPI reference uses 'PS' (PT. Putra Soputan, 2 characters) and 'IBL' / 'IBT' for Iron Bird; PS is in the mock-up data as an exception."
+    ],
+    [
+     "OP-03",
+     "NPWP 16 digits only, or must old 15-digit NPWP still be accepted?"
+    ],
+    [
+     "OP-04",
+     "Uniqueness only among active vendors (codes of deleted vendors re-usable) - confirm."
+    ],
+    [
+     "OP-05",
+     "Which open transactions block Delete (active Daily Order, PR / PO Monthly pending, SA not completed, ...)?"
+    ],
+    [
+     "OP-06",
+     "Restore of a deleted vendor needed?"
+    ],
+    [
+     "OP-07",
+     "Who may add / update / delete (IELP Admin assumed)?"
+    ],
+    [
+     "OP-08",
+     "Vendor Code = Trucking Code in Daily / Monthly / DTP (e.g. DNX, PBM) - confirm; physical table / column names."
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Vendor Name",
+     "ielp.MS_TRUCKING_COMPANY.COMPANY_NAME",
+     "varchar(500)",
+     "Y",
+     "R/W",
+     "TRIM, single spaces, UPPER",
+     "Revised"
+    ],
+    [
+     "Vendor Code",
+     "ielp.MS_TRUCKING_COMPANY.COMPANY_CODE",
+     "varchar(20)",
+     "Y",
+     "R/W",
+     "TRIM, UPPER",
+     "Conflict"
+    ],
+    [
+     "SAP Vendor Code",
+     "ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE",
+     "varchar(20)",
+     "Y",
+     "R/W",
+     "TRIM",
+     "Conflict"
+    ],
+    [
+     "Service Type",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "Fixed list MRO",
+     "Conflict"
+    ],
+    [
+     "NPWP",
+     "ielp.MS_TRUCKING_COMPANY.NPWP",
+     "varchar(100)",
+     "Y",
+     "R/W",
+     "Digits -> 999.999.999.9-999.999",
+     "Revised"
+    ],
+    [
+     "Contact Name",
+     "ielp.MS_TRUCKING_COMPANY.CONTACT_NAME",
+     "varchar(200)",
+     "N",
+     "R/W",
+     "TRIM",
+     "Revised"
+    ],
+    [
+     "E-Mail",
+     "ielp.MS_TRUCKING_COMPANY.EMAIL",
+     "varchar(50)",
+     "N",
+     "R/W",
+     "TRIM, LOWER",
+     "Conflict"
+    ],
+    [
+     "Phone",
+     "ielp.MS_TRUCKING_COMPANY.PHONE",
+     "varchar(20)",
+     "N",
+     "R/W",
+     "TRIM",
+     "Verified"
+    ],
+    [
+     "Mobile Phone",
+     "ielp.MS_TRUCKING_COMPANY.MOBILE_PHONE",
+     "varchar(20)",
+     "N",
+     "R/W",
+     "TRIM",
+     "Verified"
+    ],
+    [
+     "Address",
+     "ielp.MS_TRUCKING_COMPANY.COMPANY_ADDRESS",
+     "varchar(500)",
+     "N",
+     "R/W",
+     "TRIM",
+     "Revised"
+    ],
+    [
+     "Deletion",
+     "ielp.MS_TRUCKING_COMPANY.IS_DELETE",
+     "varchar(1)",
+     "N",
+     "W (delete) / R",
+     "'0' active / '1' deleted (values TBD; default 0)",
+     "Revised"
+    ],
+    [
+     "Created By / Created Date",
+     "ielp.MS_TRUCKING_COMPANY.CREATED_BY",
+     "varchar(500)",
+     "Y",
+     "W (insert)",
+     "Login user; CREATED_DATE = server date",
+     "Revised"
+    ],
+    [
+     "Updated By / Updated Date",
+     "ielp.MS_TRUCKING_COMPANY.UPDATED_BY",
+     "varchar(100)",
+     "N",
+     "W (update)",
+     "Login user; UPDATED_DATE = server date",
+     "Revised"
+    ],
+    [
+     "(key) Company ID",
+     "ielp.MS_TRUCKING_COMPANY.COMPANY_ID",
+     "varchar(10)",
+     "Y",
+     "W (insert)",
+     "Generated - rule TBD",
+     "TBD"
+    ],
+    [
+     "(system) App ID",
+     "ielp.MS_TRUCKING_COMPANY.APP_ID",
+     "varchar(20)",
+     "N",
+     "W (insert)",
+     "Default 'ENVITRUCK'",
+     "TBD"
+    ],
+    [
+     "(concurrency) Version",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MTC-01 E-Mail length: UISS / code: Varchar 100. DB: EMAIL varchar(50). Recommendation: Limit UI to 50 or extend the column (DB change request)",
+    "G-MTC-02 Vendor / SAP code format: UISS / code: 3 chars / 10 digits. DB: COMPANY_CODE / SAP_COMPANY_CODE varchar(20). Recommendation: Confirm the rules against existing codes",
+    "G-MTC-03 Concurrency check: UISS / code: VERSION (msg 15). DB: No VERSION column. Recommendation: Use UPDATED_DATE as optimistic lock or add VERSION",
+    "G-MTC-04 Service Type: UISS / code: SERVICE_TYPE MRO. DB: No column (BUSINESS_TYPE int). Recommendation: Confirm whether BUSINESS_TYPE holds the service type",
+    "G-MTC-05 Deletion flag: UISS / code: DELETION_FLAG Y / N. DB: IS_DELETE varchar(1) default 0. Recommendation: Use IS_DELETE (values to confirm)"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "COMPANY_ID generation rule",
+    "APP_ID value for TC-PBR records",
+    "BUSINESS_TYPE meaning",
+    "Use of MS_TRUCKING_COMPANY_CY / MS_TRUCKING_COMPANY_TMP (not in the mock-up)"
+   ]
+  }
+ ],
+ "operation_layout": "two",
+ "display_messages": [
+  {
+   "group": "Save Operation (Add / Update) - field messages, shown under the field"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Mandatory field blank: Vendor Name, Vendor Code, SAP Vendor Code, NPWP (MT-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Field} is required.",
+   "action": "Fill in the field"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Vendor Name / Contact Name / E-Mail > 100, Address > 300 characters (MT-02, MT-11)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Maximum {n} characters.",
+   "action": "Shorten the text"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Vendor Code is not 3 letters / numbers (MT-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Vendor Code must be 3 letters / numbers (example: DNX).",
+   "action": "Correct Vendor Code"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Vendor Code used by another active vendor (MT-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Vendor Code {code} is already used.",
+   "action": "Use another code"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "SAP Vendor Code is not 10 digits (MT-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SAP Vendor Code must be 10 digits (example: 4000006763).",
+   "action": "Correct SAP Vendor Code"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "SAP Vendor Code used by another active vendor (MT-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SAP Vendor Code {sap} is already used.",
+   "action": "Check the SAP vendor"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Service Type not in the list (MT-06)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Service Type is not valid.",
+   "action": "Select from the list"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "NPWP does not have 16 digits (MT-07)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "NPWP must be 16 digits (format 999.999.999.9-999.999).",
+   "action": "Correct NPWP"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "NPWP used by another active vendor (MT-07)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "NPWP is already used by another vendor.",
+   "action": "Check NPWP"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "E-Mail filled with invalid format (MT-08)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "E-Mail format is not valid.",
+   "action": "Correct E-Mail"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Phone has other characters or not 6-20 characters (MT-09)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Phone may contain only numbers, space, +, -, ( ) (6-20 characters).",
+   "action": "Correct Phone"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Mobile Phone does not start with 08 / +628 / 628 or not 10-15 digits (MT-10)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Mobile Phone must start with 08 / +628 (10-15 digits).",
+   "action": "Correct Mobile Phone"
+  },
+  {
+   "group": "Save Operation (Add / Update) - result"
+  },
+  {
+   "event": "Click [Save] button (Update)",
+   "cause": "Vendor Code changed in Update Mode (MT-12)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Vendor Code cannot be changed.",
+   "action": "Cancel and add a new vendor if needed"
+  },
+  {
+   "event": "Click [Save] button (Update)",
+   "cause": "Vendor deleted by another user meanwhile (MT-12)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Vendor {code} has been deleted and cannot be updated.",
+   "action": "Click Cancel"
+  },
+  {
+   "event": "Click [Save] (Update) / [Delete]",
+   "cause": "VERSION changed since the data was loaded (MT-13)",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Data has been changed by another user. Please click Cancel and Update again.",
+   "action": "Click Cancel, then Update again"
+  },
+  {
+   "event": "Click [Save] button (Add)",
+   "cause": "Inserted",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{code} - {name} has been added successfully.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Save] button (Update)",
+   "cause": "Updated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{code} - {name} has been updated successfully.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Cancel] button",
+   "cause": "Form cleared",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Form has been cleared.",
+   "action": "-"
+  },
+  {
+   "group": "Delete Operation"
+  },
+  {
+   "event": "Click [Delete] button in the list",
+   "cause": "Confirmation (MT-20)",
+   "type": "Confirmation",
+   "msg_id": "TBD",
+   "message": "Delete {code} - {name}? The data is not deleted permanently: Deletion becomes Yes and this trucking company cannot be selected in new transactions.",
+   "action": "Click Delete or Cancel"
+  },
+  {
+   "event": "Click [Delete] in the confirmation",
+   "cause": "Vendor still used by an open transaction (MT-21)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Vendor {code} is still used in {transaction}, it cannot be deleted.",
+   "action": "Finish / close the transaction first"
+  },
+  {
+   "event": "Click [Delete] in the confirmation",
+   "cause": "Logically deleted",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{code} - {name} has been deleted (Deletion = Yes).",
+   "action": "-"
+  },
+  {
+   "group": "Search / Export Operation"
+  },
+  {
+   "event": "Open screen / key-in [Search]",
+   "cause": "No row (or no row matches the keyword)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No Data Found",
+   "action": "Change or clear the keyword"
+  },
+  {
+   "event": "Click [Export .xls] button",
+   "cause": "File generated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} rows exported.",
+   "action": "-"
+  },
+  {
+   "group": "System Error"
+  },
+  {
+   "event": "Any server call",
+   "cause": "Unexpected DB / server error (transaction rolled back)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "System error. Please contact administrator. ({Error ID})",
+   "action": "Retry or contact administrator"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Click [Save] (Add)",
+   "cause": "Row inserted",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Trucking company {code} - {name} created by {User}.",
+   "exception": "N",
+   "action": "Audit: CREATED_BY / CREATED_DT"
+  },
+  {
+   "event": "Click [Save] (Update)",
+   "cause": "Row updated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Trucking company {code} updated by {User}: {changed fields old -> new}.",
+   "exception": "N",
+   "action": "Audit: CHANGED_BY / CHANGED_DT"
+  },
+  {
+   "event": "Click [Delete]",
+   "cause": "Logical delete",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Trucking company {code} - {name} deleted (DELETION_FLAG = Y) by {User}.",
+   "exception": "N",
+   "action": "Audit: CHANGED_BY / CHANGED_DT"
+  },
+  {
+   "event": "Click [Delete]",
+   "cause": "Delete rejected, vendor in use",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Delete of trucking company {code} rejected: used in {transaction}.",
+   "exception": "N",
+   "action": "Display Message no. 20"
+  },
+  {
+   "event": "Click [Save] / [Delete]",
+   "cause": "Concurrency check failed",
+   "type": "Warning",
+   "msg_id": "MSTD0114AERR",
+   "message": "Concurrency check failed for trucking company {code} (version {v}).",
+   "exception": "Y",
+   "action": "Display Message no. 15"
+  },
+  {
+   "event": "Any server call",
+   "cause": "DB / server error",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Master Trucking Company {operation} failed: {Exception}.",
+   "exception": "Y",
+   "action": "Rollback; Display Message no. 24"
+  }
+ ]
+}

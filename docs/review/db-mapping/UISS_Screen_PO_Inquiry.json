@@ -1,0 +1,254 @@
+{
+ "uiss": "UISS_Screen_PO_Inquiry",
+ "revision": "Database mapping revised to the ELIPS schema: PO = ielp.PO_HEADER (period) / PO_DETAIL (PO_NUMBER per company), approval = PO_APPROVAL, auto-approve deadline = PO_APPROVAL_EST.APPROVAL_LIMIT (inferred), PR lines = CRITERIA_SCORE_*; conflicts recorded; no sample data",
+ "replace": {
+  "PR Header (TBD)": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+  "PR Route Detail (TBD)": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+  "PR Approval (TBD)": "ielp.CRITERIA_SCORE_APPROVAL",
+  "PO Header (TBD)": "ielp.PO_HEADER",
+  "Trucking Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "Approval History (TBD)": "approval history (no ELIPS table - TBD)",
+  "PR History (TBD)": "PR history (no ELIPS table - TBD)",
+  "PR Detail (TBD)": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+  "E-Catalogue Price / Master Price (TBD)": "ielp.MS_ROUTE_PRICE",
+  "Master Price (TBD)": "ielp.MS_ROUTE_PRICE",
+  "TMMIN Calendar (TBD)": "ielp.TB_M_WORKING_CALENDAR",
+  "Route Percentage Master (TBD)": "ielp.MS_ROUTE_HEADER",
+  "KPI Master (TBD)": "ielp.MS_KPI",
+  "PROD_MONTH, PR_SEQ (TBD)": "CRITERIA_PERIODE, PR_SEQ",
+  "PR_NO (TBD)": "PR_NO_DET",
+  "PR_SEQ (TBD)": "PR_SEQ",
+  "TRUCKING_CD (TBD)": "COMPANY_ID",
+  "TRUCKING_NAME (TBD)": "COMPANY_NAME",
+  "SHARING_PCT (TBD)": "TOTAL_ORDER_SHARING",
+  "TOTAL_QTY (TBD)": "TOTAL_TRIP",
+  "TOTAL_PRICE (TBD)": "TOTAL_PRICE",
+  "QTY_20, QTY_40 (TBD)": "ROUTE_QTY_20, ROUTE_QTY_40",
+  "PRICE_20, PRICE_40 (TBD)": "PRICE_20, PRICE_40",
+  "PRICE_40 (TBD)": "PRICE_40",
+  "APPROVAL_STATUS per level (TBD)": "APPROVAL_STS per APPROVAL_CLASS",
+  "APPROVED_BY, APPROVED_DT per level (TBD)": "APPROVAL_BY, APPROVAL_DATE per APPROVAL_CLASS",
+  "APPROVED_DT per level (TBD)": "APPROVAL_DATE per APPROVAL_CLASS",
+  "APPROVAL_STATUS (TBD)": "APPROVAL_STS",
+  "APPROVED_BY (TBD)": "APPROVAL_BY",
+  "APPROVED_DT (TBD)": "APPROVAL_DATE",
+  "LEVEL (TBD)": "APPROVAL_CLASS",
+  "PR_DATE (TBD)": "CREATED_DATE",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "PO_NO (TBD)": "PO_NUMBER",
+  "PO_STATUS (TBD)": "APPROVAL_STS",
+  "PO_DATE (TBD)": "CREATED_DATE",
+  "AUTO_APPROVE_DT (TBD)": "APPROVAL_LIMIT (PO_APPROVAL_EST)",
+  "NOTE (TBD)": "APPROVAL_REMARK",
+  "REASON (TBD)": "APPROVAL_REMARK",
+  "VENDOR_CD + VENDOR_NAME (TBD)": "COMPANY_CODE + COMPANY_NAME",
+  "VENDOR_CD (TBD)": "COMPANY_ID",
+  "OPR_MONTH (TBD)": "CRITERIA_PERIODE",
+  "WORKING_DAYS (TBD)": "count of WORKING_FLAG = 1",
+  "ROUTE_CD + ROUTE_DESC (TBD)": "ROUTE_CODE + ROUTE_DESCR",
+  "PERCENTAGE (TBD)": "ROUTE_PERCENTAGE_VALUE",
+  "DISTANCE_KM (TBD)": "distance (no column - TBD)",
+  "PRICE (component KM) (TBD)": "ROUTE_PRICE_VALUE (component KM - TBD)",
+  "PRICE (component FIX) (TBD)": "ROUTE_PRICE_VALUE (component FIX - TBD)",
+  "PRICE (TBD)": "ROUTE_PRICE_VALUE",
+  "PR_TYPE (TBD)": "BUSINESS_TYPE (inferred)"
+ },
+ "fields": [
+  {
+   "ui": "PO Number",
+   "items": [
+    "PO Number",
+    "Selected PO list"
+   ],
+   "table": "ielp.PO_DETAIL",
+   "column": "PO_NUMBER",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(16) per COMPANY_ID (+ ROUTE, PO_TYPE)."
+  },
+  {
+   "ui": "Production Month",
+   "items": [
+    "Production Month"
+   ],
+   "table": "ielp.PO_HEADER",
+   "column": "PO_PERIODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(7); PO_SEQ."
+  },
+  {
+   "ui": "PR Number",
+   "items": [
+    "PR Number"
+   ],
+   "table": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "column": "PR_NO_DET",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "PO Status",
+   "items": [
+    "PO Status"
+   ],
+   "table": "ielp.PO_HEADER",
+   "column": "APPROVAL_STS",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Auto Approve At",
+   "items": [
+    "Auto Approve At"
+   ],
+   "table": "ielp.PO_APPROVAL_EST",
+   "column": "APPROVAL_LIMIT",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Per PO_PERIODE + APPROVAL_CLASS (inferred)."
+  },
+  {
+   "ui": "Approved By",
+   "items": [
+    "Approved By"
+   ],
+   "table": "ielp.PO_APPROVAL",
+   "column": "APPROVAL_BY",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "APPROVAL_DATE, APPROVAL_REMARK, APPROVAL_CLASS."
+  },
+  {
+   "ui": "PO date",
+   "items": [
+    "PO date"
+   ],
+   "table": "ielp.PO_HEADER",
+   "column": "CREATED_DATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Trucking Code / Name",
+   "items": [
+    "Trucking Code",
+    "Trucking Name"
+   ],
+   "table": "ielp.PO_DETAIL",
+   "column": "COMPANY_ID",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": ""
+  },
+  {
+   "ui": "Order Sharing",
+   "items": [
+    "Order Sharing - Percentage",
+    "Order Sharing - Qty",
+    "Order Sharing - Total Price",
+    "Footer: Sharing Percentage / Total QTY / Total. Price"
+   ],
+   "table": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "column": "TOTAL_ORDER_SHARING",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Route lines",
+   "items": [
+    "Route",
+    "Route Percentage",
+    "Qty 20 / 40 / Total",
+    "Price 20 / 40 / Total"
+   ],
+   "table": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "column": "ROUTE_HEADER_ID",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Approval History",
+   "items": [
+    "Approval History grid"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "Approvals in PO_APPROVAL rows."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MO-02",
+   "topic": "Approval levels",
+   "uiss": "SH / DpH / DH per PR",
+   "code": "-",
+   "db": "CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2)",
+   "data": "No sample data",
+   "recommendation": "Level codes TBD"
+  },
+  {
+   "id": "G-MO-03",
+   "topic": "Approval history",
+   "uiss": "History grid with from / to status, role",
+   "code": "-",
+   "db": "No history table",
+   "data": "No sample data",
+   "recommendation": "Show approval rows or add a history table"
+  },
+  {
+   "id": "G-MO-04",
+   "topic": "Trucking code",
+   "uiss": "Varchar 3",
+   "code": "-",
+   "db": "COMPANY_ID varchar(10)",
+   "data": "No sample data",
+   "recommendation": "Align with Master Trucking Company"
+  },
+  {
+   "id": "G-PO-01",
+   "topic": "PO number source",
+   "uiss": "PO number created in ELIPS (monthly-workflow.js createPO)",
+   "code": "-",
+   "db": "PO_DETAIL.PO_NUMBER varchar(16); PAS returns PO numbers (SA_DETAIL.PAS_PO_NUMBER)",
+   "data": "No sample data",
+   "recommendation": "Confirm whether the monthly PO number is ELIPS or PAS generated"
+  }
+ ],
+ "tbd": [
+  "PO APPROVAL_STS values",
+  "PO_TYPE values",
+  "APPROVAL_LIMIT meaning"
+ ]
+}

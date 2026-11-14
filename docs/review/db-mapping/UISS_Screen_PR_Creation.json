@@ -1,0 +1,245 @@
+{
+ "uiss": "UISS_Screen_PR_Creation",
+ "revision": "Database mapping revised to the ELIPS schema: PR = CRITERIA_SCORE_HEADER / _DETAIL_FINAL / _DETAIL_ROUTE / _APPROVAL (route-based) and TB_R_PR_DAILY / TB_R_PR_SUMMARY (fixed cost, inferred); prices = MS_ROUTE_PRICE; calendar = TB_M_WORKING_CALENDAR; routes = MS_ROUTE_HEADER / DETAIL; conflicts recorded; no sample data",
+ "replace": {
+  "PR Header (TBD)": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+  "PR Route Detail (TBD)": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+  "PR Approval (TBD)": "ielp.CRITERIA_SCORE_APPROVAL",
+  "PO Header (TBD)": "ielp.PO_HEADER",
+  "Trucking Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "Approval History (TBD)": "approval history (no ELIPS table - TBD)",
+  "PR History (TBD)": "PR history (no ELIPS table - TBD)",
+  "PR Detail (TBD)": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+  "E-Catalogue Price / Master Price (TBD)": "ielp.MS_ROUTE_PRICE",
+  "Master Price (TBD)": "ielp.MS_ROUTE_PRICE",
+  "TMMIN Calendar (TBD)": "ielp.TB_M_WORKING_CALENDAR",
+  "Route Percentage Master (TBD)": "ielp.MS_ROUTE_HEADER",
+  "KPI Master (TBD)": "ielp.MS_KPI",
+  "PROD_MONTH, PR_SEQ (TBD)": "CRITERIA_PERIODE, PR_SEQ",
+  "PR_NO (TBD)": "PR_NO_DET",
+  "PR_SEQ (TBD)": "PR_SEQ",
+  "TRUCKING_CD (TBD)": "COMPANY_ID",
+  "TRUCKING_NAME (TBD)": "COMPANY_NAME",
+  "SHARING_PCT (TBD)": "TOTAL_ORDER_SHARING",
+  "TOTAL_QTY (TBD)": "TOTAL_TRIP",
+  "TOTAL_PRICE (TBD)": "TOTAL_PRICE",
+  "QTY_20, QTY_40 (TBD)": "ROUTE_QTY_20, ROUTE_QTY_40",
+  "PRICE_20, PRICE_40 (TBD)": "PRICE_20, PRICE_40",
+  "PRICE_40 (TBD)": "PRICE_40",
+  "APPROVAL_STATUS per level (TBD)": "APPROVAL_STS per APPROVAL_CLASS",
+  "APPROVED_BY, APPROVED_DT per level (TBD)": "APPROVAL_BY, APPROVAL_DATE per APPROVAL_CLASS",
+  "APPROVED_DT per level (TBD)": "APPROVAL_DATE per APPROVAL_CLASS",
+  "APPROVAL_STATUS (TBD)": "APPROVAL_STS",
+  "APPROVED_BY (TBD)": "APPROVAL_BY",
+  "APPROVED_DT (TBD)": "APPROVAL_DATE",
+  "LEVEL (TBD)": "APPROVAL_CLASS",
+  "PR_DATE (TBD)": "CREATED_DATE",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "PO_NO (TBD)": "PO_NUMBER",
+  "PO_STATUS (TBD)": "APPROVAL_STS",
+  "PO_DATE (TBD)": "CREATED_DATE",
+  "AUTO_APPROVE_DT (TBD)": "APPROVAL_LIMIT (PO_APPROVAL_EST)",
+  "NOTE (TBD)": "APPROVAL_REMARK",
+  "REASON (TBD)": "APPROVAL_REMARK",
+  "VENDOR_CD + VENDOR_NAME (TBD)": "COMPANY_CODE + COMPANY_NAME",
+  "VENDOR_CD (TBD)": "COMPANY_ID",
+  "OPR_MONTH (TBD)": "CRITERIA_PERIODE",
+  "WORKING_DAYS (TBD)": "count of WORKING_FLAG = 1",
+  "ROUTE_CD + ROUTE_DESC (TBD)": "ROUTE_CODE + ROUTE_DESCR",
+  "PERCENTAGE (TBD)": "ROUTE_PERCENTAGE_VALUE",
+  "DISTANCE_KM (TBD)": "distance (no column - TBD)",
+  "PRICE (component KM) (TBD)": "ROUTE_PRICE_VALUE (component KM - TBD)",
+  "PRICE (component FIX) (TBD)": "ROUTE_PRICE_VALUE (component FIX - TBD)",
+  "PRICE (TBD)": "ROUTE_PRICE_VALUE",
+  "PR_TYPE (TBD)": "BUSINESS_TYPE (inferred)"
+ },
+ "fields": [
+  {
+   "ui": "PR Creation Type",
+   "items": [
+    "PR Creation Type"
+   ],
+   "table": "ielp.CRITERIA_SCORE_HEADER",
+   "column": "BUSINESS_TYPE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "varchar(1) (inferred)."
+  },
+  {
+   "ui": "Operational Month",
+   "items": [
+    "Operational Month"
+   ],
+   "table": "ielp.CRITERIA_SCORE_HEADER",
+   "column": "CRITERIA_PERIODE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(7); PERIODE_FR / PERIODE_TO date."
+  },
+  {
+   "ui": "Trucking Company",
+   "items": [
+    "Logistics Partner",
+    "Trucking Company"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Mileage / Fixed cost price",
+   "items": [
+    "Mileage Cost (IDR/Km)",
+    "Fixed Cost (IDR/Month)",
+    "Cost components (Fixed type)"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "ROUTE_PRICE_VALUE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "Component FIX / KM not identifiable."
+  },
+  {
+   "ui": "Working Days",
+   "items": [
+    "Working Days (Days)",
+    "Working Days"
+   ],
+   "table": "ielp.TB_M_WORKING_CALENDAR",
+   "column": "WORKING_FLAG",
+   "rw": "R",
+   "mapping": "COUNT(WORKING_DATE) WHERE WORKING_FLAG = 1 in the month (inferred)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Route",
+   "items": [
+    "Route"
+   ],
+   "table": "ielp.MS_ROUTE_DETAIL",
+   "column": "ROUTE_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Route Percentage",
+   "items": [
+    "Route Percentage"
+   ],
+   "table": "ielp.MS_ROUTE_HEADER",
+   "column": "ROUTE_PERCENTAGE_VALUE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Distance (Km)",
+   "items": [
+    "Distance (Km)"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?)."
+  },
+  {
+   "ui": "PR per company",
+   "items": [],
+   "table": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "column": "PR_NO_DET",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "TOTAL_TRIP, TOTAL_ORDER_SHARING, TOTAL_PRICE."
+  },
+  {
+   "ui": "PR route lines",
+   "items": [],
+   "table": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "column": "TOTAL_PRICE_ALL",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "PR approval levels",
+   "items": [],
+   "table": "ielp.CRITERIA_SCORE_APPROVAL",
+   "column": "APPROVAL_CLASS",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Fixed cost (by resource) lines",
+   "items": [],
+   "table": "ielp.TB_R_PR_DAILY",
+   "column": "TOTAL_PRICE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "TB_R_PR_DAILY / _DETAIL / TB_R_PR_SUMMARY (truck, driver, DOT / HOT) inferred for the fixed-cost PR."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MO-01",
+   "topic": "PR document",
+   "uiss": "PR Header per trucking company with own PR number",
+   "code": "-",
+   "db": "CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET)",
+   "data": "No sample data",
+   "recommendation": "Use PR_NO_DET per company (confirm)"
+  },
+  {
+   "id": "G-MO-02",
+   "topic": "Approval levels",
+   "uiss": "SH / DpH / DH per PR",
+   "code": "-",
+   "db": "CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2)",
+   "data": "No sample data",
+   "recommendation": "Level codes TBD"
+  },
+  {
+   "id": "G-PRC-01",
+   "topic": "Fixed-cost PR",
+   "uiss": "Monthly Fixed Cost PR per LP (pr-creation-rules.js)",
+   "code": "-",
+   "db": "TB_R_PR_DAILY / TB_R_PR_SUMMARY (truck / driver / DOT / HOT model)",
+   "data": "No sample data",
+   "recommendation": "Confirm the fixed-cost calculation model against these tables"
+  }
+ ],
+ "tbd": [
+  "Sequence of PR numbers (PR_NO vc11, PR_SEQ)",
+  "Which of CRITERIA_* vs TB_R_PR_* is used per PR type"
+ ]
+}

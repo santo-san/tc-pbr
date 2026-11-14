@@ -1,0 +1,1774 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch / Interface",
+  "function_name": "TBD PAS to ELIPS Callback - PR / PO Number (Talend DB-to-DB)",
+  "created_date": "06-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "06-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft: callback of PAS PR / released PO number to ELIPS ielp.SA_DETAIL"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised (ELIPS side): target = ielp.SA_DETAIL (PAS_PR_NUMBER, PAS_PR_DATE, PAS_PO_NUMBER, PAS_PO_DATE, IS_PAS_CALLBACK, PAS_CALLBACK_*), SA key = SA_CODE / SA_DETAIL_ID (inferred), run logs -> LOG_ITGPAS (inferred); no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To write the PAS PR number and the released PAS PO number (status 44) back to the ELIPS ielp.SA_DETAIL rows of the SA that was interfaced to PAS.",
+   "To run as a scheduled Talend job, DB-to-DB, without API and without changing PAS data.",
+   "To update only the correct ielp.SA_DETAIL rows, idempotently and per SA transaction, and log every result."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "e",
+      "label": "ELIPS SA -> PAS (forward interface)",
+      "type": "process"
+     },
+     {
+      "id": "p",
+      "label": "PAS budget / Auto-PO / Auto-Approval",
+      "type": "process"
+     },
+     {
+      "id": "po",
+      "label": "TB_R_PO_H (44) / TB_R_PR_H",
+      "type": "db"
+     },
+     {
+      "id": "t",
+      "label": "Talend callback (scheduled)",
+      "type": "process"
+     },
+     {
+      "id": "sd",
+      "label": "ELIPS ielp.SA_DETAIL",
+      "type": "db"
+     }
+    ],
+    "edges": [
+     {
+      "from": "e",
+      "to": "p"
+     },
+     {
+      "from": "p",
+      "to": "po",
+      "label": "PO released"
+     },
+     {
+      "from": "po",
+      "to": "t"
+     },
+     {
+      "from": "t",
+      "to": "sd",
+      "label": "PR / PO No"
+     }
+    ]
+   }
+  },
+  "inputs": [
+   {
+    "name": "ielp.SA_DETAIL",
+    "type": "DB (ELIPS)",
+    "description": "Pending SAs: PAS_PR_NUMBER / PAS_PO_NUMBER empty"
+   },
+   {
+    "name": "TB_R_PR_H",
+    "type": "DB (PAS)",
+    "description": "PR_NO, PR_DESC (= SA number), PR_NOTES"
+   },
+   {
+    "name": "<PAS_PO_PR_LINK>",
+    "type": "DB (PAS)",
+    "description": "PO-PR relation - TBD - Requires PAS table/column confirmation"
+   },
+   {
+    "name": "TB_R_PO_H",
+    "type": "DB (PAS)",
+    "description": "PO number, PO status 44 (column names TBD - Requires PAS table/column confirmation)"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "ielp.SA_DETAIL",
+    "type": "DB (ELIPS)",
+    "description": "PAS_PR_NUMBER, PAS_PO_NUMBER"
+   },
+   {
+    "name": "ielp.LOG_ITGPAS (inferred)",
+    "type": "DB (ELIPS)",
+    "description": "Run totals (proposed)"
+   },
+   {
+    "name": "ielp.LOG_ITGPAS (inferred)",
+    "type": "DB (ELIPS)",
+    "description": "Result per SA (proposed)"
+   },
+   {
+    "name": "Talend log file",
+    "type": "File",
+    "description": "tLogCatcher / tStatCatcher; fallback when ELIPS is down"
+   }
+  ],
+  "extra_tables": [
+   {
+    "title": "Execution",
+    "columns": [
+     {
+      "title": "Item",
+      "width": 10
+     },
+     {
+      "title": "Description",
+      "width": 30
+     }
+    ],
+    "rows": [
+     [
+      "Tool",
+      "Talend scheduled job (TMC / TAC), DB-to-DB"
+     ],
+     [
+      "Schedule",
+      "Every N minutes (TBD, proposed 30), no overlap"
+     ],
+     [
+      "Unit of work",
+      "One SA = one ELIPS transaction"
+     ],
+     [
+      "PAS access",
+      "Read only"
+     ],
+     [
+      "Idempotency",
+      "Compare stored values; update only empty / equal"
+     ]
+    ]
+   }
+  ],
+  "constraints": [
+   "PO-PR relation, PO status / number columns and ielp.SA_DETAIL key columns are placeholders until confirmed.",
+   "No join or column is assumed beyond the supplied code and requirement."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START",
+     "type": "start"
+    },
+    {
+     "id": "p1",
+     "label": "Connect PAS / ELIPS, run log",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "lg",
+     "label": "ielp.LOG_ITGPAS (inferred)",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p2",
+     "label": "Read pending SA (PR / PO empty)",
+     "type": "process",
+     "step": 2
+    },
+    {
+     "id": "sd1",
+     "label": "ielp.SA_DETAIL",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "p3",
+     "label": "Query PAS PR + released PO by PR_DESC (chunk)",
+     "type": "process",
+     "step": 3
+    },
+    {
+     "id": "pas",
+     "label": "TB_R_PR_H / link / TB_R_PO_H",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "p4",
+     "label": "Classify: released, PR_NOTES ends '0'",
+     "type": "process",
+     "step": 4
+    },
+    {
+     "id": "p5",
+     "label": "Per SA: unique PR/PO, rows, conflict",
+     "type": "process",
+     "step": 5
+    },
+    {
+     "id": "d5",
+     "label": "Valid and changed?",
+     "type": "decision",
+     "step": 6
+    },
+    {
+     "id": "x5",
+     "label": "SKIPPED / FAILED / NO_CHANGE",
+     "type": "message"
+    },
+    {
+     "id": "p6",
+     "label": "UPDATE ielp.SA_DETAIL, commit / rollback",
+     "type": "process",
+     "step": 7
+    },
+    {
+     "id": "sd2",
+     "label": "ielp.SA_DETAIL",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p7",
+     "label": "Detail log; next SA",
+     "type": "process",
+     "step": 8
+    },
+    {
+     "id": "dl",
+     "label": "ielp.LOG_ITGPAS (inferred)",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p8",
+     "label": "Run log totals",
+     "type": "process",
+     "step": 9
+    },
+    {
+     "id": "e",
+     "label": "END",
+     "type": "end"
+    }
+   ],
+   "same_rank": [
+    [
+     "d5",
+     "x5"
+    ]
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "p1"
+    },
+    {
+     "from": "p1",
+     "to": "lg"
+    },
+    {
+     "from": "p1",
+     "to": "p2"
+    },
+    {
+     "from": "sd1",
+     "to": "p2"
+    },
+    {
+     "from": "p2",
+     "to": "p3"
+    },
+    {
+     "from": "pas",
+     "to": "p3"
+    },
+    {
+     "from": "p3",
+     "to": "p4"
+    },
+    {
+     "from": "p4",
+     "to": "p5"
+    },
+    {
+     "from": "p5",
+     "to": "d5"
+    },
+    {
+     "from": "d5",
+     "to": "x5",
+     "label": "No"
+    },
+    {
+     "from": "d5",
+     "to": "p6",
+     "label": "Yes"
+    },
+    {
+     "from": "p6",
+     "to": "sd2"
+    },
+    {
+     "from": "p6",
+     "to": "p7"
+    },
+    {
+     "from": "p7",
+     "to": "dl"
+    },
+    {
+     "from": "p7",
+     "to": "p8"
+    },
+    {
+     "from": "p8",
+     "to": "e"
+    }
+   ]
+  },
+  "steps": [
+   {
+    "text": "Scheduled start (TMC / TAC, single instance, interval TBD). Open cnx_PAS (read only) and cnx_ELIPS (auto-commit OFF) from context variables; no credentials in logs. Insert ielp.LOG_ITGPAS (inferred) (START); log message no. 1.",
+    "children": [
+     "PAS connection error: log message no. 2; ELIPS connection error: log message no. 3. Stop."
+    ]
+   },
+   {
+    "text": "Read pending SAs from ielp.SA_DETAIL: PAS_PR_NUMBER or PAS_PO_NUMBER empty, SA interfaced to PAS (condition TBD - Requires ELIPS table/column confirmation), SA date within CB_LOOKBACK_DAYS; group by SA number (SA_CODE: TBD - Requires ELIPS table/column confirmation).",
+    "children": [
+     "None: log message no. 4; go to step 9."
+    ]
+   },
+   {
+    "text": "Per chunk of CB_CHUNK_SIZE SA numbers: SELECT TB_R_PR_H (PR_NO, PR_DESC, PR_NOTES) WHERE PR_DESC IN (chunk) LEFT JOIN <PAS_PO_PR_LINK> LEFT JOIN TB_R_PO_H with <PO_STATUS_COL> = '44' (TBD - Requires PAS table/column confirmation). Mode B (optional): released POs since the watermark.",
+    "children": [
+     "Chunk error: log message no. 5."
+    ]
+   },
+   {
+    "text": "Classify each row (Functional Description 4.1): PR not found, PO not released, PR_NOTES NULL / empty, PR_NOTES not ending '0', or ELIGIBLE. PR_NOTES only via RTRIM / RIGHT / LEN, so no format can fail the job.",
+    "children": [
+     "log message no. 6; log message no. 7; log message no. 8; log message no. 9."
+    ]
+   },
+   {
+    "text": "Per SA with eligible rows: exactly one PR; one released PO (per PR, or per PR item if the link is item level); ielp.SA_DETAIL rows exist and match (SA_NUMBER [+ ITEM_NO]); no row with a different non-empty PR / PO. Target rows are never searched by PAS numbers.",
+    "children": [
+     "log message no. 10; log message no. 11; log message no. 12; log message no. 13."
+    ]
+   },
+   {
+    "text": "Decision: in the ELIPS transaction lock the target rows and count TOTAL / SAME / CONFLICT.",
+    "children": [
+     "CONFLICT > 0: log message no. 14. SAME = TOTAL: log message no. 15 (no UPDATE). Otherwise step 7."
+    ]
+   },
+   {
+    "text": "UPDATE ielp.SA_DETAIL SET PAS_PR_NUMBER, PAS_PO_NUMBER (+ audit columns if they exist) WHERE SA [+ ITEM] AND value empty or equal AND NOT already equal. Rows affected must be TOTAL - SAME, then COMMIT.",
+    "children": [
+     "Mismatch: log message no. 16. DB error: log message no. 17. Success: log message no. 18."
+    ]
+   },
+   {
+    "text": "Insert ielp.LOG_ITGPAS (inferred) (UPDATED / NO_CHANGE / SKIPPED / FAILED with reason, PR, PO, SA); continue with the next SA. Waiting states (PR not found / PO not released) only as counts until CB_WAIT_ALERT_DAYS."
+   },
+   {
+    "text": "Update ielp.LOG_ITGPAS (inferred): END_DT, counts, RUN_STATUS SUCCESS / PARTIAL / FAILED; log message no. 19. Unexpected error: log message no. 20."
+   }
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": {
+     "table": "Talend run"
+    },
+    "destination": {
+     "table": "ielp.LOG_ITGPAS (inferred)",
+     "operation": "Insert",
+     "description": "Step 1 - start"
+    },
+    "mappings": [
+     {
+      "dest_field": "RUN_ID",
+      "description": "Talend pid"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "PENDING_SA_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "RELEASED_PO_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ELIGIBLE_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "UPDATED_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "UPDATED_ROW_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "NO_CHANGE_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "SKIPPED_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "FAILED_CNT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "WATERMARK",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "RUN_STATUS",
+      "description": "'RUNNING'"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "NULL"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_PR_H / <PAS_PO_PR_LINK> / TB_R_PO_H",
+     "keys": [
+      {
+       "field": "PR_DESC",
+       "value": "SA number (pending)"
+      },
+      {
+       "field": "<PO_STATUS_COL>",
+       "value": "'44'"
+      },
+      {
+       "field": "RIGHT(PR_NOTES,1)",
+       "value": "'0'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.SA_DETAIL",
+     "operation": "Update",
+     "description": "Step 7 - per SA, one transaction",
+     "keys": [
+      {
+       "field": "SA_CODE",
+       "value": "PR_DESC"
+      },
+      {
+       "field": "ielp.SA_DETAIL_ID (inferred)",
+       "value": "PR_ITEM_NO (item link only)"
+      },
+      {
+       "field": "PAS_PR/PO_NUMBER",
+       "value": "NULL or equal; not both equal"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE",
+      "description": "Key, not changed"
+     },
+     {
+      "dest_field": "ielp.SA_DETAIL_ID (inferred)",
+      "description": "Key, not changed"
+     },
+     {
+      "source_field": "PR_NO",
+      "dest_field": "PAS_PR_NUMBER",
+      "description": "TB_R_PR_H.PR_NO (character, trimmed)"
+     },
+     {
+      "source_field": "<PO_NO_COL>",
+      "dest_field": "PAS_PO_NUMBER",
+      "description": "TB_R_PO_H PO number, status 44 (character, trimmed)"
+     },
+     {
+      "dest_field": "<CHANGED_BY_COL>",
+      "description": "Context CB_USER (if the column exists)"
+     },
+     {
+      "dest_field": "<CHANGED_DT_COL>",
+      "description": "Server date-time (if the column exists)"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "Result per SA"
+    },
+    "destination": {
+     "table": "ielp.LOG_ITGPAS (inferred)",
+     "operation": "Insert",
+     "description": "Step 8"
+    },
+    "mappings": [
+     {
+      "dest_field": "RUN_ID",
+      "description": "Run"
+     },
+     {
+      "dest_field": "SEQ",
+      "description": "Counter"
+     },
+     {
+      "dest_field": "SA_NUMBER",
+      "description": "PR_DESC / pending SA"
+     },
+     {
+      "dest_field": "ITEM_NO",
+      "description": "PR_ITEM_NO (item link) or NULL"
+     },
+     {
+      "dest_field": "PAS_PR_NUMBER",
+      "description": "PR_NO or NULL"
+     },
+     {
+      "dest_field": "PAS_PO_NUMBER",
+      "description": "PO number or NULL"
+     },
+     {
+      "dest_field": "PR_NOTES",
+      "description": "PR_NOTES (skipped only)"
+     },
+     {
+      "dest_field": "RESULT",
+      "description": "'UPDATED' / 'NO_CHANGE' / 'SKIPPED' / 'FAILED'"
+     },
+     {
+      "dest_field": "REASON_CD",
+      "description": "Reason code"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "Log message text"
+     },
+     {
+      "dest_field": "ROWS_AFFECTED",
+      "description": "Rows updated"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "Talend run"
+    },
+    "destination": {
+     "table": "ielp.LOG_ITGPAS (inferred)",
+     "operation": "Update",
+     "description": "Step 9 - end",
+     "keys": [
+      {
+       "field": "RUN_ID",
+       "value": "Run"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "RUN_ID",
+      "description": "Key"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Not changed"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "PENDING_SA_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "RELEASED_PO_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "ELIGIBLE_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "UPDATED_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "UPDATED_ROW_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "NO_CHANGE_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "SKIPPED_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "FAILED_CNT",
+      "description": "Count"
+     },
+     {
+      "dest_field": "WATERMARK",
+      "description": "Max PO timestamp read (mode B)"
+     },
+     {
+      "dest_field": "RUN_STATUS",
+      "description": "'SUCCESS' / 'PARTIAL' / 'FAILED'"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "Summary"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "DESCRIPTION",
+   "num": "4."
+  },
+  {
+   "type": "text",
+   "text": "After PAS budget processing, Auto-PO and Auto-Approval, a scheduled Talend job writes the PAS PR number and the released PAS PO number back to the ELIPS ielp.SA_DETAIL rows of the SA that was sent to PAS (PR_DESC = SA_NUMBER). DB-to-DB, read-only on PAS, no API. Example: PR 5000269261 / PO 4450288442.",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "text",
+   "text": "4.1 Eligibility (per PAS row)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "Result",
+     "width": 8
+    },
+    {
+     "title": "Condition",
+     "width": 37
+    }
+   ],
+   "rows": [
+    [
+     "PR_NOT_FOUND",
+     "No TB_R_PR_H with PR_DESC = SA number (skip, stays pending)"
+    ],
+    [
+     "PO_NOT_RELEASED",
+     "No linked PO with status 44 (skip)"
+    ],
+    [
+     "NOTES_EMPTY",
+     "PR_NOTES NULL or blank (skip)"
+    ],
+    [
+     "NOTES_NOT_0",
+     "RIGHT(RTRIM(PR_NOTES),1) <> '0' (skip)"
+    ],
+    [
+     "ELIGIBLE",
+     "Released PO and PR_NOTES ends with '0'"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "4.2 Identification of the ELIPS rows",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Key = SA_NUMBER sent by the forward interface as TB_R_PR_H.PR_DESC; plus ITEM_NO (= TB_R_PR_ITEM.PR_ITEM_NO) when the PO link is item level (OQ-C01).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Never search ielp.SA_DETAIL by PAS_PR_NUMBER / PAS_PO_NUMBER; these are only compared (conflict).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Exactly one PR per SA and one released PO per PR (or per PR item); otherwise FAILED, not updated.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.3 Idempotency / transaction",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "One ELIPS transaction per SA; rows locked; TOTAL / SAME / CONFLICT counted first.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "SAME = TOTAL: NO_CHANGE, no UPDATE. CONFLICT > 0: FAILED VALUE_CONFLICT, never overwritten (OQ-C10).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Rows affected must equal TOTAL - SAME, else rollback. A failed SA does not stop the others.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Reason codes: PR_NOT_FOUND, PO_NOT_RELEASED, NOTES_EMPTY, NOTES_NOT_0, AMBIGUOUS_PR, AMBIGUOUS_PO, SA_NOT_FOUND, DETAIL_MISMATCH, MULTIPLE_DETAIL_MATCH, VALUE_CONFLICT, PR_MISMATCH, UPDATE_COUNT_MISMATCH, UPDATE_FAILED.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "text",
+   "text": "4.4 Performance",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Start from the small ELIPS pending set; query PAS only by PR_DESC IN (chunk) with PO status 44 in the join; no full read of TB_R_PO_H / TB_R_PR_H. Index on TB_R_PR_H.PR_DESC requested (OQ-C08).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Mode B (PO-driven, watermark) only if TB_R_PO_H has a change timestamp (OQ-C07).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.5 Context variables",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "PAS_DB_HOST / PORT / NAME / USER / PASSWORD, ELIPS_DB_HOST / PORT / NAME / USER / PASSWORD (Password type, never logged).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "CB_PO_RELEASED_STATUS '44', CB_NOTES_SUFFIX '0', CB_LOOKBACK_DAYS, CB_CHUNK_SIZE, CB_USER, CB_WAIT_ALERT_DAYS, CB_MODE.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.6 Critical finding",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "The current forward interface inserts PR_NOTES = NULL (computed value ends with '1'), so RIGHT(PR_NOTES,1) = '0' never matches unless PAS or the forward interface sets it (OQ-C02).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.7 Open questions",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 6
+    },
+    {
+     "title": "Question",
+     "width": 39
+    }
+   ],
+   "rows": [
+    [
+     "OQ-C01",
+     "PO-PR relation: table / columns (PO item -> PR_NO + PR_ITEM_NO, or PR on PO header)? One PR -> several POs?"
+    ],
+    [
+     "OQ-C02",
+     "PR_NOTES: forward interface inserts NULL (computed value ends '1'). Who sets PR_NOTES ending '0' and what do 0 / 1 mean?"
+    ],
+    [
+     "OQ-C03",
+     "TB_R_PO_H: PO status column (44 = Released) and PO number column; data types"
+    ],
+    [
+     "OQ-C04",
+     "ielp.SA_DETAIL: SA number / item number columns, PK, audit columns"
+    ],
+    [
+     "OQ-C05",
+     "Types / lengths of PAS_PR_NUMBER / PAS_PO_NUMBER"
+    ],
+    [
+     "OQ-C06",
+     "PR / PO on ielp.SA_DETAIL vs SA header (SA Monitoring proposal)"
+    ],
+    [
+     "OQ-C07",
+     "TB_R_PO_H change / release timestamp for incremental mode B?"
+    ],
+    [
+     "OQ-C08",
+     "Index on TB_R_PR_H.PR_DESC; read access for the Talend user"
+    ],
+    [
+     "OQ-C09",
+     "ELIPS DB engine; connection per environment"
+    ],
+    [
+     "OQ-C10",
+     "Overwrite a different stored PR / PO (PO re-created)? Proposed: no"
+    ],
+    [
+     "OQ-C11",
+     "Log tables in ELIPS (proposed) or file / AMC only; who is notified"
+    ],
+    [
+     "OQ-C12",
+     "Also set ELIPS SA / daily order status (PO Received)? Not in scope"
+    ],
+    [
+     "OQ-C13",
+     "Schedule interval and lookback window"
+    ]
+   ],
+   "row_lines": "all"
+  }
+ ],
+ "func_desc_layout": "two",
+ "logging_messages": [
+  {
+   "event": "Process start",
+   "cause": "Scheduled run started",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "PAS-ELIPS PR/PO callback started. Run <RUN_ID>, mode <A|B>.",
+   "action": {
+    "system": "Insert run log",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Connect to database server",
+   "cause": "PAS connection failed",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Cannot connect to PAS database: <DB_ERROR>.",
+   "action": {
+    "system": "Stop; no ELIPS change; run log FAILED",
+    "user": "Check PAS DB; next schedule retries"
+   }
+  },
+  {
+   "event": "Connect to database server",
+   "cause": "ELIPS connection failed",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Cannot connect to ELIPS database: <DB_ERROR>.",
+   "action": {
+    "system": "Stop; log to file",
+    "user": "Check ELIPS DB"
+   }
+  },
+  {
+   "event": "Select candidates",
+   "cause": "No pending SA / no released PO",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No callback candidates (pending SA <n>, released PO 0).",
+   "action": {
+    "system": "End the run",
+    "user": "-"
+   }
+  },
+  {
+   "event": "PAS query",
+   "cause": "Query error for one chunk",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PAS query failed for chunk <k> (<n> SA): <DB_ERROR>.",
+   "action": {
+    "system": "Skip chunk, continue",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Record validation",
+   "cause": "No TB_R_PR_H with PR_DESC = SA (mode B: PO without PR)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> / PO <PO_NO>: PAS PR not found.",
+   "action": {
+    "system": "Skip; stays pending (count only, detail after wait days)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Record validation",
+   "cause": "PR found but no released PO (status 44)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR <PR_NO> has no released PO yet.",
+   "action": {
+    "system": "Skip; stays pending (count only)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Record validation",
+   "cause": "PR_NOTES NULL or empty",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR <PR_NO> PR_NOTES empty - not eligible.",
+   "action": {
+    "system": "Skip (NOTES_EMPTY)",
+    "user": "PAS check PR_NOTES"
+   }
+  },
+  {
+   "event": "Record validation",
+   "cause": "PR_NOTES does not end with '0'",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR <PR_NO> PR_NOTES '<PR_NOTES>' not eligible.",
+   "action": {
+    "system": "Skip (NOTES_NOT_0)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Record validation",
+   "cause": "Several PRs with the same PR_DESC",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: <n> PAS PRs found (<PR_NO list>); not updated.",
+   "action": {
+    "system": "FAILED AMBIGUOUS_PR",
+    "user": "PAS / ELIPS admin decide"
+   }
+  },
+  {
+   "event": "Record validation",
+   "cause": "Several released POs for one PR (header link) or one PR item",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR <PR_NO> has <n> released POs (<PO list>); not updated.",
+   "action": {
+    "system": "FAILED AMBIGUOUS_PO",
+    "user": "Confirm the PO"
+   }
+  },
+  {
+   "event": "Identify ELIPS SA",
+   "cause": "ielp.SA_DETAIL not found for PR_DESC",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> (PR <PR_NO>, PO <PO_NO>) not found in ielp.SA_DETAIL.",
+   "action": {
+    "system": "FAILED SA_NOT_FOUND",
+    "user": "Check SA number"
+   }
+  },
+  {
+   "event": "Identify ELIPS SA",
+   "cause": "Item link: ITEM_NO matches 0 or more than 1 row; or row count <> PR items",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> item <ITEM_NO>: <n> ielp.SA_DETAIL rows match; not updated.",
+   "action": {
+    "system": "FAILED MULTIPLE_DETAIL_MATCH / DETAIL_MISMATCH",
+    "user": "Check SA detail"
+   }
+  },
+  {
+   "event": "Update ELIPS",
+   "cause": "Target row already has a different PR / PO",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: stored PR/PO <OLD> differs from PAS <PR_NO>/<PO_NO>; not overwritten.",
+   "action": {
+    "system": "Rollback SA; FAILED VALUE_CONFLICT",
+    "user": "Business decides (OQ-C10)"
+   }
+  },
+  {
+   "event": "Update ELIPS",
+   "cause": "All rows already equal",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR <PR_NO> / PO <PO_NO> already stored.",
+   "action": {
+    "system": "No update (NO_CHANGE)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Update ELIPS",
+   "cause": "Rows affected <> expected",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: <n> rows updated, <m> expected; rolled back.",
+   "action": {
+    "system": "Rollback SA; FAILED UPDATE_COUNT_MISMATCH",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Update ELIPS",
+   "cause": "DB error on UPDATE / COMMIT",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: update failed: <DB_ERROR>; rolled back.",
+   "action": {
+    "system": "Rollback SA; FAILED UPDATE_FAILED; continue",
+    "user": "Next run retries"
+   }
+  },
+  {
+   "event": "Update ELIPS",
+   "cause": "SA updated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: <n> ielp.SA_DETAIL rows set PR <PR_NO>, PO <PO_NO>.",
+   "action": {
+    "system": "Commit; detail log UPDATED",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Process end",
+   "cause": "Run finished",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Callback finished: pending <n>, released PO <n>, eligible <n>, updated <n> (<rows> rows), no change <n>, skipped <n>, failed <n>.",
+   "action": {
+    "system": "Update run log",
+    "user": "Check FAILED rows"
+   }
+  },
+  {
+   "event": "Processing",
+   "cause": "Unexpected Talend error",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Callback stopped: <ERROR>.",
+   "action": {
+    "system": "Rollback current SA; run log FAILED",
+    "user": "Contact system administrator"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "ielp.SA_DETAIL",
+   "kind": "transaction",
+   "proposed": false,
+   "description": "Existing ELIPS table (columns from ELIPS_Schema.sql)",
+   "columns": [
+    [
+     "SA_DETAIL_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_DET_ID",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_TYPE",
+     "VARCHAR(30)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "COMPANY_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_SIZE",
+     "VARCHAR(2)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ROUTE_HEADER_ID",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ROUTE_PRICE_ID",
+     "VARCHAR(16)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STATUS_CODE",
+     "VARCHAR(2)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "APPROVED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "APPROVED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DELETED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DELETED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ORDER_ROUTE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PRICE_ROUTE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PO_NUMBER",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SA_CODE",
+     "VARCHAR(16)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_DELETE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "SA_HEADER_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_VISION",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "VISION_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "VISION_CREATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_VISION_CALLBACK",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "VISION_CALLBACK_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "VISION_CALLBACK_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_PAS",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "PAS_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_CREATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_PAS_CALLBACK",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "PAS_CALLBACK_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_CALLBACK_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TOTAL_TRIP",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "PRICE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TOTAL_PRICE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "REMARK",
+     "VARCHAR(1000)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PR_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PR_DATE",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PO_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PO_DATE",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "LOG_ITG_SEND_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "LOG_ITG_CALLBACK_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SA_TYPE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "ielp.LOG_ITGPAS (inferred)",
+   "kind": "log",
+   "proposed": true,
+   "description": "One row per run. Placeholder name: TBD - Requires ELIPS table/column confirmation (OQ-C11) - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "RUN_ID",
+     "VARCHAR(50)",
+     "Y",
+     "N",
+     "Talend pid / run id"
+    ],
+    [
+     "START_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Job start"
+    ],
+    [
+     "END_DT",
+     "DATETIME",
+     "",
+     "Y",
+     "Job end"
+    ],
+    [
+     "PENDING_SA_CNT",
+     "INT",
+     "",
+     "Y",
+     "SAs read in step 2"
+    ],
+    [
+     "RELEASED_PO_CNT",
+     "INT",
+     "",
+     "Y",
+     "Released POs found (status 44)"
+    ],
+    [
+     "ELIGIBLE_CNT",
+     "INT",
+     "",
+     "Y",
+     "Released and PR_NOTES ends '0'"
+    ],
+    [
+     "UPDATED_CNT",
+     "INT",
+     "",
+     "Y",
+     "SAs updated"
+    ],
+    [
+     "UPDATED_ROW_CNT",
+     "INT",
+     "",
+     "Y",
+     "ielp.SA_DETAIL rows updated"
+    ],
+    [
+     "NO_CHANGE_CNT",
+     "INT",
+     "",
+     "Y",
+     "Already up to date"
+    ],
+    [
+     "SKIPPED_CNT",
+     "INT",
+     "",
+     "Y",
+     "Skipped"
+    ],
+    [
+     "FAILED_CNT",
+     "INT",
+     "",
+     "Y",
+     "Failed"
+    ],
+    [
+     "WATERMARK",
+     "DATETIME",
+     "",
+     "Y",
+     "Mode B only"
+    ],
+    [
+     "RUN_STATUS",
+     "VARCHAR(10)",
+     "",
+     "N",
+     "RUNNING / SUCCESS / PARTIAL / FAILED"
+    ],
+    [
+     "MESSAGE",
+     "VARCHAR(2000)",
+     "",
+     "Y",
+     "Summary / fatal error (no credentials)"
+    ]
+   ]
+  },
+  {
+   "name": "ielp.LOG_ITGPAS (inferred)",
+   "kind": "log",
+   "proposed": true,
+   "description": "One row per SA (or SA + item) result. Placeholder name: TBD - Requires ELIPS table/column confirmation - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "RUN_ID",
+     "VARCHAR(50)",
+     "Y",
+     "N",
+     "Run"
+    ],
+    [
+     "SEQ",
+     "INT",
+     "Y",
+     "N",
+     "Sequence in the run"
+    ],
+    [
+     "SA_NUMBER",
+     "VARCHAR(TBD)",
+     "",
+     "N",
+     "ELIPS SA (= PR_DESC)"
+    ],
+    [
+     "ITEM_NO",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Item (item-level link only)"
+    ],
+    [
+     "PAS_PR_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     "PAS PR"
+    ],
+    [
+     "PAS_PO_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     "PAS PO"
+    ],
+    [
+     "PR_NOTES",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Value seen (skipped records)"
+    ],
+    [
+     "RESULT",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "UPDATED / NO_CHANGE / SKIPPED / FAILED"
+    ],
+    [
+     "REASON_CD",
+     "VARCHAR(30)",
+     "",
+     "Y",
+     "Reason code (Functional Description 4.3)"
+    ],
+    [
+     "MESSAGE",
+     "VARCHAR(2000)",
+     "",
+     "Y",
+     "Error text"
+    ],
+    [
+     "ROWS_AFFECTED",
+     "INT",
+     "",
+     "Y",
+     "Updated rows"
+    ],
+    [
+     "CREATED_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Log time"
+    ]
+   ]
+  }
+ ],
+ "appendix": [
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "PR number",
+     "ielp.SA_DETAIL.PAS_PR_NUMBER",
+     "varchar(20)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PR date",
+     "ielp.SA_DETAIL.PAS_PR_DATE",
+     "date",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO number",
+     "ielp.SA_DETAIL.PAS_PO_NUMBER",
+     "varchar(20)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO date",
+     "ielp.SA_DETAIL.PAS_PO_DATE",
+     "date",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Callback flag / status",
+     "ielp.SA_DETAIL.IS_PAS_CALLBACK",
+     "varchar(1)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Run log",
+     "ielp.LOG_ITGPAS.STS_CODE",
+     "varchar(10)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "SA item key column",
+    "Callback status values"
+   ]
+  }
+ ]
+}

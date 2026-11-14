@@ -1,0 +1,546 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD TC-PBR Menu & Authorization",
+  "created_date": "14-Nov-26",
+  "created_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "Newly created in the UISS review (docs/review 04 M1): menu tree and role access of the existing TC-PBR mock-up; ELIPS tables MASTER_MENU, USERID_*; class names TBD"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To document the TC-PBR menu tree and which role may view / execute each function, as implemented in the mock-up.",
+   "To map menus and roles to the existing ELIPS authorization tables (MASTER_MENU, USERID_CLASS, USERID_MENU_OPTION, USERID_DETAIL)."
+  ],
+  "display_order": [
+   {
+    "section": "Side menu",
+    "fields": [
+     {
+      "field": "Fixed order as in the pages",
+      "order": "-"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Menu link",
+    "function": "Open the screen of the menu (hash routing)."
+   },
+   {
+    "name": "Login sebagai",
+    "function": "Mock-up only: switch the acting user."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Logged in",
+    "sections": [
+     {
+      "section": "Side menu",
+      "description": "Menus per user class",
+      "buttons": {
+       "Menu link": "E",
+       "Login sebagai": "E"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Menu access",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "Login (ELIPS)",
+      "type": "start"
+     },
+     {
+      "id": "u",
+      "label": "Read USERID_DETAIL -> USERID_CLASS",
+      "type": "process"
+     },
+     {
+      "id": "m",
+      "label": "Read USERID_MENU_OPTION + MASTER_MENU",
+      "type": "process"
+     },
+     {
+      "id": "r",
+      "label": "Show allowed menus; screen checks role per action",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "u"
+     },
+     {
+      "from": "u",
+      "to": "m"
+     },
+     {
+      "from": "m",
+      "to": "r"
+     }
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "Side menu (see screen layouts of each function UISS)"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Side Menu>"
+  },
+  {
+   "name": "Daily > Daily Monitoring",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens index.html#monitoring. Access in the mock-up: IELP Admin X, Planner VPLD X, LP Admin X, Supplier Viewer V, Driver X, System X. Evidence: workflow.js:57 canView, action allow()."
+  },
+  {
+   "name": "Daily > Planning Order",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens index.html#planning-order. Access in the mock-up: IELP Admin V, Planner VPLD X. Evidence: dtp-rules.js canCreate (PLANNER); dtp.js isPlanner."
+  },
+  {
+   "name": "Daily > Planning Truck Assignment",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens index.html#truck-assignment. Access in the mock-up: IELP Admin V, Planner VPLD V, LP Admin X, Supplier Viewer V. Evidence: truck-assign.js:8 isLpAdmin."
+  },
+  {
+   "name": "Service Acceptance > SA Approval",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens index.html#sa-approval. Access in the mock-up: IELP Admin V, Planner VPLD X. Evidence: sa.js:10-11 isVPLD, canSeeApproval."
+  },
+  {
+   "name": "Service Acceptance > SA Monitoring",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens index.html#sa-monitoring. Access in the mock-up: IELP Admin X, Planner VPLD V, LP Admin V, Supplier Viewer V, System X. Evidence: sa-monitoring.js:15-17 canView, canRetry (IELP Admin)."
+  },
+  {
+   "name": "Master > Trucking Company, Mileage, Price, Location Code, Priority, Renban, KPI, Route Percentage",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens master.html#.... Access in the mock-up: IELP Admin X, Planner VPLD ?, LP Admin ?, Supplier Viewer ?, VPLD Staff / SH ?, Approver (SH/DpH/DH) ?, GA ?. Evidence: No role check in master.js / master-*.js (TBD)."
+  },
+  {
+   "name": "Monthly > PR Creation",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens monthly.html#pr-creation. Access in the mock-up: IELP Admin V, VPLD Staff / SH X, Approver (SH/DpH/DH) V. Evidence: pr-creation-rules.js canCreate + pr-sources.js PR_CREATORS."
+  },
+  {
+   "name": "Monthly > PR Approval, PO Approval",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens monthly.html#pr-approval, #po-approval. Access in the mock-up: IELP Admin V, Supplier Viewer V, VPLD Staff / SH V, Approver (SH/DpH/DH) X, GA V, System X. Evidence: monthly-workflow.js canView, needsMe (APPROVER), runAutoApprove (SYSTEM)."
+  },
+  {
+   "name": "Monthly > PR Inquiry, PO Inquiry",
+   "source": "ielp.MASTER_MENU",
+   "field": "MENU_ITEM",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Link",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
+   "description": "Opens monthly.html#pr-inquiry, #po-inquiry. Access in the mock-up: IELP Admin V, Supplier Viewer V, VPLD Staff / SH V, Approver (SH/DpH/DH) V, GA V. Evidence: monthly-workflow.js:28 canView (supplier own documents)."
+  },
+  {
+   "group": "<Header>"
+  },
+  {
+   "name": "Login sebagai (role selector)",
+   "source": "Mock-up only",
+   "field": "-",
+   "type": "Varchar",
+   "len": "-",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "IELP Admin",
+   "required": "N",
+   "format": "-",
+   "validation": "-",
+   "description": "Simulates the logged-in user (app.js:510 setActor, :519 openLogin; monthly.js:325). In ELIPS the user comes from ielp.USERID + USERID_DETAIL (USERID_CLASS) - not a screen field."
+  },
+  {
+   "name": "User name / role label",
+   "source": "ielp.USERID / ielp.USERID_DETAIL",
+   "field": "FULL_NAME / USERID_CLASS",
+   "type": "Varchar",
+   "len": "100 / 50",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "Login user",
+   "required": "N",
+   "format": "-",
+   "validation": "-",
+   "description": "Role label per workflow.js:26 roleLabel / monthly-workflow.js:135. Mapping role -> USERID_CLASS TBD - Not confirmed from existing schema/data/code."
+  }
+ ],
+ "data_map": {
+  "blocks": [],
+  "note": "Not applicable - read only (menus / user classes are maintained in ELIPS user administration)."
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Role access matrix (mock-up code)"
+  },
+  {
+   "type": "text",
+   "text": "X = execute, V = view only, ? = no role check in the code (TBD), - = no access. Evidence per row in Item Desc.",
+   "level": 0,
+   "bold": false
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "columns": [
+    {
+     "title": "Function",
+     "width": 10
+    },
+    {
+     "title": "IELP Admin",
+     "width": 3
+    },
+    {
+     "title": "Planner VPLD",
+     "width": 3
+    },
+    {
+     "title": "LP Admin",
+     "width": 3
+    },
+    {
+     "title": "Supplier Viewer",
+     "width": 3
+    },
+    {
+     "title": "Driver",
+     "width": 3
+    },
+    {
+     "title": "VPLD Staff / SH",
+     "width": 3
+    },
+    {
+     "title": "Approver (SH/DpH/DH)",
+     "width": 3
+    },
+    {
+     "title": "GA",
+     "width": 3
+    },
+    {
+     "title": "System",
+     "width": 3
+    }
+   ],
+   "rows": [
+    [
+     "Daily Monitoring",
+     "X",
+     "X",
+     "X",
+     "V",
+     "X",
+     "-",
+     "-",
+     "-",
+     "X"
+    ],
+    [
+     "Planning Order (DTP Creation)",
+     "V",
+     "X",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-"
+    ],
+    [
+     "Planning Truck Assignment",
+     "V",
+     "V",
+     "X",
+     "V",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-"
+    ],
+    [
+     "SA Approval",
+     "V",
+     "X",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-",
+     "-"
+    ],
+    [
+     "SA Monitoring",
+     "X",
+     "V",
+     "V",
+     "V",
+     "-",
+     "-",
+     "-",
+     "-",
+     "X"
+    ],
+    [
+     "Master (8 screens)",
+     "X",
+     "?",
+     "?",
+     "?",
+     "-",
+     "?",
+     "?",
+     "?",
+     "-"
+    ],
+    [
+     "PR Creation",
+     "V",
+     "-",
+     "-",
+     "-",
+     "-",
+     "X",
+     "V",
+     "-",
+     "-"
+    ],
+    [
+     "PR / PO Approval",
+     "V",
+     "-",
+     "-",
+     "V",
+     "-",
+     "V",
+     "X",
+     "V",
+     "X"
+    ],
+    [
+     "PR / PO Inquiry",
+     "V",
+     "-",
+     "-",
+     "V",
+     "-",
+     "V",
+     "V",
+     "V",
+     "-"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Database specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "columns": [
+    {
+     "title": "Table",
+     "width": 8
+    },
+    {
+     "title": "Columns used",
+     "width": 18
+    },
+    {
+     "title": "Purpose",
+     "width": 10
+    }
+   ],
+   "rows": [
+    [
+     "ielp.MASTER_MENU",
+     "APP_NAME, MENU_ID (PK), MENU_INDEX, MENU_PARENT, MENU_LEVEL, MENU_ITEM, MENU_ACT",
+     "Menu tree"
+    ],
+    [
+     "ielp.MASTER_MENU_LANG",
+     "MENU_ID, LANG_ID, MENU_ITEM",
+     "Menu labels per language"
+    ],
+    [
+     "ielp.USERID_CLASS",
+     "APP_NAME, SITE_ID, USERID_CLASS (PK), DESCRIPTION",
+     "User classes (roles)"
+    ],
+    [
+     "ielp.USERID_MENU_OPTION",
+     "USERID_CLASS, APP_NAME, SITE_ID, MENU_ID (PK)",
+     "Menus per class"
+    ],
+    [
+     "ielp.USERID_DETAIL",
+     "USERNAME, USERID_CLASS, SITE_ID (PK), DEFAULT_YN",
+     "Classes per user"
+    ],
+    [
+     "ielp.USERID",
+     "USER_NAME (PK), FULL_NAME, COMPANY, IS_ADMIN, STATUS",
+     "Users"
+    ],
+    [
+     "ielp.MASTER_APP",
+     "APP_ID, APP_NAME, APP_URL",
+     "Application (TC-PBR APP_ID TBD)"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.3 TBD"
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "USERID_CLASS values for each mock-up role (IELP Admin, Planner VPLD, LP Admin, Supplier Viewer, Driver, VPLD Staff / SH, Approver (SH/DpH/DH), GA, System) - TBD - Not confirmed from existing schema/data/code",
+    "MENU_ID / APP_NAME of the TC-PBR menus",
+    "Role rules for the Master screens (no check in the code; Master Mileage shows an \"IELP Admin only\" badge)",
+    "How Driver and LP Admin (supplier users) are linked to MS_DRIVER.USER_NAME / MS_TRUCKING_COMPANY (USERID.COMPANY?)"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Authorization"
+  },
+  {
+   "event": "Open a menu / action",
+   "cause": "Role not allowed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)",
+   "action": "Login with the right role"
+  }
+ ],
+ "logging_messages": []
+}

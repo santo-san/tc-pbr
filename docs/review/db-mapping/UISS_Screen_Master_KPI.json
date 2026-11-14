@@ -1,0 +1,233 @@
+{
+ "uiss": "UISS_Screen_Master_KPI",
+ "revision": "Database mapping revised to the ELIPS schema: KPI items = ielp.MS_KPI, score ranges = ielp.MS_KPI_PERCENTAGE, order sharing = ielp.CRITERIA_LAST_ORDER (per period); company KPI values, payment type and daily trip have no master table (conflicts / TBD); no sample data",
+ "replace": {
+  "KPI Item Master (TBD)": "ielp.MS_KPI",
+  "KPI_NAME (TBD)": "KPI_NAME",
+  "KPI_CD (TBD)": "KPI_ID",
+  "SEQ_NO (TBD)": "ORDER_SEQ",
+  "COLOR (TBD)": "COLOR (no column - TBD)",
+  "Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "VENDOR_CD + VENDOR_NAME (TBD)": "COMPANY_CODE + COMPANY_NAME",
+  "VENDOR_CD (TBD)": "COMPANY_ID",
+  "KPI Master (TBD)": "KPI per company (no ELIPS master table - TBD)",
+  "KPI Value (TBD)": "KPI value per company (no ELIPS master table - TBD; period data in ielp.CRITERIA_SCORE_DETAIL)",
+  "Master KPI setting (TBD)": "setting (TBD)"
+ },
+ "fields": [
+  {
+   "ui": "Enter New KPI (KPI item name)",
+   "items": [
+    "Enter New KPI"
+   ],
+   "table": "ielp.MS_KPI",
+   "column": "KPI_NAME",
+   "rw": "R/W",
+   "mapping": "Unique, max 15 in UI",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "DB varchar(50) NOT NULL."
+  },
+  {
+   "ui": "KPI item code",
+   "items": [],
+   "table": "ielp.MS_KPI",
+   "column": "KPI_ID",
+   "rw": "W",
+   "mapping": "Generated (rule TBD)",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Column has no PK constraint in the DDL."
+  },
+  {
+   "ui": "KPI item order",
+   "items": [],
+   "table": "ielp.MS_KPI",
+   "column": "ORDER_SEQ",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "KPI weight",
+   "items": [],
+   "table": "ielp.MS_KPI",
+   "column": "WEIGHT",
+   "rw": "-",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Exists in ELIPS, not used by the mock-up."
+  },
+  {
+   "ui": "Select Trucking Company",
+   "items": [
+    "Select Trucking Company"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_CODE",
+   "rw": "R",
+   "mapping": "Active companies (IS_DELETE)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Trucking Company (row)",
+   "items": [
+    "Trucking Company"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_ID",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Key of the per-company KPI row (table TBD)."
+  },
+  {
+   "ui": "Payment Type",
+   "items": [
+    "Payment Type",
+    "Payment Type (new row)"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "No payment type column in ELIPS."
+  },
+  {
+   "ui": "Score",
+   "items": [
+    "Score"
+   ],
+   "table": "ielp.CRITERIA_SCORE_DETAIL",
+   "column": "SCORE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Period score per company / route; master score per company not in ELIPS."
+  },
+  {
+   "ui": "KPI item columns (values)",
+   "items": [
+    "KPI item columns"
+   ],
+   "table": "ielp.CRITERIA_SCORE_DETAIL",
+   "column": "CRITERIA_VALUE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Period data, not master."
+  },
+  {
+   "ui": "Score grade ranges",
+   "items": [],
+   "table": "ielp.MS_KPI_PERCENTAGE",
+   "column": "VALUE",
+   "rw": "R",
+   "mapping": "FROM_PERCENTAGE..TO_PERCENTAGE -> VALUE",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Mock-up grade thresholds (master-kpi.js grade) vs MS_KPI_PERCENTAGE."
+  },
+  {
+   "ui": "Order Sharing %",
+   "items": [
+    "Order Sharing %"
+   ],
+   "table": "ielp.CRITERIA_LAST_ORDER",
+   "column": "ORDER_SHARING",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master)."
+  },
+  {
+   "ui": "Daily Trip / Trips per day",
+   "items": [
+    "Daily Trip",
+    "Trips per day"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "No column in ELIPS."
+  },
+  {
+   "ui": "UoM",
+   "items": [
+    "UoM"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "ui": "Created / Changed (KPI item)",
+   "items": [
+    "Created Dt",
+    "Created By",
+    "Changed Dt",
+    "Changed By"
+   ],
+   "table": "ielp.MS_KPI",
+   "column": "CREATED_BY",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "MS_KPI uses CREATED_DATE / UPDATED_DATE / UPDATED_BY."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MKP-01",
+   "topic": "Per-company KPI master",
+   "uiss": "KPI Master per trucking company (score, values, payment type, order sharing, daily trip)",
+   "code": "-",
+   "db": "Only MS_KPI (items) and period tables CRITERIA_SCORE_DETAIL / CRITERIA_LAST_ORDER",
+   "data": "No sample data",
+   "recommendation": "New master table or confirm the period tables are the source"
+  },
+  {
+   "id": "G-MKP-02",
+   "topic": "Payment type / daily trip",
+   "uiss": "By Resources / By Trip, Daily Trip, Trips per day",
+   "code": "-",
+   "db": "No columns",
+   "data": "No sample data",
+   "recommendation": "DB change request"
+  },
+  {
+   "id": "G-MKP-03",
+   "topic": "Grade thresholds",
+   "uiss": "Fixed in code (master-kpi.js)",
+   "code": "-",
+   "db": "MS_KPI_PERCENTAGE (FROM / TO_PERCENTAGE -> VALUE)",
+   "data": "No sample data",
+   "recommendation": "Read thresholds from MS_KPI_PERCENTAGE"
+  }
+ ],
+ "tbd": [
+  "KPI_ID generation",
+  "Meaning of MS_KPI.WEIGHT",
+  "Table for per-company KPI values",
+  "APP_ID value"
+ ]
+}

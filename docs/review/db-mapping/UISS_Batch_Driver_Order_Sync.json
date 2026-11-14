@@ -1,0 +1,101 @@
+{
+ "uiss": "UISS_Batch_Driver_Order_Sync",
+ "revision": "Database review: sync / outbox / log tables are proposed (not in ELIPS); read side mapped to ielp.ORDER_CYCLE, DTP_n_DETAIL, MS_DRIVER, MS_LOCATION, MS_TRUCKING_COMPANY; ELIPS driver push uses TB_M_DRIVER.FIREBASE_TOKEN / DEVICE_ID (existing mechanism TBD); no sample data",
+ "replace": {
+  "Daily Cycle (TBD)": "ielp.ORDER_CYCLE",
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "System Master (TBD)": "ielp.TB_M_SYSTEM",
+  "TB_R_DTP_RECORD": "ielp.DTP_2_DETAIL",
+  "TB_R_ORDER_TRUCK_ASSIGN": "ielp.DTP_2_DETAIL (LICENSE_PLATE / DRIVER_ID)",
+  "CYCLE_ORDER_NO (TBD)": "ORDER_CYCLE_ID (inferred)",
+  "CYCLE_SEQ (TBD)": "CYCLE_SEQ",
+  "DRIVER_NAME (TBD)": "DRIVER_NAME",
+  "PLATE_NO (TBD)": "LICENSE_PLATE",
+  "FROM_LOC_CD (TBD)": "FROM_LOC",
+  "TO_LOC_CD (TBD)": "TO_LOC",
+  "LP_NAME (TBD)": "COMPANY_NAME",
+  "STATUS (TBD)": "STATUS_CODE"
+ },
+ "fields": [
+  {
+   "ui": "Cycle order",
+   "items": [],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "ORDER_CYCLE_ID",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Plate",
+   "items": [],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "LICENSE_PLATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Driver",
+   "items": [],
+   "table": "ielp.MS_DRIVER",
+   "column": "DRIVER_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Location name / coordinates",
+   "items": [],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Driver device token",
+   "items": [],
+   "table": "ielp.TB_M_DRIVER",
+   "column": "FIREBASE_TOKEN",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Existing ELIPS push mechanism?"
+  },
+  {
+   "ui": "Sync tables",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Missing",
+   "note": "TB_T_DRIVER_SYNC_QUEUE, TB_R_DRIVER_ORDER, TB_R_DRIVER_MQ_OUTBOX, TB_R_DRIVER_SYNC_LOG proposed."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-DRV-01",
+   "topic": "Sync mechanism",
+   "uiss": "HiveMQ outbox (proposed tables)",
+   "code": "-",
+   "db": "No sync tables; TB_M_DRIVER has FIREBASE_TOKEN / DEVICE_ID",
+   "data": "No sample data",
+   "recommendation": "Confirm the existing driver app channel before building"
+  }
+ ],
+ "tbd": [
+  "MS_DRIVER vs TB_M_DRIVER as driver master"
+ ]
+}

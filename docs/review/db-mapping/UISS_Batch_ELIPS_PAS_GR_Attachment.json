@@ -1,0 +1,61 @@
+{
+ "uiss": "UISS_Batch_ELIPS_PAS_GR_Attachment",
+ "revision": "Database mapping revised (ELIPS side): SA / cycle source = ielp.SA_DETAIL / ORDER_CYCLE, run / file / GR logs -> LOG_ITGPAS (inferred); PAS tables unchanged; no sample data",
+ "replace": {
+  "<GR_ATTACH_RUN_LOG>": "ielp.LOG_ITGPAS (inferred)",
+  "<GR_ATTACH_FILE_LOG>": "ielp.LOG_ITGPAS (inferred)",
+  "<GR_ATTACH_GR_LOG>": "ielp.LOG_ITGPAS (inferred)",
+  "SA_DETAIL / cycles": "ielp.SA_DETAIL / ielp.ORDER_CYCLE"
+ },
+ "fields": [
+  {
+   "ui": "SA / PO link",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "PAS_PO_NUMBER",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Cycles of the SA",
+   "items": [],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "SA_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Run log",
+   "items": [],
+   "table": "ielp.LOG_ITGPAS",
+   "column": "STS_CODE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "PAS tables (TB_R_GR_IR, TB_R_PR_H)",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "Outside ELIPS."
+  }
+ ],
+ "conflicts": [],
+ "tbd": [
+  "Surat Jalan API endpoint",
+  "PDF storage (ORDER_FILES?)"
+ ]
+}

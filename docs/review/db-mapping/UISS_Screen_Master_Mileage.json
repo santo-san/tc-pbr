@@ -1,0 +1,215 @@
+{
+ "uiss": "UISS_Screen_Master_Mileage",
+ "revision": "Database mapping revised to the ELIPS schema (ielp.TB_M_MILEAGE, ielp.MS_LOCATION): columns / types from the DDL; conflicts recorded (no decimals, PK without TO_CODE, no status / VERSION); no sample data",
+ "replace": {
+  "Route Mileage Master (TBD)": "ielp.TB_M_MILEAGE",
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "LOCATION_ALIAS + LOCATION_NAME (TBD)": "LOCATION_ALIAS + LOCATION_NAME",
+  "LOCATION_NAME (TBD)": "LOCATION_NAME",
+  "FROM_LOCATION (TBD)": "FROM_CODE",
+  "TO_LOCATION (TBD)": "TO_CODE",
+  "MILEAGE_KM (TBD)": "MILEAGE",
+  "STATUS (TBD)": "IS_DELETE (Active / Inactive: no column - Conflict)",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DT",
+  "UPDATED_BY (TBD)": "CHANGED_BY",
+  "UPDATED_DT (TBD)": "CHANGED_DT",
+  "VERSION (TBD)": "VERSION (no column in ELIPS - Conflict)",
+  "Price Master (TBD)": "ielp.MS_ROUTE_PRICE (inferred)"
+ },
+ "fields": [
+  {
+   "ui": "From",
+   "items": [
+    "From"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ALIAS",
+   "rw": "R (list) / W FROM_CODE",
+   "mapping": "Active locations; saved in TB_M_MILEAGE.FROM_CODE",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "List source MS_LOCATION; which key (LOCATION_ID / ALIAS) is TBD."
+  },
+  {
+   "ui": "To",
+   "items": [
+    "To"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ALIAS",
+   "rw": "R (list) / W TO_CODE",
+   "mapping": "Saved in TB_M_MILEAGE.TO_CODE",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "From Code (list)",
+   "items": [
+    "From Code"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "FROM_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "To Code (list)",
+   "items": [
+    "To Code"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "TO_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "Nullable, not part of PK."
+  },
+  {
+   "ui": "From name (stored)",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "LOC_NAME_FROM",
+   "rw": "W",
+   "mapping": "Copy of MS_LOCATION.LOCATION_NAME",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "PK column, NOT NULL."
+  },
+  {
+   "ui": "To name (stored)",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "LOC_NAME_TO",
+   "rw": "W",
+   "mapping": "Copy of MS_LOCATION.LOCATION_NAME",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "NOT NULL."
+  },
+  {
+   "ui": "Mileage (Km)",
+   "items": [
+    "Mileage (Km)"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "MILEAGE",
+   "rw": "R/W",
+   "mapping": "> 0",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "decimal(18,0): decimals not stored."
+  },
+  {
+   "ui": "Created Date",
+   "items": [
+    "Created Date"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "CREATED_DT",
+   "rw": "W (insert)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Created By",
+   "items": [
+    "Created By"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "CREATED_BY",
+   "rw": "W (insert)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(20)."
+  },
+  {
+   "ui": "Change Date",
+   "items": [
+    "Change Date"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "CHANGED_DT",
+   "rw": "W (update)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Changed By",
+   "items": [
+    "Changed By"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "CHANGED_BY",
+   "rw": "W (update)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Status / delete",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "IS_DELETE",
+   "rw": "R/W",
+   "mapping": "values TBD",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": ""
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MML-01",
+   "topic": "Mileage decimals",
+   "uiss": "Number 7,2 (max 2 decimals)",
+   "code": "master-mileage.js parseMileage",
+   "db": "MILEAGE decimal(18,0) - no decimals",
+   "data": "No sample data",
+   "recommendation": "Round to whole KM in the UI or change the column (DB change request)"
+  },
+  {
+   "id": "G-MML-02",
+   "topic": "Route key",
+   "uiss": "From + To unique",
+   "code": "-",
+   "db": "PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key",
+   "data": "No sample data",
+   "recommendation": "Only one route per From is possible with this PK - confirm the table or change the PK"
+  },
+  {
+   "id": "G-MML-03",
+   "topic": "Location names stored",
+   "uiss": "Names read from Master Location",
+   "code": "-",
+   "db": "LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised)",
+   "data": "No sample data",
+   "recommendation": "Copy names on insert / update; define refresh when a location is renamed"
+  },
+  {
+   "id": "G-MML-04",
+   "topic": "Active / Inactive and VERSION",
+   "uiss": "STATUS, VERSION",
+   "code": "-",
+   "db": "Only IS_DELETE varchar(5); no VERSION",
+   "data": "No sample data",
+   "recommendation": "Map status to IS_DELETE; concurrency by CHANGED_DT"
+  }
+ ],
+ "tbd": [
+  "Values of IS_DELETE (varchar(5))",
+  "Whether FROM_CODE / TO_CODE hold LOCATION_ID or LOCATION_ALIAS",
+  "Whether TB_M_MILEAGE is shared with other ELIPS modules"
+ ]
+}

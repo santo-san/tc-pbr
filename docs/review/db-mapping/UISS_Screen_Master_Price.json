@@ -1,0 +1,215 @@
+{
+ "uiss": "UISS_Screen_Master_Price",
+ "revision": "Database mapping revised to the ELIPS schema: price data = ielp.MS_ROUTE_PRICE (eCatalogue interface staging ielp.ITG_ECAT / ITG_LOG); component and vehicle type mapping TBD; read-only screen; no sample data",
+ "replace": {
+  "Price Master (TBD)": "ielp.MS_ROUTE_PRICE",
+  "Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "VENDOR_CD + VENDOR_NAME (TBD)": "COMPANY_CODE + COMPANY_NAME",
+  "VENDOR_CD (TBD)": "COMPANY_CODE",
+  "PERIOD (TBD)": "period from VALID_DT_FROM (TBD)",
+  "VEHICLE_TYPE (TBD)": "ROUTE_PRICE_SIZE (inferred)",
+  "COMPONENT (TBD)": "component (no column - TBD)",
+  "PRICE (TBD)": "ROUTE_PRICE_VALUE",
+  "EFF_START_DT (TBD)": "VALID_DT_FROM",
+  "EFF_END_DT (TBD)": "VALID_DT_TO",
+  "SOURCE_REF (TBD)": "ROUTE_PRICE_DESC (inferred)",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "CHANGED_BY (TBD)": "UPDATED_BY",
+  "CHANGED_DT (TBD)": "UPDATED_DATE"
+ },
+ "fields": [
+  {
+   "ui": "Periode",
+   "items": [
+    "Periode"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "VALID_DT_FROM",
+   "rw": "R",
+   "mapping": "YYYYMM of VALID_DT_FROM (inferred)",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Trucking Company",
+   "items": [
+    "Trucking Company"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "COMPANY_CODE",
+   "rw": "R",
+   "mapping": "= MS_TRUCKING_COMPANY.COMPANY_CODE (inferred)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Vehicle Type",
+   "items": [
+    "Vehicle Type"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "ROUTE_PRICE_SIZE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "varchar(2) - container size? inferred."
+  },
+  {
+   "ui": "Component (FIX / KM)",
+   "items": [
+    "Component"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
+  },
+  {
+   "ui": "Price",
+   "items": [
+    "Price"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "ROUTE_PRICE_VALUE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "float (UISS Number 15)."
+  },
+  {
+   "ui": "Effective Start",
+   "items": [
+    "Effective Start"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "VALID_DT_FROM",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Effective End",
+   "items": [
+    "Effective End"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "VALID_DT_TO",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Source",
+   "items": [
+    "Source"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "ROUTE_PRICE_DESC",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Created By",
+   "items": [
+    "Created By"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "CREATED_BY",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Created Dt",
+   "items": [
+    "Created Dt"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "CREATED_DATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Changed By",
+   "items": [
+    "Changed By"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "UPDATED_BY",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Changed Dt",
+   "items": [
+    "Changed Dt"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "UPDATED_DATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "(interface) eCatalogue price",
+   "items": [],
+   "table": "ielp.ITG_ECAT",
+   "column": "PRICE_AMOUNT",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Staging of the eCatalogue interface (VENDOR_CD, MAT_NO)."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MPR-01",
+   "topic": "Price component",
+   "uiss": "FIX / KM components",
+   "code": "-",
+   "db": "No component column in MS_ROUTE_PRICE",
+   "data": "No sample data",
+   "recommendation": "Confirm component identification (material code?)"
+  },
+  {
+   "id": "G-MPR-02",
+   "topic": "Period",
+   "uiss": "Periode YYYYMM column",
+   "code": "-",
+   "db": "Only VALID_DT_FROM / VALID_DT_TO",
+   "data": "No sample data",
+   "recommendation": "Derive period from validity dates"
+  }
+ ],
+ "tbd": [
+  "Which table the screen reads (MS_ROUTE_PRICE vs ITG_ECAT)",
+  "ROUTE_PRICE_SIZE meaning",
+  "Currency (ROUTE_PRICE_CURRENCY) display"
+ ]
+}

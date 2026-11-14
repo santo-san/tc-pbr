@@ -9,7 +9,7 @@
   const savePas = () => { try { localStorage.setItem(STORE, JSON.stringify(PAS)); } catch (e) { /* storage not available */ } };
   const guard = DN.createGuard();
   const dn = { gens: 0, pasFail: false, cur: null };
-  // Data sources of the Surat Jalan fields (docs/delivery-note-spec.md §2)
+  // Data sources of the Surat Jalan fields (docs/uiss/04_Delivery_Note/delivery-note-spec.md §2)
   const look = {
     sjNo: (o, i) => cycleDetail(o, i).cycleNo,
     phone: o => MASTER.drivers.find(d => d.name === o.driver && d.supplier === o.supplier)?.phone || '',

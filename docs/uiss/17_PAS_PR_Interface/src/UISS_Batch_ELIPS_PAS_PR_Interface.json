@@ -1,0 +1,4164 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch / Interface",
+  "function_name": "TBD ELIPS TC-PBR to PAS PR Interface (Talend DB-to-DB)",
+  "created_date": "05-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "05-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft: DB-to-DB redesign of the current tJava JSON-to-PAS job"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised (ELIPS side): placeholders resolved to ielp.SA_HEADER / SA_DETAIL (status = PAS_* columns), sub items = SA_WBS_PERCENTAGE (inferred), fixed parameters = TB_M_SYSTEM (inferred); PAS tables unchanged (outside ELIPS); no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To create a PAS Purchase Requisition for every approved SA of ELIPS TC-PBR, reading ELIPS directly (DB-to-DB) instead of the JSON input of the current Talend tJava job.",
+   "To reuse the existing PAS logic unchanged: PROCESS_ID, PR numbering, PR tables, SP_ILS_GENERATE_PR_ITEM, budget processing and Auto PO job.",
+   "To process each SA in its own PAS transaction, never create a second PR for the same SA, and return PR_NO or the error to ELIPS."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "e",
+      "label": "ELIPS SA (approved, READY)",
+      "type": "db"
+     },
+     {
+      "id": "t",
+      "label": "Talend job ELIPS-PAS PR",
+      "type": "process"
+     },
+     {
+      "id": "p",
+      "label": "PAS PR tables + budget",
+      "type": "db"
+     },
+     {
+      "id": "a",
+      "label": "TB_T_JOB_AUTOPO",
+      "type": "db"
+     },
+     {
+      "id": "j",
+      "label": "PAS Auto PO job (existing)",
+      "type": "process"
+     },
+     {
+      "id": "s",
+      "label": "ELIPS interface status",
+      "type": "db"
+     }
+    ],
+    "edges": [
+     {
+      "from": "e",
+      "to": "t"
+     },
+     {
+      "from": "t",
+      "to": "p",
+      "label": "1 tx per SA"
+     },
+     {
+      "from": "p",
+      "to": "a",
+      "label": "eligible"
+     },
+     {
+      "from": "a",
+      "to": "j"
+     },
+     {
+      "from": "t",
+      "to": "s",
+      "label": "PR_NO / error"
+     }
+    ]
+   }
+  },
+  "inputs": [
+   {
+    "name": "ielp.SA_HEADER",
+    "type": "DB (ELIPS)",
+    "description": "SA_NUMBER, TC_VENDOR_CD, TC_NAME, CREATED_BY - TBD - Requires ELIPS table/column confirmation"
+   },
+   {
+    "name": "ielp.SA_DETAIL",
+    "type": "DB (ELIPS)",
+    "description": "ITEM_NO, SA_DET_NUMBER, COST, ORDER_FINISH_DATE, ROUTE, ORDER_NO - TBD - Requires ELIPS table/column confirmation"
+   },
+   {
+    "name": "ielp.SA_WBS_PERCENTAGE (inferred)",
+    "type": "DB (ELIPS)",
+    "description": "SUB_ITEM, WBS_NO, SERVICE_TYPE, TARIF, GL_ACCOUNT, COST_CENTER_CD - TBD - Requires ELIPS table/column confirmation"
+   },
+   {
+    "name": "approval history (TBD)",
+    "type": "DB (ELIPS)",
+    "description": "Approval status of the SA - TBD - Requires ELIPS table/column confirmation"
+   },
+   {
+    "name": "ielp.TB_M_SYSTEM (inferred)",
+    "type": "DB (ELIPS)",
+    "description": "FIX_PARAMETER COLUMN / VALUE pairs of the current JSON - TBD - Requires ELIPS table/column confirmation"
+   },
+   {
+    "name": "PAS masters",
+    "type": "DB (PAS)",
+    "description": "TB_M_PROCUREMENT_TYPE, TB_M_DOC_NUMBERING, TB_M_VALUATION_CLASS, TB_M_SYSTEM"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "TB_R_LOG_H / TB_H_DOCUMENT_NUMBER / TB_M_DOC_NUMBERING",
+    "type": "DB (PAS)",
+    "description": "Process id, PR number"
+   },
+   {
+    "name": "TB_R_PR_H, TB_T_PR_H",
+    "type": "DB (PAS)",
+    "description": "PR header"
+   },
+   {
+    "name": "TB_R_PR_ITEM, TB_T_PR_ITEM",
+    "type": "DB (PAS)",
+    "description": "PR items"
+   },
+   {
+    "name": "TB_R_PR_SUBITEM, TB_T_PR_SUBITEM",
+    "type": "DB (PAS)",
+    "description": "PR sub items"
+   },
+   {
+    "name": "PAS SP results / TB_T_JOB_AUTOPO",
+    "type": "DB (PAS)",
+    "description": "PR item generation, budget commitment, Auto PO job"
+   },
+   {
+    "name": "ielp.SA_DETAIL",
+    "type": "DB (ELIPS)",
+    "description": "Interface status, PR_NO, error (proposed)"
+   }
+  ],
+  "extra_tables": [
+   {
+    "title": "Execution",
+    "columns": [
+     {
+      "title": "Item",
+      "width": 10
+     },
+     {
+      "title": "Description",
+      "width": 30
+     }
+    ],
+    "rows": [
+     [
+      "Tool",
+      "Talend (DB-to-DB), Microsoft SQL Server (PAS)"
+     ],
+     [
+      "Trigger",
+      "Schedule / on demand (TBD)"
+     ],
+     [
+      "Unit of work",
+      "One SA = one PAS transaction"
+     ],
+     [
+      "Idempotency",
+      "SA_NUMBER = TB_R_PR_H.PR_DESC"
+     ],
+     [
+      "Parallel runs",
+      "Not allowed (single instance); claim protects anyway"
+     ]
+    ]
+   }
+  ],
+  "constraints": [
+   "ELIPS physical tables/columns are placeholders: TBD - Requires ELIPS table/column confirmation.",
+   "No new PAS table is created by this design.",
+   "No PO creation logic in Talend."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START",
+     "type": "start"
+    },
+    {
+     "id": "p1",
+     "label": "Connect ELIPS / PAS",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "p2",
+     "label": "Recover stale PROCESSING",
+     "type": "process",
+     "step": 2
+    },
+    {
+     "id": "p3",
+     "label": "Select eligible SA",
+     "type": "process",
+     "step": 3
+    },
+    {
+     "id": "src",
+     "label": "SA header / detail / sub item / FIX",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "p4",
+     "label": "Claim SA (PROCESSING)",
+     "type": "process",
+     "step": 4
+    },
+    {
+     "id": "p5",
+     "label": "Validate SA data",
+     "type": "process",
+     "step": 5
+    },
+    {
+     "id": "p6",
+     "label": "PR_DESC exists in PAS?",
+     "type": "decision",
+     "step": 6
+    },
+    {
+     "id": "x6",
+     "label": "SUCCESS (reconciled)",
+     "type": "message"
+    },
+    {
+     "id": "p7",
+     "label": "BEGIN TRAN: PROCESS_ID, log, PR number",
+     "type": "process",
+     "step": 7
+    },
+    {
+     "id": "p8",
+     "label": "Insert PR header / item / sub item",
+     "type": "process",
+     "step": 8
+    },
+    {
+     "id": "pr",
+     "label": "TB_R/T_PR_H, _ITEM, _SUBITEM",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p9",
+     "label": "PAS SPs + Auto PO job",
+     "type": "process",
+     "step": 9
+    },
+    {
+     "id": "p10",
+     "label": "COMMIT PAS / ROLLBACK",
+     "type": "process",
+     "step": 10
+    },
+    {
+     "id": "p11",
+     "label": "Update ELIPS status",
+     "type": "process",
+     "step": 11
+    },
+    {
+     "id": "trk",
+     "label": "ielp.SA_DETAIL",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "e",
+     "label": "END",
+     "type": "end"
+    }
+   ],
+   "same_rank": [
+    [
+     "p6",
+     "x6"
+    ]
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "p1"
+    },
+    {
+     "from": "p1",
+     "to": "p2"
+    },
+    {
+     "from": "p2",
+     "to": "p3"
+    },
+    {
+     "from": "src",
+     "to": "p3"
+    },
+    {
+     "from": "p3",
+     "to": "p4"
+    },
+    {
+     "from": "p4",
+     "to": "p5"
+    },
+    {
+     "from": "p5",
+     "to": "p6"
+    },
+    {
+     "from": "p6",
+     "to": "x6",
+     "label": "Yes"
+    },
+    {
+     "from": "p6",
+     "to": "p7",
+     "label": "No"
+    },
+    {
+     "from": "p7",
+     "to": "p8"
+    },
+    {
+     "from": "p8",
+     "to": "pr"
+    },
+    {
+     "from": "p8",
+     "to": "p9"
+    },
+    {
+     "from": "p9",
+     "to": "p10"
+    },
+    {
+     "from": "p10",
+     "to": "p11"
+    },
+    {
+     "from": "p11",
+     "to": "trk"
+    },
+    {
+     "from": "p11",
+     "to": "e"
+    }
+   ]
+  },
+  "steps": [
+   {
+    "text": "Start the run (schedule / on demand, TBD); log message no. 1. Open two connections: ELIPS (auto-commit ON) and PAS (auto-commit OFF, SET XACT_ABORT ON, LOCK_TIMEOUT and query timeout TBD).",
+    "children": [
+     "Connection error: log message no. 2. Stop."
+    ]
+   },
+   {
+    "text": "Recovery: for every SA in ielp.SA_DETAIL with INTERFACE_STATUS 'PROCESSING' and START_DT older than the timeout (TBD, proposed 30 min): SELECT PR_NO, PROCESS_ID FROM TB_R_PR_H WHERE PR_DESC = SA_NUMBER.",
+    "children": [
+     "Found: SUCCESS with that PR_NO / PROCESS_ID. Not found: FAILED, RETRY_COUNT + 1 ('Recovered after timeout'). log message no. 4."
+    ]
+   },
+   {
+    "text": "Select eligible SA: INTERFACE_STATUS 'READY', or 'FAILED' with RETRY_COUNT < maximum (TBD, proposed 3); SA approved by VPLD (conceptual: approval history (TBD) APPROVAL_ROLE 'VPLD' and APPROVAL_STATUS 'APPROVED' - TBD - Requires ELIPS table/column confirmation); not PROCESSING; at least one detail; order by SA_NUMBER.",
+    "children": [
+     "None: log message no. 3; go to step 12. FAILED with RETRY_COUNT = maximum is not selected (log message no. 18)."
+    ]
+   },
+   {
+    "text": "Per SA (one iteration, steps 4-11). Claim: UPDATE ielp.SA_DETAIL SET INTERFACE_STATUS 'PROCESSING', START_DT, END_DT NULL, ERROR_MESSAGE NULL WHERE SA_NUMBER = ? AND INTERFACE_STATUS IN ('READY','FAILED'); commit in ELIPS.",
+    "children": [
+     "Rows affected = 0: log message no. 5; next SA."
+    ]
+   },
+   {
+    "text": "Read the SA header, detail items, sub items and the FIX parameters (sources ielp.SA_HEADER, ielp.SA_DETAIL, ielp.SA_WBS_PERCENTAGE (inferred), ielp.TB_M_SYSTEM (inferred): TBD - Requires ELIPS table/column confirmation) and validate them (Functional Description 4.2).",
+    "children": [
+     "VPLD approval no longer valid: log message no. 15. Invalid: log message no. 6; SA FAILED (step 11); next SA."
+    ]
+   },
+   {
+    "text": "Duplicate check in PAS (before any PR number is consumed): SELECT PR_NO, PROCESS_ID FROM TB_R_PR_H WHERE PR_DESC = SA_NUMBER.",
+    "children": [
+     "Found: log message no. 7; SA SUCCESS with that PR_NO (step 11); next SA."
+    ]
+   },
+   {
+    "text": "BEGIN TRANSACTION (PAS). PROCESS_ID = dbo.fn_get_last_process_id(); INSERT TB_R_LOG_H. Run the PAS PR numbering block (parameterised, same logic): TB_M_PROCUREMENT_TYPE -> TB_M_DOC_NUMBERING (UPDATE CURRENT_NUMBER) -> TB_H_DOCUMENT_NUMBER, sp_PutLog.",
+    "children": [
+     "Result 'FAILED' / empty / error: log message no. 8; go to step 10 (rollback)."
+    ]
+   },
+   {
+    "text": "INSERT TB_R_PR_H (WHERE NOT EXISTS PR_DESC; rows affected must be 1), INSERT TB_T_PR_H. Per detail item: INSERT TB_R_PR_ITEM, TB_T_PR_ITEM; per sub item: INSERT TB_R_PR_SUBITEM, TB_T_PR_SUBITEM (Data Map).",
+    "children": [
+     "Error or rows affected <> expected: log message no. 9; rollback."
+    ]
+   },
+   {
+    "text": "EXEC SP_ILS_GENERATE_PR_ITEM @PROCESS_ID (check RESULT, TBD); EXEC sp_prcreation_budgetProcessing (PROCESS_ID, DIVISION_ID, PR_NO, SA_NUMBER, CREATED_BY, 'NEW_COMMIT', 0, 'SC'); INSERT TB_T_JOB_AUTOPO when eligible (Functional Description 4.5).",
+    "children": [
+     "SP_ILS_GENERATE_PR_ITEM: log message no. 10; budget: log message no. 11; Auto PO: log message no. 12. Rollback."
+    ]
+   },
+   {
+    "text": "COMMIT (PAS); log message no. 13. On any error in steps 7-9: ROLLBACK (PAS); nothing of this SA stays in PAS (incl. PR number, TB_R_LOG_H).",
+    "children": [
+     "Deadlock / timeout / connection lost: log message no. 17. Rollback itself fails: log message no. 16."
+    ]
+   },
+   {
+    "text": "Update ielp.SA_DETAIL in ELIPS: SUCCESS (PR_NO, PROCESS_ID, END_DT, ERROR_MESSAGE NULL) or FAILED (ERROR_MESSAGE, END_DT, RETRY_COUNT + 1). Optional write-back of PR_NO to ielp.SA_HEADER (TBD - Requires ELIPS table/column confirmation).",
+    "children": [
+     "Update error after PAS commit: log message no. 14; SA stays PROCESSING and step 2 of the next run reconciles it."
+    ]
+   },
+   {
+    "text": "End of run: log message no. 19. Unexpected Talend error: log message no. 20."
+   }
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": {
+     "table": "Talend run"
+    },
+    "destination": {
+     "table": "ielp.SA_DETAIL",
+     "operation": "Update",
+     "description": "Step 4 - claim",
+     "keys": [
+      {
+       "field": "SA_NUMBER",
+       "value": "SA of the iteration"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_NUMBER",
+      "description": "Key; WHERE INTERFACE_STATUS IN ('READY','FAILED') [Conflict: SA_NUMBER is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "Not changed [Conflict: PROCESS_ID is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PR_NO",
+      "description": "Not changed [Conflict: PR_NO is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "INTERFACE_STATUS",
+      "description": "'PROCESSING' [Conflict: INTERFACE_STATUS is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "ERROR_MESSAGE",
+      "description": "NULL [Conflict: ERROR_MESSAGE is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Server date-time [Conflict: START_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "NULL [Conflict: END_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "RETRY_COUNT",
+      "description": "Not changed [Conflict: RETRY_COUNT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Not changed [Conflict: CREATED_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time [Conflict: CHANGED_DT is not a column of ielp.SA_DETAIL]"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "PAS fn_get_last_process_id()"
+    },
+    "destination": {
+     "table": "TB_R_LOG_H",
+     "operation": "Insert",
+     "description": "Step 7 - process log"
+    },
+    "mappings": [
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "fn_get_last_process_id(): SELECT dbo.fn_get_last_process_id()"
+     },
+     {
+      "dest_field": "MODULE_ID",
+      "description": "Constant '1'; As-is; differs from sp_PutLog module '2' (OBS-14)"
+     },
+     {
+      "dest_field": "FUNCTION_ID",
+      "description": "Constant '1'; As-is; differs from sp_PutLog function '201002' (OBS-14)"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "GETDATE()"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "GETDATE(); As-is set at start; not updated at end (OBS-14)"
+     },
+     {
+      "dest_field": "PROCESS_STATUS",
+      "description": "Constant 1; As-is; not updated at end (OBS-14). Meaning of values: PAS confirmation"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Constant 'ils.talend'"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "GETDATE()"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "NULL"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_M_PROCUREMENT_TYPE",
+     "keys": [
+      {
+       "field": "PROCUREMENT_TYPE",
+       "value": "FIX PR_TYPE"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_M_DOC_NUMBERING",
+     "operation": "Update",
+     "description": "Step 7 - PR numbering (PAS block)",
+     "keys": [
+      {
+       "field": "NUMBERING_PREFIX",
+       "value": "SUBSTRING(NUMBERING_PREFIX,1,2)"
+      },
+      {
+       "field": "VARIANT",
+       "value": "SUBSTRING(NUMBERING_PREFIX,3,4)"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "CURRENT_NUMBER",
+      "description": "SUBSTRING(new PR_NO, 3, LEN); new PR_NO = prefix + 8-digit (CURRENT_NUMBER + 1); not used in TB_H_DOCUMENT_NUMBER (USED_STATUS 'Y'); stop at MAXIMUM_RANGE"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "PAS PR numbering block"
+    },
+    "destination": {
+     "table": "TB_H_DOCUMENT_NUMBER",
+     "operation": "Insert",
+     "description": "Step 7 - PR number used"
+    },
+    "mappings": [
+     {
+      "dest_field": "DOC_NO",
+      "description": "TB_M_DOC_NUMBERING.NUMBERING_PREFIX, CURRENT_NUMBER: NUMBERING_PREFIX + 8-digit (CURRENT_NUMBER + 1)"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "fn_get_last_process_id(): Process id of the SA"
+     },
+     {
+      "dest_field": "USED_STATUS",
+      "description": "Constant 'Y'"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Talend variable createdBy: FIX CREATED_BY when present, otherwise SA header CREATED_BY (as-is: FIX overrides)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "GETDATE()"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "NULL"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.SA_HEADER + ielp.TB_M_SYSTEM (inferred)"
+    },
+    "destination": {
+     "table": "TB_R_PR_H",
+     "operation": "Insert",
+     "description": "Step 8 - PR header (WHERE NOT EXISTS PR_DESC)"
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_DESC",
+      "description": "SA header SA_NUMBER; Idempotency key: insert only WHERE NOT EXISTS (PR_DESC = SA_NUMBER)"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Talend variable createdBy: FIX CREATED_BY when present, otherwise SA header CREATED_BY (as-is: FIX overrides)"
+     },
+     {
+      "dest_field": "PR_TYPE",
+      "description": "FIX PR_TYPE; Also input of PR numbering"
+     },
+     {
+      "dest_field": "PR_NO",
+      "description": "PR numbering block: Generated PR number ('FAILED' must stop the SA, OBS-02)"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "fn_get_last_process_id(): Process id of the SA"
+     },
+     {
+      "dest_field": "PROC_MONTH",
+      "description": "FIX PROC_MONTH: Talend system date yyyyMM; the FIX VALUE is ignored (only the presence of the key matters)"
+     },
+     {
+      "dest_field": "PR_STATUS",
+      "description": "FIX PR_STATUS"
+     },
+     {
+      "dest_field": "PLANT_CD",
+      "description": "FIX PLANT_CD"
+     },
+     {
+      "dest_field": "SLOC_CD",
+      "description": "FIX SLOC_CD"
+     },
+     {
+      "dest_field": "PR_COORDINATOR",
+      "description": "FIX PR_COORDINATOR"
+     },
+     {
+      "dest_field": "DIVISION_ID",
+      "description": "FIX DIVISION_ID: Direct (string); must be numeric (budget SP uses Integer.parseInt)"
+     },
+     {
+      "dest_field": "DIVISION_NAME",
+      "description": "FIX DIVISION_NAME"
+     },
+     {
+      "dest_field": "LOCAL_CURR_CD",
+      "description": "FIX LOCAL_CURR_CD"
+     },
+     {
+      "dest_field": "RELEASED_FLAG",
+      "description": "FIX RELEASE_FLAG; Name differs: RELEASE_FLAG -> RELEASED_FLAG"
+     },
+     {
+      "dest_field": "DELIVERY_PLAN_DT",
+      "description": "FIX DELIVERY_PLAN_DT: Talend system date yyyy-MM-dd; the FIX VALUE is ignored; Observation A (header = run date, item = ORDER_FINISH_DATE)"
+     },
+     {
+      "dest_field": "CANCEL_FLAG",
+      "description": "FIX CANCEL_FLAG"
+     },
+     {
+      "dest_field": "DOC_DT",
+      "description": "Talend JVM date-time (new Date()); Not DB GETDATE(); see OBS-18"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Talend JVM date-time (new Date())"
+     },
+     {
+      "dest_field": "LOCAL_AMOUNT",
+      "description": "FIX LOCAL_AMOUNT: Direct (BigDecimal); Not the sum of item COST (OBS-09); budget SP impact: PAS confirmation"
+     },
+     {
+      "dest_field": "PR_NOTES",
+      "description": "FIX PR_NOTES: NULL. Talend computes 'ILSTC_' + yyyyMMdd + '_1' but inserts NULL; Observation C - kept as-is (NULL); change only after confirmation (OQ-08)"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_PR_H"
+    },
+    "destination": {
+     "table": "TB_T_PR_H",
+     "operation": "Insert",
+     "description": "Step 8 - copy of the header"
+    },
+    "mappings": [
+     {
+      "source_field": "PROCESS_ID",
+      "dest_field": "PROCESS_ID"
+     },
+     {
+      "source_field": "PR_NO",
+      "dest_field": "PR_NO"
+     },
+     {
+      "source_field": "DOC_DT",
+      "dest_field": "DOC_DT"
+     },
+     {
+      "source_field": "PR_DESC",
+      "dest_field": "PR_DESC"
+     },
+     {
+      "source_field": "PR_TYPE",
+      "dest_field": "PR_TYPE"
+     },
+     {
+      "source_field": "PR_STATUS",
+      "dest_field": "PR_STATUS"
+     },
+     {
+      "source_field": "PLANT_CD",
+      "dest_field": "PLANT_CD"
+     },
+     {
+      "source_field": "SLOC_CD",
+      "dest_field": "SLOC_CD"
+     },
+     {
+      "source_field": "PR_COORDINATOR",
+      "dest_field": "PR_COORDINATOR"
+     },
+     {
+      "source_field": "DIVISION_ID",
+      "dest_field": "DIVISION_ID"
+     },
+     {
+      "source_field": "DIVISION_NAME",
+      "dest_field": "DIVISION_NAME"
+     },
+     {
+      "source_field": "PROJECT_NO",
+      "dest_field": "PROJECT_NO",
+      "description": "Not set by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "URGENT_DOC",
+      "dest_field": "URGENT_DOC",
+      "description": "Not set by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "PR_NOTES",
+      "dest_field": "PR_NOTES",
+      "description": "NULL (Observation C)"
+     },
+     {
+      "source_field": "DELIVERY_PLAN_DT",
+      "dest_field": "DELIVERY_PLAN_DT"
+     },
+     {
+      "source_field": "CREATED_BY",
+      "dest_field": "CREATED_BY"
+     },
+     {
+      "source_field": "CREATED_DT",
+      "dest_field": "CREATED_DT"
+     },
+     {
+      "source_field": "CHANGED_BY",
+      "dest_field": "CHANGED_BY",
+      "description": "Not set by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "CHANGED_DT",
+      "dest_field": "CHANGED_DT",
+      "description": "Not set by the interface -> NULL / column default"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.SA_DETAIL + ielp.TB_M_SYSTEM (inferred)"
+    },
+    "destination": {
+     "table": "TB_R_PR_ITEM",
+     "operation": "Insert",
+     "description": "Step 8 - per detail item"
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_NO",
+      "description": "PR numbering block: Generated PR_NO; Insert only WHERE EXISTS TB_R_PR_H (PR_NO)"
+     },
+     {
+      "dest_field": "PR_ITEM_NO",
+      "description": "SA detail ITEM_NO; Item number per SA detail"
+     },
+     {
+      "dest_field": "ITEM_TYPE",
+      "description": "FIX ITEM_TYPE"
+     },
+     {
+      "dest_field": "IS_PARENT",
+      "description": "FIX IS_PARENT"
+     },
+     {
+      "dest_field": "MAT_NO",
+      "description": "FIX DEFAULT_VALUES; FIX MAT_NO is used only on the sub item (OBS-08)"
+     },
+     {
+      "dest_field": "MAT_DESC",
+      "description": "SA detail ORDER_NO, ROUTE: ORDER_NO + ';' + ROUTE; Observation D (SA_DET_NUMBER not used)"
+     },
+     {
+      "dest_field": "WBS_NO",
+      "description": "FIX DEFAULT_VALUES; FIX WBS_NO not used; real WBS on sub item (OBS-08)"
+     },
+     {
+      "dest_field": "WBS_NAME",
+      "description": "FIX DEFAULT_VALUES; FIX WBS_NAME not used (OBS-08)"
+     },
+     {
+      "dest_field": "ITEM_CLASS",
+      "description": "FIX ITEM_CLASS"
+     },
+     {
+      "dest_field": "ITEM_CLASS_DESC",
+      "description": "FIX ITEM_CLASS_DESC"
+     },
+     {
+      "dest_field": "VALUATION_CLASS",
+      "description": "FIX VALUATION_CLASS; Used by Auto PO eligibility (TB_M_VALUATION_CLASS)"
+     },
+     {
+      "dest_field": "VALUATION_CLASS_DESC",
+      "description": "FIX VALUATION_CLASS_DESC"
+     },
+     {
+      "dest_field": "SOURCE_TYPE",
+      "description": "FIX SOURCE_TYPE; Used by Auto PO eligibility (TB_M_SYSTEM SRCILS)"
+     },
+     {
+      "dest_field": "DOC_TYPE",
+      "description": "FIX DOC_TYPE"
+     },
+     {
+      "dest_field": "PR_QTY",
+      "description": "FIX PR_QTY: BigDecimal"
+     },
+     {
+      "dest_field": "UNIT_OF_MEASURE_CD",
+      "description": "FIX UNIT_OF_MEASURE_CD"
+     },
+     {
+      "dest_field": "ORI_CURR_CD",
+      "description": "FIX ORI_CURR_CD"
+     },
+     {
+      "dest_field": "PRICE_PER_UOM",
+      "description": "SA detail COST: BigDecimal; FIX PRICE_PER_UOM not used"
+     },
+     {
+      "dest_field": "ORI_AMOUNT",
+      "description": "SA detail COST: BigDecimal (not COST x PR_QTY); FIX ORI_AMOUNT not used (OBS-10)"
+     },
+     {
+      "dest_field": "LOCAL_CURR_CD",
+      "description": "FIX LOCAL_CURR_CD"
+     },
+     {
+      "dest_field": "EXCHANGE_RATE",
+      "description": "FIX EXCHANGE_RATE: BigDecimal, default 1"
+     },
+     {
+      "dest_field": "LOCAL_AMOUNT",
+      "description": "SA detail COST: BigDecimal (not x EXCHANGE_RATE)"
+     },
+     {
+      "dest_field": "DELIVERY_PLAN_DT",
+      "description": "SA detail ORDER_FINISH_DATE: Date part: text before the first space"
+     },
+     {
+      "dest_field": "GL_ACCOUNT",
+      "description": "FIX DEFAULT_VALUES; Real GL on sub item (OBS-08)"
+     },
+     {
+      "dest_field": "PR_STATUS",
+      "description": "FIX PRITEM_STATUS; Item status from PRITEM_STATUS, not PR_STATUS"
+     },
+     {
+      "dest_field": "PR_NEXT_STATUS",
+      "description": "FIX PR_NEXT_STATUS"
+     },
+     {
+      "dest_field": "IS_REJECTED",
+      "description": "FIX IS_REJECTED"
+     },
+     {
+      "dest_field": "ASSET_CATEGORY",
+      "description": "FIX ASSET_CATEGORY"
+     },
+     {
+      "dest_field": "VENDOR_CD",
+      "description": "SA header TC_VENDOR_CD; Trucking company vendor code"
+     },
+     {
+      "dest_field": "VENDOR_NAME",
+      "description": "SA header TC_NAME"
+     },
+     {
+      "dest_field": "COMPLETION",
+      "description": "FIX COMPLETION"
+     },
+     {
+      "dest_field": "OPEN_QTY",
+      "description": "FIX OPEN_QTY: BigDecimal"
+     },
+     {
+      "dest_field": "USED_QTY",
+      "description": "FIX USED_QTY: BigDecimal"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "fn_get_last_process_id(): Process id of the SA"
+     },
+     {
+      "dest_field": "RELEASE_FLAG",
+      "description": "FIX RELEASE_FLAG"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Talend variable createdBy: FIX CREATED_BY when present, otherwise SA header CREATED_BY (as-is: FIX overrides)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Talend JVM timestamp"
+     },
+     {
+      "dest_field": "BUDGET_REF",
+      "description": "FIX BUDGET_REF"
+     },
+     {
+      "dest_field": "PO_NO",
+      "description": "FIX PO_NO"
+     },
+     {
+      "dest_field": "PROCUREMENT_PURPOSE",
+      "description": "FIX PROCUREMENT_PURPOSE"
+     },
+     {
+      "dest_field": "COST_CENTER_CD",
+      "description": "FIX DEFAULT_VALUES; Real cost center on sub item (OBS-08)"
+     },
+     {
+      "dest_field": "BUYER_CD",
+      "description": "FIX BUYER_CD"
+     },
+     {
+      "dest_field": "PACKING_TYPE",
+      "description": "FIX PACKING_TYPE"
+     },
+     {
+      "dest_field": "PART_COLOR_SFX",
+      "description": "FIX PART_COLOR_SFX"
+     },
+     {
+      "dest_field": "SPECIAL_PROC_TYPE",
+      "description": "FIX SPECIAL_PROC_TYPE"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_PR_ITEM"
+    },
+    "destination": {
+     "table": "TB_T_PR_ITEM",
+     "operation": "Insert",
+     "description": "Step 8 - copy of the items"
+    },
+    "mappings": [
+     {
+      "source_field": "PROCESS_ID",
+      "dest_field": "PROCESS_ID"
+     },
+     {
+      "source_field": "PR_ITEM_NO",
+      "dest_field": "ITEM_NO"
+     },
+     {
+      "source_field": "ITEM_TYPE",
+      "dest_field": "ITEM_TYPE"
+     },
+     {
+      "source_field": "IS_PARENT",
+      "dest_field": "IS_PARENT"
+     },
+     {
+      "source_field": "PROCUREMENT_PURPOSE",
+      "dest_field": "PROCUREMENT_PURPOSE"
+     },
+     {
+      "source_field": "MAT_NO",
+      "dest_field": "MAT_NO"
+     },
+     {
+      "source_field": "MAT_DESC",
+      "dest_field": "MAT_DESC"
+     },
+     {
+      "source_field": "COST_CENTER_CD",
+      "dest_field": "COST_CENTER_CD"
+     },
+     {
+      "source_field": "WBS_NO",
+      "dest_field": "WBS_NO"
+     },
+     {
+      "source_field": "WBS_NAME",
+      "dest_field": "WBS_NAME"
+     },
+     {
+      "source_field": "GL_ACCOUNT",
+      "dest_field": "GL_ACCOUNT"
+     },
+     {
+      "source_field": "ITEM_CLASS",
+      "dest_field": "ITEM_CLASS"
+     },
+     {
+      "source_field": "ITEM_CLASS_DESC",
+      "dest_field": "ITEM_CLASS_DESC"
+     },
+     {
+      "source_field": "VALUATION_CLASS",
+      "dest_field": "VALUATION_CLASS"
+     },
+     {
+      "source_field": "VALUATION_CLASS_DESC",
+      "dest_field": "VALUATION_CLASS_DESC"
+     },
+     {
+      "source_field": "SOURCE_TYPE",
+      "dest_field": "SOURCE_TYPE"
+     },
+     {
+      "source_field": "PACKING_TYPE",
+      "dest_field": "PACKING_TYPE"
+     },
+     {
+      "source_field": "PART_COLOR_SFX",
+      "dest_field": "PART_COLOR_SFX"
+     },
+     {
+      "source_field": "SPECIAL_PROC_TYPE",
+      "dest_field": "SPECIAL_PROC_TYPE"
+     },
+     {
+      "source_field": "CAR_FAMILY_CD",
+      "dest_field": "CAR_FAMILY_CD",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "MAT_TYPE_CD",
+      "dest_field": "MAT_TYPE_CD",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "MAT_GRP_CD",
+      "dest_field": "MAT_GRP_CD",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "PR_QTY",
+      "dest_field": "ORI_ITEM_QTY"
+     },
+     {
+      "source_field": "PR_QTY",
+      "dest_field": "NEW_ITEM_QTY"
+     },
+     {
+      "source_field": "UNIT_OF_MEASURE_CD",
+      "dest_field": "ITEM_UOM"
+     },
+     {
+      "source_field": "ORI_CURR_CD",
+      "dest_field": "ORI_CURR_CD"
+     },
+     {
+      "source_field": "PRICE_PER_UOM",
+      "dest_field": "ORI_PRICE_PER_UOM"
+     },
+     {
+      "source_field": "PRICE_PER_UOM",
+      "dest_field": "NEW_PRICE_PER_UOM"
+     },
+     {
+      "source_field": "ORI_AMOUNT",
+      "dest_field": "ORI_AMOUNT"
+     },
+     {
+      "source_field": "ORI_AMOUNT",
+      "dest_field": "NEW_AMOUNT"
+     },
+     {
+      "source_field": "LOCAL_CURR_CD",
+      "dest_field": "LOCAL_CURR_CD"
+     },
+     {
+      "source_field": "EXCHANGE_RATE",
+      "dest_field": "EXCHANGE_RATE"
+     },
+     {
+      "source_field": "LOCAL_AMOUNT",
+      "dest_field": "ORI_LOCAL_AMOUNT"
+     },
+     {
+      "source_field": "LOCAL_AMOUNT",
+      "dest_field": "NEW_LOCAL_AMOUNT"
+     },
+     {
+      "source_field": "DELIVERY_PLAN_DT",
+      "dest_field": "DELIVERY_PLAN_DT"
+     },
+     {
+      "source_field": "VENDOR_CD",
+      "dest_field": "VENDOR_CD"
+     },
+     {
+      "source_field": "VENDOR_NAME",
+      "dest_field": "VENDOR_NAME"
+     },
+     {
+      "source_field": "RELEASE_FLAG",
+      "dest_field": "RELEASE_FLAG"
+     },
+     {
+      "source_field": "QUOTA_FLAG",
+      "dest_field": "QUOTA_FLAG",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "ASSET_CATEGORY",
+      "dest_field": "ASSET_CATEGORY"
+     },
+     {
+      "source_field": "ASSET_CLASS",
+      "dest_field": "ASSET_CLASS",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "ASSET_LOCATION",
+      "dest_field": "ASSET_LOCATION",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "ASSET_NO",
+      "dest_field": "ASSET_NO",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "PR_NEXT_STATUS",
+      "dest_field": "PR_NEXT_STATUS"
+     },
+     {
+      "source_field": "COMPLETION",
+      "dest_field": "COMPLETION"
+     },
+     {
+      "source_field": "OPEN_QTY",
+      "dest_field": "OPEN_QTY"
+     },
+     {
+      "source_field": "USED_QTY",
+      "dest_field": "USED_QTY"
+     },
+     {
+      "dest_field": "NEW_FLAG",
+      "description": "Constant 'N'"
+     },
+     {
+      "dest_field": "UPDATE_FLAG",
+      "description": "Constant 'N'"
+     },
+     {
+      "dest_field": "DELETE_FLAG",
+      "description": "Constant 'N'"
+     },
+     {
+      "source_field": "CREATED_BY",
+      "dest_field": "CREATED_BY"
+     },
+     {
+      "source_field": "CREATED_DT",
+      "dest_field": "CREATED_DT"
+     },
+     {
+      "source_field": "CHANGED_BY",
+      "dest_field": "CHANGED_BY",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "CHANGED_DT",
+      "dest_field": "CHANGED_DT",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     },
+     {
+      "source_field": "BUDGET_REF",
+      "dest_field": "BUDGET_REF"
+     },
+     {
+      "source_field": "WBS_NO",
+      "dest_field": "OLD_WBS_NO"
+     },
+     {
+      "source_field": "WBS_NAME",
+      "dest_field": "OLD_WBS_NAME"
+     },
+     {
+      "source_field": "DELIVERY_ADDR",
+      "dest_field": "DELIVERY_ADDR",
+      "description": "Not set on TB_R_PR_ITEM by the interface -> NULL / column default"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.SA_WBS_PERCENTAGE (inferred) + ielp.TB_M_SYSTEM (inferred)"
+    },
+    "destination": {
+     "table": "TB_R_PR_SUBITEM",
+     "operation": "Insert",
+     "description": "Step 8 - per sub item"
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_NO",
+      "description": "PR numbering block: Generated PR_NO; Insert only WHERE EXISTS TB_R_PR_H (PR_NO)"
+     },
+     {
+      "dest_field": "PR_ITEM_NO",
+      "description": "SA detail ITEM_NO: Direct (parent item)"
+     },
+     {
+      "dest_field": "PR_SUBITEM_NO",
+      "description": "SA sub item SUB_ITEM"
+     },
+     {
+      "dest_field": "MAT_NO",
+      "description": "FIX MAT_NO"
+     },
+     {
+      "dest_field": "MAT_DESC",
+      "description": "SA detail ORDER_NO, ROUTE: ORDER_NO + ';' + ROUTE (of the parent item); FIX MAT_DESC not used (Observation D)"
+     },
+     {
+      "dest_field": "COST_CENTER_CD",
+      "description": "SA sub item COST_CENTER_CD"
+     },
+     {
+      "dest_field": "WBS_NO",
+      "description": "SA sub item WBS_NO; Budget per WBS (budget SP)"
+     },
+     {
+      "dest_field": "GL_ACCOUNT",
+      "description": "SA sub item GL_ACCOUNT"
+     },
+     {
+      "dest_field": "SUBITEM_QTY",
+      "description": "FIX SUBITEM_QTY: BigDecimal"
+     },
+     {
+      "dest_field": "SUBITEM_UOM",
+      "description": "FIX UNIT_OF_MEASURE_CD"
+     },
+     {
+      "dest_field": "PRICE_PER_UOM",
+      "description": "SA sub item TARIF: BigDecimal"
+     },
+     {
+      "dest_field": "ORI_AMOUNT",
+      "description": "SA sub item TARIF: BigDecimal (not TARIF x SUBITEM_QTY)"
+     },
+     {
+      "dest_field": "LOCAL_AMOUNT",
+      "description": "SA sub item TARIF: BigDecimal"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Talend variable createdBy: FIX CREATED_BY when present, otherwise SA header CREATED_BY (as-is: FIX overrides)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Talend JVM timestamp"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "NULL"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_PR_SUBITEM"
+    },
+    "destination": {
+     "table": "TB_T_PR_SUBITEM",
+     "operation": "Insert",
+     "description": "Step 8 - copy of the sub items"
+    },
+    "mappings": [
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "fn_get_last_process_id(): Process id of the SA (parameter)"
+     },
+     {
+      "source_field": "PR_ITEM_NO",
+      "dest_field": "ITEM_NO"
+     },
+     {
+      "source_field": "PR_SUBITEM_NO",
+      "dest_field": "SUBITEM_NO"
+     },
+     {
+      "source_field": "MAT_NO",
+      "dest_field": "MAT_NO"
+     },
+     {
+      "source_field": "MAT_DESC",
+      "dest_field": "MAT_DESC"
+     },
+     {
+      "source_field": "COST_CENTER_CD",
+      "dest_field": "COST_CENTER_CD"
+     },
+     {
+      "source_field": "WBS_NO",
+      "dest_field": "WBS_NO"
+     },
+     {
+      "source_field": "GL_ACCOUNT",
+      "dest_field": "GL_ACCOUNT"
+     },
+     {
+      "source_field": "SUBITEM_QTY",
+      "dest_field": "ORI_SUBITEM_QTY"
+     },
+     {
+      "source_field": "SUBITEM_QTY",
+      "dest_field": "NEW_SUBITEM_QTY"
+     },
+     {
+      "source_field": "SUBITEM_UOM",
+      "dest_field": "SUBITEM_UOM"
+     },
+     {
+      "source_field": "PRICE_PER_UOM",
+      "dest_field": "ORI_PRICE_PER_UOM"
+     },
+     {
+      "source_field": "PRICE_PER_UOM",
+      "dest_field": "NEW_PRICE_PER_UOM"
+     },
+     {
+      "source_field": "ORI_AMOUNT",
+      "dest_field": "ORI_AMOUNT"
+     },
+     {
+      "source_field": "ORI_AMOUNT",
+      "dest_field": "NEW_AMOUNT"
+     },
+     {
+      "source_field": "LOCAL_AMOUNT",
+      "dest_field": "ORI_LOCAL_AMOUNT"
+     },
+     {
+      "source_field": "LOCAL_AMOUNT",
+      "dest_field": "NEW_LOCAL_AMOUNT"
+     },
+     {
+      "dest_field": "NEW_FLAG",
+      "description": "Constant 'N'"
+     },
+     {
+      "dest_field": "UPDATE_FLAG",
+      "description": "Constant 'N'"
+     },
+     {
+      "dest_field": "DELETE_FLAG",
+      "description": "Constant 'N'"
+     },
+     {
+      "source_field": "CREATED_BY",
+      "dest_field": "CREATED_BY"
+     },
+     {
+      "source_field": "CREATED_DT",
+      "dest_field": "CREATED_DT"
+     },
+     {
+      "source_field": "CHANGED_BY",
+      "dest_field": "CHANGED_BY"
+     },
+     {
+      "source_field": "CHANGED_DT",
+      "dest_field": "CHANGED_DT"
+     },
+     {
+      "source_field": "WBS_NO",
+      "dest_field": "OLD_WBS_NO"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_R_PR_ITEM / TB_M_VALUATION_CLASS / TB_M_SYSTEM"
+    },
+    "destination": {
+     "table": "TB_T_JOB_AUTOPO",
+     "operation": "Insert",
+     "description": "Step 9 - only when eligible"
+    },
+    "mappings": [
+     {
+      "dest_field": "TYPE",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: Constant 'PR'"
+     },
+     {
+      "dest_field": "DOCUMENT_NO",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: PR_NO"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: NULL"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: Constant 'ILSTC'"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: GETDATE()"
+     },
+     {
+      "dest_field": "COUNT_RETRY",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: 0"
+     },
+     {
+      "dest_field": "IS_SUCCESS",
+      "description": "TB_R_PR_ITEM + TB_M_VALUATION_CLASS + TB_M_SYSTEM: 0"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "Talend run"
+    },
+    "destination": {
+     "table": "ielp.SA_DETAIL",
+     "operation": "Update",
+     "description": "Step 11 - success / reconciled",
+     "keys": [
+      {
+       "field": "SA_NUMBER",
+       "value": "SA of the iteration"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_NUMBER",
+      "description": "Key [Conflict: SA_NUMBER is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "PROCESS_ID of the PR [Conflict: PROCESS_ID is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PR_NO",
+      "description": "PR_NO (new, or found by PR_DESC) [Conflict: PR_NO is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "INTERFACE_STATUS",
+      "description": "'SUCCESS' [Conflict: INTERFACE_STATUS is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "ERROR_MESSAGE",
+      "description": "NULL [Conflict: ERROR_MESSAGE is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Not changed [Conflict: START_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "Server date-time [Conflict: END_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "RETRY_COUNT",
+      "description": "Not changed [Conflict: RETRY_COUNT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Not changed [Conflict: CREATED_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time [Conflict: CHANGED_DT is not a column of ielp.SA_DETAIL]"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "Talend run"
+    },
+    "destination": {
+     "table": "ielp.SA_DETAIL",
+     "operation": "Update",
+     "description": "Step 11 - failed",
+     "keys": [
+      {
+       "field": "SA_NUMBER",
+       "value": "SA of the iteration"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_NUMBER",
+      "description": "Key [Conflict: SA_NUMBER is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PROCESS_ID",
+      "description": "PROCESS_ID of the attempt (NULL if not reached; rolled back in PAS) [Conflict: PROCESS_ID is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PR_NO",
+      "description": "Not changed [Conflict: PR_NO is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "INTERFACE_STATUS",
+      "description": "'FAILED' [Conflict: INTERFACE_STATUS is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "ERROR_MESSAGE",
+      "description": "Log message text [Conflict: ERROR_MESSAGE is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Not changed [Conflict: START_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "Server date-time [Conflict: END_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "RETRY_COUNT",
+      "description": "RETRY_COUNT + 1 [Conflict: RETRY_COUNT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Not changed [Conflict: CREATED_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time [Conflict: CHANGED_DT is not a column of ielp.SA_DETAIL]"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "DESCRIPTION",
+   "num": "4."
+  },
+  {
+   "type": "text",
+   "text": "Talend moves approved SA (ELIPS TC-PBR) into PAS as a Purchase Requisition, DB-to-DB, replacing the JSON input of the current tJava job. ELIPS owns SA data and approval; Talend only orchestrates; PAS owns PROCESS_ID, PR numbering, PR processing, budget and Auto PO. No PO is created by Talend.",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "text",
+   "text": "4.1 Interface status (ELIPS)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "Status",
+     "width": 7
+    },
+    {
+     "title": "Meaning / set by",
+     "width": 38
+    }
+   ],
+   "rows": [
+    [
+     "READY",
+     "SA approved and ready to send; set by ELIPS (rule TBD) or reset by user (resend)"
+    ],
+    [
+     "PROCESSING",
+     "Claimed by a run (step 4)"
+    ],
+    [
+     "SUCCESS",
+     "PR committed in PAS (or found by PR_DESC); PR_NO stored"
+    ],
+    [
+     "FAILED",
+     "Attempt failed, PAS rolled back; retried while RETRY_COUNT < max"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "4.2 Validation before PAS (no PAS row is written for an invalid SA)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Header: SA_NUMBER, TC_VENDOR_CD, CREATED_BY (or FIX CREATED_BY) present.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "At least one detail item; ITEM_NO unique in the SA; COST numeric; ORDER_FINISH_DATE parses as yyyy-MM-dd[ HH:mm:ss]; ORDER_NO, ROUTE present.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Sub item: SUB_ITEM unique per item; TARIF numeric; WBS_NO, GL_ACCOUNT, COST_CENTER_CD present. Item without sub item: TBD (OQ-11).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "FIX parameters: PR_TYPE, DIVISION_ID (numeric), VALUATION_CLASS, SOURCE_TYPE present; numeric FIX values (PR_QTY, EXCHANGE_RATE, LOCAL_AMOUNT, OPEN_QTY, USED_QTY, SUBITEM_QTY) parse.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.3 Idempotency",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Key SA_NUMBER = TB_R_PR_H.PR_DESC. Checked in step 6 before a PR number is taken, and again by the header insert (WHERE NOT EXISTS, rows affected must be 1).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "A SUCCESS SA is never selected again. A PROCESSING SA older than the timeout is reconciled by PR_DESC (step 2).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.4 Transaction",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "One PAS transaction per SA (steps 7-10). One SA failing does not affect the others.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "ELIPS and PAS are separate databases: no distributed (2PC) transaction. Consistency = claim (PROCESSING) + PAS commit + ELIPS update + reconciliation by PR_DESC.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Stored procedures run inside the Talend transaction; their own BEGIN/COMMIT/ROLLBACK handling must be confirmed by PAS (OQ-05).",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "text",
+   "text": "4.5 Auto PO eligibility (PAS logic, unchanged)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Insert TB_T_JOB_AUTOPO ('PR', PR_NO, NULL, 'ILSTC', GETDATE(), 0, 0) when any item of the PR has VALUATION_CLASS whose TB_M_VALUATION_CLASS.PURCHASING_GROUP_CD is in TB_M_SYSTEM (FUNCTION_ID 'AUTOPO', SYSTEM_CD 'PURCHASING_GROUP_CD', split by ',' with fnSplitString) and SOURCE_TYPE in TB_M_SYSTEM FUNCTION_ID 'SRCILS'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Proposed guard: AND NOT EXISTS (TB_T_JOB_AUTOPO with same TYPE and DOCUMENT_NO). The PAS Auto PO job creates the PO; Talend does not.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.6 Kept as-is (observations, not changed silently)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 4
+    },
+    {
+     "title": "Behaviour",
+     "width": 41
+    }
+   ],
+   "rows": [
+    [
+     "A",
+     "Header DELIVERY_PLAN_DT = run date; item DELIVERY_PLAN_DT = ORDER_FINISH_DATE"
+    ],
+    [
+     "B",
+     "PROC_MONTH = run date yyyyMM"
+    ],
+    [
+     "C",
+     "PR_NOTES computed 'ILSTC_yyyyMMdd_1' but NULL inserted"
+    ],
+    [
+     "D",
+     "SA_DET_NUMBER not used; MAT_DESC = ORDER_NO;ROUTE"
+    ],
+    [
+     "E",
+     "SERVICE_TYPE read but not mapped"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "4.7 Fixes required by the redesign (current tJava defects)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Fix",
+     "width": 40
+    }
+   ],
+   "rows": [
+    [
+     "OBS-01",
+     "Rollback per SA (today: no rollback; partial data committed by a later SA)"
+    ],
+    [
+     "OBS-02",
+     "Stop when PR numbering returns 'FAILED'"
+    ],
+    [
+     "OBS-03",
+     "Duplicate check before numbering (today a PR number is consumed for a duplicate SA)"
+    ],
+    [
+     "OBS-04",
+     "Numbering loop never ends when the number is used (PAS fix, OQ-04)"
+    ],
+    [
+     "OBS-06",
+     "Parameterised SQL (no string concatenation)"
+    ],
+    [
+     "OBS-11",
+     "Check rows affected and SP RESULT"
+    ],
+    [
+     "OBS-13",
+     "Auto PO duplicate guard"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "4.8 Open questions",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Question",
+     "width": 40
+    }
+   ],
+   "rows": [
+    [
+     "OQ-01",
+     "ELIPS interface status: a separate ELIPS table (placeholder ielp.SA_DETAIL) or columns on the SA header (the PAS block proposed in the SA Monitoring spec)? Physical names and lengths."
+    ],
+    [
+     "OQ-02",
+     "ELIPS source tables / columns for SA header, detail and sub item, and the exact 'approved and ready to send' condition (approval history (TBD)). Who sets READY?"
+    ],
+    [
+     "OQ-03",
+     "Where are the FIX_PARAMETER values (PR_TYPE, DIVISION_ID, VALUATION_CLASS, SOURCE_TYPE, DEFAULT_VALUES, ...) stored in ELIPS, and by which key (global, per SA type, per trucking company)?"
+    ],
+    [
+     "OQ-04",
+     "PR numbering loop: when the next number is already used (TB_H_DOCUMENT_NUMBER USED_STATUS 'Y') CURRENT_NUMBER is not advanced, so the WHILE loop never ends. Can PAS fix the block (advance the number, read TB_M_DOC_NUMBERING WITH (UPDLOCK))? Until then Talend only adds a query timeout."
+    ],
+    [
+     "OQ-05",
+     "Do SP_ILS_GENERATE_PR_ITEM, sp_prcreation_budgetProcessing and sp_PutLog open / commit / roll back their own transaction or use TRY-CATCH that swallows errors? Can they run inside the Talend transaction? What do they return on error (RESULT values, RAISERROR, return code)?"
+    ],
+    [
+     "OQ-06",
+     "fn_get_last_process_id(): a function cannot write, so how is a unique PROCESS_ID guaranteed when PAS online users and Talend run at the same time? Is the TB_R_LOG_H insert the reservation?"
+    ],
+    [
+     "OQ-07",
+     "TB_R_LOG_H: keep MODULE_ID / FUNCTION_ID '1' / '1', END_DT = start and PROCESS_STATUS 1, or update END_DT / PROCESS_STATUS at the end (status codes)? Must PAS log rows survive a rollback (separate connection)?"
+    ],
+    [
+     "OQ-08",
+     "PR_NOTES (Observation C): keep NULL (as-is) or insert 'ILSTC_yyyyMMdd_1' as the code computes?"
+    ],
+    [
+     "OQ-09",
+     "SA_DET_NUMBER (Observation D): should it be sent to PAS for traceability (the old commented code put it in MAT_DESC)?"
+    ],
+    [
+     "OQ-10",
+     "SERVICE_TYPE (Observation E): does PAS need it, and in which column? No target is mapped until confirmed."
+    ],
+    [
+     "OQ-11",
+     "Amounts: header LOCAL_AMOUNT comes from FIX (not the sum of item COST); item ORI_AMOUNT = COST (not COST x PR_QTY); sub item amount = TARIF. Is an item without sub item allowed? Must the sum of sub item TARIF equal the item COST?"
+    ],
+    [
+     "OQ-12",
+     "Observations A / B: header DELIVERY_PLAN_DT and PROC_MONTH use the run date. Correct for an SA of the previous month that is sent after month end?"
+    ],
+    [
+     "OQ-13",
+     "PR_DESC as idempotency key: is there a unique index? Can a PAS user create a PR with the same description? If the PR is cancelled in PAS, may the SA be sent again?"
+    ],
+    [
+     "OQ-14",
+     "Run schedule, maximum retry (proposed 3), PROCESSING timeout (proposed 30 min). Who resets FAILED to READY (SA Monitoring Resend)?"
+    ],
+    [
+     "OQ-15",
+     "PO number back to ELIPS: separate interface (SA Monitoring PO feedback). PAS PO table / column names are not in the supplied information."
+    ],
+    [
+     "OQ-16",
+     "Terminology: 'SA' is Service Acceptance in ELIPS TC-PBR; the request also mentions 'Shipping Advice'. Confirm the meaning."
+    ],
+    [
+     "OQ-17",
+     "SA type: do both SA by resource (daily orders) and the monthly fixed-cost SA use this interface with the same FIX parameters?"
+    ],
+    [
+     "OQ-18",
+     "CREATED_BY: FIX CREATED_BY overrides the SA creator (as-is). Which PAS user id must be used (must it exist in PAS for budget processing)?"
+    ],
+    [
+     "OQ-20",
+     "Are ELIPS and PAS databases on the same SQL Server instance (or is MSDTC / a linked server allowed)? Only then can the ELIPS SUCCESS update be inside the PAS transaction (requirement step 13)."
+    ],
+    [
+     "OQ-19",
+     "DOC_DT / CREATED_DT use the Talend server clock, other dates use the PAS GETDATE(). Same time zone / clock?"
+    ]
+   ],
+   "row_lines": "all"
+  }
+ ],
+ "func_desc_layout": "two",
+ "logging_messages": [
+  {
+   "event": "Process start",
+   "cause": "Job started (schedule / on demand)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "ELIPS-PAS PR interface started. Run <RUN_ID>.",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Connect to database server",
+   "cause": "ELIPS or PAS connection failed",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Cannot connect to <ELIPS|PAS> database: <DB_ERROR>.",
+   "action": {
+    "system": "Stop the run; no SA claimed; notify system owner (TBD)",
+    "user": "Check DB / network, rerun"
+   }
+  },
+  {
+   "event": "Select eligible SA",
+   "cause": "No SA in READY / retryable FAILED",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No SA to interface.",
+   "action": {
+    "system": "End the run",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Recovery",
+   "cause": "SA in PROCESSING longer than the timeout",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> stuck in PROCESSING since <START_DT>: reconciled to <SUCCESS|FAILED>.",
+   "action": {
+    "system": "Reconcile by PR_DESC in PAS",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Claim SA",
+   "cause": "Status changed by another run (rows affected = 0)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> already claimed by another run, skipped.",
+   "action": {
+    "system": "Skip SA",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Data validation",
+   "cause": "Mandatory data missing / invalid (header, detail, sub item, FIX parameter, number, date, DIVISION_ID)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> invalid: <FIELD> <REASON>.",
+   "action": {
+    "system": "SA FAILED, RETRY_COUNT + 1; PAS not touched",
+    "user": "Correct the SA data / FIX parameter in ELIPS, then resend"
+   }
+  },
+  {
+   "event": "Duplicate check",
+   "cause": "PR with PR_DESC = SA_NUMBER already in PAS",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> already exists in PAS as PR <PR_NO>: marked SUCCESS (reconciled).",
+   "action": {
+    "system": "SA SUCCESS with that PR_NO; no PAS insert",
+    "user": "-"
+   }
+  },
+  {
+   "event": "PR number generation",
+   "cause": "Prefix not registered / maximum range / numbering returns 'FAILED'",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR number generation failed: <PAS_MESSAGE>.",
+   "action": {
+    "system": "Rollback PAS; SA FAILED",
+    "user": "PAS admin: check TB_M_PROCUREMENT_TYPE / TB_M_DOC_NUMBERING"
+   }
+  },
+  {
+   "event": "Insert PR",
+   "cause": "Insert error, or rows affected <> expected",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: insert <TABLE> failed: <DB_ERROR>.",
+   "action": {
+    "system": "Rollback PAS; SA FAILED",
+    "user": "Check data, resend"
+   }
+  },
+  {
+   "event": "PAS PR processing",
+   "cause": "SP_ILS_GENERATE_PR_ITEM error or RESULT not success",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: SP_ILS_GENERATE_PR_ITEM failed: <RESULT|DB_ERROR>.",
+   "action": {
+    "system": "Rollback PAS; SA FAILED",
+    "user": "PAS admin"
+   }
+  },
+  {
+   "event": "Budget processing",
+   "cause": "sp_prcreation_budgetProcessing error (e.g. budget / WBS)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: budget processing failed: <DB_ERROR>.",
+   "action": {
+    "system": "Rollback PAS; SA FAILED",
+    "user": "Budget owner / PAS admin"
+   }
+  },
+  {
+   "event": "Auto PO job",
+   "cause": "Insert TB_T_JOB_AUTOPO failed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: Auto PO job insert failed: <DB_ERROR>.",
+   "action": {
+    "system": "Rollback PAS; SA FAILED",
+    "user": "Resend"
+   }
+  },
+  {
+   "event": "PAS commit",
+   "cause": "SA committed in PAS",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> -> PR <PR_NO> (process <PROCESS_ID>) created; Auto PO job: <Y|N>.",
+   "action": {
+    "system": "SA SUCCESS",
+    "user": "-"
+   }
+  },
+  {
+   "event": "ELIPS update",
+   "cause": "PAS committed but ELIPS status update failed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PR <PR_NO> created but ELIPS status not updated: <DB_ERROR>.",
+   "action": {
+    "system": "Leave PROCESSING; next run reconciles by PR_DESC",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Data validation",
+   "cause": "VPLD approval missing / withdrawn when the SA is processed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> is not approved by VPLD.",
+   "action": {
+    "system": "SA FAILED; PAS not touched",
+    "user": "Approve the SA in ELIPS"
+   }
+  },
+  {
+   "event": "Rollback",
+   "cause": "ROLLBACK failed (connection broken)",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: rollback failed: <DB_ERROR>. Outcome unknown.",
+   "action": {
+    "system": "Reopen PAS connection; SA stays PROCESSING, reconciled next run",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Processing",
+   "cause": "Deadlock / lock timeout / connection lost in PAS transaction",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER>: PAS transaction aborted: <DB_ERROR>.",
+   "action": {
+    "system": "Rollback PAS; SA FAILED (retryable)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Retry",
+   "cause": "RETRY_COUNT reached the maximum",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA <SA_NUMBER> failed <n> times; automatic retry stopped.",
+   "action": {
+    "system": "Not selected again until reset to READY",
+    "user": "Correct and resend from SA Monitoring"
+   }
+  },
+  {
+   "event": "Process end",
+   "cause": "Run finished",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "ELIPS-PAS PR interface finished: <n> success, <n> reconciled, <n> failed, <n> skipped.",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Processing",
+   "cause": "Unexpected Talend error",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "ELIPS-PAS PR interface stopped: <ERROR>.",
+   "action": {
+    "system": "Rollback current SA; SA stays PROCESSING -> recovered next run; notify (TBD)",
+    "user": "Contact system administrator"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "ielp.SA_DETAIL",
+   "kind": "log",
+   "proposed": false,
+   "description": "Existing ELIPS table (columns from ELIPS_Schema.sql)",
+   "columns": [
+    [
+     "SA_DETAIL_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_DET_ID",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_TYPE",
+     "VARCHAR(30)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "COMPANY_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_SIZE",
+     "VARCHAR(2)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ROUTE_HEADER_ID",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ROUTE_PRICE_ID",
+     "VARCHAR(16)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STATUS_CODE",
+     "VARCHAR(2)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "APPROVED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "APPROVED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DELETED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DELETED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ORDER_ROUTE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PRICE_ROUTE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PO_NUMBER",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SA_CODE",
+     "VARCHAR(16)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_DELETE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "SA_HEADER_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_VISION",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "VISION_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "VISION_CREATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_VISION_CALLBACK",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "VISION_CALLBACK_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "VISION_CALLBACK_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_PAS",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "PAS_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_CREATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_PAS_CALLBACK",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "PAS_CALLBACK_STATUS",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_CALLBACK_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TOTAL_TRIP",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "PRICE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TOTAL_PRICE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "REMARK",
+     "VARCHAR(1000)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PR_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PR_DATE",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PO_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PAS_PO_DATE",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "LOG_ITG_SEND_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "LOG_ITG_CALLBACK_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SA_TYPE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_R_LOG_H",
+   "kind": "log",
+   "proposed": true,
+   "description": "PAS process log header - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "MODULE_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "FUNCTION_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "START_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "END_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROCESS_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_H_DOCUMENT_NUMBER",
+   "kind": "history",
+   "proposed": true,
+   "description": "PAS used document numbers - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "DOC_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "USED_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_R_PR_H",
+   "kind": "transaction",
+   "proposed": true,
+   "description": "PAS PR header - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PR_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_NO",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROC_MONTH",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PLANT_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SLOC_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_COORDINATOR",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DIVISION_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DIVISION_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "LOCAL_CURR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "RELEASED_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELIVERY_PLAN_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CANCEL_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DOC_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_NOTES",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_T_PR_H",
+   "kind": "temp",
+   "proposed": true,
+   "description": "PAS PR header work table - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DOC_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PLANT_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SLOC_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_COORDINATOR",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DIVISION_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DIVISION_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROJECT_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "URGENT_DOC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_NOTES",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELIVERY_PLAN_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_R_PR_ITEM",
+   "kind": "transaction",
+   "proposed": true,
+   "description": "PAS PR item - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PR_NO",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "PR_ITEM_NO",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "ITEM_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "IS_PARENT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "WBS_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "WBS_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_CLASS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_CLASS_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VALUATION_CLASS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VALUATION_CLASS_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SOURCE_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DOC_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "UNIT_OF_MEASURE_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_CURR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PRICE_PER_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "LOCAL_CURR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "EXCHANGE_RATE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELIVERY_PLAN_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "GL_ACCOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_NEXT_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "IS_REJECTED",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ASSET_CATEGORY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VENDOR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VENDOR_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COMPLETION",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "OPEN_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "USED_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "RELEASE_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "BUDGET_REF",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PO_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROCUREMENT_PURPOSE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COST_CENTER_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "BUYER_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PACKING_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PART_COLOR_SFX",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SPECIAL_PROC_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_T_PR_ITEM",
+   "kind": "temp",
+   "proposed": true,
+   "description": "PAS PR item work table - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "IS_PARENT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROCUREMENT_PURPOSE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COST_CENTER_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "WBS_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "WBS_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "GL_ACCOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_CLASS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_CLASS_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VALUATION_CLASS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VALUATION_CLASS_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SOURCE_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PACKING_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PART_COLOR_SFX",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SPECIAL_PROC_TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CAR_FAMILY_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_TYPE_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_GRP_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_ITEM_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_ITEM_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_CURR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_PRICE_PER_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_PRICE_PER_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "LOCAL_CURR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "EXCHANGE_RATE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELIVERY_PLAN_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VENDOR_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VENDOR_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "RELEASE_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "QUOTA_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ASSET_CATEGORY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ASSET_CLASS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ASSET_LOCATION",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ASSET_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PR_NEXT_STATUS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COMPLETION",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "OPEN_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "USED_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "UPDATE_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELETE_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "BUDGET_REF",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "OLD_WBS_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "OLD_WBS_NAME",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELIVERY_ADDR",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_R_PR_SUBITEM",
+   "kind": "transaction",
+   "proposed": true,
+   "description": "PAS PR sub item - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PR_NO",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "PR_ITEM_NO",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "PR_SUBITEM_NO",
+     "as PAS",
+     "Y",
+     "",
+     ""
+    ],
+    [
+     "MAT_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COST_CENTER_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "WBS_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "GL_ACCOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUBITEM_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUBITEM_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PRICE_PER_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_T_PR_SUBITEM",
+   "kind": "temp",
+   "proposed": true,
+   "description": "PAS PR sub item work table - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ITEM_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUBITEM_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MAT_DESC",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COST_CENTER_CD",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "WBS_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "GL_ACCOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_SUBITEM_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_SUBITEM_QTY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUBITEM_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_PRICE_PER_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_PRICE_PER_UOM",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ORI_LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_LOCAL_AMOUNT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "NEW_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "UPDATE_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DELETE_FLAG",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "OLD_WBS_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_T_JOB_AUTOPO",
+   "kind": "temp",
+   "proposed": true,
+   "description": "PAS Auto PO job queue - existing PAS table; only the columns written by the interface are listed - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "TYPE",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DOCUMENT_NO",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "PROCESS_ID",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "COUNT_RETRY",
+     "as PAS",
+     "",
+     "",
+     ""
+    ],
+    [
+     "IS_SUCCESS",
+     "as PAS",
+     "",
+     "",
+     ""
+    ]
+   ]
+  }
+ ],
+ "appendix": [
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "SA header",
+     "ielp.SA_HEADER.SA_HEADER_ID",
+     "varchar(20)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "SA detail",
+     "ielp.SA_DETAIL.SA_CODE",
+     "varchar(16)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Interface status",
+     "ielp.SA_DETAIL.PAS_STATUS",
+     "varchar(100)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Sub items (WBS)",
+     "ielp.SA_WBS_PERCENTAGE.WBS_NUMBER",
+     "varchar(100)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Fixed parameters",
+     "ielp.TB_M_SYSTEM.SYS_VALUE",
+     "varchar(2000)",
+     "Y",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Interface log",
+     "ielp.LOG_ITGPAS.STS_CODE",
+     "varchar(10)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ],
+    [
+     "PAS tables (TB_R_PR_H ...)",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "Approval history source",
+    "Mapping of SA sub items"
+   ]
+  }
+ ]
+}

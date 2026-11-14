@@ -1,0 +1,2317 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD TC-PBR SA Approval (Service Acceptance)",
+  "created_date": "04-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "04-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft: SA Approval (PO mapping, Total KM, cost, VPLD approval, SA Number)"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "04-Nov-26",
+   "reviewed_by": "",
+   "description": "Added monthly truck cost (Fixed Cost PO): tab Monthly Truck, SA per released monthly PO"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: SA = ielp.SA_HEADER / SA_DETAIL (SA_CODE), orders = ORDER_CYCLE (SA_CODE) and DTP_n_DETAIL (IS_SA), rate = MS_ROUTE_PRICE (inferred), monthly PO = PO_DETAIL; proposed request / sequence / history tables flagged; conflicts recorded; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To let VPLD perform Service Acceptance (GR) for deliveries finished by the LP, supporting the 3-way matching PR -> PO -> GR/SA.",
+   "To validate each delivery against the applicable TC-PBR PO: route, Total KM, PO, rate and calculated cost, before approval.",
+   "To generate the SA Number (ILS/TR/{code}/{YYMMDD}{NNNN}), save the SA with a calculation snapshot and update Daily Monitoring, without duplicate SA.",
+   "To let VPLD also perform SA for the monthly truck cost (Fixed Cost PR / PO, truck + driver rental per month) once the monthly PO is released."
+  ],
+  "display_order": [
+   {
+    "section": "Order List",
+    "fields": [
+     {
+      "field": "Order Date",
+      "order": "Ascending"
+     },
+     {
+      "field": "Order Number",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Search",
+    "function": "To retrieve eligible deliveries by Order From / To."
+   },
+   {
+    "name": "Clear",
+    "function": "To reset the criteria."
+   },
+   {
+    "name": "Regular / Inter Plant Trip",
+    "function": "To switch the trip tab."
+   },
+   {
+    "name": "Monthly Truck",
+    "function": "To show released monthly (Fixed Cost) PO."
+   },
+   {
+    "name": "Select All",
+    "function": "To select all Ready rows."
+   },
+   {
+    "name": "Approve",
+    "function": "To approve the selected deliveries (confirmation)."
+   },
+   {
+    "name": "Calculation detail",
+    "function": "To show the calculation of a row."
+   },
+   {
+    "name": "Order Detail",
+    "function": "To open the Daily Monitoring Order Detail."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide columns."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "VPLD (Planner)",
+    "sections": [
+     {
+      "section": "Order List",
+      "description": "approve, refer below 1)",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Monthly Truck": "E",
+       "Regular / Inter Plant Trip": "E",
+       "Select All": "E",
+       "Approve": "E",
+       "Calculation detail": "E",
+       "Order Detail": "E",
+       "Kolom": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "IELP Admin",
+    "sections": [
+     {
+      "section": "Order List",
+      "description": "view only, msg 1",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Monthly Truck": "E",
+       "Regular / Inter Plant Trip": "E",
+       "Select All": "D",
+       "Approve": "D",
+       "Calculation detail": "E",
+       "Order Detail": "E",
+       "Kolom": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Supplier / Driver",
+    "sections": [
+     {
+      "section": "Screen",
+      "description": "no access, msg 2",
+      "buttons": {
+       "Search": "D",
+       "Clear": "D",
+       "Monthly Truck": "D",
+       "Regular / Inter Plant Trip": "D",
+       "Select All": "D",
+       "Approve": "D",
+       "Calculation detail": "D",
+       "Order Detail": "D",
+       "Kolom": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Row with issue",
+    "sections": [
+     {
+      "section": "Grid row",
+      "description": "checkbox disabled, refer below 2)",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Monthly Truck": "E",
+       "Regular / Inter Plant Trip": "E",
+       "Select All": "E",
+       "Approve": "E",
+       "Calculation detail": "E",
+       "Order Detail": "E",
+       "Kolom": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Approve is enabled only when at least one row is selected; Confirm is disabled after the first click.",
+   "2) Select All selects Ready rows only."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for SA Approval",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "dm",
+      "label": "Daily Monitoring (Finish Daily Order)",
+      "type": "screen"
+     },
+     {
+      "id": "sa",
+      "label": "SA Approval",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "cd",
+      "label": "Calculation detail popup",
+      "type": "screen"
+     },
+     {
+      "id": "od",
+      "label": "Order Detail (Daily Monitoring)",
+      "type": "screen"
+     },
+     {
+      "id": "cf",
+      "label": "Confirm Approve",
+      "type": "screen"
+     },
+     {
+      "id": "po",
+      "label": "PO released (Monthly Fixed Cost)",
+      "type": "screen"
+     },
+     {
+      "id": "sm",
+      "label": "SA Monitoring",
+      "type": "screen",
+      "screen_id": "TBD"
+     }
+    ],
+    "edges": [
+     {
+      "from": "dm",
+      "to": "sa",
+      "label": "eligible"
+     },
+     {
+      "from": "po",
+      "to": "sa",
+      "label": "monthly cost"
+     },
+     {
+      "from": "sa",
+      "to": "cd"
+     },
+     {
+      "from": "sa",
+      "to": "od"
+     },
+     {
+      "from": "sa",
+      "to": "cf",
+      "label": "Approve"
+     },
+     {
+      "from": "cf",
+      "to": "sm",
+      "label": "SA Number"
+     }
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. SA Monitoring Screen - reference screen (from user)",
+   "image": "img/UISS_Screen_SA_Approval/ref_sa.png"
+  },
+  {
+   "caption": "2. Information flow / detail data section - reference notes (from user)",
+   "image": "img/UISS_Screen_SA_Approval/ref_info.png"
+  },
+  {
+   "caption": "3. SA Approval - VPLD, rows selected (HTML mock-up)",
+   "image": "img/UISS_Screen_SA_Approval/a01_list.png"
+  },
+  {
+   "caption": "4. SA Approval - grid scrolled right: Price, Currency, Order Route, Cycle 1-5",
+   "image": "img/UISS_Screen_SA_Approval/a02_list_right.png"
+  },
+  {
+   "caption": "5. Calculation detail - row with issue (Total KM Not Found)",
+   "image": "img/UISS_Screen_SA_Approval/a03_detail_bad.png"
+  },
+  {
+   "caption": "6. Calculation detail - Ready row",
+   "image": "img/UISS_Screen_SA_Approval/a04_detail_ok.png"
+  },
+  {
+   "caption": "7. Approve confirmation",
+   "image": "img/UISS_Screen_SA_Approval/a05_confirm.png"
+  },
+  {
+   "caption": "8. Approval failed - revalidation (Cost Changed)",
+   "image": "img/UISS_Screen_SA_Approval/a06_error.png"
+  },
+  {
+   "caption": "9. Approval result - SA Numbers generated",
+   "image": "img/UISS_Screen_SA_Approval/a07_result.png"
+  },
+  {
+   "caption": "10. IELP Admin - view only",
+   "image": "img/UISS_Screen_SA_Approval/a00_ipadmin.png"
+  },
+  {
+   "caption": "11. Monthly Truck (Fixed Cost) - released monthly PO (rev 0.2)",
+   "image": "img/UISS_Screen_SA_Approval/m01_monthly.png"
+  },
+  {
+   "caption": "12. Monthly cost detail",
+   "image": "img/UISS_Screen_SA_Approval/m02_detail.png"
+  },
+  {
+   "caption": "13. Approve confirmation - Monthly Truck",
+   "image": "img/UISS_Screen_SA_Approval/m03_confirm.png"
+  },
+  {
+   "caption": "14. Result - one SA per monthly PO",
+   "image": "img/UISS_Screen_SA_Approval/m04_result.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title / breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Service Acceptance', 'service acceptance - acceptance'. Menu Service Acceptance > SA Approval."
+  },
+  {
+   "group": "<Search Criteria Section>"
+  },
+  {
+   "name": "Order From",
+   "source": "Screen",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "1st day of previous month",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "<= Order To (TBD)",
+   "description": "Order Date >= Order From."
+  },
+  {
+   "name": "Order To",
+   "source": "Screen",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "System date",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "Order Date <= Order To."
+  },
+  {
+   "name": "Search",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Retrieve eligible deliveries by the criteria (Operation 5.2)."
+  },
+  {
+   "name": "Clear",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Reset criteria to the initial values, clear the selection."
+  },
+  {
+   "name": "Regular Trip / Inter Plant Trip / Monthly Truck (Fixed Cost)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Tab",
+   "justified": "Left",
+   "initial": "Regular Trip",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Regular Trip: all eligible deliveries. Inter Plant Trip: rule TBD (OQ-02). Monthly Truck: released monthly PO (Operation 5.9). Switching tab clears the selection."
+  },
+  {
+   "group": "<Order List Section>"
+  },
+  {
+   "name": "Select All",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Checkbox",
+   "justified": "Left",
+   "initial": "Unchecked",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Select / unselect all Ready rows of the current criteria (all pages). Disabled when not VPLD or no Ready row."
+  },
+  {
+   "name": "Item selected",
+   "source": "Screen",
+   "field": "--",
+   "type": "Numeric",
+   "len": 4,
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "ZZZ9 Item selected",
+   "validation": "",
+   "description": "Number of selected rows."
+  },
+  {
+   "name": "Approve",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Enabled for VPLD when at least one row is selected. Opens the confirmation (Operation 5.5)."
+  },
+  {
+   "name": "Ready / issue count",
+   "source": "Screen",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'{n} ready · {m} with issue'."
+  },
+  {
+   "name": "Search (list)",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": 50,
+   "io": "I",
+   "control": "Textbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains, case-insensitive: Order No, DTP Type, Trucking Company / code, PO Number, Route, Container No."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button (menu)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show / hide columns. Service hidden by default."
+  },
+  {
+   "group": "<Order List Grid>  (one row per eligible delivery, sort Order Date, Order Number ascending)"
+  },
+  {
+   "name": "Select",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Checkbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Enabled only for VPLD and Ready rows."
+  },
+  {
+   "name": "Actions - Calculation detail",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Icon button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Opens the Calculation Detail popup (Operation 5.4)."
+  },
+  {
+   "name": "Actions - Order Detail",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Icon button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Opens the Daily Monitoring Order Detail of the order (same data as Daily Monitoring)."
+  },
+  {
+   "name": "Validation",
+   "source": "Calculation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Ready' (green) or one badge per issue SA-V01..V12 (red), tooltip = detail."
+  },
+  {
+   "name": "DTP Type",
+   "source": "ielp.DTP_HEADER",
+   "field": "DTP_TYPE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "DTP-n / Universal",
+   "validation": "",
+   "description": "DB: ielp.DTP_HEADER.DTP_TYPE varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "Order Number",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Delivery ID.\nDB: ielp.ORDER_CYCLE.ORDER_NO varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "Order Date",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "Basis for PO validity.\nDB: ielp.ORDER_CYCLE.ORDER_NO varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "Truck Company",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_NAME",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "CODE - Name",
+   "validation": "",
+   "description": "Code is mandatory (SA-V03).\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_NAME varchar(500) NOT NULL [Revised]"
+  },
+  {
+   "name": "PO Number",
+   "source": "ielp.SA_DETAIL",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Mapped PO (Operation 5.3.3); '-' if none.\nDB: ielp.SA_DETAIL.PO_NUMBER varchar(100) NULL [Revised] varchar(100); PO_DETAIL.PO_NUMBER varchar(16)."
+  },
+  {
+   "name": "PO Validity",
+   "source": "ielp.PO_DETAIL / ielp.MS_ROUTE_PRICE (rate, inferred)",
+   "field": "VALID_FROM, VALID_TO",
+   "type": "Date",
+   "len": 23,
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD - YYYY-MM-DD",
+   "validation": "",
+   "description": "DB: TBD - No validity / currency on SA; MS_ROUTE_PRICE.VALID_DT_FROM / TO, ROUTE_PRICE_CURRENCY (inferred)."
+  },
+  {
+   "name": "CTR Size",
+   "source": "ielp.SA_DETAIL",
+   "field": "CTR_SIZE",
+   "type": "Varchar",
+   "len": "2",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'-' if not available.\nDB: ielp.SA_DETAIL.CTR_SIZE varchar(2) NULL [Revised] varchar(2)."
+  },
+  {
+   "name": "Total KM",
+   "source": "ielp.TB_M_MILEAGE",
+   "field": "MILEAGE",
+   "type": "Decimal",
+   "len": "18,0",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "Z,ZZ9.99",
+   "validation": "",
+   "description": "Operation 5.3.2.\nDB: ielp.TB_M_MILEAGE.MILEAGE decimal(18, 0) NULL [Conflict] Sum of route mileage; no column on SA."
+  },
+  {
+   "name": "Rate / KM",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "ZZZ,ZZ9",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [TBD]"
+  },
+  {
+   "name": "Price",
+   "source": "ielp.SA_DETAIL",
+   "field": "TOTAL_PRICE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Delivery Cost = Total KM x Rate (Operation 5.3.4). Green column as on the reference screen.\nDB: ielp.SA_DETAIL.TOTAL_PRICE varchar(100) NULL [Conflict] varchar(100)."
+  },
+  {
+   "name": "Currency",
+   "source": "ielp.PO_DETAIL / ielp.MS_ROUTE_PRICE (rate, inferred)",
+   "field": "CURRENCY",
+   "type": "Char",
+   "len": 3,
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: TBD - No validity / currency on SA; MS_ROUTE_PRICE.VALID_DT_FROM / TO, ROUTE_PRICE_CURRENCY (inferred)."
+  },
+  {
+   "name": "Order Route",
+   "source": "ielp.SA_DETAIL",
+   "field": "ORDER_ROUTE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "First From code + every To code of the finished cycles, e.g. D3S1D3. Blue column as on the reference screen.\nDB: ielp.SA_DETAIL.ORDER_ROUTE varchar(100) NULL [Revised] varchar(100)."
+  },
+  {
+   "name": "Cycle n - Service (n = 1..5)",
+   "source": "TBD",
+   "field": "TBD",
+   "type": "Char",
+   "len": "TBD",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Value 'CE' on the reference screen; meaning / source TBD (OQ-03). Hidden by default."
+  },
+  {
+   "name": "Cycle n - Order Cycle (n = 1..5)",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "FROM_LOC",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "FROM-TO [container]",
+   "validation": "",
+   "description": "'-' if no cycle n.\nDB: ielp.ORDER_CYCLE.FROM_LOC varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Paging",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Select / Button",
+   "justified": "Left",
+   "initial": "10",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50 rows, Prev / Next, 'Showing x to y of z records'."
+  },
+  {
+   "group": "<Monthly Truck (Fixed Cost) Grid>  (one row per released monthly PO without SA, sort Production Month, Trucking Company)"
+  },
+  {
+   "name": "Select",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Checkbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Enabled only for VPLD and Ready rows."
+  },
+  {
+   "name": "Actions - Monthly cost detail",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Icon button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Opens the Monthly Cost Detail popup."
+  },
+  {
+   "name": "Validation",
+   "source": "Calculation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Ready' or SA-M01..M05 (Operation 5.9)."
+  },
+  {
+   "name": "PO Number / PR Number",
+   "source": "ielp.SA_DETAIL",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Monthly PR type Fixed Cost and its PO.\nDB: ielp.SA_DETAIL.PO_NUMBER varchar(100) NULL [Revised] varchar(100); PO_DETAIL.PO_NUMBER varchar(16)."
+  },
+  {
+   "name": "Production Month",
+   "source": "ielp.CRITERIA_SCORE_HEADER",
+   "field": "CRITERIA_PERIODE",
+   "type": "Varchar",
+   "len": "7",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "MM/YYYY",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7)."
+  },
+  {
+   "name": "Truck Company",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_NAME",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "CODE - Name",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.COMPANY_NAME varchar(500) NOT NULL [Revised]"
+  },
+  {
+   "name": "Cost Component",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Monthly Cost (Fixed)' - rental of truck + driver for one month."
+  },
+  {
+   "name": "PO Status / PO Released",
+   "source": "ielp.PO_HEADER",
+   "field": "APPROVAL_STS",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "DD/MM/YYYY HH:MI",
+   "validation": "",
+   "description": "Approved / Auto Approved.\nDB: ielp.PO_HEADER.APPROVAL_STS varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "Service Period",
+   "source": "Calculation",
+   "field": "--",
+   "type": "Date",
+   "len": 23,
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD - YYYY-MM-DD",
+   "validation": "",
+   "description": "1st - last day of the production month."
+  },
+  {
+   "name": "Price / Currency",
+   "source": "ielp.PO_DETAIL / ielp.MS_ROUTE_PRICE (rate, inferred)",
+   "field": "AMOUNT, CURRENCY",
+   "type": "Numeric / Char",
+   "len": "13 / 3",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Monthly cost of the PO (E-Catalogue Monthly Price at PR time).\nDB: TBD - No validity / currency on SA; MS_ROUTE_PRICE.VALID_DT_FROM / TO, ROUTE_PRICE_CURRENCY (inferred)."
+  },
+  {
+   "group": "<Calculation Detail Popup>"
+  },
+  {
+   "name": "Delivery info",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Order Number, Order Date, Trucking Company, License Plate / Driver.\nDB: ielp.ORDER_CYCLE.ORDER_NO varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "Route & Total KM table",
+   "source": "Daily Cycle / Master Location / ielp.TB_M_MILEAGE",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Per cycle: From code - name, To code - name, Container, KM; footer Order Route and Total KM."
+  },
+  {
+   "name": "PO & Cost",
+   "source": "ielp.PO_DETAIL / ielp.MS_ROUTE_PRICE (rate, inferred) / Calculation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "PO Number, PO Validity, PO Status, Rate / KM, Calculation 'x km x r IDR/km = c', Delivery Cost."
+  },
+  {
+   "name": "Validation list",
+   "source": "Calculation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "All issues with label and detail, or 'Ready - All checks passed'."
+  },
+  {
+   "group": "<Approve Confirmation / Result Popup>"
+  },
+  {
+   "name": "Summary table",
+   "source": "Selected rows",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Per trucking company + PO: Deliveries, Total KM, Total Cost."
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Close, nothing saved."
+  },
+  {
+   "name": "Confirm Approve",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Disabled after the first click; sends the approval with one request id (Operation 5.6)."
+  },
+  {
+   "name": "Result",
+   "source": "API",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Success: SA Number, trucking, PO, deliveries, total cost + 'Open SA Monitoring'. Failure: HTTP status, message, list per delivery."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "System",
+    "destination": {
+     "table": "SA approval request (proposed, not in ELIPS)",
+     "operation": "Insert",
+     "description": "[Confirm Approve] - start"
+    },
+    "mappings": [
+     {
+      "dest_field": "REQUEST_ID",
+      "description": "Request id from screen (idempotency key)"
+     },
+     {
+      "dest_field": "USER_ID",
+      "description": "Login user"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING', then 'SUCCESS' / 'FAILED' with RESULT_JSON"
+     },
+     {
+      "dest_field": "RESULT_JSON",
+      "description": "Response returned to the screen"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "SA sequence (proposed, not in ELIPS)",
+     "operation": "Update",
+     "description": "[Confirm Approve] - per trucking company group",
+     "keys": [
+      {
+       "field": "SCOPE_KEY",
+       "value": "'{LP}|{YYMMDD}' or '{YYMMDD}'"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "LAST_SEQ",
+      "description": "LAST_SEQ + 1 (row locked; insert 1 when missing)"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Calculation of the group",
+    "destination": {
+     "table": "ielp.SA_HEADER",
+     "operation": "Insert",
+     "description": "[Confirm Approve] - one per trucking company + PO"
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE",
+      "description": "ILS/TR/{COMPANY_ID}/{YYMMDD}{LAST_SEQ 4 digits} [Conflict: SA_CODE is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "COMPANY_ID / LP_NAME",
+      "description": "Trucking company [Conflict: LP_NAME is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "PO_NUMBER / PO_VALID_FROM / PO_VALID_TO / CURRENCY",
+      "description": "Mapped PO [Conflict: PO_VALID_FROM is not a column of ielp.SA_HEADER] [Conflict: PO_VALID_TO is not a column of ielp.SA_HEADER] [Conflict: CURRENCY is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "DELIVERY_COUNT",
+      "description": "Count of deliveries [Conflict: DELIVERY_COUNT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "TOTAL_KM / TOTAL_COST",
+      "description": "Sum of details [Conflict: TOTAL_KM is not a column of ielp.SA_HEADER] [Conflict: TOTAL_COST is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "SA_STATUS",
+      "description": "'SA Approved' [Conflict: SA_STATUS is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "APPROVED_BY / APPROVED_DT",
+      "description": "Login user / server date-time [Conflict: APPROVED_BY is not a column of ielp.SA_HEADER] [Conflict: APPROVED_DT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "REQUEST_ID",
+      "description": "Request id [Conflict: REQUEST_ID is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Login user / server date-time"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "1 [Conflict: VERSION is not a column of ielp.SA_HEADER]"
+     }
+    ]
+   },
+   {
+    "source": "Calculation of the delivery",
+    "destination": {
+     "table": "ielp.SA_DETAIL",
+     "operation": "Insert",
+     "description": "[Confirm Approve] - one per delivery"
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE",
+      "description": "Header SA Number"
+     },
+     {
+      "source_field": "ORDER_NO",
+      "dest_field": "ORDER_NO",
+      "description": "Unique (one SA per delivery) [Conflict: ORDER_NO is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "source_field": "ORDER_DATE",
+      "dest_field": "ORDER_DATE",
+      "description": "[Conflict: ORDER_DATE is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "source_field": "DTP_TYPE",
+      "dest_field": "DTP_TYPE"
+     },
+     {
+      "dest_field": "ROUTE_CD",
+      "description": "Order Route [Conflict: ROUTE_CD is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "TOTAL_KM",
+      "description": "Total KM used [Conflict: TOTAL_KM is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "PO_NUMBER / PO_STATUS_AT_APPROVAL",
+      "description": "Mapped PO [Conflict: PO_STATUS_AT_APPROVAL is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "RATE_PER_KM / CURRENCY",
+      "description": "PO rate used [Conflict: RATE_PER_KM is not a column of ielp.SA_DETAIL] [Conflict: CURRENCY is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "COST",
+      "description": "Total KM x rate [Conflict: COST is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "FORMULA",
+      "description": "e.g. '36 km x 2700 IDR/km = 97200' [Conflict: FORMULA is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CALC_SNAPSHOT",
+      "description": "JSON: legs (from, to, km), PO validity [Conflict: CALC_SNAPSHOT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CALC_DT",
+      "description": "Server date-time [Conflict: CALC_DT is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Approved delivery",
+    "destination": {
+     "table": "ielp.ORDER_CYCLE",
+     "operation": "Update",
+     "description": "[Confirm Approve]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Delivery"
+      },
+      {
+       "field": "SA_CODE",
+       "value": "IS NULL"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'SA Approved' [Conflict: STATUS is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "SA_CODE",
+      "description": "Header SA Number"
+     },
+     {
+      "dest_field": "SA_DT / SA_BY",
+      "description": "Server date-time / login user [Conflict: SA_DT is not a column of ielp.ORDER_CYCLE] [Conflict: SA_BY is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "UPDATED_BY / UPDATED_DATE",
+      "description": "Login user / server date-time"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1 (rows affected must = selected) [Conflict: VERSION is not a column of ielp.ORDER_CYCLE]"
+     }
+    ]
+   },
+   {
+    "source": "Released monthly PO",
+    "destination": {
+     "table": "ielp.SA_HEADER",
+     "operation": "Insert",
+     "description": "[Confirm Approve] Monthly Truck - one per PO"
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE",
+      "description": "ILS/TR/{COMPANY_ID}/{YYMMDD}{LAST_SEQ 4 digits} (same sequence) [Conflict: SA_CODE is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "SA_TYPE",
+      "description": "'MONTHLY'"
+     },
+     {
+      "source_field": "PO_NUMBER / PR_NO / PROD_MONTH",
+      "dest_field": "PO_NUMBER / PR_NO / PROD_MONTH",
+      "description": "[Conflict: PR_NO is not a column of ielp.SA_HEADER] [Conflict: PROD_MONTH is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "source_field": "COMPANY_ID / LP_NAME",
+      "dest_field": "COMPANY_ID / LP_NAME",
+      "description": "[Conflict: LP_NAME is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "source_field": "AMOUNT / CURRENCY",
+      "dest_field": "TOTAL_COST / CURRENCY",
+      "description": "Monthly cost snapshot [Conflict: TOTAL_COST is not a column of ielp.SA_HEADER] [Conflict: CURRENCY is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "TOTAL_KM / DELIVERY_COUNT",
+      "description": "Null / 0 [Conflict: TOTAL_KM is not a column of ielp.SA_HEADER] [Conflict: DELIVERY_COUNT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "SA_STATUS",
+      "description": "'SA Approved' [Conflict: SA_STATUS is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "APPROVED_BY / APPROVED_DT",
+      "description": "Login user / server date-time [Conflict: APPROVED_BY is not a column of ielp.SA_HEADER] [Conflict: APPROVED_DT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "INTERFACE_STS",
+      "description": "'NOT_SENT' [Conflict: INTERFACE_STS is not a column of ielp.SA_HEADER]"
+     }
+    ]
+   },
+   {
+    "source": "Released monthly PO",
+    "destination": {
+     "table": "ielp.SA_DETAIL",
+     "operation": "Insert",
+     "description": "[Confirm Approve] Monthly Truck - one detail"
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE / SA_DET_NO",
+      "description": "Header SA Number / next detail number [Conflict: SA_DET_NO is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "DETAIL_KIND",
+      "description": "'MONTHLY' [Conflict: DETAIL_KIND is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "source_field": "PO_NUMBER / PR_NO / PROD_MONTH / AMOUNT",
+      "dest_field": "PO_NUMBER / PR_NO / PROD_MONTH / COST",
+      "description": "[Conflict: PR_NO is not a column of ielp.SA_DETAIL] [Conflict: PROD_MONTH is not a column of ielp.SA_DETAIL] [Conflict: COST is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "DESCRIPTION",
+      "description": "'Monthly truck rental (Fixed Cost) MM/YYYY' [Conflict: DESCRIPTION is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "ORDER_NO / ROUTE_CD / TOTAL_KM / RATE_PER_KM",
+      "description": "Null (not a delivery) [Conflict: ORDER_NO is not a column of ielp.SA_DETAIL] [Conflict: ROUTE_CD is not a column of ielp.SA_DETAIL] [Conflict: TOTAL_KM is not a column of ielp.SA_DETAIL] [Conflict: RATE_PER_KM is not a column of ielp.SA_DETAIL]"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Approved monthly PO",
+    "destination": {
+     "table": "ielp.PO_DETAIL",
+     "operation": "Update",
+     "description": "[Confirm Approve] Monthly Truck",
+     "keys": [
+      {
+       "field": "PO_NUMBER",
+       "value": "Selected PO"
+      },
+      {
+       "field": "SA_CODE",
+       "value": "IS NULL"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE / SA_DT",
+      "description": "Header SA Number / server date-time (rows affected must = 1) [Conflict: SA_CODE is not a column of ielp.PO_DETAIL] [Conflict: SA_DT is not a column of ielp.PO_DETAIL]"
+     },
+     {
+      "dest_field": "UPDATED_BY / UPDATED_DATE",
+      "description": "Login user / server date-time"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER (inferred) / SA history (proposed, not in ELIPS)",
+     "operation": "Insert",
+     "description": "[Confirm Approve] - audit"
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO / SA_CODE",
+      "description": "Delivery / SA"
+     },
+     {
+      "dest_field": "ACTION",
+      "description": "'SA Approval'"
+     },
+     {
+      "dest_field": "FROM / TO STATUS",
+      "description": "'Finish Daily Order' -> 'SA Approved'"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'SA Number {SA_CODE}', request id"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Login user / server date-time"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Criteria: Order From = 1st day of previous month, Order To = system date (TBD, OQ-14); tab Regular Trip; list loaded automatically.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Access: VPLD (Planner) - approve; IELP Admin - view only (message no. 1); Supplier / Driver - no access (message no. 2). The backend checks the role again on every call.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Search / Eligible Deliveries",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Delivery is listed when Daily status = 'Finish Daily Order' (finished by LP) and SA_CODE is empty, and Order Date is within the criteria (SA-01). Delivery with an SA Number never appears again.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "For every row the system calculates route, Total KM, PO, rate and cost (5.3) and shows the validation result.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Calculation",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "5.3.1 Route",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Legs = finished cycles (Finish Cycle time set), From -> To; location name -> Master Location code. Order Route = first From + every To.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.3.2 Total KM",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "KM of a leg = Master Mileage From -> To with status Active (directional). Total KM = sum, 2 decimals.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.3.3 PO mapping",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Candidates: PO type TC-PBR, same trucking company code, validity period covers the Order Date. A PO of another month is never used unless its validity covers the date.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "None: PO Not Found. Only inactive (not Approved / Auto Approved): PO Not Active. More than one active: Multiple PO Found (no manual choice).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Rate = PO rate per KM (Mileage Cost IDR/Km from E-Catalogue at PR time). Never hard-coded.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.3.4 Cost",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Delivery Cost = round(Total KM x PO Rate per KM) in PO currency. Rounding rule TBD (OQ-07). Fix Cost is not part of this screen (OQ-08).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.3.5 Validation rules",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 2,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 6
+    },
+    {
+     "title": "Label",
+     "width": 14
+    },
+    {
+     "title": "Condition",
+     "width": 26
+    }
+   ],
+   "rows": [
+    [
+     "SA-V01",
+     "Not Eligible",
+     "Daily status is not Finish Daily Order"
+    ],
+    [
+     "SA-V02",
+     "Already SA Approved",
+     "Delivery already has an SA Number"
+    ],
+    [
+     "SA-V03",
+     "Trucking Company Code Not Found",
+     "No code for the trucking company"
+    ],
+    [
+     "SA-V04",
+     "Route Not Found",
+     "No finished cycle, or a cycle location has no Master Location code"
+    ],
+    [
+     "SA-V05",
+     "Total KM Not Found",
+     "A leg From -> To has no active Master Mileage"
+    ],
+    [
+     "SA-V06",
+     "Invalid Total KM",
+     "Leg or Total KM <= 0"
+    ],
+    [
+     "SA-V07",
+     "PO Not Found",
+     "No TC-PBR PO of the trucking company valid on the order date"
+    ],
+    [
+     "SA-V08",
+     "PO Not Active",
+     "PO found but status not Approved / Auto Approved"
+    ],
+    [
+     "SA-V09",
+     "Multiple PO Found",
+     "More than one active PO covers the order date"
+    ],
+    [
+     "SA-V10",
+     "Rate Not Found",
+     "PO has no rate per KM"
+    ],
+    [
+     "SA-V11",
+     "Invalid Rate",
+     "Rate <= 0"
+    ],
+    [
+     "SA-V12",
+     "Cost Calculation Failed",
+     "Result not finite or <= 0"
+    ],
+    [
+     "SA-V13",
+     "Cost Changed",
+     "Cost at Approve differs from the cost shown (Approve only)"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "A row with any issue cannot be selected; all issues are shown.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Calculation Detail",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Popup with delivery info, legs and KM, PO and cost formula, validation list. Read only.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Approve - Confirmation",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Approve enabled for VPLD with >= 1 selected row. Confirmation (message no. 5) with summary per trucking company + PO.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Approve - Server Processing (one transaction)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "1.",
+   "text": "Check role VPLD (message no. 8) and request id: a request id already processed returns the stored result; still processing: message no. 11.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "2.",
+   "text": "Lock the selected Daily orders and revalidate each (5.2, 5.3) incl. cost shown vs recalculated (SA-V13).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.",
+   "text": "Any failure: rollback, nothing approved, message no. 7 with the list (all-or-nothing, OQ-09).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "4.",
+   "text": "Group by trucking company + PO. Per group: next sequence (5.7), SA Number, insert SA header and details with calculation snapshot.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "5.",
+   "text": "Update Daily order: status 'SA Approved', SA_CODE, SA_DT, SA_BY; write Daily history 'SA Approval' and SA audit.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "6.",
+   "text": "Commit; message no. 6; approved rows leave the list and appear in SA Monitoring. Any DB error: rollback, message no. 10.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 SA Number",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "ILS/TR/{Trucking Company Code}/{YYMMDD}{Sequence 4}, e.g. ILS/TR/DNX/2611040001. YYMMDD = approval (server) date.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Sequence scope configurable: per trucking company per date (default) or global per date (OQ-01). Starts at 0001 per date, max 9999.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Concurrency: sequence row locked and incremented inside the approval transaction; unique index on SA_CODE; rollback returns the number.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Post-approval",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "The approved amount is kept in the SA detail snapshot; later PO / master changes do not change it.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Daily Monitoring shows the SA Number; Order Detail no longer offers 'Proses ke SA'.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 Monthly Truck (Fixed Cost)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Listed: monthly PO (PR type Fixed Cost) with status Approved / Auto Approved (released), without SA Number, production month overlapping Order From - To. Pending / Rejected PO are not listed.",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "level": 2,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 6
+    },
+    {
+     "title": "Label",
+     "width": 14
+    },
+    {
+     "title": "Condition",
+     "width": 26
+    }
+   ],
+   "rows": [
+    [
+     "SA-M01",
+     "Monthly Cost Not Found",
+     "PO without monthly cost"
+    ],
+    [
+     "SA-M02",
+     "Invalid Monthly Cost",
+     "Monthly cost <= 0"
+    ],
+    [
+     "SA-M03",
+     "Trucking Company Code Not Found",
+     "No code for the trucking company"
+    ],
+    [
+     "SA-M04",
+     "PO Not Active",
+     "PO not released at Approve"
+    ],
+    [
+     "SA-M05",
+     "Already SA Approved",
+     "PO already has an SA Number"
+    ],
+    [
+     "SA-M06",
+     "Monthly Cost Changed",
+     "Amount at Approve differs from the one shown (Approve only)"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Approve: same as 5.5 - 5.6 (VPLD, confirmation message no. 12, revalidation, all-or-nothing, request id, rollback). One SA per monthly PO; SA Number same format and sequence (5.7); header SA type MONTHLY with one detail (PO, PR, month, amount snapshot); the monthly PO gets the SA Number.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "The monthly SA appears in SA Monitoring with SA Type 'Monthly Truck' and follows the same PAS interface.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.10 Open Questions",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 2,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 6
+    },
+    {
+     "title": "Question",
+     "width": 40
+    }
+   ],
+   "rows": [
+    [
+     "OQ-01",
+     "SA sequence scope: per trucking company per date or global per date?"
+    ],
+    [
+     "OQ-02",
+     "Definition of Inter Plant Trip vs Regular Trip."
+    ],
+    [
+     "OQ-03",
+     "Meaning / source of the Service column ('CE')."
+    ],
+    [
+     "OQ-04",
+     "Storage of PO type, validity, rate per KM, currency."
+    ],
+    [
+     "OQ-05",
+     "PO match on route when one LP has several TC-PBR POs in a month?"
+    ],
+    [
+     "OQ-06",
+     "Location codes stored on orders / cycles?"
+    ],
+    [
+     "OQ-07",
+     "Rounding rule of cost and Total KM."
+    ],
+    [
+     "OQ-08",
+     "Fix Cost (monthly price) in this screen or not?"
+    ],
+    [
+     "OQ-09",
+     "All-or-nothing per request or partial per trucking company group?"
+    ],
+    [
+     "OQ-10",
+     "SA statuses after approval, SA cancellation."
+    ],
+    [
+     "OQ-11",
+     "Relation to Proses ke PAS / SA Approved with PO Number."
+    ],
+    [
+     "OQ-12",
+     "Which VPLD roles / levels may approve? Amount limit?"
+    ],
+    [
+     "OQ-13",
+     "'Finished by LP' = Finish Daily Order only, or all cycles Finish + container?"
+    ],
+    [
+     "OQ-14",
+     "Default date range; max rows per approval request."
+    ],
+    [
+     "OQ-16",
+     "Monthly truck: SA allowed before / during / after the service month?"
+    ],
+    [
+     "OQ-17",
+     "Monthly truck: full amount or deductions (truck not available, KPI, partial month)?"
+    ],
+    [
+     "OQ-18",
+     "Monthly truck: one SA per PO, or per trucking company and month with the delivery SA? Different SA type code?"
+    ],
+    [
+     "OQ-19",
+     "PR / PO sequence > 1 (additional Fixed Cost) as own row?"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Order Number / Date",
+     "ielp.ORDER_CYCLE.ORDER_NO",
+     "varchar(20)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "DTP Type",
+     "ielp.DTP_HEADER.DTP_TYPE",
+     "varchar(1)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Truck Company",
+     "ielp.MS_TRUCKING_COMPANY.COMPANY_NAME",
+     "varchar(500)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO Number",
+     "ielp.SA_DETAIL.PO_NUMBER",
+     "varchar(100)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO Validity / Currency",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "CTR Size",
+     "ielp.SA_DETAIL.CTR_SIZE",
+     "varchar(2)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Total KM",
+     "ielp.TB_M_MILEAGE.MILEAGE",
+     "decimal(18, 0)",
+     "N",
+     "R",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Rate / KM",
+     "ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE",
+     "float",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Price (cost)",
+     "ielp.SA_DETAIL.TOTAL_PRICE",
+     "varchar(100)",
+     "N",
+     "W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Order Route",
+     "ielp.SA_DETAIL.ORDER_ROUTE",
+     "varchar(100)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Cycle route",
+     "ielp.ORDER_CYCLE.FROM_LOC",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "SA number",
+     "ielp.SA_DETAIL.SA_CODE",
+     "varchar(16)",
+     "N",
+     "W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "SA header",
+     "ielp.SA_HEADER.SA_HEADER_ID",
+     "varchar(20)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Approved by / date",
+     "ielp.SA_DETAIL.APPROVED_BY",
+     "varchar(100)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Order flag",
+     "ielp.ORDER_CYCLE.SA_CODE",
+     "varchar(16)",
+     "N",
+     "W",
+     "SA number written to the cycle",
+     "Revised"
+    ],
+    [
+     "DTP flag",
+     "ielp.DTP_2_DETAIL.IS_SA",
+     "varchar(1)",
+     "N",
+     "W",
+     "'1' when SA approved (inferred)",
+     "Revised"
+    ],
+    [
+     "Production Month (monthly)",
+     "ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE",
+     "varchar(7)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO status (monthly)",
+     "ielp.PO_HEADER.APPROVAL_STS",
+     "varchar(1)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "SA type",
+     "ielp.SA_HEADER.SA_TYPE",
+     "varchar(1)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-SA-01 SA number length: UISS / code: SA_NO Char 22 (sa-rules.js saNumber). DB: SA_CODE varchar(16); SA_HEADER_ID varchar(20). Recommendation: Shorten the SA number format or widen SA_CODE (DB change request)",
+    "G-SA-02 Amounts as text: UISS / code: Numeric KM / price / cost. DB: SA_DETAIL.PRICE, TOTAL_PRICE varchar(100); TOTAL_TRIP varchar(10); SA_HEADER.SA_TOTAL varchar(5). Recommendation: Store numbers as text with fixed format or change types",
+    "G-SA-03 Total KM / rate per KM: UISS / code: TOTAL_KM, RATE_PER_KM, CURRENCY on SA. DB: No such columns (ROUTE_PRICE_ID -> MS_ROUTE_PRICE). Recommendation: Derive from MS_ROUTE_PRICE / TB_M_MILEAGE",
+    "G-SA-04 Status codes: UISS / code: Text statuses. DB: SA_HEADER.STATUS_CODE varchar(1), SA_DETAIL.STATUS_CODE varchar(2), SA_TYPE varchar(1). Recommendation: Code values TBD",
+    "G-SA-05 Approval request / sequence / history: UISS / code: TB_R_SA_APPROVAL_REQUEST, TB_M_SA_SEQUENCE, TB_H_SA. DB: Not in ELIPS. Recommendation: Confirm whether needed (DB change request)"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "SA_HEADER_ID / SA_DETAIL_ID generation",
+    "STATUS_CODE / SA_TYPE values",
+    "SA_ROUTE_PRICE_TMP use (route price per order)"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "event": "Open screen",
+   "cause": "User is not VPLD (IELP Admin)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{Role}: view only. Approve is for VPLD.",
+   "action": "-"
+  },
+  {
+   "event": "Open screen",
+   "cause": "Supplier / Driver",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA Approval is only available for VPLD (approve) and IELP Admin (view).",
+   "action": "-"
+  },
+  {
+   "event": "Search",
+   "cause": "No eligible delivery for the criteria",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No Data Found",
+   "action": "-"
+  },
+  {
+   "event": "Row validation",
+   "cause": "Validation issue on the row (SA-V01..V13)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "{Label} - {detail}, e.g. PO Not Found - No TC-PBR PO for SRL valid on 2026-11-03",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "Confirmation",
+   "type": "Confirm",
+   "msg_id": "TBD",
+   "message": "Approve {n} delivery(ies)? One SA Number is generated per trucking company and PO. Approved deliveries cannot be approved again.",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "Success",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} SA generated for {m} delivery(ies). (list of SA Number, trucking, PO, deliveries, total cost)",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "Revalidation failed (incl. Already SA Approved, Cost Changed)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{x} of {n} delivery(ies) failed revalidation. Nothing was approved. (list per delivery)",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "Not VPLD (backend)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Only VPLD users may approve Service Acceptance",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "No delivery selected (backend)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "No delivery selected",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "DB / Daily update failure",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{error}. Transaction rolled back, nothing was approved.",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "Same request still processing",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Request {id} is still processing",
+   "action": "-"
+  },
+  {
+   "event": "Approve (Monthly Truck)",
+   "cause": "Confirmation",
+   "type": "Confirm",
+   "msg_id": "TBD",
+   "message": "Approve the monthly truck cost of {n} PO(s)? One SA Number is generated per PO. An approved monthly PO cannot be approved again.",
+   "action": "-"
+  },
+  {
+   "event": "Approve (Monthly Truck)",
+   "cause": "Revalidation failed (Already SA Approved, Monthly Cost Changed, PO Not Active)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{x} of {n} monthly PO(s) failed revalidation. Nothing was approved. (list per PO)",
+   "action": "-"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Approve",
+   "cause": "SA approved",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA {SA_CODE} approved by {user}: {n} delivery(ies), PO {PO_NUMBER}, total {cost} {cur}, request {id}.",
+   "exception": "N",
+   "action": "SA history (proposed, not in ELIPS) audit row"
+  },
+  {
+   "event": "Approve",
+   "cause": "Revalidation failed",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA approval {id} by {user} rejected: {orderNo}: {codes}.",
+   "exception": "N",
+   "action": "Request status FAILED"
+  },
+  {
+   "event": "Approve",
+   "cause": "Unauthorized call",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA approval refused for {user} ({role}): not VPLD.",
+   "exception": "N",
+   "action": "-"
+  },
+  {
+   "event": "Approve",
+   "cause": "DB error / rollback",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA approval {id} rolled back: {error}.",
+   "exception": "Y",
+   "action": "Inform system administrator"
+  },
+  {
+   "event": "Approve",
+   "cause": "SA sequence collision / overflow",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA Number {SA_CODE} conflict / sequence {key} > 9999.",
+   "exception": "Y",
+   "action": "Inform system administrator"
+  }
+ ]
+}

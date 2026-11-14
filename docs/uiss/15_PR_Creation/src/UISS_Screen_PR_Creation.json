@@ -1,0 +1,2214 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD PR Creation",
+  "created_date": "01-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "01-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on PR Creation requirement, reference screens and HTML mock-up (docs/pr-creation-rules.md) 01-Nov-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: PR = CRITERIA_SCORE_HEADER / _DETAIL_FINAL / _DETAIL_ROUTE / _APPROVAL (route-based) and TB_R_PR_DAILY / TB_R_PR_SUMMARY (fixed cost, inferred); prices = MS_ROUTE_PRICE; calendar = TB_M_WORKING_CALENDAR; routes = MS_ROUTE_HEADER / DETAIL; conflicts recorded; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To create the monthly PR per Logistics Partner: Monthly PR - Fixed Cost (E-Catalogue Monthly Cost) and Route-Based PR for LP operations.",
+   "To calculate the route-based plan from Route Percentage, TMMIN Calendar working days, Order Sharing (Master KPI) and E-Catalogue Mileage Cost, and show it per LP.",
+   "To support additional PR sequences without duplicated cost components, follow the creation period rule and start the existing PR approval (SH skipped when the Section Head creates the PR)."
+  ],
+  "display_order": [
+   {
+    "section": "List Summary",
+    "fields": [
+     {
+      "field": "Trucking Company code",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "PR Detail Pop-up",
+    "fields": [
+     {
+      "field": "Route Percentage list order",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Parameters",
+    "function": "PR Creation Type, Operational Month, Logistics Partner: to set the PR to create."
+   },
+   {
+    "name": "Generate Route Plan",
+    "function": "To calculate and show the List Summary."
+   },
+   {
+    "name": "Create PR",
+    "function": "To create the PR for the selected Ready rows after confirmation."
+   },
+   {
+    "name": "Export",
+    "function": "To export the List Summary or the Route Plan Detail to Excel."
+   },
+   {
+    "name": "Cancel",
+    "function": "Clear criteria and reset the screen to its initial value."
+   },
+   {
+    "name": "Search / Column",
+    "function": "To filter rows by trucking company and to show / hide columns."
+   },
+   {
+    "name": "Select",
+    "function": "To select the Ready rows to be created."
+   },
+   {
+    "name": "Detail",
+    "function": "To open the PR Detail pop-up with route plan and cost breakdown."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Initial (authorized user)",
+    "sections": [
+     {
+      "section": "Header / Parameters",
+      "description": "defaults, plan calculated",
+      "buttons": {
+       "Parameters": "E",
+       "Generate Route Plan": "E",
+       "Create PR": "E",
+       "Export": "E",
+       "Cancel": "E",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     },
+     {
+      "section": "List Summary",
+      "description": "Ready rows selected",
+      "buttons": {
+       "Parameters": "D",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "D",
+       "Cancel": "D",
+       "Search / Column": "E",
+       "Select": "E",
+       "Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "View only (other users)",
+    "sections": [
+     {
+      "section": "Header / Parameters",
+      "description": "refer below 1)",
+      "buttons": {
+       "Parameters": "E",
+       "Generate Route Plan": "E",
+       "Create PR": "D",
+       "Export": "E",
+       "Cancel": "E",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     },
+     {
+      "section": "List Summary",
+      "description": "no selection",
+      "buttons": {
+       "Parameters": "D",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "D",
+       "Cancel": "D",
+       "Search / Column": "E",
+       "Select": "D",
+       "Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Period not allowed",
+    "sections": [
+     {
+      "section": "Header / Parameters",
+      "description": "period error shown",
+      "buttons": {
+       "Parameters": "E",
+       "Generate Route Plan": "E",
+       "Create PR": "D",
+       "Export": "E",
+       "Cancel": "E",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     },
+     {
+      "section": "List Summary",
+      "description": "plan shown, no selection",
+      "buttons": {
+       "Parameters": "D",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "D",
+       "Cancel": "D",
+       "Search / Column": "E",
+       "Select": "D",
+       "Detail": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Calculating / Submitting",
+    "sections": [
+     {
+      "section": "Header / Parameters",
+      "description": "loading indicator",
+      "buttons": {
+       "Parameters": "E",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "E",
+       "Cancel": "D",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     },
+     {
+      "section": "List Summary",
+      "description": "hidden while loading",
+      "buttons": {
+       "Parameters": "D",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "D",
+       "Cancel": "D",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Detail Pop-up / Confirmation",
+    "sections": [
+     {
+      "section": "Header / Parameters",
+      "description": "behind the dialog",
+      "buttons": {
+       "Parameters": "D",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "D",
+       "Cancel": "D",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     },
+     {
+      "section": "List Summary",
+      "description": "behind the dialog",
+      "buttons": {
+       "Parameters": "D",
+       "Generate Route Plan": "D",
+       "Create PR": "D",
+       "Export": "D",
+       "Cancel": "D",
+       "Search / Column": "D",
+       "Select": "D",
+       "Detail": "D"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Users not in the authorization configuration (PC-02) see message no. 17; Create PR and the check boxes are disabled.",
+   "2) Create PR is enabled only after Generate, with a valid creation period and at least one Ready row selected."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for PR Creation",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "ec",
+      "label": "ielp.MS_ROUTE_PRICE",
+      "type": "db"
+     },
+     {
+      "id": "rp",
+      "label": "ielp.MS_ROUTE_HEADER",
+      "type": "db"
+     },
+     {
+      "id": "kp",
+      "label": "ielp.MS_KPI",
+      "type": "db"
+     },
+     {
+      "id": "cl",
+      "label": "ielp.TB_M_WORKING_CALENDAR",
+      "type": "db"
+     },
+     {
+      "id": "s",
+      "label": "PR Creation - List Summary",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "a",
+      "label": "PR Approval (SH / DpH / DH)",
+      "type": "screen"
+     },
+     {
+      "id": "po",
+      "label": "PO -> SA / daily order",
+      "type": "subprocess"
+     }
+    ],
+    "edges": [
+     {
+      "from": "ec",
+      "to": "s"
+     },
+     {
+      "from": "rp",
+      "to": "s"
+     },
+     {
+      "from": "kp",
+      "to": "s"
+     },
+     {
+      "from": "cl",
+      "to": "s"
+     },
+     {
+      "from": "s",
+      "to": "a",
+      "label": "Create PR"
+     },
+     {
+      "from": "a",
+      "to": "po"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Generate Route Plan",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Generate Route Plan",
+      "type": "event"
+     },
+     {
+      "id": "q1",
+      "label": "Type, Month, LP filled?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 1 / 2 / 3",
+      "type": "message"
+     },
+     {
+      "id": "p",
+      "label": "Check creation period (5.1)",
+      "type": "process"
+     },
+     {
+      "id": "c",
+      "label": "Per LP: prices, working days, Order Sharing, route plan (5.3)",
+      "type": "process"
+     },
+     {
+      "id": "r",
+      "label": "Per LP: sequence, used components, Ready / error (5.4-5.5)",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "Show List Summary, totals, msg 16",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "p",
+      "label": "Yes"
+     },
+     {
+      "from": "p",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "r"
+     },
+     {
+      "from": "r",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "e1"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Creation Period",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "Operational Month",
+      "type": "start"
+     },
+     {
+      "id": "q1",
+      "label": "Month = N+1?",
+      "type": "decision"
+     },
+     {
+      "id": "ok",
+      "label": "Allowed (Month N-1 rule)",
+      "type": "end"
+     },
+     {
+      "id": "q2",
+      "label": "Month = N (current)?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Show message no. 6 / 7",
+      "type": "message"
+     },
+     {
+      "id": "q3",
+      "label": "System Master parameter configured?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 4",
+      "type": "message"
+     },
+     {
+      "id": "q4",
+      "label": "Parameter = allowed?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 5",
+      "type": "message"
+     },
+     {
+      "id": "ok2",
+      "label": "Allowed (Month N)",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "ok",
+      "label": "Yes"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "q3",
+      "label": "Yes"
+     },
+     {
+      "from": "q3",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "q4",
+      "label": "Yes"
+     },
+     {
+      "from": "q4",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "q4",
+      "to": "ok2",
+      "label": "Yes"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "ok"
+     ],
+     [
+      "q2",
+      "e3"
+     ],
+     [
+      "q3",
+      "e1"
+     ],
+     [
+      "q4",
+      "e2"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Create PR",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Create PR / Confirm",
+      "type": "event"
+     },
+     {
+      "id": "q0",
+      "label": "Authorized and rows selected?",
+      "type": "decision"
+     },
+     {
+      "id": "e0",
+      "label": "Show message no. 17 / 18",
+      "type": "message"
+     },
+     {
+      "id": "c",
+      "label": "Confirmation message no. 19",
+      "type": "message"
+     },
+     {
+      "id": "r",
+      "label": "Per LP: recalculate, re-check sequence and components",
+      "type": "process"
+     },
+     {
+      "id": "q",
+      "label": "Still Ready?",
+      "type": "decision"
+     },
+     {
+      "id": "f",
+      "label": "Collect failure, message no. 22",
+      "type": "message"
+     },
+     {
+      "id": "w",
+      "label": "Insert PR header + details + approval (SH Skip if creator = SH)",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Refresh list, msg 21",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q0"
+     },
+     {
+      "from": "q0",
+      "to": "e0",
+      "label": "No"
+     },
+     {
+      "from": "q0",
+      "to": "c",
+      "label": "Yes"
+     },
+     {
+      "from": "c",
+      "to": "r",
+      "label": "Create PR"
+     },
+     {
+      "from": "r",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "f",
+      "label": "No"
+     },
+     {
+      "from": "q",
+      "to": "w",
+      "label": "Yes"
+     },
+     {
+      "from": "w",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "w",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q0",
+      "e0"
+     ],
+     [
+      "q",
+      "f"
+     ],
+     [
+      "w",
+      "db"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. PR Creation - List Summary - reference screen (from user)",
+   "image": "img/UISS_Screen_PR_Creation/ref_summary.png"
+  },
+  {
+   "caption": "2. PR detail (routes) - reference screen (from user)",
+   "image": "img/UISS_Screen_PR_Creation/ref_detail.png"
+  },
+  {
+   "caption": "3. View only - IELP Admin (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c01_ip_view_only.png"
+  },
+  {
+   "caption": "4. Route-Based PR - VPLD Staff, Ready rows selected (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c02_staff_route.png"
+  },
+  {
+   "caption": "5. PR Detail pop-up - route plan (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c03_detail_route.png"
+  },
+  {
+   "caption": "6. Create PR confirmation (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c04_confirm.png"
+  },
+  {
+   "caption": "7. Submitting - loading indicator (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c05_loading.png"
+  },
+  {
+   "caption": "8. PR created - status per LP (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c06_created.png"
+  },
+  {
+   "caption": "9. Monthly PR - Fixed Cost (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c07_fix.png"
+  },
+  {
+   "caption": "10. PR Detail pop-up - Fixed Cost components (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c08_detail_fix.png"
+  },
+  {
+   "caption": "11. Validation - mandatory parameters (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c09_mandatory.png"
+  },
+  {
+   "caption": "12. Month N - System Master parameter not configured (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c10_month_n_param.png"
+  },
+  {
+   "caption": "13. Created PR in PR Inquiry - detail (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c11_inquiry_detail.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'PR Creation - List Summary'; subtitle 'Review and create Purchase Requisition for each trucking company'."
+  },
+  {
+   "name": "Generate Route Plan",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (green)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Validate parameters (msg 1-3) and calculate the List Summary (5.2-5.4). Loading indicator while calculating."
+  },
+  {
+   "name": "Create PR",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (navy)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Enabled only for authorized users after Generate, with a valid period and at least one Ready row selected (msg 17 / 18). Opens confirmation (5.6)."
+  },
+  {
+   "name": "Export",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Options 'List Summary (.xls)' and 'Route Plan Detail (.xls)'."
+  },
+  {
+   "group": "<Parameter Section>"
+  },
+  {
+   "name": "PR Creation Type",
+   "source": "ielp.CRITERIA_SCORE_HEADER",
+   "field": "BUSINESS_TYPE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'Route-Based PR for LP Operations'",
+   "required": "Y",
+   "format": "",
+   "validation": "Mandatory (msg 1)",
+   "description": "Options: 'Monthly PR - Fixed Cost' (FIX), 'Route-Based PR for LP Operations' (ROUTE).\nDB: ielp.CRITERIA_SCORE_HEADER.BUSINESS_TYPE varchar(1) NULL [TBD] varchar(1) (inferred)."
+  },
+  {
+   "name": "Operational Month",
+   "source": "ielp.CRITERIA_SCORE_HEADER",
+   "field": "CRITERIA_PERIODE",
+   "type": "Varchar",
+   "len": "7",
+   "io": "I",
+   "control": "Month picker",
+   "justified": "Left",
+   "initial": "Next month (N+1)",
+   "required": "Y",
+   "format": "YYYY-MM",
+   "validation": "Mandatory (msg 2); creation period (msg 4-7)",
+   "description": "Default = system month + 1 (PR created in Month N-1).\nDB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7); PERIODE_FR / PERIODE_TO date."
+  },
+  {
+   "name": "Logistics Partner",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'All Logistics Partners'",
+   "required": "Y",
+   "format": "CODE - NAME",
+   "validation": "Mandatory (msg 3)",
+   "description": "All, or one LP. List = LPs paid By Resources (Master KPI) or with an E-Catalogue price.\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "PR Sequence",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "O",
+   "control": "Text (read only)",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "One LP: 'Sequence n - initial PR' / 'additional PR to {PR No}'. All: 'Per logistics partner (see table)'."
+  },
+  {
+   "name": "Info chips",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Creation period result; TMMIN Calendar working days; Route Percentage (active routes, total %); Total By Resource (Master KPI); System Master 'PR in Month N'."
+  },
+  {
+   "name": "Alert",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "View-only notice for unauthorized users (msg 17); creation period error."
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Clear parameters, list and selection."
+  },
+  {
+   "group": "<List Summary Section>"
+  },
+  {
+   "name": "Search trucking company",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Placeholder 'Search trucking company...'",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Filters rows by LP code / name."
+  },
+  {
+   "name": "Column",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show / hide columns."
+  },
+  {
+   "name": "Select (check box)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Check box",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Enabled only for Ready rows of authorized users; Ready rows are selected by default. Header check box selects the page."
+  },
+  {
+   "name": "No.",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Trucking Company",
+   "source": "ielp.MS_TRUCKING_COMPANY",
+   "field": "COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "CODE - NAME",
+   "validation": "",
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "PR Sequence",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Next sequence of LP + month (5.5); 'initial' or 'adds to {PR No}'."
+  },
+  {
+   "name": "Mileage Cost (IDR/Km)",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Price per KM of LP and period; '-' if not available (tooltip = reason).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Conflict] Component FIX / KM not identifiable."
+  },
+  {
+   "name": "Fixed Cost (IDR/Month)",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Monthly Price of LP and period.\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Conflict] Component FIX / KM not identifiable."
+  },
+  {
+   "name": "Working Days (Days)",
+   "source": "ielp.TB_M_WORKING_CALENDAR",
+   "field": "WORKING_FLAG",
+   "type": "Bit",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Working days of the operational month (TBD per LP, OP-02).\nDB: ielp.TB_M_WORKING_CALENDAR.WORKING_FLAG bit NOT NULL [Revised]"
+  },
+  {
+   "name": "Delivery Cost (IDR/Day)",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Σ Planned Cost ÷ Working Days (5.3)."
+  },
+  {
+   "name": "Monthly Delivery Cost (IDR)",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Fixed Cost + Σ Planned Cost (5.3)."
+  },
+  {
+   "name": "PR Amount (IDR)",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Amount of the PR that would be created for the selected type (5.4)."
+  },
+  {
+   "name": "Status",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid (badge)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Ready (green), error (red), already included (grey), 'Created {PR No} ({status})' (blue)."
+  },
+  {
+   "name": "Detail",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Opens the PR Detail pop-up (5.7)."
+  },
+  {
+   "name": "Total row",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Grid footer",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Σ Fixed Cost, Σ Monthly Delivery Cost, Σ PR Amount of Ready rows."
+  },
+  {
+   "name": "Paging info / pager",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label / Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Showing n to m of x records'; 10 rows per page."
+  },
+  {
+   "name": "Total PR Cost (selected)",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "IDR ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Σ PR Amount of the selected Ready rows."
+  },
+  {
+   "group": "<PR Detail Pop-up>"
+  },
+  {
+   "name": "Header info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Logistics Partner, Operational Month, PR Sequence, PR Creation Type, Working Days, Order Sharing, Mileage Cost, Fixed Cost."
+  },
+  {
+   "name": "Route",
+   "source": "ielp.MS_ROUTE_DETAIL",
+   "field": "ROUTE_CODE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Route-based type. Sticky header; scrolls.\nDB: ielp.MS_ROUTE_DETAIL.ROUTE_CODE varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Route Percentage",
+   "source": "ielp.MS_ROUTE_HEADER",
+   "field": "ROUTE_PERCENTAGE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9.99%",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE float NOT NULL [Revised]"
+  },
+  {
+   "name": "Number of Orders",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 5,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Orders of the route in the month (5.3)."
+  },
+  {
+   "name": "Working Days",
+   "source": "ielp.TB_M_WORKING_CALENDAR",
+   "field": "WORKING_FLAG",
+   "type": "Bit",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.TB_M_WORKING_CALENDAR.WORKING_FLAG bit NOT NULL [Revised]"
+  },
+  {
+   "name": "Distance (Km)",
+   "source": "ielp.MS_ROUTE_HEADER",
+   "field": "distance (no column - TBD)",
+   "type": "Number",
+   "len": "7,2",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: Conflict - No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?)."
+  },
+  {
+   "name": "Planned Cost (IDR)",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "PR",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'In {PR No}' (already in an active PR, grey), 'New', 'No order'."
+  },
+  {
+   "name": "Cost components (Fixed type)",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Rows Monthly Cost (amount) and Mileage Cost (rate, reference only).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Conflict] Component FIX / KM not identifiable."
+  },
+  {
+   "name": "Total Cost",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": 15,
+   "io": "O",
+   "control": "Grid footer",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Amount of this PR."
+  },
+  {
+   "name": "Close / Confirm & Create PR",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Close; Confirm opens the confirmation for this LP (enabled when Ready and authorized)."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Screen / calculation",
+    "destination": {
+     "table": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+     "operation": "Insert",
+     "description": "[Create PR] - per LP",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_NO_DET",
+      "description": "{LP}{YY}{MM}{running no. per month}"
+     },
+     {
+      "source_field": "Logistics Partner",
+      "dest_field": "COMPANY_ID",
+      "description": "LP code"
+     },
+     {
+      "source_field": "Operational Month",
+      "dest_field": "CRITERIA_PERIODE",
+      "description": "YYYY-MM [Conflict: CRITERIA_PERIODE is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+     },
+     {
+      "source_field": "PR Sequence",
+      "dest_field": "PR_SEQ",
+      "description": "Max sequence of LP + month + 1 [Conflict: PR_SEQ is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+     },
+     {
+      "dest_field": "PARENT_PR_NO_DET",
+      "description": "Initial PR (sequence 1) when sequence > 1, else NULL [Conflict: PARENT_PR_NO_DET is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+     },
+     {
+      "source_field": "PR Creation Type",
+      "dest_field": "BUSINESS_TYPE (inferred)",
+      "description": "FIX / ROUTE"
+     },
+     {
+      "source_field": "Working Days",
+      "dest_field": "count of WORKING_FLAG = 1",
+      "description": "TMMIN Calendar"
+     },
+     {
+      "dest_field": "ORDER_SHARING (TBD)",
+      "description": "Master KPI daily QTY (ROUTE)"
+     },
+     {
+      "dest_field": "TOTAL_ORDER_SHARING",
+      "description": "Order Sharing ÷ Total By Resource × 100"
+     },
+     {
+      "dest_field": "TOTAL_TRIP",
+      "description": "Σ orders (ROUTE), 0 (FIX)"
+     },
+     {
+      "source_field": "PR Amount",
+      "dest_field": "TOTAL_AMOUNT (TBD)",
+      "description": "FIX: Monthly Cost; ROUTE: Σ Planned Cost"
+     },
+     {
+      "source_field": "Fixed Cost / Mileage Cost",
+      "dest_field": "FIX_COST / MILEAGE_RATE (TBD)",
+      "description": "E-Catalogue values used [Conflict: FIX_COST is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Login user ID / server date (= Current PIC)"
+     },
+     {
+      "dest_field": "CRITERIA_DETAIL_FINAL_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Route plan",
+    "destination": {
+     "table": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+     "operation": "Insert",
+     "description": "[Create PR] - per component",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_NO_DET",
+      "description": "Header PR number [Conflict: PR_NO_DET is not a column of ielp.CRITERIA_SCORE_DETAIL_ROUTE]"
+     },
+     {
+      "dest_field": "COMPONENT (TBD)",
+      "description": "'FIX' or 'ROUTE:{Route Code}'"
+     },
+     {
+      "source_field": "Route",
+      "dest_field": "ROUTE_CD (TBD)",
+      "description": "Route code (ROUTE)"
+     },
+     {
+      "source_field": "Route Percentage",
+      "dest_field": "ROUTE_PCT (TBD)",
+      "description": "At creation time"
+     },
+     {
+      "source_field": "Number of Orders",
+      "dest_field": "ORDER_QTY (TBD)",
+      "description": "Orders of the route"
+     },
+     {
+      "source_field": "Distance (Km)",
+      "dest_field": "distance (no column - TBD)",
+      "description": "Route distance"
+     },
+     {
+      "source_field": "Mileage Cost",
+      "dest_field": "PRICE_KM (TBD)",
+      "description": "E-Catalogue price per KM"
+     },
+     {
+      "source_field": "Planned Cost / Monthly Cost",
+      "dest_field": "AMOUNT (TBD)",
+      "description": "Planned Cost (ROUTE) / Monthly Cost (FIX)"
+     },
+     {
+      "dest_field": "CRITERIA_DETAIL_ROUTE_ID, CRITERIA_HEADER_ID, COMPANY_ID, ROUTE_HEADER_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Workflow configuration",
+    "destination": {
+     "table": "ielp.CRITERIA_SCORE_APPROVAL",
+     "operation": "Insert",
+     "description": "[Create PR] - per level",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_NO_DET",
+      "description": "Header PR number [Conflict: PR_NO_DET is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+     },
+     {
+      "dest_field": "APV_APPROVAL_CLASS",
+      "description": "Each configured level (SH, DpH, DH) [Conflict: APV_APPROVAL_CLASS is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+     },
+     {
+      "dest_field": "APV_STATUS (TBD)",
+      "description": "'Skip' for levels up to the creator's level; else 'Pending'"
+     },
+     {
+      "dest_field": "APV_BY / APV_DT (TBD)",
+      "description": "Blank (Skip: date = creation date) [Conflict: APV_BY is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+     },
+     {
+      "dest_field": "CRITERIA_APPROVAL_ID, CRITERIA_HEADER_ID, CRITERIA_DETAIL_FINAL_ID, CRITERIA_PERIODE",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "PR history (no ELIPS table - TBD)",
+     "operation": "Insert",
+     "description": "[Create PR]",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "ACTION (TBD)",
+      "description": "'PR Creation ({Type})'"
+     },
+     {
+      "dest_field": "FROM / TO STATUS (TBD)",
+      "description": "'-' / 'Waiting SH' or 'Waiting DpH'"
+     },
+     {
+      "dest_field": "APPROVAL_REMARK",
+      "description": "'SH Skip: PR created by SH' · 'Initial PR' / 'Additional sequence n of {PR No}'"
+     },
+     {
+      "dest_field": "USER / DT (TBD)",
+      "description": "Login user / server date"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display and Creation Period (PC-02, PC-03)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Defaults: Route-Based PR, Operational Month = system month + 1, All Logistics Partners; the plan is calculated on open.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Authorization configuration: VPLD Staff and VPLD Section Head may create PR; other users get view only (message no. 17).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Period: Month N+1 allowed (created in N-1). Month N only when System Master parameter = allowed (not configured: no. 4; not allowed: no. 5). Past: no. 6; after N+1: no. 7 (TBD, OP-04).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Data Sources",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Data",
+     "width": 14
+    },
+    {
+     "title": "Source",
+     "width": 18
+    },
+    {
+     "title": "Rule",
+     "width": 24
+    }
+   ],
+   "rows": [
+    [
+     "Monthly Cost",
+     "E-Catalogue (Master Price) FIX",
+     "priceForPR: covers the month, not expired, unique"
+    ],
+    [
+     "Mileage Cost",
+     "E-Catalogue (Master Price) KM",
+     "Same lookup; IDR / Km"
+    ],
+    [
+     "Working Days",
+     "TMMIN Calendar",
+     "Per operational month (per LP TBD, OP-02)"
+    ],
+    [
+     "Order Sharing",
+     "Master KPI (By Resources)",
+     "Daily QTY per LP"
+    ],
+    [
+     "Routes",
+     "Master Route Percentage",
+     "Active routes, % > 0, distance Km"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Route-Based Calculation (TBD confirmation, OP-01)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Monthly orders = Order Sharing × Working Days.",
+    "Orders per route = monthly orders split by Route Percentage (largest remainder; ties by higher %, then code). Total below 100%: split proportionally (TBD, OP-07).",
+    "Planned Cost = orders × distance (Km) × Mileage Cost (IDR/Km), rounded to IDR.",
+    "Delivery Cost (IDR/Day) = Σ Planned Cost ÷ Working Days; Monthly Delivery Cost = Fixed Cost + Σ Planned Cost.",
+    "Example DNX Dec 2026: 4 × 22 = 88 orders; DPCMR_CYKRW 15% = 14 orders × 57 Km × 2,700 = 2,154,600."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.4 PR Amount per Type",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Monthly PR - Fixed Cost: component FIX; amount = Monthly Cost; Mileage Cost shown as reference rate. After PO the Monthly Cost goes directly to SA (TBD, OP-06).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Route-Based PR: components ROUTE:{code} for routes with orders > 0 not yet in active PRs; amount = Σ Planned Cost of those routes.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Errors per LP: calendar (no. 8), routes (no. 9), Order Sharing (no. 10 / 11), price (no. 12), amount <= 0 (no. 15).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.5 PR Sequence and Duplicate Components (PC-06 to PC-08)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Sequence = MAX(PR_SEQ) of LP + Operational Month (all statuses) + 1; each PR has its own PR number; sequence > 1 stores PARENT_PR_NO = sequence 1.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Used components = components of PRs of LP + month whose status is not Rejected / Returned. FIX used: no. 13; all planned routes used: no. 14.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Previous PRs are never changed.",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Seq",
+     "width": 5
+    },
+    {
+     "title": "PR",
+     "width": 14
+    },
+    {
+     "title": "Content",
+     "width": 30
+    }
+   ],
+   "rows": [
+    [
+     "1",
+     "DNX26121352",
+     "FIX Monthly Cost (Waiting SH)"
+    ],
+    [
+     "2",
+     "DNX26121353",
+     "ROUTE 10 routes, SH Skip (Waiting DpH)"
+    ],
+    [
+     "3",
+     "new",
+     "ROUTE only D1_S1_D3 (new route)"
+    ],
+    [
+     "-",
+     "new FIX",
+     "Blocked, no. 13"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Create PR (PC-10 to PC-12)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Create PR (or Confirm in the pop-up): confirmation no. 19 with LPs, sequences, amounts, total and approval path.",
+    "Loading indicator; for each LP recalculate and re-check sequence and components in the same transaction.",
+    "Insert PR header, details, approval levels and history (Data Map). Sequence taken meanwhile: no. 20.",
+    "Approval levels from the workflow configuration: levels up to the creator's level = Skip. VPLD Staff: SH -> DpH -> DH. VPLD Section Head: SH Skip, starts at DpH; SH cannot approve the PR.",
+    "Success: no. 21; rows show 'Created {PR No} ({status})'. Failed LPs: no. 22. Exception: rollback, no. 25."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.7 PR Detail Pop-up",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Header info; route table (Route, Route %, Number of Orders, Working Days, Distance, Planned Cost, PR) or cost components for Fixed Cost; Total Cost. Scrolls with sticky header / footer.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Routes already in an active PR are grey ('In {PR No}'). Close; Confirm & Create PR enabled when the row is Ready and the user is authorized.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Export",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "List Summary (.xls) and Route Plan Detail (.xls) of the filtered rows (no. 23); before Generate: no. 24.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 After Creation",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "The PR appears in PR Approval / PR Inquiry (Production Month MM/YYYY-seq). Detail shows type, sequence, initial PR, working days and next process; download CSV per PR.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Approval, PO creation and auto approval follow the existing workflow (monthly-pr-po-rules.md).",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "PR Creation Type",
+     "ielp.CRITERIA_SCORE_HEADER.BUSINESS_TYPE",
+     "varchar(1)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Operational Month",
+     "ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE",
+     "varchar(7)",
+     "Y",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Trucking Company",
+     "ielp.MS_TRUCKING_COMPANY.COMPANY_CODE",
+     "varchar(20)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Mileage / Fixed cost price",
+     "ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Working Days",
+     "ielp.TB_M_WORKING_CALENDAR.WORKING_FLAG",
+     "bit",
+     "Y",
+     "R",
+     "COUNT(WORKING_DATE) WHERE WORKING_FLAG = 1 in the month (inferred)",
+     "Revised"
+    ],
+    [
+     "Route",
+     "ielp.MS_ROUTE_DETAIL.ROUTE_CODE",
+     "varchar(100)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Route Percentage",
+     "ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE",
+     "float",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Distance (Km)",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "PR per company",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET",
+     "varchar(11)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PR route lines",
+     "ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL",
+     "float",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PR approval levels",
+     "ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS",
+     "varchar(100)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Fixed cost (by resource) lines",
+     "ielp.TB_R_PR_DAILY.TOTAL_PRICE",
+     "decimal(18, 2)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MO-01 PR document: UISS / code: PR Header per trucking company with own PR number. DB: CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET). Recommendation: Use PR_NO_DET per company (confirm)",
+    "G-MO-02 Approval levels: UISS / code: SH / DpH / DH per PR. DB: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2). Recommendation: Level codes TBD",
+    "G-PRC-01 Fixed-cost PR: UISS / code: Monthly Fixed Cost PR per LP (pr-creation-rules.js). DB: TB_R_PR_DAILY / TB_R_PR_SUMMARY (truck / driver / DOT / HOT model). Recommendation: Confirm the fixed-cost calculation model against these tables"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "Sequence of PR numbers (PR_NO vc11, PR_SEQ)",
+    "Which of CRITERIA_* vs TB_R_PR_* is used per PR type"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Generate Route Plan"
+  },
+  {
+   "event": "Click [Generate Route Plan]",
+   "cause": "PR Creation Type not selected (PC-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PR Creation Type is required.",
+   "action": "Select PR Creation Type"
+  },
+  {
+   "event": "Click [Generate Route Plan]",
+   "cause": "Operational Month blank (PC-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Operational Month is required.",
+   "action": "Select Operational Month"
+  },
+  {
+   "event": "Click [Generate Route Plan]",
+   "cause": "Logistics Partner not selected (PC-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Logistics Partner is required.",
+   "action": "Select a partner or All"
+  },
+  {
+   "event": "Generate / Create (Month N)",
+   "cause": "System Master parameter not configured (PC-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "System Master parameter \"Allow PR creation in current operational month\" is not configured. Please contact the system administrator.",
+   "action": "Contact administrator"
+  },
+  {
+   "event": "Generate / Create (Month N)",
+   "cause": "Parameter = not allowed (PC-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PR for the current operational month ({YYYY-MM}) cannot be created: not allowed by System Master. PR is created in Month N-1 for Month N.",
+   "action": "Select the next month"
+  },
+  {
+   "event": "Generate / Create",
+   "cause": "Operational Month before current month (PC-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Operational Month {YYYY-MM} has already passed. PR cannot be created.",
+   "action": "Select the next month"
+  },
+  {
+   "event": "Generate / Create",
+   "cause": "Operational Month after N+1 (PC-03, TBD OP-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PR for Operational Month {YYYY-MM} cannot be created yet. PR is created in Month N-1: the next operational month is {YYYY-MM}.",
+   "action": "Select the next month"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "No working days in TMMIN Calendar (PC-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "TMMIN Calendar (working days) for {YYYY-MM} is not available. Please maintain the TMMIN Calendar first.",
+   "action": "Maintain TMMIN Calendar"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "No active Route Percentage (PC-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "No active Route Percentage data. Please maintain Master Route Percentage first.",
+   "action": "Maintain Route Percentage"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "LP has no Order Sharing in Master KPI (PC-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "No Order Sharing for {LP} in Master KPI (By Resources). Route-based PR cannot be calculated.",
+   "action": "Maintain Master KPI"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "Order Sharing x Working Days = 0",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "No orders are planned for {LP} in this month (Order Sharing x Working Days = 0).",
+   "action": "Check Master KPI"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "E-Catalogue price missing / expired / duplicated (PC-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "No {Monthly Price | Price per KM} found in Master Price for {LP} period {YYYYMM}. (or expired / more than one valid price)",
+   "action": "Check E-Catalogue"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "Monthly Cost already in an active PR (PC-06)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Monthly Cost of {LP} for this operational month is already included in PR {PR No}. It cannot be duplicated.",
+   "action": "-"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "All planned routes already in active PRs (PC-08)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "All planned routes of {LP} for this operational month are already included in PR {PR Nos}. No new route to create an additional PR sequence.",
+   "action": "-"
+  },
+  {
+   "event": "Generate (per LP row)",
+   "cause": "Calculated amount <= 0 (PC-09)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Calculated PR amount for {LP} is not valid (must be greater than 0). Please check the price and planning data.",
+   "action": "Check price and planning data"
+  },
+  {
+   "event": "Click [Generate Route Plan]",
+   "cause": "Calculation finished",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route plan {Month YYYY} calculated for {n} logistics partner(s).",
+   "action": "-"
+  },
+  {
+   "group": "Create PR"
+  },
+  {
+   "event": "Open screen / Click [Create PR]",
+   "cause": "User is not VPLD Staff / VPLD Section Head (PC-02)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "You are not authorized to create PR. PR Creation is available to VPLD Staff and VPLD Section Head.",
+   "action": "Login with an authorized user"
+  },
+  {
+   "event": "Click [Create PR]",
+   "cause": "No Ready row selected",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Select at least one logistics partner with status Ready.",
+   "action": "Select rows"
+  },
+  {
+   "event": "Click [Create PR] / [Confirm & Create PR]",
+   "cause": "Confirmation (PC-10)",
+   "type": "Confirmation",
+   "msg_id": "TBD",
+   "message": "Create PR - {Type}: Operational Month {Month}, {n} PR (LP, Sequence, components, amount), Total PR Cost IDR {x}, Approval: {path}. Current PIC: {user}.",
+   "action": "Click Create PR or Batal"
+  },
+  {
+   "event": "Click [Create PR] in confirmation",
+   "cause": "Sequence created by another user meanwhile (PC-11)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PR Sequence {n} for {LP} already exists. Please reload the screen.",
+   "action": "Generate again"
+  },
+  {
+   "event": "Click [Create PR] in confirmation",
+   "cause": "PR saved",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} PR created: {PR Nos}. Status: {Waiting SH | Waiting DpH}.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Create PR] in confirmation",
+   "cause": "Some LPs failed the final check (PC-12)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PR not created: {LP}: {reason} (one line per LP).",
+   "action": "Correct the data and create again"
+  },
+  {
+   "group": "Export"
+  },
+  {
+   "event": "Click Export > option",
+   "cause": "File generated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "PR_Creation_{Summary | Route_Plan}_{YYYYMM}.xls exported.",
+   "action": "-"
+  },
+  {
+   "event": "Click Export > option",
+   "cause": "Route plan not generated",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Generate the route plan first.",
+   "action": "Click Generate Route Plan"
+  },
+  {
+   "group": "System Error"
+  },
+  {
+   "event": "Any server call",
+   "cause": "Unexpected DB / server error (transaction rolled back)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "System error. Please contact administrator. ({Error ID})",
+   "action": "Retry or contact administrator"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Click [Generate Route Plan]",
+   "cause": "Plan calculated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route plan {Type} {YYYY-MM} calculated by {User} for {n} LP ({ready} ready).",
+   "exception": "N",
+   "action": "Audit (TBD)"
+  },
+  {
+   "event": "Click [Create PR]",
+   "cause": "PR created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "PR {PR No} {Type} {LP} {YYYY-MM} sequence {n} amount {IDR} created by {User}; approval starts at {level}.",
+   "exception": "N",
+   "action": "PR history: PR Creation"
+  },
+  {
+   "event": "Click [Create PR]",
+   "cause": "SH skipped",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "PR {PR No}: SH Skip, PR created by Section Head {User}.",
+   "exception": "N",
+   "action": "PR history note"
+  },
+  {
+   "event": "Click [Create PR]",
+   "cause": "LP failed final check",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "PR for {LP} {YYYY-MM} not created: {reason}.",
+   "exception": "Y",
+   "action": "Display Message no. 22"
+  },
+  {
+   "event": "Any server call",
+   "cause": "DB / server error",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PR Creation {operation} failed: {Exception}.",
+   "exception": "Y",
+   "action": "Rollback; Display Message no. 25"
+  }
+ ]
+}

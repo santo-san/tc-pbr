@@ -1,0 +1,1682 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch / Upload",
+  "function_name": "TBD Master Mileage - Route Mileage Upload",
+  "created_date": "13-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft: backend of the Route Mileage Excel upload (template, temp table, validation, all-or-nothing save, log) - MM-20..MM-29"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "One call like the Planning Order upload: validate then save immediately when every row is valid (no preview / Confirm Upload); errors return Row / Column / Error (new temp column ERROR_COLUMN); removed VALIDATED / CANCELLED status, expiry, cancel and re-check messages"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised: target master = ielp.TB_M_MILEAGE (definition from the ELIPS DDL); temp / log / history tables stay proposed (not in ELIPS); conflicts recorded; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To create and update many Route Mileage records at once from the Excel template uploaded on the Route Mileage screen.",
+   "To validate every row with the same rules as the screen and return the Row / Column / Error list when any row fails (nothing saved).",
+   "To save all valid New and Update rows in one transaction (all-or-nothing) and keep a log of every upload."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "Route Mileage screen: Choose File",
+      "type": "screen"
+     },
+     {
+      "id": "v",
+      "label": "Upload: validate, then save",
+      "type": "process"
+     },
+     {
+      "id": "t",
+      "label": "TB_T_MILEAGE_UPLOAD / TB_R_MILEAGE_UPLOAD_LOG",
+      "type": "db"
+     },
+     {
+      "id": "x",
+      "label": "Error modal: Row / Column / Error",
+      "type": "screen"
+     },
+     {
+      "id": "m",
+      "label": "ielp.TB_M_MILEAGE",
+      "type": "db"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "v"
+     },
+     {
+      "from": "v",
+      "to": "t"
+     },
+     {
+      "from": "v",
+      "to": "x",
+      "label": "any error"
+     },
+     {
+      "from": "v",
+      "to": "m",
+      "label": "all valid: 1 transaction"
+     }
+    ]
+   }
+  },
+  "inputs": [
+   {
+    "name": "Excel file (Template_Route_Mileage.xlsx)",
+    "type": "File",
+    "description": "FROM CODE, TO CODE, MILEAGE (KM)"
+   },
+   {
+    "name": "Master Location",
+    "type": "DB",
+    "description": "Active location codes"
+   },
+   {
+    "name": "ielp.TB_M_MILEAGE",
+    "type": "DB",
+    "description": "Existing routes (status, mileage, version)"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "ielp.TB_M_MILEAGE",
+    "type": "DB",
+    "description": "New / updated routes"
+   },
+   {
+    "name": "TB_T_MILEAGE_UPLOAD",
+    "type": "DB",
+    "description": "Rows + validation (proposed)"
+   },
+   {
+    "name": "TB_R_MILEAGE_UPLOAD_LOG",
+    "type": "DB",
+    "description": "Upload result (proposed)"
+   },
+   {
+    "name": "TB_H_MILEAGE",
+    "type": "DB",
+    "description": "Mileage history (proposed)"
+   }
+  ],
+  "extra_tables": [
+   {
+    "title": "Execution",
+    "columns": [
+     {
+      "title": "Item",
+      "width": 10
+     },
+     {
+      "title": "Description",
+      "width": 30
+     }
+    ],
+    "rows": [
+     [
+      "Trigger",
+      "Online: [Choose File] in the Upload Excel accordion of Route Mileage"
+     ],
+     [
+      "Transaction",
+      "Same call, one transaction, all-or-nothing"
+     ],
+     [
+      "Lock",
+      "One open upload per user"
+     ],
+     [
+      "Limits",
+      "1,000 rows (TBD)"
+     ]
+    ]
+   }
+  ],
+  "constraints": [
+   "Table names marked proposed / TBD must follow the project convention.",
+   "Same validation rules as the screen (refer UISS-Screen Master Mileage MM-01..MM-06)."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START (Choose File)",
+     "type": "start"
+    },
+    {
+     "id": "p1",
+     "label": "Upload ID, log PROCESSING, lock",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "lg",
+     "label": "TB_R_MILEAGE_UPLOAD_LOG",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p2",
+     "label": "File check: type, header, rows",
+     "type": "process",
+     "step": 2
+    },
+    {
+     "id": "d2",
+     "label": "File OK?",
+     "type": "decision",
+     "step": 3
+    },
+    {
+     "id": "x2",
+     "label": "Log ERROR, message",
+     "type": "message"
+    },
+    {
+     "id": "p3",
+     "label": "Load rows to temp as text",
+     "type": "process",
+     "step": 4
+    },
+    {
+     "id": "tt",
+     "label": "TB_T_MILEAGE_UPLOAD",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p4",
+     "label": "Validate rows: format, masters, file duplicates, existing route",
+     "type": "process",
+     "step": 5
+    },
+    {
+     "id": "ms",
+     "label": "Master Location / Route Mileage",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "p5",
+     "label": "Any row error / nothing to save?",
+     "type": "decision",
+     "step": 6
+    },
+    {
+     "id": "x5",
+     "label": "Log ERROR, return Row / Column / Error",
+     "type": "message"
+    },
+    {
+     "id": "p6",
+     "label": "BEGIN TRAN, re-read routes (UPDLOCK)",
+     "type": "process",
+     "step": 7
+    },
+    {
+     "id": "p7",
+     "label": "Insert New, update Update, history; COMMIT",
+     "type": "process",
+     "step": 8
+    },
+    {
+     "id": "mm",
+     "label": "ielp.TB_M_MILEAGE",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p8",
+     "label": "Log SUCCESS, delete temp",
+     "type": "process",
+     "step": 9
+    },
+    {
+     "id": "e",
+     "label": "END",
+     "type": "end"
+    }
+   ],
+   "same_rank": [
+    [
+     "d2",
+     "x2"
+    ],
+    [
+     "p5",
+     "x5"
+    ]
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "p1"
+    },
+    {
+     "from": "p1",
+     "to": "lg"
+    },
+    {
+     "from": "p1",
+     "to": "p2"
+    },
+    {
+     "from": "p2",
+     "to": "d2"
+    },
+    {
+     "from": "d2",
+     "to": "x2",
+     "label": "No"
+    },
+    {
+     "from": "d2",
+     "to": "p3",
+     "label": "Yes"
+    },
+    {
+     "from": "p3",
+     "to": "tt"
+    },
+    {
+     "from": "p3",
+     "to": "p4"
+    },
+    {
+     "from": "ms",
+     "to": "p4"
+    },
+    {
+     "from": "p4",
+     "to": "p5"
+    },
+    {
+     "from": "p5",
+     "to": "x5",
+     "label": "Yes"
+    },
+    {
+     "from": "p5",
+     "to": "p6",
+     "label": "No"
+    },
+    {
+     "from": "p6",
+     "to": "p7"
+    },
+    {
+     "from": "p7",
+     "to": "mm"
+    },
+    {
+     "from": "p7",
+     "to": "p8"
+    },
+    {
+     "from": "p8",
+     "to": "e"
+    }
+   ]
+  },
+  "steps": [
+   {
+    "text": "[Choose File] (one call, like the Planning Order upload): create UPLOAD_ID (sequence) and insert TB_R_MILEAGE_UPLOAD_LOG with STATUS 'PROCESSING', FILE_NAME, START_DT; log message no. 1.",
+    "children": [
+     "Lock: the user has another upload in PROCESSING: log message no. 2. Stop."
+    ]
+   },
+   {
+    "text": "File check before any data row is stored: extension .xlsx / .xls, readable; sheet with the header row containing FROM CODE (title rows above allowed); columns FROM CODE, TO CODE, MILEAGE (KM) present (other columns ignored); 1 to 1,000 data rows (empty rows skipped)."
+   },
+   {
+    "text": "Decision: file OK?",
+    "children": [
+     "log message no. 3 / log message no. 4 / log message no. 5 / log message no. 6: log STATUS 'ERROR' with MESSAGE, END_DT; stop (nothing in temp)."
+    ]
+   },
+   {
+    "text": "Insert every data row into TB_T_MILEAGE_UPLOAD as text with UPLOAD_ID and the Excel ROW_NO; VALIDATION_STATUS 'N'."
+   },
+   {
+    "text": "Validate every row and collect all its errors (Functional Description 4.2): format / mandatory -> Master Location (active) -> From <> To -> Mileage > 0, 2 decimals -> duplicate route in the file -> existing route (Inactive = error; Active same mileage = SAME; other mileage = UPDATE; none = NEW).",
+    "children": [
+     "Each failed row: log message no. 7; temp VALIDATION_STATUS 'E', ERROR_COLUMN, ERROR_MSG, ACTION 'ERROR'. Valid rows: 'V' with ACTION."
+    ]
+   },
+   {
+    "text": "Update TB_R_MILEAGE_UPLOAD_LOG counts. Decision: any error or nothing to save?",
+    "children": [
+     "Errors: STATUS 'ERROR', END_DT, log message no. 8; return the error list (ROW_NO, ERROR_COLUMN, ERROR_MSG) for the modal 'Upload validation failed'. Stop, nothing saved.",
+     "All SAME: STATUS 'ERROR', log message no. 9. Stop."
+    ]
+   },
+   {
+    "text": "No error: BEGIN TRANSACTION in the same call (no preview / confirm step); read the routes of the file again with UPDLOCK so the result of step 5 is still valid."
+   },
+   {
+    "text": "INSERT ielp.TB_M_MILEAGE for ACTION 'NEW'; UPDATE ielp.TB_M_MILEAGE for ACTION 'UPDATE' (WHERE route AND VERSION read in step 7); INSERT TB_H_MILEAGE for each update (old / new mileage, proposed); COMMIT (all-or-nothing).",
+    "children": [
+     "DB error: ROLLBACK, log 'ERROR', log message no. 10."
+    ]
+   },
+   {
+    "text": "Update TB_R_MILEAGE_UPLOAD_LOG: STATUS 'SUCCESS', ADDED_ROWS, UPDATED_ROWS, END_DT; delete the temp rows; log message no. 11. Unexpected error at any step: log message no. 12."
+   }
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": {
+     "table": "Upload request"
+    },
+    "destination": {
+     "table": "TB_R_MILEAGE_UPLOAD_LOG",
+     "operation": "Insert",
+     "description": "Step 1"
+    },
+    "mappings": [
+     {
+      "dest_field": "UPLOAD_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "FUNCTION_ID",
+      "description": "Route Mileage upload ID (TBD)"
+     },
+     {
+      "dest_field": "FILE_NAME",
+      "description": "Uploaded file name"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING'"
+     },
+     {
+      "dest_field": "TOTAL_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ADDED_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "UPDATED_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "SAME_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ERROR_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user (IELP Admin, TBD)"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "Excel file (sheet with FROM CODE)"
+    },
+    "destination": {
+     "table": "TB_T_MILEAGE_UPLOAD",
+     "operation": "Insert",
+     "description": "Step 4 - each data row"
+    },
+    "mappings": [
+     {
+      "source_field": "(row number)",
+      "dest_field": "ROW_NO",
+      "description": "Excel row number"
+     },
+     {
+      "source_field": "FROM CODE",
+      "dest_field": "FROM_CODE_TXT",
+      "description": "Text, trimmed"
+     },
+     {
+      "source_field": "TO CODE",
+      "dest_field": "TO_CODE_TXT",
+      "description": "Text, trimmed"
+     },
+     {
+      "source_field": "MILEAGE (KM)",
+      "dest_field": "MILEAGE_TXT",
+      "description": "Text as typed"
+     },
+     {
+      "dest_field": "UPLOAD_ID",
+      "description": "Upload"
+     },
+     {
+      "dest_field": "ACTION",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "OLD_MILEAGE",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "VALIDATION_STATUS",
+      "description": "'N'"
+     },
+     {
+      "dest_field": "ERROR_COLUMN",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ERROR_MSG",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user (IELP Admin, TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_MILEAGE_UPLOAD"
+    },
+    "destination": {
+     "table": "TB_T_MILEAGE_UPLOAD",
+     "operation": "Update",
+     "description": "Step 5 - each row",
+     "keys": [
+      {
+       "field": "UPLOAD_ID / ROW_NO",
+       "value": "Row"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "ACTION",
+      "description": "NEW / UPDATE / SAME / ERROR"
+     },
+     {
+      "dest_field": "OLD_MILEAGE",
+      "description": "Current mileage of the route (UPDATE / SAME)"
+     },
+     {
+      "dest_field": "VALIDATION_STATUS",
+      "description": "'V' or 'E'"
+     },
+     {
+      "dest_field": "ERROR_COLUMN",
+      "description": "Column of each error, separated by ' | '"
+     },
+     {
+      "dest_field": "ERROR_MSG",
+      "description": "All errors of the row, separated by ' | '"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_MILEAGE_UPLOAD"
+    },
+    "destination": {
+     "table": "TB_R_MILEAGE_UPLOAD_LOG",
+     "operation": "Update",
+     "description": "Step 3 / 6 - file or row errors",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Upload"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'ERROR'"
+     },
+     {
+      "dest_field": "TOTAL_ROWS / ADDED_ROWS / UPDATED_ROWS / SAME_ROWS / ERROR_ROWS",
+      "description": "Counts by ACTION"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "Log message text"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_MILEAGE_UPLOAD",
+     "keys": [
+      {
+       "field": "ACTION",
+       "value": "'NEW'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.TB_M_MILEAGE",
+     "operation": "Insert",
+     "description": "Step 8 - NEW rows"
+    },
+    "mappings": [
+     {
+      "dest_field": "FROM_CODE",
+      "description": "UPPER(FROM_CODE_TXT)"
+     },
+     {
+      "dest_field": "TO_CODE",
+      "description": "UPPER(TO_CODE_TXT)"
+     },
+     {
+      "dest_field": "MILEAGE",
+      "description": "MILEAGE_TXT as number (comma = decimal sign), rounded to 2 decimals"
+     },
+     {
+      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "description": "'Active'"
+     },
+     {
+      "dest_field": "LAST_UPLOAD_ID",
+      "description": "UPLOAD_ID [Conflict: LAST_UPLOAD_ID is not a column of ielp.TB_M_MILEAGE]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user (IELP Admin, TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "Login user (IELP Admin, TBD)"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "1"
+     },
+     {
+      "dest_field": "LOC_NAME_FROM, LOC_NAME_TO",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_MILEAGE_UPLOAD",
+     "keys": [
+      {
+       "field": "ACTION",
+       "value": "'UPDATE'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.TB_M_MILEAGE",
+     "operation": "Update",
+     "description": "Step 8 - UPDATE rows",
+     "keys": [
+      {
+       "field": "FROM_LOCATION / TO_LOCATION",
+       "value": "Route of the row"
+      },
+      {
+       "field": "VERSION",
+       "value": "Version read in step 7"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "FROM_CODE",
+      "description": "Key, not changed"
+     },
+     {
+      "dest_field": "TO_CODE",
+      "description": "Key, not changed"
+     },
+     {
+      "dest_field": "MILEAGE",
+      "description": "New mileage of the row"
+     },
+     {
+      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "description": "Not changed (Active)"
+     },
+     {
+      "dest_field": "LAST_UPLOAD_ID",
+      "description": "UPLOAD_ID [Conflict: LAST_UPLOAD_ID is not a column of ielp.TB_M_MILEAGE]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Not changed"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Not changed"
+     },
+     {
+      "dest_field": "CHANGED_BY",
+      "description": "Login user (IELP Admin, TBD)"
+     },
+     {
+      "dest_field": "CHANGED_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "UPDATE rows"
+    },
+    "destination": {
+     "table": "TB_H_MILEAGE",
+     "operation": "Insert",
+     "description": "Step 8 - each UPDATE row (proposed)"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "FROM_LOCATION",
+      "description": "Route From"
+     },
+     {
+      "dest_field": "TO_LOCATION",
+      "description": "Route To"
+     },
+     {
+      "dest_field": "EVENT_TITLE",
+      "description": "'Mileage changed by upload'"
+     },
+     {
+      "dest_field": "FIELD_NAME",
+      "description": "'MILEAGE_KM'"
+     },
+     {
+      "dest_field": "OLD_VALUE",
+      "description": "OLD_MILEAGE"
+     },
+     {
+      "dest_field": "NEW_VALUE",
+      "description": "New mileage"
+     },
+     {
+      "dest_field": "SOURCE",
+      "description": "'UPLOAD'"
+     },
+     {
+      "dest_field": "UPLOAD_ID",
+      "description": "UPLOAD_ID"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user (IELP Admin, TBD)"
+     },
+     {
+      "dest_field": "CREATED_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "Result"
+    },
+    "destination": {
+     "table": "TB_R_MILEAGE_UPLOAD_LOG",
+     "operation": "Update",
+     "description": "Step 9 - success / DB error",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Upload"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'SUCCESS' / 'ERROR'"
+     },
+     {
+      "dest_field": "ADDED_ROWS / UPDATED_ROWS",
+      "description": "Saved counts"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "Log message text"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_MILEAGE_UPLOAD"
+    },
+    "destination": {
+     "table": "TB_T_MILEAGE_UPLOAD",
+     "operation": "Delete",
+     "description": "Step 9 - success",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Upload"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "(all rows of the upload)",
+      "description": "Deleted; ERROR uploads kept N days for the error list (TBD)"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "DESCRIPTION",
+   "num": "4."
+  },
+  {
+   "type": "text",
+   "text": "Backend of the Excel upload on the Route Mileage screen (Master > Mileage). One call, like the Planning Order upload: [Choose File] uploads and validates the file; with any error nothing is saved and the Row / Column / Error list is returned (modal on the screen); without errors all New and Update rows are saved at once in one transaction.",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "text",
+   "text": "4.1 Template (Download Template: Template_Route_Mileage.xlsx)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "Column",
+     "width": 9
+    },
+    {
+     "title": "Rule",
+     "width": 27
+    },
+    {
+     "title": "Example",
+     "width": 9
+    }
+   ],
+   "rows": [
+    [
+     "FROM CODE",
+     "Mandatory; active Master Location code; upper case",
+     "SNT"
+    ],
+    [
+     "TO CODE",
+     "Mandatory; active Master Location code; <> FROM CODE",
+     "CKR"
+    ],
+    [
+     "MILEAGE (KM)",
+     "Mandatory; number > 0; max 2 decimals; comma = decimal sign",
+     "42 / 16,5"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Sheets: Route Mileage (header + 2 examples), Active Locations (code, name), Notes. Title rows above the header are allowed; other columns are ignored. Max 1,000 data rows (TBD).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.2 Row validation (all errors of a row are collected)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Check",
+     "width": 22
+    },
+    {
+     "title": "Result",
+     "width": 18
+    }
+   ],
+   "rows": [
+    [
+     "MM-22",
+     "Mandatory From / To / Mileage",
+     "Location From / To / Mileage is required."
+    ],
+    [
+     "MM-22",
+     "From / To active in Master Location",
+     "Location X is not an active location in Master Location."
+    ],
+    [
+     "MM-22",
+     "From <> To",
+     "Location From and Location To cannot be the same."
+    ],
+    [
+     "MM-22",
+     "Mileage > 0, 2 decimals",
+     "Mileage must be greater than 0 KM."
+    ],
+    [
+     "MM-23",
+     "Route repeated in the file",
+     "Route is repeated in the file (row n)."
+    ],
+    [
+     "MM-23",
+     "Existing route Inactive",
+     "Route X -> Y exists but is Inactive; activate it on the screen first."
+    ],
+    [
+     "MM-24",
+     "Existing Active route",
+     "same mileage = SAME (skipped); other mileage = UPDATE"
+    ],
+    [
+     "MM-24",
+     "Route not existing",
+     "NEW"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "text",
+   "text": "4.3 Save rules",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "All-or-nothing (MM-25): saved only when ERROR_ROWS = 0 and ADDED + UPDATED > 0, in the same call (no preview / confirm). The routes are re-read with UPDLOCK inside the transaction.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "NEW = insert Active with audit; UPDATE = mileage, updated by / date, VERSION + 1, created by / date kept; SAME = nothing written.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "One upload per user at a time (lock while PROCESSING).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.4 Open questions",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "table",
+   "level": 1,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 5
+    },
+    {
+     "title": "Question",
+     "width": 40
+    }
+   ],
+   "rows": [
+    [
+     "OQ-01",
+     "Existing route by upload: update (implemented) or reject (new routes only)?"
+    ],
+    [
+     "OQ-02",
+     "Inactive route in the file: error (implemented) or update and re-activate?"
+    ],
+    [
+     "OQ-03",
+     "Max rows (1,000), partial save of valid rows instead of all-or-nothing?"
+    ],
+    [
+     "OQ-04",
+     "Mileage history table needed (proposed TB_H_MILEAGE)?"
+    ],
+    [
+     "OQ-05",
+     "Keep temp rows of error uploads how many days?"
+    ],
+    [
+     "OQ-06",
+     "Physical table / column names of Route Mileage Master and the role allowed to upload"
+    ]
+   ],
+   "row_lines": "all"
+  }
+ ],
+ "func_desc_layout": "two",
+ "logging_messages": [
+  {
+   "event": "Process start",
+   "cause": "Upload requested",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route Mileage upload <UPLOAD_ID> started by <USER>: file <FILE_NAME>.",
+   "action": {
+    "system": "Insert upload log (PROCESSING)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Lock",
+   "cause": "Another upload of the user is still PROCESSING",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Another Route Mileage upload is still in progress. Please wait.",
+   "action": {
+    "system": "Reject request; nothing changed",
+    "user": "Wait and upload again"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "Not .xlsx / .xls or unreadable",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "File format is not valid. Please upload the Excel template (.xlsx / .xls).",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Use the template"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "Template columns not found",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Template is not valid: column <COLUMNS> not found. Please use the Download Template file.",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Download Template"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "No data row",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "The file has no mileage data.",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Fill the template"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "More than 1,000 data rows",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "The file has <n> rows; maximum 1000 rows per upload.",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Split the file"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Row rule failed (MM-22 / MM-23)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: <ERROR_MSG>.",
+   "action": {
+    "system": "Temp row VALIDATION_STATUS 'E'",
+    "user": "Correct the file"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "One or more rows with errors (MM-25)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "<n> row(s) have errors. Nothing was saved; correct the file and upload again.",
+   "action": {
+    "system": "Log ERROR with counts; return Row / Column / Error list (modal on screen)",
+    "user": "Correct the file, upload again"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "All rows No change",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "All routes in the file already have the same mileage. Nothing to save.",
+   "action": {
+    "system": "Log ERROR (nothing to save)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Save",
+   "cause": "DB error on insert / update",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Route Mileage upload <UPLOAD_ID> failed: <DB_ERROR>. Nothing was saved.",
+   "action": {
+    "system": "Rollback; log ERROR",
+    "user": "Try again"
+   }
+  },
+  {
+   "event": "Save",
+   "cause": "Saved",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Upload completed: <n> route(s) created, <m> route(s) updated.",
+   "action": {
+    "system": "Commit; log SUCCESS; delete temp rows",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Processing",
+   "cause": "Unexpected error",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Route Mileage upload <UPLOAD_ID> stopped: <ERROR>.",
+   "action": {
+    "system": "Rollback; log ERROR",
+    "user": "Contact system administrator"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "ielp.TB_M_MILEAGE",
+   "kind": "transaction",
+   "proposed": false,
+   "description": "Existing ELIPS table (columns from ELIPS_Schema.sql)",
+   "columns": [
+    [
+     "LOC_NAME_FROM",
+     "VARCHAR(100)",
+     "Y",
+     "N",
+     ""
+    ],
+    [
+     "TO_CODE",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FROM_CODE",
+     "VARCHAR(100)",
+     "Y",
+     "N",
+     ""
+    ],
+    [
+     "LOC_NAME_TO",
+     "VARCHAR(100)",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "MILEAGE",
+     "DECIMAL(18, 0)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "CREATED_DT",
+     "DATETIME",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "CHANGED_BY",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CHANGED_DT",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_DELETE",
+     "VARCHAR(5)",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_T_MILEAGE_UPLOAD",
+   "kind": "temp",
+   "proposed": true,
+   "description": "Rows of one upload as text + validation result - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "UPLOAD_ID",
+     "BIGINT",
+     "Y",
+     "N",
+     "Upload"
+    ],
+    [
+     "ROW_NO",
+     "INT",
+     "Y",
+     "N",
+     "Excel row number"
+    ],
+    [
+     "FROM_CODE_TXT",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     "FROM CODE as in the file"
+    ],
+    [
+     "TO_CODE_TXT",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     "TO CODE as in the file"
+    ],
+    [
+     "MILEAGE_TXT",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     "MILEAGE (KM) as in the file"
+    ],
+    [
+     "ACTION",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     "NEW / UPDATE / SAME / ERROR"
+    ],
+    [
+     "OLD_MILEAGE",
+     "DECIMAL(9,2)",
+     "",
+     "Y",
+     "Current mileage (UPDATE / SAME)"
+    ],
+    [
+     "VALIDATION_STATUS",
+     "CHAR(1)",
+     "",
+     "N",
+     "N new / V valid / E error"
+    ],
+    [
+     "ERROR_COLUMN",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     "Column of each error (FROM CODE / TO CODE / MILEAGE (KM) / ROUTE)"
+    ],
+    [
+     "ERROR_MSG",
+     "VARCHAR(2000)",
+     "",
+     "Y",
+     "All errors of the row"
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "Uploader"
+    ],
+    [
+     "CREATED_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Upload date"
+    ]
+   ]
+  },
+  {
+   "name": "TB_R_MILEAGE_UPLOAD_LOG",
+   "kind": "log",
+   "proposed": true,
+   "description": "One row per upload (status, counts), read by the screen - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "UPLOAD_ID",
+     "BIGINT",
+     "Y",
+     "N",
+     "Sequence"
+    ],
+    [
+     "FUNCTION_ID",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "Route Mileage upload (TBD)"
+    ],
+    [
+     "FILE_NAME",
+     "VARCHAR(255)",
+     "",
+     "N",
+     "Uploaded file"
+    ],
+    [
+     "STATUS",
+     "VARCHAR(12)",
+     "",
+     "N",
+     "PROCESSING / ERROR / SUCCESS"
+    ],
+    [
+     "TOTAL_ROWS",
+     "INT",
+     "",
+     "Y",
+     "Data rows"
+    ],
+    [
+     "ADDED_ROWS",
+     "INT",
+     "",
+     "Y",
+     "NEW rows (saved on success)"
+    ],
+    [
+     "UPDATED_ROWS",
+     "INT",
+     "",
+     "Y",
+     "UPDATE rows"
+    ],
+    [
+     "SAME_ROWS",
+     "INT",
+     "",
+     "Y",
+     "No change rows"
+    ],
+    [
+     "ERROR_ROWS",
+     "INT",
+     "",
+     "Y",
+     "Rows with errors"
+    ],
+    [
+     "MESSAGE",
+     "VARCHAR(2000)",
+     "",
+     "Y",
+     "Result / error message"
+    ],
+    [
+     "START_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Start"
+    ],
+    [
+     "END_DT",
+     "DATETIME",
+     "",
+     "Y",
+     "End"
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "Uploader"
+    ]
+   ]
+  },
+  {
+   "name": "TB_H_MILEAGE",
+   "kind": "history",
+   "proposed": true,
+   "description": "Mileage change history (OQ-04) - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "HIST_ID",
+     "BIGINT",
+     "Y",
+     "N",
+     "Sequence"
+    ],
+    [
+     "FROM_LOCATION",
+     "VARCHAR(TBD)",
+     "",
+     "N",
+     "Route From"
+    ],
+    [
+     "TO_LOCATION",
+     "VARCHAR(TBD)",
+     "",
+     "N",
+     "Route To"
+    ],
+    [
+     "EVENT_TITLE",
+     "VARCHAR(50)",
+     "",
+     "N",
+     "'Mileage changed by upload'"
+    ],
+    [
+     "FIELD_NAME",
+     "VARCHAR(30)",
+     "",
+     "N",
+     "'MILEAGE_KM'"
+    ],
+    [
+     "OLD_VALUE",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     "Old mileage"
+    ],
+    [
+     "NEW_VALUE",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     "New mileage"
+    ],
+    [
+     "SOURCE",
+     "VARCHAR(10)",
+     "",
+     "N",
+     "UPLOAD / SCREEN"
+    ],
+    [
+     "UPLOAD_ID",
+     "BIGINT",
+     "",
+     "Y",
+     "Upload"
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "User"
+    ],
+    [
+     "CREATED_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Server date-time"
+    ]
+   ]
+  }
+ ],
+ "appendix": [
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "FROM CODE (file)",
+     "ielp.TB_M_MILEAGE.FROM_CODE",
+     "varchar(100)",
+     "Y",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "TO CODE (file)",
+     "ielp.TB_M_MILEAGE.TO_CODE",
+     "varchar(100)",
+     "N",
+     "W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "MILEAGE (KM) (file)",
+     "ielp.TB_M_MILEAGE.MILEAGE",
+     "decimal(18, 0)",
+     "N",
+     "W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "From / To names",
+     "ielp.TB_M_MILEAGE.LOC_NAME_FROM",
+     "varchar(100)",
+     "Y",
+     "W",
+     "Copy of location names (NOT NULL)",
+     "Revised"
+    ],
+    [
+     "Audit",
+     "ielp.TB_M_MILEAGE.CREATED_BY",
+     "varchar(20)",
+     "Y",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Temp / log / history (TB_T_MILEAGE_UPLOAD, TB_R_MILEAGE_UPLOAD_LOG, TB_H_MILEAGE)",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Missing"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MML-01 Mileage decimals: UISS / code: Number 7,2 (max 2 decimals). DB: MILEAGE decimal(18,0) - no decimals. Recommendation: Round to whole KM in the UI or change the column (DB change request)",
+    "G-MML-02 Route key: UISS / code: From + To unique. DB: PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key. Recommendation: Only one route per From is possible with this PK - confirm the table or change the PK",
+    "G-MML-03 Location names stored: UISS / code: Names read from Master Location. DB: LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised). Recommendation: Copy names on insert / update; define refresh when a location is renamed",
+    "G-MML-04 Active / Inactive and VERSION: UISS / code: STATUS, VERSION. DB: Only IS_DELETE varchar(5); no VERSION. Recommendation: Map status to IS_DELETE; concurrency by CHANGED_DT",
+    "G-MML-05 LAST_UPLOAD_ID: UISS / code: Column on the route master. DB: No such column in TB_M_MILEAGE. Recommendation: Drop or add the column (DB change request)"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "Approval for the three proposed tables",
+    "Function ID of the upload (dbo.TB_M_FUNCTION)"
+   ]
+  }
+ ]
+}

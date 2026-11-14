@@ -1,0 +1,1611 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD Master Price (Pricing Data)",
+  "created_date": "30-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "30-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on Master Price requirement, existing Pricing Data screen and HTML mock-up (docs/master-price-rules.md) 30-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: price data = ielp.MS_ROUTE_PRICE (eCatalogue interface staging ielp.ITG_ECAT / ITG_LOG); component and vehicle type mapping TBD; read-only screen; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To monitor the price data from eCatalogue per Logistic Partner (Trucking Company): Fix Cost (Monthly Price) and Mileage (Price per KM).",
+   "To show the validity of each price (Active, Expired, Future / Not Yet Active) from its effective period.",
+   "To provide the price reference used when PR Monthly is generated. The screen is read only; prices are maintained in eCatalogue."
+  ],
+  "display_order": [
+   {
+    "section": "Pricing Data List",
+    "fields": [
+     {
+      "field": "Periode",
+      "order": "Descending"
+     },
+     {
+      "field": "Component (Mileage first)",
+      "order": "Ascending"
+     },
+     {
+      "field": "Trucking Company",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Filter fields",
+    "function": "Periode (month picker), Trucking Company (searchable), Component and Status: to set the search criteria."
+   },
+   {
+    "name": "Search",
+    "function": "To show the price data matching the criteria."
+   },
+   {
+    "name": "Cancel",
+    "function": "Clear criteria and reset the screen to its initial value."
+   },
+   {
+    "name": "Search (keyword)",
+    "function": "To filter the displayed list by keyword."
+   },
+   {
+    "name": "Table View",
+    "function": "To show / hide list columns."
+   },
+   {
+    "name": "Export .xls",
+    "function": "To export the filtered list to Excel."
+   },
+   {
+    "name": "Paging",
+    "function": "To move between pages and set rows per page."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Initial Mode",
+    "sections": [
+     {
+      "section": "Filter",
+      "description": "all criteria blank, Status = All Status",
+      "buttons": {
+       "Filter fields": "E",
+       "Search": "E",
+       "Cancel": "E",
+       "Search (keyword)": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Pricing Data List",
+      "description": "all price data, refer below 1)",
+      "buttons": {
+       "Filter fields": "D",
+       "Search": "D",
+       "Cancel": "D",
+       "Search (keyword)": "E",
+       "Table View": "E",
+       "Export .xls": "E",
+       "Paging": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Loading Mode",
+    "sections": [
+     {
+      "section": "Filter",
+      "description": "search in progress, refer below 2)",
+      "buttons": {
+       "Filter fields": "E",
+       "Search": "D",
+       "Cancel": "E",
+       "Search (keyword)": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Pricing Data List",
+      "description": "loading indicator",
+      "buttons": {
+       "Filter fields": "D",
+       "Search": "D",
+       "Cancel": "D",
+       "Search (keyword)": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Paging": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Result Mode",
+    "sections": [
+     {
+      "section": "Filter",
+      "description": "criteria kept",
+      "buttons": {
+       "Filter fields": "E",
+       "Search": "E",
+       "Cancel": "E",
+       "Search (keyword)": "D",
+       "Table View": "D",
+       "Export .xls": "D",
+       "Paging": "D"
+      }
+     },
+     {
+      "section": "Pricing Data List",
+      "description": "filtered price data, refer below 1)",
+      "buttons": {
+       "Filter fields": "D",
+       "Search": "D",
+       "Cancel": "D",
+       "Search (keyword)": "E",
+       "Table View": "E",
+       "Export .xls": "E",
+       "Paging": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) No data shows message no. 1; no matching data shows message no. 2. No Add / Edit / Delete (read only).",
+   "2) Search is disabled and the list shows a loading indicator until the server responds."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Pricing Data",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "ec",
+      "label": "eCatalogue (SPK GAD)",
+      "type": "subprocess"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_ROUTE_PRICE",
+      "type": "db"
+     },
+     {
+      "id": "s",
+      "label": "Pricing Data screen (read only)",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "v",
+      "label": "Master Trucking Company (Trucking Company list)",
+      "type": "screen"
+     },
+     {
+      "id": "x",
+      "label": "Excel file",
+      "type": "document"
+     },
+     {
+      "id": "pr",
+      "label": "PR Monthly generation",
+      "type": "subprocess"
+     }
+    ],
+    "edges": [
+     {
+      "from": "ec",
+      "to": "db",
+      "label": "Interface (UISS-Batch TBD)"
+     },
+     {
+      "from": "db",
+      "to": "s"
+     },
+     {
+      "from": "v",
+      "to": "s"
+     },
+     {
+      "from": "s",
+      "to": "x",
+      "label": "Export .xls"
+     },
+     {
+      "from": "db",
+      "to": "pr",
+      "label": "Price lookup"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Search",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Search button",
+      "type": "event"
+     },
+     {
+      "id": "c",
+      "label": "Read Periode, Trucking Company, Component, Status",
+      "type": "process"
+     },
+     {
+      "id": "q",
+      "label": "Select prices matching criteria (5.3)",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_ROUTE_PRICE",
+      "type": "db"
+     },
+     {
+      "id": "st",
+      "label": "Calculate Status per row (5.4) and apply Status filter",
+      "type": "process"
+     },
+     {
+      "id": "f",
+      "label": "Data found?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 2",
+      "type": "message"
+     },
+     {
+      "id": "r",
+      "label": "Sort, show page 1 and paging info",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "q",
+      "to": "st"
+     },
+     {
+      "from": "st",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "f",
+      "to": "r",
+      "label": "Yes"
+     }
+    ],
+    "same_rank": [
+     [
+      "q",
+      "db"
+     ],
+     [
+      "f",
+      "e1"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Status Determination",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "q1",
+      "label": "Effective Start > today?",
+      "type": "decision"
+     },
+     {
+      "id": "fu",
+      "label": "'Future / Not Yet Active'",
+      "type": "end"
+     },
+     {
+      "id": "q2",
+      "label": "Effective End < today?",
+      "type": "decision"
+     },
+     {
+      "id": "ex",
+      "label": "'Expired'",
+      "type": "end"
+     },
+     {
+      "id": "ac",
+      "label": "'Active'",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "fu",
+      "label": "Yes"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "ex",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "ac",
+      "label": "No"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "fu"
+     ],
+     [
+      "q2",
+      "ex"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "PR Monthly Price Lookup (uses this master)",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "Generate PR Monthly: partner, component, period",
+      "type": "event"
+     },
+     {
+      "id": "g",
+      "label": "Get prices covering the whole month",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_ROUTE_PRICE",
+      "type": "db"
+     },
+     {
+      "id": "q1",
+      "label": "Price found?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 7",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "Not expired price exists?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 8",
+      "type": "message"
+     },
+     {
+      "id": "q3",
+      "label": "Exactly one price?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Show message no. 9",
+      "type": "message"
+     },
+     {
+      "id": "u",
+      "label": "Use the price in PR Monthly",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "g"
+     },
+     {
+      "from": "g",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "g",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "q3",
+      "label": "Yes"
+     },
+     {
+      "from": "q3",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "u",
+      "label": "Yes"
+     }
+    ],
+    "same_rank": [
+     [
+      "g",
+      "db"
+     ],
+     [
+      "q1",
+      "e1"
+     ],
+     [
+      "q2",
+      "e2"
+     ],
+     [
+      "q3",
+      "e3"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Pricing Data - reference screen (from user)",
+   "image": "img/UISS_Screen_Master_Price/ref3.png"
+  },
+  {
+   "caption": "2. Initial Mode - all price data (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a01_initial.png"
+  },
+  {
+   "caption": "3. Trucking Company drop-down - search by code / name (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a02_partner_combo.png"
+  },
+  {
+   "caption": "4. Result Mode - Periode 202608 + PNJ (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a03_search_result.png"
+  },
+  {
+   "caption": "5. Result Mode - Component Mileage, Status Future (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a04_status_future.png"
+  },
+  {
+   "caption": "6. Result Mode - Status Expired (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a05_status_expired.png"
+  },
+  {
+   "caption": "7. Search keyword without result (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a06_no_result.png"
+  },
+  {
+   "caption": "8. Table View column selection (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Price/a07_table_view.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Pricing Data'."
+  },
+  {
+   "name": "Breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Master - Pricing Data'. Menu: Master > Price."
+  },
+  {
+   "group": "<Filter Section>"
+  },
+  {
+   "name": "Periode",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "VALID_DT_FROM",
+   "type": "Datetime",
+   "len": "-",
+   "io": "I",
+   "control": "Month picker",
+   "justified": "Left",
+   "initial": "Placeholder 'Select Month'",
+   "required": "N",
+   "format": "YYYYMM",
+   "validation": "Valid month only (picker)",
+   "description": "Calendar icon opens a month picker. Shows prices whose effective period overlaps the selected month (MP-08). Blank = all periods.\nDB: ielp.MS_ROUTE_PRICE.VALID_DT_FROM datetime NULL [TBD]"
+  },
+  {
+   "name": "Trucking Company",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Combo Box (searchable)",
+   "justified": "Left",
+   "initial": "'Select Trucking Company'",
+   "required": "N",
+   "format": "CODE - NAME",
+   "validation": "Listed values only (msg 4)",
+   "description": "List = active trucking companies of Master Trucking Company, sorted by code, shown as 'Code - Name' (e.g. PNJ - PT. PUNINAR JAYA). Type to search by code or name. Blank = all.\nDB: ielp.MS_ROUTE_PRICE.COMPANY_CODE varchar(20) NULL [Revised]"
+  },
+  {
+   "name": "Component",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Varchar",
+   "len": 3,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'Select Component'",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Options: 'Fix Cost (Monthly Price)' = FIX, 'Mileage (Price per KM)' = KM. Blank = all.\nDB: Conflict - No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
+  },
+  {
+   "name": "Status",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": 10,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'All Status'",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Options: All Status, Active, Expired, Future. Status is calculated (refer 5.4), not stored."
+  },
+  {
+   "name": "Search",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Apply the filter criteria; refer Operation Description 5.3. Disabled while loading."
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Clear all criteria and the Search box, reset to the initial display."
+  },
+  {
+   "group": "<Pricing Data List Section>"
+  },
+  {
+   "name": "Search (keyword)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Placeholder 'Search'",
+   "required": "N",
+   "format": "",
+   "validation": "No result: msg 3",
+   "description": "Filters the current result immediately on all visible values and the trucking company name (partial match, case-insensitive)."
+  },
+  {
+   "name": "Table View",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column: show / hide. Default hidden: Vehicle Type, Source."
+  },
+  {
+   "name": "Export .xls",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Export all filtered rows (not only the current page) with the visible columns to 'Pricing_Data_YYYYMMDD.xls'; msg 5."
+  },
+  {
+   "name": "Periode",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "VALID_DT_FROM",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YYYYMM",
+   "validation": "",
+   "description": "Production month of the price. Default sort: Periode descending, Mileage before Fix Cost, Trucking Company ascending.\nDB: ielp.MS_ROUTE_PRICE.VALID_DT_FROM datetime NULL [TBD]"
+  },
+  {
+   "name": "Trucking Company",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "COMPANY_CODE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Code (e.g. DNX); tooltip shows the name from Master Trucking Company.\nDB: ielp.MS_ROUTE_PRICE.COMPANY_CODE varchar(20) NULL [Revised]"
+  },
+  {
+   "name": "Vehicle Type",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_SIZE",
+   "type": "Varchar",
+   "len": "2",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Hidden by default. e.g. TRAILER 40FT (TBD, OP-03).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_SIZE varchar(2) NULL [TBD] varchar(2) - container size? inferred."
+  },
+  {
+   "name": "Component",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "component (no column - TBD)",
+   "type": "Varchar",
+   "len": 3,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "FIX -> 'Fix Cost' badge with sub text 'Monthly Price'; KM -> 'Mileage' badge with sub text 'Price per KM'.\nDB: Conflict - No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
+  },
+  {
+   "name": "Price",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "IDR, number only (no unit shown). Fix Cost = per month; Mileage = per KM.\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Revised] float (UISS Number 15)."
+  },
+  {
+   "name": "Effective Start",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "VALID_DT_FROM",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_PRICE.VALID_DT_FROM datetime NULL [Revised]"
+  },
+  {
+   "name": "Effective End",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "VALID_DT_TO",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_PRICE.VALID_DT_TO datetime NULL [Revised]"
+  },
+  {
+   "name": "Source",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "ROUTE_PRICE_DESC",
+   "type": "Varchar",
+   "len": "max",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Hidden by default. eCatalogue / SPK GAD reference (TBD, OP-04).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_DESC varchar(max) NULL [TBD]"
+  },
+  {
+   "name": "Status",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": 25,
+   "io": "O",
+   "control": "Grid (badge)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Calculated (5.4): Active (green), Expired (grey), 'Future / Not Yet Active' (blue)."
+  },
+  {
+   "name": "Created By",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "CREATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'SYSTEM' for data from the eCatalogue interface.\nDB: ielp.MS_ROUTE_PRICE.CREATED_BY varchar(500) NOT NULL [Revised]"
+  },
+  {
+   "name": "Created Dt",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "CREATED_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YYYY-MM-DD HH:MI",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_PRICE.CREATED_DATE datetime NOT NULL [Revised]"
+  },
+  {
+   "name": "Changed By",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "UPDATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'-' when never changed.\nDB: ielp.MS_ROUTE_PRICE.UPDATED_BY varchar(500) NULL [Revised]"
+  },
+  {
+   "name": "Changed Dt",
+   "source": "ielp.MS_ROUTE_PRICE",
+   "field": "UPDATED_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YYYY-MM-DD HH:MI",
+   "validation": "",
+   "description": "'-' when never changed.\nDB: ielp.MS_ROUTE_PRICE.UPDATED_DATE datetime NULL [Revised]"
+  },
+  {
+   "name": "Empty list text",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "msg 1 when no data; msg 2 when the criteria return nothing."
+  },
+  {
+   "group": "<Paging Section>"
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Showing n to m of x entries'."
+  },
+  {
+   "name": "Rows per page",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "10",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50, label 'per page'. Change returns to page 1."
+  },
+  {
+   "name": "First / Previous",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'«' / '‹'. Disabled on page 1."
+  },
+  {
+   "name": "Page number",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Max 5 page buttons around the current page; current page highlighted."
+  },
+  {
+   "name": "Next / Last",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'›' / '»'. Disabled on the last page."
+  }
+ ],
+ "data_map": {
+  "blocks": [],
+  "note": "Not applicable - this screen does not insert/update data. Price data is written by the eCatalogue interface (UISS-Batch, TBD)."
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Title 'Pricing Data', breadcrumb 'Master - Pricing Data' (menu Master > Price).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Filter Section: Periode = 'Select Month', Trucking Company = 'Select Trucking Company', Component = 'Select Component', Status = 'All Status'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Pricing Data List shows all price data, sorted by Periode descending, Mileage before Fix Cost, then Trucking Company; 10 rows per page. No data: message no. 1.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "The screen is read only: no Add, Edit, Delete or Upload. Prices are maintained in eCatalogue (MP-01).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Filter Criteria",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Periode: month picker (YYYYMM). A price is shown when its effective period overlaps the month: Effective Start <= last day of month AND Effective End >= first day of month (MP-08).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Trucking Company: active companies of Master Trucking Company, 'Code - Name', searchable by code or name; only listed values can be selected.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Component: Fix Cost (Monthly Price) = FIX, Mileage (Price per KM) = KM.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Status: Active / Expired / Future, compared with the calculated status (5.4).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "e.",
+   "text": "All criteria are optional and combined with AND. Blank criteria are not applied.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Search / Cancel",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Click Search: read the criteria, disable Search and show the loading indicator.",
+    "Select from Price Master with Periode, Trucking Company and Component; calculate Status per row and apply the Status filter.",
+    "Sort (5.1 c), show page 1 and 'Showing n to m of x entries'. No row: message no. 2.",
+    "Click Cancel: clear all criteria and the Search box, reset to the initial display (all data, page 1)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Status Determination (MP-02)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Status is calculated from the effective period and the server date (today); it is not stored.",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Condition",
+     "width": 22
+    },
+    {
+     "title": "Status",
+     "width": 14
+    },
+    {
+     "title": "Badge",
+     "width": 10
+    }
+   ],
+   "rows": [
+    [
+     "Effective Start > today",
+     "Future / Not Yet Active",
+     "Blue"
+    ],
+    [
+     "Effective Start <= today <= Effective End",
+     "Active",
+     "Green"
+    ],
+    [
+     "Effective End < today",
+     "Expired",
+     "Grey"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Example (today 2026-10-30): 202610 = Active, 202608 = Expired, 202612 = Future / Not Yet Active.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Keyword Search, Table View, Export",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Search box filters the current result immediately on all visible values and the trucking company name; no match: message no. 3.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Table View shows / hides columns. Default visible: Periode, Trucking Company, Component, Price, Effective Start, Effective End, Status, Created By, Created Dt, Changed By, Changed Dt. Default hidden: Vehicle Type, Source.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Export .xls exports all filtered rows (all pages) with the visible columns to 'Pricing_Data_YYYYMMDD.xls'; Price is exported as a number; message no. 5.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Paging",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Rows per page 10 / 25 / 50; changing it returns to page 1.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "« first, ‹ previous, page numbers (max 5), › next, » last. First / previous disabled on page 1; next / last disabled on the last page.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Price Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Price is shown as a number with thousand separator and no unit (e.g. 2,700 and 28,500,000).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Meaning by component: Fix Cost = IDR per month (SPK GAD: vehicle + driver rental for one month); Mileage = IDR per KM (vehicle maintenance cost x actual KM).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 PR Monthly Price Lookup (MP-03 to MP-06)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "PR Monthly uses the price of the partner + component (+ vehicle type) whose effective period covers the whole production month.",
+   "level": 2
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "No price: message no. 7; PR not generated for that partner / component.",
+    "Only expired price: message no. 8; expired prices are never used for a new PR Monthly.",
+    "More than one valid price: message no. 9 (data error).",
+    "Exactly one valid price: used in PR Monthly. Mileage cost = Price per KM x actual KM (Master Mileage)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Behaviour when the price changes after the PR was created: TBD (OP-06).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 Data Source, Security and Audit",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Data is synchronised from eCatalogue (Created By = SYSTEM). Schedule and new / changed / deleted handling: TBD in a UISS-Batch (OP-05).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Access follows the existing role framework (View / Export Pricing Data, TBD).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Audit fields shown: Created By, Created Dt, Changed By, Changed Dt.",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Periode",
+     "ielp.MS_ROUTE_PRICE.VALID_DT_FROM",
+     "datetime",
+     "N",
+     "R",
+     "YYYYMM of VALID_DT_FROM (inferred)",
+     "TBD"
+    ],
+    [
+     "Trucking Company",
+     "ielp.MS_ROUTE_PRICE.COMPANY_CODE",
+     "varchar(20)",
+     "N",
+     "R",
+     "= MS_TRUCKING_COMPANY.COMPANY_CODE (inferred)",
+     "Revised"
+    ],
+    [
+     "Vehicle Type",
+     "ielp.MS_ROUTE_PRICE.ROUTE_PRICE_SIZE",
+     "varchar(2)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Component (FIX / KM)",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Price",
+     "ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Effective Start",
+     "ielp.MS_ROUTE_PRICE.VALID_DT_FROM",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Effective End",
+     "ielp.MS_ROUTE_PRICE.VALID_DT_TO",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Source",
+     "ielp.MS_ROUTE_PRICE.ROUTE_PRICE_DESC",
+     "varchar(max)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Created By",
+     "ielp.MS_ROUTE_PRICE.CREATED_BY",
+     "varchar(500)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Created Dt",
+     "ielp.MS_ROUTE_PRICE.CREATED_DATE",
+     "datetime",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Changed By",
+     "ielp.MS_ROUTE_PRICE.UPDATED_BY",
+     "varchar(500)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Changed Dt",
+     "ielp.MS_ROUTE_PRICE.UPDATED_DATE",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "(interface) eCatalogue price",
+     "ielp.ITG_ECAT.PRICE_AMOUNT",
+     "real",
+     "Y",
+     "R",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MPR-01 Price component: UISS / code: FIX / KM components. DB: No component column in MS_ROUTE_PRICE. Recommendation: Confirm component identification (material code?)",
+    "G-MPR-02 Period: UISS / code: Periode YYYYMM column. DB: Only VALID_DT_FROM / VALID_DT_TO. Recommendation: Derive period from validity dates"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "Which table the screen reads (MS_ROUTE_PRICE vs ITG_ECAT)",
+    "ROUTE_PRICE_SIZE meaning",
+    "Currency (ROUTE_PRICE_CURRENCY) display"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Open screen",
+   "cause": "No price data synchronised from eCatalogue yet",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No price data found.",
+   "action": "Check the eCatalogue interface (UISS-Batch, TBD)"
+  },
+  {
+   "event": "Click [Search] button",
+   "cause": "No record matches the filter criteria (Periode, Trucking Company, Component, Status)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No price data found for the selected criteria.",
+   "action": "Change the criteria or click Cancel"
+  },
+  {
+   "event": "Key-in [Search] box",
+   "cause": "No row matches the keyword",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No price data found for the selected criteria.",
+   "action": "Change or clear the keyword"
+  },
+  {
+   "event": "Key-in Trucking Company",
+   "cause": "Keyword does not match any active trucking company",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No trucking company found.",
+   "action": "Change the keyword"
+  },
+  {
+   "group": "Export Operation"
+  },
+  {
+   "event": "Click [Export .xls] button",
+   "cause": "Export finished",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} rows exported.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Export .xls] button",
+   "cause": "No row to export (list empty)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "No data to export.",
+   "action": "Change the criteria (TBD: block or export header only)"
+  },
+  {
+   "group": "PR Monthly Generation (uses this master)"
+  },
+  {
+   "event": "Generate PR Monthly",
+   "cause": "No price for the partner / component covering the production month (MP-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "No {Monthly Price | Price per KM} found in Master Price for {Partner} period {YYYYMM}.",
+   "action": "Ask GAD to register the price in eCatalogue; PR not generated for this partner / component"
+  },
+  {
+   "event": "Generate PR Monthly",
+   "cause": "Only an expired price covers the production month (MP-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Monthly Price | Price per KM} for {Partner} period {YYYYMM} is expired and cannot be used for a new PR Monthly.",
+   "action": "Update the price in eCatalogue"
+  },
+  {
+   "event": "Generate PR Monthly",
+   "cause": "More than one valid price for the same partner / component / vehicle type and period (MP-06)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "More than one valid {Monthly Price | Price per KM} for {Partner} period {YYYYMM}. Please check eCatalogue data.",
+   "action": "Correct the duplicate in eCatalogue"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Click [Export .xls]",
+   "cause": "Price data exported",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Pricing Data exported by {User}: {n} rows, criteria {Periode / Partner / Component / Status}.",
+   "exception": "N",
+   "action": "Audit only (TBD whether export is logged)"
+  },
+  {
+   "event": "Click [Search]",
+   "cause": "DB error while reading Price Master",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Failed to read Pricing Data: {Error}.",
+   "exception": "Y",
+   "action": "Display system error message (TBD); list unchanged"
+  },
+  {
+   "event": "Generate PR Monthly",
+   "cause": "Price not found / expired / duplicated",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Price lookup failed for {Partner} {Component} period {YYYYMM}: {Reason}.",
+   "exception": "Y",
+   "action": "Display Message no. 7 / 8 / 9"
+  }
+ ]
+}

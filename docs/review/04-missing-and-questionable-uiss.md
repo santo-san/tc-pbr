@@ -27,7 +27,7 @@ provided yet, so nothing here is "observed from data".
 | # | UISS | Finding | Recommendation |
 |---|---|---|---|
 | C1 | U08 Driver Order Sync (HiveMQ) | No sync code; its tables (`TB_T_DRIVER_SYNC_QUEUE`, `TB_R_DRIVER_ORDER`, `TB_R_DRIVER_MQ_OUTBOX`, `TB_R_DRIVER_SYNC_LOG`) are not in ELIPS [Schema]. ELIPS driver data: `MS_DRIVER`, `TB_M_DRIVER` (FIREBASE_TOKEN, DEVICE_ID) [Schema] | Confirm whether ELIPS already pushes orders to the driver app (Firebase vs HiveMQ); keep U08 as "to-be" with proposed tables flagged |
-| C2 | U26 PAS PR Interface | Talend job, existing tJava in `docs/pas-interface/current-tjava-json-to-pas.java`; PAS tables are outside ELIPS | Keep; verify ELIPS source side against `CRITERIA_*` / `TB_R_PR_*` |
+| C2 | U26 PAS PR Interface | Talend job, existing tJava in `docs/uiss/17_PAS_PR_Interface/current-tjava-json-to-pas.java`; PAS tables are outside ELIPS | Keep; verify ELIPS source side against `CRITERIA_*` / `TB_R_PR_*` |
 | C3 | U27 PAS Callback | Talend job | Keep; ELIPS target columns to be confirmed |
 | C4 | U28 GR Attachment | Talend / FTP job; screen part simulated in `dn-rules.js attachPAS` | Keep; PDF source TBD |
 

@@ -1,5 +1,5 @@
 // ELIPS TC-PBR Service Acceptance: SA Approval (VPLD) and SA Monitoring. Rules in sa-rules.js (window.SA).
-// Uses the Daily Monitoring data (DATA, W, state ...) of app.js. Spec: docs/sa-approval-spec.md.
+// Uses the Daily Monitoring data (DATA, W, state ...) of app.js. Spec: docs/uiss/05_SA_Approval/sa-approval-spec.md.
 (function () {
   const STORE = 'elips-sa-v1';
   const money = n => n == null ? '-' : Number(n).toLocaleString('en-US');

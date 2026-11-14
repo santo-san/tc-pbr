@@ -1,0 +1,2235 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch",
+  "function_name": "TBD DTP Creation - Excel Upload",
+  "created_date": "02-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "general": {
+  "objective": [
+   "To validate the DTP Excel template uploaded on the DTP Creation screen and add the records to the delivery grid (ielp.DTP_2_DETAIL) only when every row is valid.",
+   "In case any row fails, nothing is added and the full error list (Row / Column / Error) is returned to the screen; the planner corrects the file and uploads again."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "a",
+      "label": "VPLD Planner: Choose File",
+      "type": "event"
+     },
+     {
+      "id": "b",
+      "label": "Excel file",
+      "type": "document"
+     },
+     {
+      "id": "c",
+      "label": "Upload batch: check, temp, validate",
+      "type": "process"
+     },
+     {
+      "id": "d",
+      "label": "All rows valid?",
+      "type": "decision"
+     },
+     {
+      "id": "e",
+      "label": "ielp.DTP_2_DETAIL",
+      "type": "db"
+     },
+     {
+      "id": "f",
+      "label": "Error list to screen",
+      "type": "message"
+     }
+    ],
+    "edges": [
+     {
+      "from": "a",
+      "to": "b"
+     },
+     {
+      "from": "b",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "d"
+     },
+     {
+      "from": "d",
+      "to": "e",
+      "label": "Yes"
+     },
+     {
+      "from": "d",
+      "to": "f",
+      "label": "No"
+     }
+    ]
+   },
+   "note": "Proposed backend pattern (uiss-batch-guide 11)."
+  },
+  "inputs": [
+   {
+    "name": "Format DTP (.xlsx / .xls)",
+    "type": "Excel",
+    "description": "One file per run; header row with ROUNDUSE (row 7 in format_DTP2_1.xlsx)"
+   },
+   {
+    "name": "Plan date, Operation Type, user",
+    "type": "Screen",
+    "description": "From the DTP Creation header"
+   },
+   {
+    "name": "ielp.MS_TRUCKING_COMPANY / Location Master / DTP Data Mapping (TBD)",
+    "type": "DB",
+    "description": "LP, FROM, TO codes (data mapping)"
+   },
+   {
+    "name": "ielp.DTP_2_DETAIL",
+    "type": "DB",
+    "description": "Duplicate check (STATUS <> FAILED)"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "TB_T_DTP_UPLOAD",
+    "type": "DB",
+    "description": "Raw rows + validation result"
+   },
+   {
+    "name": "ielp.DTP_2_DETAIL",
+    "type": "DB",
+    "description": "if all rows valid"
+   },
+   {
+    "name": "ielp.LOG_ACTIVITY_ORDER",
+    "type": "DB",
+    "description": "Status history (AVAILABLE)"
+   },
+   {
+    "name": "TB_R_DTP_UPLOAD_LOG",
+    "type": "DB",
+    "description": "Result read by the screen"
+   }
+  ],
+  "extra_tables": [
+   {
+    "title": "Execution",
+    "columns": [
+     {
+      "title": "Item",
+      "width": 12
+     },
+     {
+      "title": "Description",
+      "width": 30
+     }
+    ],
+    "rows": [
+     [
+      "Trigger",
+      "On-line, from DTP Creation [Choose File]"
+     ],
+     [
+      "Commit",
+      "All-or-nothing"
+     ],
+     [
+      "Lock",
+      "One running upload per user (Proposed)"
+     ],
+     [
+      "Housekeeping",
+      "Temp rows: deleted on success; kept N days on error (TBD)"
+     ]
+    ]
+   }
+  ],
+  "constraints": [
+   "Table names are proposed; align them with the project naming convention.",
+   "Partial upload (valid rows only) is not supported (TBD OP-06)."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START",
+     "type": "start"
+    },
+    {
+     "id": "p1",
+     "label": "Create upload log (PROCESSING)",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "lg1",
+     "label": "TB_R_DTP_UPLOAD_LOG",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "d2",
+     "label": "Upload of user running?",
+     "type": "decision",
+     "step": 2
+    },
+    {
+     "id": "f",
+     "label": "Excel file (screen)",
+     "type": "document",
+     "lane": "input"
+    },
+    {
+     "id": "p3",
+     "label": "File check: type, size, header, rows",
+     "type": "process",
+     "step": 3
+    },
+    {
+     "id": "d3",
+     "label": "File OK?",
+     "type": "decision"
+    },
+    {
+     "id": "p4",
+     "label": "Load rows as text into temp",
+     "type": "process",
+     "step": 4
+    },
+    {
+     "id": "tmp",
+     "label": "TB_T_DTP_UPLOAD",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p5",
+     "label": "Validate every row, collect errors",
+     "type": "process",
+     "step": 5
+    },
+    {
+     "id": "ms",
+     "label": "Masters + ielp.DTP_2_DETAIL",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "d6",
+     "label": "All rows valid?",
+     "type": "decision",
+     "step": 6
+    },
+    {
+     "id": "p7",
+     "label": "Insert records + history (one transaction)",
+     "type": "process",
+     "step": 7
+    },
+    {
+     "id": "rec",
+     "label": "ielp.DTP_2_DETAIL",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "p8",
+     "label": "Update log, return result",
+     "type": "process",
+     "step": 8
+    },
+    {
+     "id": "e",
+     "label": "END",
+     "type": "end"
+    },
+    {
+     "id": "x2",
+     "label": "Lock error: go to step 8",
+     "type": "message"
+    },
+    {
+     "id": "x3",
+     "label": "File error: go to step 8",
+     "type": "message"
+    },
+    {
+     "id": "x6",
+     "label": "Row errors: go to step 8",
+     "type": "message"
+    }
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "p1"
+    },
+    {
+     "from": "p1",
+     "to": "lg1"
+    },
+    {
+     "from": "p1",
+     "to": "d2"
+    },
+    {
+     "from": "d2",
+     "to": "x2",
+     "label": "Yes"
+    },
+    {
+     "from": "d2",
+     "to": "p3",
+     "label": "No"
+    },
+    {
+     "from": "f",
+     "to": "p3"
+    },
+    {
+     "from": "p3",
+     "to": "d3"
+    },
+    {
+     "from": "d3",
+     "to": "x3",
+     "label": "No"
+    },
+    {
+     "from": "d3",
+     "to": "p4",
+     "label": "Yes"
+    },
+    {
+     "from": "p4",
+     "to": "tmp"
+    },
+    {
+     "from": "p4",
+     "to": "p5"
+    },
+    {
+     "from": "ms",
+     "to": "p5"
+    },
+    {
+     "from": "p5",
+     "to": "d6"
+    },
+    {
+     "from": "d6",
+     "to": "x6",
+     "label": "No"
+    },
+    {
+     "from": "d6",
+     "to": "p7",
+     "label": "Yes"
+    },
+    {
+     "from": "p7",
+     "to": "rec"
+    },
+    {
+     "from": "p7",
+     "to": "p8"
+    },
+    {
+     "from": "p8",
+     "to": "e"
+    }
+   ],
+   "same_rank": [
+    [
+     "d2",
+     "x2"
+    ],
+    [
+     "d3",
+     "x3"
+    ],
+    [
+     "d6",
+     "x6"
+    ]
+   ]
+  },
+  "steps": [
+   {
+    "text": "Receive file, Daily Plan Date, Operation Type and login user from the DTP Creation screen; insert TB_R_DTP_UPLOAD_LOG with STATUS 'PROCESSING'.",
+    "children": [
+     "Log message no. 1."
+    ]
+   },
+   {
+    "text": "Check that no other upload of the same user is PROCESSING (Proposed).",
+    "children": [
+     "If running, log message no. 2; go to step 8."
+    ]
+   },
+   {
+    "text": "File check before any data is written:",
+    "children": [
+     "Extension .xlsx / .xls and readable, else no. 3; size limit TBD (no. 4).",
+     "Header row = first row containing ROUNDUSE; all 18 template columns present (any order, '*' and spaces ignored), else no. 5.",
+     "At least one data row, else no. 6. Error: go to step 8."
+    ]
+   },
+   {
+    "text": "Insert every data row (non-empty) into TB_T_DTP_UPLOAD as text with UPLOAD_ID, Excel ROW_NO and SERVICE_TYPE of the screen; VALIDATION_STATUS 'N'."
+   },
+   {
+    "text": "Validate every row and collect all errors of the row (refer 4.1); update VALIDATION_STATUS 'V' / 'E' and ERROR_MSG."
+   },
+   {
+    "text": "If any row has status 'E':",
+    "children": [
+     "Log message no. 15; nothing is inserted into ielp.DTP_2_DETAIL (all-or-nothing); go to step 8."
+    ]
+   },
+   {
+    "text": "Convert types and insert all rows into ielp.DTP_2_DETAIL (STATUS 'AVAILABLE', DATA_SOURCE 'EXCEL', LAST_UPLOAD_ID) and ielp.LOG_ACTIVITY_ORDER in one transaction.",
+    "children": [
+     "DB error: rollback, log message no. 16."
+    ]
+   },
+   {
+    "text": "Update TB_R_DTP_UPLOAD_LOG (STATUS, counts, MESSAGE, END_DT); success: delete temp rows of the upload, log no. 17. Return the result (counts, or Row / Column / Error list) to the screen. Exit."
+   }
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Screen",
+    "destination": {
+     "table": "TB_R_DTP_UPLOAD_LOG",
+     "operation": "Insert",
+     "description": "Step 1"
+    },
+    "mappings": [
+     {
+      "dest_field": "UPLOAD_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "FUNCTION_ID",
+      "description": "DTP Creation upload ID (TBD)"
+     },
+     {
+      "dest_field": "DTP_DATE",
+      "description": "Plan date of the screen"
+     },
+     {
+      "dest_field": "FILE_NAME",
+      "description": "Original file name"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING'"
+     },
+     {
+      "dest_field": "TOTAL_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ADDED_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ERROR_ROWS",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "START_DT",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     }
+    ]
+   },
+   {
+    "source": "Excel file",
+    "destination": {
+     "table": "TB_T_DTP_UPLOAD",
+     "operation": "Insert",
+     "description": "Step 4 - each data row"
+    },
+    "mappings": [
+     {
+      "dest_field": "UPLOAD_ID",
+      "description": "Current upload"
+     },
+     {
+      "dest_field": "ROW_NO",
+      "description": "Excel row number"
+     },
+     {
+      "source_field": "ROUNDUSE",
+      "dest_field": "IS_ROUNDUSE_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "LP",
+      "dest_field": "COMPANY_ID_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "RENBAN",
+      "dest_field": "RENBAN_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "FROM LOCATION",
+      "dest_field": "FROM_LOC_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "TO LOCATION",
+      "dest_field": "TO_LOC_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "DESTINATION",
+      "dest_field": "DEST_CD_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "ETD",
+      "dest_field": "ETD_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "CONTAINER SIZE",
+      "dest_field": "CTR_SIZE_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "SHIPPING AGENT",
+      "dest_field": "SHIPPING_AGENT_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "CTR BOOKING NO",
+      "dest_field": "CTR_BOOKING_NO_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "VESSEL NAME",
+      "dest_field": "VESSEL_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "TRUCK TYPE",
+      "dest_field": "TRUCK_TYPE_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "CONTAINER NO",
+      "dest_field": "CONTAINER_NO_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "DESCRIPTION",
+      "dest_field": "DESCRIPTION_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "SHIFT",
+      "dest_field": "SHIFT_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "CTR DG FLAG",
+      "dest_field": "IS_DG_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "ARRIVAL DATE",
+      "dest_field": "ARRIVAL_DATE_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "source_field": "ARRIVAL TIME",
+      "dest_field": "ARRIVAL_TIME_TXT",
+      "description": "Cell as text (date cells as yyyy-mm-dd)"
+     },
+     {
+      "dest_field": "SERVICE_TYPE",
+      "description": "Operation Type of the screen"
+     },
+     {
+      "dest_field": "VALIDATION_STATUS",
+      "description": "'N'"
+     },
+     {
+      "dest_field": "ERROR_MSG",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_DTP_UPLOAD",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Current upload"
+      }
+     ]
+    },
+    "destination": {
+     "table": "TB_T_DTP_UPLOAD",
+     "operation": "Update",
+     "description": "Step 5 - each row",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Current upload"
+      },
+      {
+       "field": "ROW_NO",
+       "value": "Row"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "VALIDATION_STATUS",
+      "description": "'V' valid / 'E' error"
+     },
+     {
+      "dest_field": "ERROR_MSG",
+      "description": "All errors of the row, '; ' separated"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "TB_T_DTP_UPLOAD",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Current upload"
+      },
+      {
+       "field": "VALIDATION_STATUS",
+       "value": "'V'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Insert",
+     "description": "Step 7 - all rows valid"
+    },
+    "mappings": [
+     {
+      "dest_field": "DTP_DET_ID",
+      "description": "Sequence"
+     },
+     {
+      "dest_field": "DTP_DATE",
+      "description": "Plan date of the screen [Conflict: DTP_DATE is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "DTP_MODEL",
+      "description": "'UNIVERSAL' [Conflict: DTP_MODEL is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "source_field": "SERVICE_TYPE",
+      "dest_field": "SERVICE_TYPE"
+     },
+     {
+      "dest_field": "EXPORTER",
+      "description": "NULL (not in template, TBD OP-02) [Conflict: EXPORTER is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "IMPORTER_CD",
+      "description": "NULL (not in template) [Conflict: IMPORTER_CD is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "source_field": "IS_ROUNDUSE_TXT",
+      "dest_field": "IS_ROUNDUSE",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "COMPANY_ID_TXT",
+      "dest_field": "COMPANY_ID",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "RENBAN_TXT",
+      "dest_field": "RENBAN",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "FROM_LOC_TXT",
+      "dest_field": "FROM_LOC",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "TO_LOC_TXT",
+      "dest_field": "TO_LOC",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "DEST_CD_TXT",
+      "dest_field": "DEST_CD",
+      "description": "Trimmed, upper case [Conflict: DEST_CD is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "source_field": "ETD_TXT",
+      "dest_field": "ETD",
+      "description": "Converted to DATE (Excel date / serial / yyyy-mm-dd / dd/mm/yyyy)"
+     },
+     {
+      "source_field": "CTR_SIZE_TXT",
+      "dest_field": "CTR_SIZE",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "SHIPPING_AGENT_TXT",
+      "dest_field": "SHIPPING_AGENT",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "CTR_BOOKING_NO_TXT",
+      "dest_field": "CTR_BOOKING_NO",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "VESSEL_TXT",
+      "dest_field": "VESSEL",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "TRUCK_TYPE_TXT",
+      "dest_field": "TRUCK_TYPE",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "CONTAINER_NO_TXT",
+      "dest_field": "CONTAINER_NO",
+      "description": "Trimmed, upper case, spaces / dashes removed"
+     },
+     {
+      "source_field": "DESCRIPTION_TXT",
+      "dest_field": "DESCRIPTION",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "SHIFT_TXT",
+      "dest_field": "SHIFT",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "IS_DG_TXT",
+      "dest_field": "IS_DG",
+      "description": "Trimmed, upper case"
+     },
+     {
+      "source_field": "ARRIVAL_DATE_TXT",
+      "dest_field": "ARRIVAL_DATE",
+      "description": "Converted to DATE (Excel date / serial / yyyy-mm-dd / dd/mm/yyyy)"
+     },
+     {
+      "source_field": "ARRIVAL_TIME_TXT",
+      "dest_field": "ARRIVAL_TIME",
+      "description": "HH:MM"
+     },
+     {
+      "dest_field": "DATA_SOURCE",
+      "description": "'EXCEL' [Conflict: DATA_SOURCE is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "PAY_TYPE",
+      "description": "Default KM-14: 'By Resources' while the LP has a free By Resources Daily Trip on DTP_DATE (records already planned By Resources counted), else 'By Trip'; NULL if the LP has no Master KPI [Conflict: PAY_TYPE is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'AVAILABLE' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "ERROR_MSG",
+      "description": "NULL [Conflict: ERROR_MSG is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "NULL"
+     },
+     {
+      "dest_field": "ATTEMPT_CNT",
+      "description": "0 [Conflict: ATTEMPT_CNT is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "FAIL_REASON",
+      "description": "NULL [Conflict: FAIL_REASON is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "SUBMITTED_BY",
+      "description": "NULL [Conflict: SUBMITTED_BY is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "SUBMITTED_DT",
+      "description": "NULL [Conflict: SUBMITTED_DT is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "source_field": "UPLOAD_ID",
+      "dest_field": "LAST_UPLOAD_ID",
+      "description": "[Conflict: LAST_UPLOAD_ID is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server date-time"
+     },
+     {
+      "dest_field": "DTP_HEADER_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "LAST_UPLOAD_ID",
+       "value": "Current upload"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER",
+     "operation": "Insert",
+     "description": "Step 7 - each record"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "source_field": "DTP_DET_ID",
+      "dest_field": "DTP_DET_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'AVAILABLE' [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'Received from Excel Upload <FILE_NAME>' [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "LOG_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Result",
+    "destination": {
+     "table": "TB_R_DTP_UPLOAD_LOG",
+     "operation": "Update",
+     "description": "Step 8",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Current upload"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'SUCCESS' / 'ERROR'"
+     },
+     {
+      "dest_field": "TOTAL_ROWS",
+      "description": "Data rows"
+     },
+     {
+      "dest_field": "ADDED_ROWS",
+      "description": "Inserted records (0 on error)"
+     },
+     {
+      "dest_field": "ERROR_ROWS",
+      "description": "Rows with 'E'"
+     },
+     {
+      "dest_field": "MESSAGE",
+      "description": "Result / file error message"
+     },
+     {
+      "dest_field": "END_DT",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": "Result",
+    "destination": {
+     "table": "TB_T_DTP_UPLOAD",
+     "operation": "Delete",
+     "description": "Step 8 - success only",
+     "keys": [
+      {
+       "field": "UPLOAD_ID",
+       "value": "Current upload"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "(all rows of the upload)",
+      "description": "Deleted; on error kept N days (TBD)"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "4. DESCRIPTION",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "The batch runs on-line when the planner chooses a file on DTP Creation. Prerequisites: Daily Plan Date inside the System Master range and login user = VPLD Planner (checked by the screen and again here).",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "heading",
+   "text": "4.1 Validations (all errors of every row are collected)",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "4.1.1 Mandatory",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "ROUNDUSE, LP, RENBAN, FROM LOCATION, TO LOCATION, DESTINATION, ETD, CONTAINER SIZE, TRUCK TYPE (template '*'); SERVICE_TYPE from the screen. Error no. 7."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.1.2 Options and format",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "ROUNDUSE Y / N; CONTAINER SIZE 20 / 40 / 40 HC / 45; SHIFT DAY / NIGHT (optional); CTR DG FLAG blank or DG. Error no. 8.",
+    "RENBAN, DESTINATION, CTR BOOKING NO: letters / numbers, max 20. ETD / ARRIVAL DATE: Excel date, serial number, yyyy-mm-dd or dd/mm/yyyy. ARRIVAL TIME HH:MM(:SS). Error no. 11.",
+    "CONTAINER NO (optional): spaces / dashes removed; 4 letters (3rd/4th U, J, Z) + 7 digits with ISO 6346 check digit. Error no. 12."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.1.3 Master / data mapping",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "LP code in ielp.MS_TRUCKING_COMPANY (active); FROM / TO codes in the DTP data mapping. Error no. 9.",
+    "TO LOCATION <> FROM LOCATION. Error no. 10."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "4.1.4 Duplicates",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Key = CONTAINER NO, otherwise CTR BOOKING NO (rows with neither are not checked, TBD OP-03).",
+    "Same key twice in the file: error on the later row (no. 13).",
+    "Key already in ielp.DTP_2_DETAIL with STATUS <> 'FAILED': 'already exists in the grid' (Available / Ready / Validation Error) or 'has already been submitted' (Submitted, Queued, Processing, Processed) (no. 14)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "4.2 Commit",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "All-or-nothing: only when every row is 'V'. Insert ielp.DTP_2_DETAIL and ielp.LOG_ACTIVITY_ORDER in one transaction; rollback on any DB error (no. 16).",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "heading",
+   "text": "4.3 Result to the screen",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Result",
+     "width": 10
+    },
+    {
+     "title": "Returned",
+     "width": 34
+    }
+   ],
+   "rows": [
+    [
+     "SUCCESS",
+     "Added rows; the records appear in the grid as Available"
+    ],
+    [
+     "File error",
+     "One message (type / size / header / empty)"
+    ],
+    [
+     "Row errors",
+     "List Row / Column / Error (all rows, downloadable)"
+    ]
+   ],
+   "level": 1,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "4.4 Example (format_DTP2_1.xlsx)",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Row",
+     "width": 4
+    },
+    {
+     "title": "Data",
+     "width": 22
+    },
+    {
+     "title": "Result",
+     "width": 18
+    }
+   ],
+   "rows": [
+    [
+     "8",
+     "N, PNJ, C1244, D1, K1E, STM, 40 HC, booking ...993",
+     "Valid"
+    ],
+    [
+     "9",
+     "LP blank",
+     "no. 7"
+    ],
+    [
+     "10",
+     "Booking ...993 again",
+     "no. 13"
+    ],
+    [
+     "11",
+     "ROUNDUSE X, size 30, container MSKU1234567",
+     "no. 8, 12"
+    ]
+   ],
+   "level": 1,
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "-> 3 rows failed, nothing added; the planner fixes rows 9-11 and uploads again.",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "text",
+   "level": 1,
+   "bold": true,
+   "text": "4.x Payment Type (rev 0.3)"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "level": 2,
+   "text": "The template has no Payment Type column (TBD, KM-OQ9). Each saved record gets the default of KM-14; the planner can change it on the DTP Creation screen before submission."
+  }
+ ],
+ "func_desc_layout": "two",
+ "logging_messages": [
+  {
+   "event": "Upload start",
+   "cause": "Planner chose a file",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP upload <UPLOAD_ID> started by <USER> for plan date <DTP_DATE>, file <FILE_NAME>.",
+   "action": {
+    "system": "Insert upload log (PROCESSING)",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Lock check",
+   "cause": "Another upload of the same user is running",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Upload rejected: upload <UPLOAD_ID_RUNNING> of <USER> is still running.",
+   "action": {
+    "system": "Stop",
+    "user": "Wait and upload again"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "Extension not .xlsx / .xls or file unreadable",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Invalid file. Please upload the Excel template (.xlsx / .xls).",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Use the template"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "File larger than the limit (TBD)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "File <FILE_NAME> exceeds the maximum size <MAX_SIZE> (TBD).",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Split the file"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "Header row (ROUNDUSE) or template columns missing",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Invalid Excel format: column(s) <COLUMNS> not found. Please use the Download Template format.",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Download the template"
+   }
+  },
+  {
+   "event": "File check",
+   "cause": "No data row",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "The Excel file has no data rows.",
+   "action": {
+    "system": "Log ERROR; stop",
+    "user": "Fill in the file"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Mandatory value blank",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: <COLUMN> is required.",
+   "action": {
+    "system": "Tag row E",
+    "user": "Fill in the value"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Value not in options",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: <COLUMN> \"<VALUE>\" is not valid (<OPTIONS>).",
+   "action": {
+    "system": "Tag row E",
+    "user": "Correct the value"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "LP / FROM / TO not in data mapping",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: <COLUMN> \"<VALUE>\" is not registered in the data mapping.",
+   "action": {
+    "system": "Tag row E",
+    "user": "Use a mapped code"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "TO = FROM",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: TO LOCATION cannot be the same as FROM LOCATION.",
+   "action": {
+    "system": "Tag row E",
+    "user": "Correct"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Code / date / time format",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: <COLUMN> must be letters / numbers only (max 20). / is not a valid date / time.",
+   "action": {
+    "system": "Tag row E",
+    "user": "Correct"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Container No check digit",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: Check digit Container Number tidak valid (seharusnya <CONTAINER_NO>).",
+   "action": {
+    "system": "Tag row E",
+    "user": "Correct"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Same Container / Booking twice in the file",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: Duplicate <KEY> in row <FIRST_ROW> of the same file.",
+   "action": {
+    "system": "Tag row E",
+    "user": "Remove the duplicate"
+   }
+  },
+  {
+   "event": "Row validation",
+   "cause": "Container / Booking already in ielp.DTP_2_DETAIL (not Failed)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Row <ROW_NO>: <KEY> already exists in the grid (status <STATUS>). / has already been submitted (status <STATUS>).",
+   "action": {
+    "system": "Tag row E",
+    "user": "Remove the row"
+   }
+  },
+  {
+   "event": "Validation result",
+   "cause": "At least one row with error",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "<ERROR_ROWS> row(s) failed validation. No record was added. Please correct the file and upload again.",
+   "action": {
+    "system": "Update log ERROR; return error list; keep temp rows",
+    "user": "Correct the file and upload again"
+   }
+  },
+  {
+   "event": "Insert records",
+   "cause": "DB error during insert",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Upload <UPLOAD_ID>: insert into ielp.DTP_2_DETAIL failed (<DB_ERROR>). Transaction rolled back.",
+   "action": {
+    "system": "Rollback; update log ERROR",
+    "user": "Upload again / contact administrator"
+   }
+  },
+  {
+   "event": "Upload end",
+   "cause": "All rows valid and saved",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "<ADDED_ROWS> record(s) uploaded and validated. (<FILE_NAME>)",
+   "action": {
+    "system": "Update log SUCCESS; delete temp rows",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Any step",
+   "cause": "Unexpected system error",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Upload <UPLOAD_ID> stopped: <EXCEPTION>.",
+   "action": {
+    "system": "Rollback; log ERROR",
+    "user": "Contact administrator"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "ielp.DTP_2_DETAIL",
+   "kind": "transaction",
+   "proposed": false,
+   "description": "Existing ELIPS table (columns from ELIPS_Schema.sql)",
+   "columns": [
+    [
+     "DTP_DET_ID",
+     "VARCHAR(20)",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "ORDER_NO",
+     "VARCHAR(20)",
+     "Y",
+     "N",
+     ""
+    ],
+    [
+     "COMPANY_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "LICENSE_PLATE",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DRIVER_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FROM_LOC",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TO_LOC",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PO_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_BOOKING_NO",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SOURCES",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "COUNTRY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "VESSEL",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SHIPPING_AGENT",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FORWADING_AGENT",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TOTAL_BL",
+     "NUMERIC(38, 0)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CONTAINER_NO",
+     "VARCHAR(11)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_SIZE",
+     "INT",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SEAL_NO",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "RENBAN",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_DATE",
+     "DATETIME",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_HEADER_ID",
+     "VARCHAR(10)",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "IS_DELETE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "SERVICE_TYPE",
+     "VARCHAR(5)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TRUCK_TYPE",
+     "VARCHAR(5)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_BY",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ETD",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STATUS_CODE",
+     "VARCHAR(3)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_ROUNDUSE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "DESCRIPTION",
+     "VARCHAR(MAX)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SHIFT",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_SA",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "CTR_TYPE",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_DG",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "ARRIVAL_DATE",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ARRIVAL_TIME",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_SIZE_PLN_UPD",
+     "INT",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  },
+  {
+   "name": "TB_T_DTP_UPLOAD",
+   "kind": "temp",
+   "proposed": true,
+   "description": "Raw rows of one upload + validation result - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "UPLOAD_ID",
+     "BIGINT",
+     "Y",
+     "N",
+     "Upload ID"
+    ],
+    [
+     "ROW_NO",
+     "INT",
+     "Y",
+     "N",
+     "Excel row number"
+    ],
+    [
+     "IS_ROUNDUSE_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of ROUNDUSE"
+    ],
+    [
+     "COMPANY_ID_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of LP"
+    ],
+    [
+     "RENBAN_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of RENBAN"
+    ],
+    [
+     "FROM_LOC_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of FROM LOCATION"
+    ],
+    [
+     "TO_LOC_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of TO LOCATION"
+    ],
+    [
+     "DEST_CD_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of DESTINATION"
+    ],
+    [
+     "ETD_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of ETD"
+    ],
+    [
+     "CTR_SIZE_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of CONTAINER SIZE"
+    ],
+    [
+     "SHIPPING_AGENT_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of SHIPPING AGENT"
+    ],
+    [
+     "CTR_BOOKING_NO_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of CTR BOOKING NO"
+    ],
+    [
+     "VESSEL_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of VESSEL NAME"
+    ],
+    [
+     "TRUCK_TYPE_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of TRUCK TYPE"
+    ],
+    [
+     "CONTAINER_NO_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of CONTAINER NO"
+    ],
+    [
+     "DESCRIPTION_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of DESCRIPTION"
+    ],
+    [
+     "SHIFT_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of SHIFT"
+    ],
+    [
+     "IS_DG_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of CTR DG FLAG"
+    ],
+    [
+     "ARRIVAL_DATE_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of ARRIVAL DATE"
+    ],
+    [
+     "ARRIVAL_TIME_TXT",
+     "VARCHAR(TBD)",
+     "",
+     "Y",
+     "Raw text of ARRIVAL TIME"
+    ],
+    [
+     "SERVICE_TYPE",
+     "VARCHAR(6)",
+     "",
+     "N",
+     "Operation Type of the screen header"
+    ],
+    [
+     "VALIDATION_STATUS",
+     "CHAR(1)",
+     "",
+     "N",
+     "N = new, V = valid, E = error"
+    ],
+    [
+     "ERROR_MSG",
+     "VARCHAR(2000)",
+     "",
+     "Y",
+     "All errors of the row"
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "Login user"
+    ],
+    [
+     "CREATED_DATE",
+     "DATETIME",
+     "",
+     "N",
+     "Server date-time"
+    ]
+   ]
+  },
+  {
+   "name": "TB_R_DTP_UPLOAD_LOG",
+   "kind": "log",
+   "proposed": true,
+   "description": "One record per upload, read by the screen - proposed, not in ELIPS schema",
+   "columns": [
+    [
+     "UPLOAD_ID",
+     "BIGINT",
+     "Y",
+     "N",
+     "Upload ID (sequence)"
+    ],
+    [
+     "FUNCTION_ID",
+     "VARCHAR(10)",
+     "",
+     "N",
+     "DTP Creation upload function ID (TBD)"
+    ],
+    [
+     "DTP_DATE",
+     "DATE",
+     "",
+     "N",
+     "Daily Plan Date"
+    ],
+    [
+     "FILE_NAME",
+     "VARCHAR(200)",
+     "",
+     "N",
+     "Uploaded file name"
+    ],
+    [
+     "STATUS",
+     "VARCHAR(10)",
+     "",
+     "N",
+     "PROCESSING / SUCCESS / ERROR"
+    ],
+    [
+     "TOTAL_ROWS",
+     "INT",
+     "",
+     "Y",
+     "Data rows in the file"
+    ],
+    [
+     "ADDED_ROWS",
+     "INT",
+     "",
+     "Y",
+     "Records added"
+    ],
+    [
+     "ERROR_ROWS",
+     "INT",
+     "",
+     "Y",
+     "Rows with error"
+    ],
+    [
+     "MESSAGE",
+     "VARCHAR(1000)",
+     "",
+     "Y",
+     "Result / file error"
+    ],
+    [
+     "START_DT",
+     "DATETIME",
+     "",
+     "N",
+     "Start"
+    ],
+    [
+     "END_DT",
+     "DATETIME",
+     "",
+     "Y",
+     "End"
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(20)",
+     "",
+     "N",
+     "Login user"
+    ]
+   ]
+  },
+  {
+   "name": "ielp.LOG_ACTIVITY_ORDER",
+   "kind": "history",
+   "proposed": false,
+   "description": "Existing ELIPS table (columns from ELIPS_Schema.sql)",
+   "columns": [
+    [
+     "LOG_ID",
+     "VARCHAR(20)",
+     "Y",
+     "N",
+     ""
+    ],
+    [
+     "MENU_ID",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ACT",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ORDER_NO",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PROCESS_ID",
+     "VARCHAR(3)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "URL",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IP",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PARAM_REQ",
+     "NVARCHAR(MAX)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PARAM_RES",
+     "NVARCHAR(MAX)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FILENAME",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "REMARK",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "COST_TIME",
+     "NUMERIC(38, 0)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STS_CODE",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STS_MESSAGE",
+     "VARCHAR(1000)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CRETED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_TYPE",
+     "VARCHAR(2)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_DET_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_HEADER_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "02-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft (backend of DTP Creation Excel upload) 02-Nov-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "DATA_SOURCE value BEST renamed to IPMS (interface source is IPMS)"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "ielp.DTP_2_DETAIL.PAY_TYPE (Payment Type per DTP): default set when the uploaded rows are saved (By Resources while the trucking company has a free By Resources Daily Trip on the date, else By Trip; KM-14)"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised: records -> ielp.DTP_2_DETAIL (definition from the ELIPS DDL), history -> ielp.LOG_ACTIVITY_ORDER (inferred); upload temp / log stay proposed (ELIPS has DTP_1_DETAIL_TMP / DTP_4_DETAIL_TMP for other DTP types, DTP_FILES for files); conflicts recorded; no sample data"
+  }
+ ],
+ "appendix": [
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "LP (Trucking Company)",
+     "ielp.DTP_2_DETAIL.COMPANY_ID",
+     "varchar(10)",
+     "N",
+     "R/W",
+     "MS_TRUCKING_COMPANY.COMPANY_ID (inferred)",
+     "Revised"
+    ],
+    [
+     "Renban",
+     "ielp.DTP_2_DETAIL.RENBAN",
+     "varchar(500)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "From / To Location",
+     "ielp.DTP_2_DETAIL.FROM_LOC",
+     "varchar(10)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "ETD",
+     "ielp.DTP_2_DETAIL.ETD",
+     "date",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Container No",
+     "ielp.DTP_2_DETAIL.CONTAINER_NO",
+     "varchar(11)",
+     "N",
+     "R/W",
+     "-",
+     "Verified"
+    ],
+    [
+     "Record status",
+     "ielp.DTP_2_DETAIL.STATUS_CODE",
+     "varchar(3)",
+     "N",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Order No",
+     "ielp.DTP_2_DETAIL.ORDER_NO",
+     "varchar(20)",
+     "Y",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Payment Type",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "History",
+     "ielp.LOG_ACTIVITY_ORDER.ACT",
+     "varchar(100)",
+     "N",
+     "W/R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Uploaded file",
+     "ielp.DTP_FILES.FILE_NAME",
+     "varchar(500)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-DTP-01 Record table: UISS / code: TB_R_DTP_RECORD (one table, all models). DB: DTP_HEADER + DTP_1..4_DETAIL per DTP type. Recommendation: Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
+    "G-DTP-02 Order number at creation: UISS / code: ORDER_NO assigned by queue processing. DB: DTP_2_DETAIL.ORDER_NO NOT NULL, PK. Recommendation: Confirm when ORDER_NO is generated in ELIPS",
+    "G-DTP-03 Payment type: UISS / code: PAY_TYPE per record (dtp-rules.js setPayType). DB: No column. Recommendation: DB change request",
+    "G-DTP-04 Status values: UISS / code: Text statuses. DB: STATUS_CODE varchar(3) + MS_STATUS. Recommendation: Map statuses to MS_STATUS codes (data needed)",
+    "G-DTP-05 Exporter / Importer / Destination / Data source: UISS / code: Fields on the record. DB: No matching columns. Recommendation: Confirm columns (COUNTRY, SOURCES?)",
+    "G-DTP-06 Container size: UISS / code: '40 HC' text. DB: CTR_SIZE int + CTR_TYPE varchar(10). Recommendation: Split size and type",
+    "G-DTP-07 Delete: UISS / code: Physical delete. DB: IS_DELETE flag. Recommendation: Soft delete with IS_DELETE",
+    "G-DTP-08 Concurrency: UISS / code: VERSION. DB: No VERSION column. Recommendation: Use UPDATED_DATE"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "DTP records are stored per DTP type in ielp.DTP_1_DETAIL .. DTP_4_DETAIL; the Universal DTP template columns (round use, booking no., shipping agent, ETD, arrival date / time) match ielp.DTP_2_DETAIL (inferred).",
+    "Whether ELIPS uploads use DTP_n_DETAIL_TMP tables (exist for DTP 1 and 4 only)"
+   ]
+  }
+ ]
+}

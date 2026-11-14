@@ -1,0 +1,96 @@
+{
+ "uiss": "UISS_Batch_ELIPS_PAS_PR_Interface",
+ "revision": "Database mapping revised (ELIPS side): placeholders resolved to ielp.SA_HEADER / SA_DETAIL (status = PAS_* columns), sub items = SA_WBS_PERCENTAGE (inferred), fixed parameters = TB_M_SYSTEM (inferred); PAS tables unchanged (outside ELIPS); no sample data",
+ "replace": {
+  "<ELIPS_SA_HEADER>": "ielp.SA_HEADER",
+  "<ELIPS_SA_DETAIL>": "ielp.SA_DETAIL",
+  "<ELIPS_SA_SUBITEM>": "ielp.SA_WBS_PERCENTAGE (inferred)",
+  "<ELIPS_SA_INTERFACE_STATUS>": "ielp.SA_DETAIL",
+  "<ELIPS_APPROVAL_HISTORY>": "approval history (TBD)",
+  "<ELIPS_PAS_FIX_PARAMETER>": "ielp.TB_M_SYSTEM (inferred)"
+ },
+ "fields": [
+  {
+   "ui": "SA header",
+   "items": [],
+   "table": "ielp.SA_HEADER",
+   "column": "SA_HEADER_ID",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "SA detail",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "SA_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Interface status",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "PAS_STATUS",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "IS_PAS, PAS_CREATED_DATE, LOG_ITG_SEND_ID."
+  },
+  {
+   "ui": "Sub items (WBS)",
+   "items": [],
+   "table": "ielp.SA_WBS_PERCENTAGE",
+   "column": "WBS_NUMBER",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Fixed parameters",
+   "items": [],
+   "table": "ielp.TB_M_SYSTEM",
+   "column": "SYS_VALUE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Interface log",
+   "items": [],
+   "table": "ielp.LOG_ITGPAS",
+   "column": "STS_CODE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "PAS tables (TB_R_PR_H ...)",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "Outside ELIPS - not verifiable with this schema."
+  }
+ ],
+ "conflicts": [],
+ "tbd": [
+  "Approval history source",
+  "Mapping of SA sub items"
+ ]
+}

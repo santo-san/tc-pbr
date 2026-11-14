@@ -1,0 +1,1892 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD TC-PBR Service Acceptance Monitoring",
+  "created_date": "04-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "04-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft: monitoring of approved SA"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "04-Nov-26",
+   "reviewed_by": "",
+   "description": "Reference layout (detail list, WBS, summary), PAS interface status, PAS PR / PO feedback, detail A-G, interface log, Retry Interface, filters"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "04-Nov-26",
+   "reviewed_by": "",
+   "description": "SA Type (Delivery / Monthly Truck) column, filter, export and detail for the monthly truck cost SA"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: SA = ielp.SA_HEADER / SA_DETAIL, PAS status = SA_DETAIL.PAS_* columns, interface log = LOG_ITGPAS (inferred), WBS = SA_WBS_PERCENTAGE / MS_WBS; proposed outbox / history tables flagged; no sample data; added Export Excel section (SA-07)"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To let VPLD monitor the Service Acceptance approved in SA Approval (SA Number generated), with deliveries and approved cost.",
+   "To monitor the ELIPS -> PAS interface and the PAS feedback: PAS PR Number, PAS PR Date, PAS PO Number, interface status and errors.",
+   "To keep ELIPS (SA Approval snapshot) and PAS data clearly separated for 3-way matching and audit."
+  ],
+  "display_order": [
+   {
+    "section": "Service Acceptance List / WBS Group",
+    "fields": [
+     {
+      "field": "SA Approval Date",
+      "order": "Descending"
+     },
+     {
+      "field": "SA Number",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Search",
+    "function": "To retrieve SA by the criteria."
+   },
+   {
+    "name": "Cancel",
+    "function": "To reset the criteria."
+   },
+   {
+    "name": "Status chip",
+    "function": "To filter by interface status."
+   },
+   {
+    "name": "Tabs",
+    "function": "To switch list / WBS Group / Inter Plant."
+   },
+   {
+    "name": "Export Excel",
+    "function": "To download the current list."
+   },
+   {
+    "name": "View Detail",
+    "function": "To show SA detail A-G."
+   },
+   {
+    "name": "Interface Log",
+    "function": "To show the interface events."
+   },
+   {
+    "name": "Retry Interface",
+    "function": "To resend a failed SA to PAS."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "VPLD (Planner)",
+    "sections": [
+     {
+      "section": "Lists",
+      "description": "all SA, view only",
+      "buttons": {
+       "Search": "E",
+       "Cancel": "E",
+       "Status chip": "E",
+       "Tabs": "E",
+       "Export Excel": "E",
+       "View Detail": "E",
+       "Interface Log": "E",
+       "Retry Interface": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "IELP Admin",
+    "sections": [
+     {
+      "section": "Lists",
+      "description": "all SA, refer below 1)",
+      "buttons": {
+       "Search": "E",
+       "Cancel": "E",
+       "Status chip": "E",
+       "Tabs": "E",
+       "Export Excel": "E",
+       "View Detail": "E",
+       "Interface Log": "E",
+       "Retry Interface": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Supplier",
+    "sections": [
+     {
+      "section": "Lists",
+      "description": "own company, Truck Company fixed",
+      "buttons": {
+       "Search": "E",
+       "Cancel": "E",
+       "Status chip": "E",
+       "Tabs": "E",
+       "Export Excel": "E",
+       "View Detail": "E",
+       "Interface Log": "E",
+       "Retry Interface": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Driver",
+    "sections": [
+     {
+      "section": "Screen",
+      "description": "no access, msg 1",
+      "buttons": {
+       "Search": "D",
+       "Cancel": "D",
+       "Status chip": "D",
+       "Tabs": "D",
+       "Export Excel": "D",
+       "View Detail": "D",
+       "Interface Log": "D",
+       "Retry Interface": "D"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Retry Interface only for FAILED send without PAS values (retry authorization, proposed IELP Admin)."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for SA Monitoring",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "sa",
+      "label": "SA Approval (SA Number)",
+      "type": "screen"
+     },
+     {
+      "id": "sm",
+      "label": "SA Monitoring",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "d",
+      "label": "SA Detail popup",
+      "type": "screen"
+     },
+     {
+      "id": "l",
+      "label": "Interface Log popup",
+      "type": "screen"
+     },
+     {
+      "id": "pas",
+      "label": "PAS (PR / PO feedback)",
+      "type": "process"
+     },
+     {
+      "id": "x",
+      "label": "Excel file",
+      "type": "document"
+     }
+    ],
+    "edges": [
+     {
+      "from": "sa",
+      "to": "sm",
+      "label": "NOT_SENT"
+     },
+     {
+      "from": "pas",
+      "to": "sm",
+      "label": "feedback"
+     },
+     {
+      "from": "sm",
+      "to": "d"
+     },
+     {
+      "from": "sm",
+      "to": "l"
+     },
+     {
+      "from": "sm",
+      "to": "x",
+      "label": "Export"
+     }
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Service Acceptance Monitoring - reference screen (from user)",
+   "image": "img/UISS_Screen_SA_Monitoring/ref.png"
+  },
+  {
+   "caption": "2. Service Acceptance List - criteria, status chips, detail rows (HTML mock-up)",
+   "image": "img/UISS_Screen_SA_Monitoring/s01_list.png"
+  },
+  {
+   "caption": "3. Service Acceptance List - PAS PR / PO, Interface Status, Route",
+   "image": "img/UISS_Screen_SA_Monitoring/s02_list_mid.png"
+  },
+  {
+   "caption": "4. Service Acceptance List - Service Type, Price, WBS % and cost, summary",
+   "image": "img/UISS_Screen_SA_Monitoring/s03_list_right.png"
+  },
+  {
+   "caption": "5. Service Acceptance List (WBS Group) - one row per SA",
+   "image": "img/UISS_Screen_SA_Monitoring/s04_wbs.png"
+  },
+  {
+   "caption": "6. WBS Group - PAS PR / PO, Interface Status, Feedback, Last Update",
+   "image": "img/UISS_Screen_SA_Monitoring/s05_wbs_right.png"
+  },
+  {
+   "caption": "7. SA Detail - A. SA, B. Trucking, C. Delivery",
+   "image": "img/UISS_Screen_SA_Monitoring/s06_detail.png"
+  },
+  {
+   "caption": "8. SA Detail - D. Cost (ELIPS), E. PAS, F. Integration, G. Audit",
+   "image": "img/UISS_Screen_SA_Monitoring/s07_detail_pas.png"
+  },
+  {
+   "caption": "9. IELP Admin - Status Failed with Retry Interface",
+   "image": "img/UISS_Screen_SA_Monitoring/s10_failed_ip.png"
+  },
+  {
+   "caption": "10. Interface Log popup",
+   "image": "img/UISS_Screen_SA_Monitoring/s11_log.png"
+  },
+  {
+   "caption": "11. Filter PAS PO Number empty",
+   "image": "img/UISS_Screen_SA_Monitoring/s12_po_empty.png"
+  },
+  {
+   "caption": "12. Demo PAS simulator (mock-up only) - conflicting PR rejected",
+   "image": "img/UISS_Screen_SA_Monitoring/s09_sim.png"
+  },
+  {
+   "caption": "13. SA Type Monthly Truck - monthly truck cost SA (rev 0.3)",
+   "image": "img/UISS_Screen_SA_Monitoring/m05_mon_list.png"
+  },
+  {
+   "caption": "14. SA Detail - monthly truck cost SA",
+   "image": "img/UISS_Screen_SA_Monitoring/m07_mon_detail.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title / breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Service Acceptance Monitoring', 'service acceptance - monitoring'. Menu Service Acceptance > SA Monitoring."
+  },
+  {
+   "group": "<Search Criteria Section>"
+  },
+  {
+   "name": "SA Date From",
+   "source": "Screen",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "1st day of previous month",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "SA approval date >= value."
+  },
+  {
+   "name": "SA Date To",
+   "source": "Screen",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "System date",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "SA approval date <= value."
+  },
+  {
+   "name": "SA Number",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": 22,
+   "io": "I",
+   "control": "Textbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains (partial)."
+  },
+  {
+   "name": "Status",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": 12,
+   "io": "I",
+   "control": "Dropdown",
+   "justified": "Left",
+   "initial": "All",
+   "required": "Y",
+   "format": "",
+   "validation": "",
+   "description": "Interface Status (5.5) or All."
+  },
+  {
+   "name": "Truck Company",
+   "source": "ielp.SA_HEADER",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Dropdown",
+   "justified": "Left",
+   "initial": "All",
+   "required": "Y",
+   "format": "CODE - Name",
+   "validation": "",
+   "description": "All allowed. Supplier: fixed to own company (disabled).\nDB: ielp.SA_HEADER.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "SA Type",
+   "source": "ielp.SA_HEADER",
+   "field": "SA_TYPE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "I",
+   "control": "Dropdown",
+   "justified": "Left",
+   "initial": "All",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "All / Delivery / Monthly Truck (monthly truck cost SA from Fixed Cost PO).\nDB: ielp.SA_HEADER.SA_TYPE varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "Delivery Number",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": 18,
+   "io": "I",
+   "control": "Textbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains; SA with any matching detail."
+  },
+  {
+   "name": "Delivery Date",
+   "source": "Screen",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "Equals; SA with any detail of that date."
+  },
+  {
+   "name": "PAS PR Number",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": "TBD",
+   "io": "I",
+   "control": "Textbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains."
+  },
+  {
+   "name": "PAS PO Number",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": "TBD",
+   "io": "I",
+   "control": "Textbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains."
+  },
+  {
+   "name": "PAS PO Number empty",
+   "source": "Screen",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Checkbox",
+   "justified": "Left",
+   "initial": "Unchecked",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Only SA without PAS PO Number."
+  },
+  {
+   "name": "Search",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Apply the criteria (5.2)."
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Reset criteria to the initial values."
+  },
+  {
+   "group": "<Status Summary / Tabs / List Bar>"
+  },
+  {
+   "name": "Status chips",
+   "source": "Screen",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "One per Interface Status with count of the accessible SA; click = filter Status (click again = All)."
+  },
+  {
+   "name": "Tabs",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Tab",
+   "justified": "Left",
+   "initial": "Service Acceptance List",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Service Acceptance List (detail) / Service Acceptance List (WBS Group) (header, OQ-03) / Inter Plant (TBD, OQ-14)."
+  },
+  {
+   "name": "Search (list)",
+   "source": "Screen",
+   "field": "--",
+   "type": "Char",
+   "len": 50,
+   "io": "I",
+   "control": "Textbox",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Contains over SA No, SA Det No, Delivery No, trucking, PAS PR / PO, Route, ELIPS PO, status."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button (menu)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show / hide columns of the Service Acceptance List. ELIPS PO No, Rate, Currency hidden by default."
+  },
+  {
+   "name": "Export Excel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Excel of the current tab and filter: 'SA Monitoring_YYYYMMDDHHMISS.xlsx'. No data: message no. 3."
+  },
+  {
+   "group": "<Service Acceptance List (one row per SA detail)>"
+  },
+  {
+   "name": "Options - View Detail",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Icon button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Opens SA Detail (5.6)."
+  },
+  {
+   "name": "SA No",
+   "source": "ielp.SA_DETAIL",
+   "field": "SA_CODE",
+   "type": "Varchar",
+   "len": "16",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "ELIPS (SA Approval).\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Conflict] varchar(16) vs Char 22."
+  },
+  {
+   "name": "SA Type",
+   "source": "ielp.SA_HEADER",
+   "field": "SA_TYPE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Delivery' / 'Monthly Truck' badge.\nDB: ielp.SA_HEADER.SA_TYPE varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "SA Det No",
+   "source": "ielp.SA_DETAIL",
+   "field": "SA_DETAIL_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "YYMMC99999",
+   "validation": "",
+   "description": "ELIPS; format TBD (OQ-09).\nDB: ielp.SA_DETAIL.SA_DETAIL_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Delivery No / Delivery Date",
+   "source": "ielp.SA_DETAIL",
+   "field": "DTP_DET_ID",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD",
+   "validation": "",
+   "description": "ELIPS snapshot. Monthly Truck: description 'Monthly truck rental (Fixed Cost) MM/YYYY' and production month; route, KM, service type '-'.\nDB: ielp.SA_DETAIL.DTP_DET_ID varchar(100) NULL [Revised] Order via DTP_DET_ID / ORDER_CYCLE (inferred)."
+  },
+  {
+   "name": "Truck Company",
+   "source": "ielp.SA_HEADER",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.SA_HEADER.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "PAS PR No / PAS PO No / PAS PR Date",
+   "source": "ielp.SA_DETAIL",
+   "field": "PAS_PR_NUMBER",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "PAS feedback only; '-' until received (SM-03).\nDB: ielp.SA_DETAIL.PAS_PR_NUMBER varchar(20) NULL [Revised] PAS_PO_NUMBER varchar(20), PAS_PR_DATE / PAS_PO_DATE date."
+  },
+  {
+   "name": "Interface Status",
+   "source": "ielp.SA_DETAIL",
+   "field": "PAS_STATUS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Badge (5.5); 'Overdue' flag when no feedback > 24 h (TBD, SM-14).\nDB: ielp.SA_DETAIL.PAS_STATUS varchar(100) NULL [TBD] IS_PAS, PAS_CREATED_DATE, IS_PAS_CALLBACK, PAS_CALLBACK_STATUS, PAS_CALLBACK_DATE."
+  },
+  {
+   "name": "Route Code",
+   "source": "ielp.SA_DETAIL",
+   "field": "ROUTE_HEADER_ID",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.SA_DETAIL.ROUTE_HEADER_ID varchar(100) NULL [Revised] Route via MS_ROUTE_HEADER (inferred)."
+  },
+  {
+   "name": "Ctr Size",
+   "source": "ielp.SA_DETAIL",
+   "field": "CTR_SIZE",
+   "type": "Varchar",
+   "len": "2",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.SA_DETAIL.CTR_SIZE varchar(2) NULL [Revised]"
+  },
+  {
+   "name": "Service Type Cycle 1-5",
+   "source": "TBD",
+   "field": "TBD",
+   "type": "Char",
+   "len": 3,
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "CS / RRE / RRR / SP / CE / CI; source TBD (OQ-10). Mock: CE."
+  },
+  {
+   "name": "Total KM",
+   "source": "ielp.SA_DETAIL",
+   "field": "TOTAL_KM",
+   "type": "Numeric",
+   "len": 9,
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "Z,ZZ9.99",
+   "validation": "",
+   "description": "ELIPS snapshot.\nDB: Conflict - No KM / rate / currency columns on SA."
+  },
+  {
+   "name": "ELIPS PO No / Rate / KM / Currency",
+   "source": "ielp.SA_DETAIL",
+   "field": "PO_NUMBER, RATE_PER_KM, CURRENCY",
+   "type": "Char / Numeric",
+   "len": "TBD",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Cost reference PO (not the PAS PO, SM-04). Hidden by default.\nDB: Conflict - No KM / rate / currency columns on SA."
+  },
+  {
+   "name": "Price",
+   "source": "ielp.SA_DETAIL",
+   "field": "TOTAL_PRICE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Approved cost (snapshot). Green column.\nDB: ielp.SA_DETAIL.TOTAL_PRICE varchar(100) NULL [Conflict] varchar(100)."
+  },
+  {
+   "name": "WBS Consumption Master (Percentage) CS..CI",
+   "source": "ielp.SA_WBS_PERCENTAGE",
+   "field": "WBS_PERCENTAGE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "ZZ9%",
+   "validation": "",
+   "description": "Mock: share of cycles per service type (OQ-10).\nDB: ielp.SA_WBS_PERCENTAGE.WBS_PERCENTAGE varchar(20) NULL [Revised] varchar(20); WBS_COST varchar(100)."
+  },
+  {
+   "name": "WBS Consumption Master (Cost) CS..CI",
+   "source": "Calculation",
+   "field": "--",
+   "type": "Numeric",
+   "len": 13,
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "N",
+   "format": "ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Price x percentage; last WBS takes the rounding rest."
+  },
+  {
+   "name": "Approval Date",
+   "source": "ielp.SA_DETAIL",
+   "field": "APPROVED_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "DD/MM/YYYY",
+   "validation": "",
+   "description": "DB: ielp.SA_DETAIL.APPROVED_DATE datetime NULL [Revised]"
+  },
+  {
+   "name": "Summary row",
+   "source": "Calculation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Summary :' sum of Price; 'WBS Cost Summary :' sum per WBS of all filtered rows."
+  },
+  {
+   "group": "<Service Acceptance List (WBS Group) - one row per SA header>"
+  },
+  {
+   "name": "Action",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Icon buttons",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "View Detail; View Interface Log; Retry Interface (only FAILED send without PAS values; enabled with retry authorization, else disabled with tooltip)."
+  },
+  {
+   "name": "SA Number / SA Approval Date / Approved By",
+   "source": "ielp.SA_DETAIL",
+   "field": "SA_CODE",
+   "type": "Varchar",
+   "len": "16",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "DD/MM/YYYY HH:MI",
+   "validation": "",
+   "description": "'legacy' label for SA before TC-PBR SA Approval.\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Conflict] varchar(16) vs Char 22."
+  },
+  {
+   "name": "Truck Company / Delivery Count / Total KM / Total Cost / Currency",
+   "source": "ielp.SA_HEADER",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "ELIPS snapshot.\nDB: ielp.SA_HEADER.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "WBS Cost CS..CI",
+   "source": "Calculation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Sum of the details."
+  },
+  {
+   "name": "PAS PR Number / PAS PR Date / PAS PO Number",
+   "source": "ielp.SA_DETAIL",
+   "field": "PAS_PR_NUMBER",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "PAS feedback only.\nDB: ielp.SA_DETAIL.PAS_PR_NUMBER varchar(20) NULL [Revised] PAS_PO_NUMBER varchar(20), PAS_PR_DATE / PAS_PO_DATE date."
+  },
+  {
+   "name": "Interface Status / Feedback / Last Update",
+   "source": "ielp.SA_DETAIL",
+   "field": "PAS_STATUS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Feedback = RECEIVED / REJECTED / ERROR + error code (tooltip message).\nDB: ielp.SA_DETAIL.PAS_STATUS varchar(100) NULL [TBD] IS_PAS, PAS_CREATED_DATE, IS_PAS_CALLBACK, PAS_CALLBACK_STATUS, PAS_CALLBACK_DATE."
+  },
+  {
+   "group": "<SA Detail Popup (sections, each with its source label)>"
+  },
+  {
+   "name": "A. SA Information",
+   "source": "ielp.SA_DETAIL",
+   "field": "SA_CODE",
+   "type": "Varchar",
+   "len": "16",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Source: ELIPS (SA Approval).\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Conflict] varchar(16) vs Char 22."
+  },
+  {
+   "name": "B. Trucking Information",
+   "source": "ielp.SA_HEADER",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Source: ELIPS.\nDB: ielp.SA_HEADER.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "C. Monthly Truck Cost (SA type Monthly)",
+   "source": "ielp.SA_DETAIL",
+   "field": "SA_DETAIL_ID, DESCRIPTION, PROD_MONTH, PR_NO, COST",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Shown instead of Delivery Information for a monthly SA."
+  },
+  {
+   "name": "C. Delivery Information",
+   "source": "ielp.SA_DETAIL",
+   "field": "DTP_DET_ID",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Source: ELIPS snapshot; one row per delivery.\nDB: ielp.SA_DETAIL.DTP_DET_ID varchar(100) NULL [Revised] Order via DTP_DET_ID / ORDER_CYCLE (inferred)."
+  },
+  {
+   "name": "D. Cost Calculation",
+   "source": "ielp.SA_HEADER",
+   "field": "PO_NUMBER, PO_VALID_FROM/TO, RATE, TOTAL_KM, TOTAL_COST, CURRENCY",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Source: ELIPS snapshot, not changed by PAS.\nDB: Conflict - No KM / rate / currency columns on SA."
+  },
+  {
+   "name": "E. PAS Information",
+   "source": "ielp.SA_DETAIL",
+   "field": "PAS_PR_NUMBER",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Source: PAS feedback.\nDB: ielp.SA_DETAIL.PAS_PR_NUMBER varchar(20) NULL [Revised] PAS_PO_NUMBER varchar(20), PAS_PR_DATE / PAS_PO_DATE date."
+  },
+  {
+   "name": "F. Integration Information",
+   "source": "ielp.LOG_ITGPAS",
+   "field": "STS_CODE",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.LOG_ITGPAS.STS_CODE varchar(10) NULL [TBD] LOG_ITGPAS: ACT, PARAM_REQ / RES, STS_CODE, STS_MESSAGE; SA_DETAIL.LOG_ITG_SEND_ID / LOG_ITG_CALLBACK_ID."
+  },
+  {
+   "name": "G. Audit Information + event log",
+   "source": "ielp.LOG_ITGPAS",
+   "field": "STS_CODE",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Created / approved / last updated and all events (5.7).\nDB: ielp.LOG_ITGPAS.STS_CODE varchar(10) NULL [TBD] LOG_ITGPAS: ACT, PARAM_REQ / RES, STS_CODE, STS_MESSAGE; SA_DETAIL.LOG_ITG_SEND_ID / LOG_ITG_CALLBACK_ID."
+  },
+  {
+   "group": "<Interface Log Popup>"
+  },
+  {
+   "name": "Event table",
+   "source": "ielp.LOG_ITGPAS",
+   "field": "STS_CODE",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Same event list as section G.\nDB: ielp.LOG_ITGPAS.STS_CODE varchar(10) NULL [TBD] LOG_ITGPAS: ACT, PARAM_REQ / RES, STS_CODE, STS_MESSAGE; SA_DETAIL.LOG_ITG_SEND_ID / LOG_ITG_CALLBACK_ID."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Selected SA",
+    "destination": {
+     "table": "ielp.SA_HEADER",
+     "operation": "Update",
+     "description": "[Retry Interface]",
+     "keys": [
+      {
+       "field": "SA_CODE",
+       "value": "Selected SA"
+      },
+      {
+       "field": "PAS_STATUS",
+       "value": "'FAILED'"
+      },
+      {
+       "field": "PAS_VERSION",
+       "value": "Version shown"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "PAS_STATUS",
+      "description": "'PROCESSING', then 'SENT' / 'FAILED' (batch result) [Conflict: PAS_STATUS is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "INTERFACE_ATTEMPT",
+      "description": "+ 1 [Conflict: INTERFACE_ATTEMPT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "CORRELATION_ID",
+      "description": "Not changed (stable) [Conflict: CORRELATION_ID is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "ERROR_CD / ERROR_MSG",
+      "description": "Cleared on success, else error [Conflict: ERROR_CD is not a column of ielp.SA_HEADER] [Conflict: ERROR_MSG is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "INTERFACE_DT",
+      "description": "Server date-time on success [Conflict: INTERFACE_DT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "PAS_UPDATED_DT",
+      "description": "Server date-time [Conflict: PAS_UPDATED_DT is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "PAS_VERSION",
+      "description": "+ 1 [Conflict: PAS_VERSION is not a column of ielp.SA_HEADER]"
+     },
+     {
+      "dest_field": "Snapshot columns (SA_CODE, LP, PO_NUMBER, TOTAL_KM, TOTAL_COST, ...)",
+      "description": "Not changed [Conflict: TOTAL_KM is not a column of ielp.SA_HEADER] [Conflict: TOTAL_COST is not a column of ielp.SA_HEADER]"
+     }
+    ]
+   },
+   {
+    "source": "Selected SA",
+    "destination": {
+     "table": "PAS outbox (proposed, not in ELIPS)",
+     "operation": "Update",
+     "description": "[Retry Interface]",
+     "keys": [
+      {
+       "field": "SA_CODE",
+       "value": "Selected SA"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'RETRY'"
+     },
+     {
+      "dest_field": "NEXT_RETRY_DT",
+      "description": "Server date-time (now)"
+     },
+     {
+      "dest_field": "ATTEMPT",
+      "description": "+ 1"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "ielp.LOG_ITGPAS (inferred)",
+     "operation": "Insert",
+     "description": "[Retry Interface] - audit"
+    },
+    "mappings": [
+     {
+      "dest_field": "SA_CODE",
+      "description": "Selected SA"
+     },
+     {
+      "dest_field": "EVENT",
+      "description": "'SA_SENT_TO_PAS', then 'PAS_REQUEST_SUCCESS' / 'PAS_REQUEST_FAILED'"
+     },
+     {
+      "dest_field": "PREV_STS / NEW_STS",
+      "description": "Status before / after"
+     },
+     {
+      "dest_field": "CORRELATION_ID",
+      "description": "Header correlation ID"
+     },
+     {
+      "dest_field": "ERROR_CD / ERROR_MSG",
+      "description": "On failure"
+     },
+     {
+      "dest_field": "ACTOR / EVENT_DT",
+      "description": "Login user / server date-time"
+     }
+    ]
+   }
+  ],
+  "note": "Search, detail, log and export do not change data. PAS feedback and the interface batch are background processes (Operation 5.9)."
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Criteria: SA Date From = 1st day of previous month, To = system date (TBD); Status and Truck Company = All; tab Service Acceptance List.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Access: VPLD / IELP Admin all SA; Supplier own trucking company; Driver no access (message no. 1).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Only SA generated by SA Approval (SA Number present) are shown; this screen never generates an SA Number (SM-01).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Two SA types: Delivery (route-based delivery cost) and Monthly Truck (monthly truck cost of a released Fixed Cost PO, refer UISS SA Approval 5.9).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Search",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "SA approval date in range; SA Number / Delivery Number / PAS PR / PAS PO contains; Status = Interface Status; Truck Company = code; Delivery Date equals; PAS PO empty.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Sort SA Approval Date descending, SA Number; server-side paging 10 / 25 / 50. No data: 'No Data Found' (message no. 2).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 ELIPS data vs PAS data",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "ELIPS (SA Approval snapshot, read only): SA Number, SA Det No, deliveries, trucking, route, Total KM, ELIPS cost reference PO, rate, cost, approval date / by (SM-10).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "PAS feedback: PAS PR Number, PAS PR Date, PAS PO Number - empty until received; never generated by ELIPS, PR Date never taken from SA / interface / system date (SM-03).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "The ELIPS PO used for cost is never overwritten by the PAS PO Number (SM-04).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.4 WBS columns",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Percentage per WBS (CS, RRE, RRR, SP, CE, CI) from the service type of the cycles; cost = Price x percentage. Source WBS Consumption Master and service type: TBD (OQ-10).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Interface Status",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 2,
+   "columns": [
+    {
+     "title": "Code",
+     "width": 10
+    },
+    {
+     "title": "Label",
+     "width": 10
+    },
+    {
+     "title": "Meaning",
+     "width": 26
+    }
+   ],
+   "rows": [
+    [
+     "NOT_SENT",
+     "Not Sent",
+     "Approved, not yet sent"
+    ],
+    [
+     "PROCESSING",
+     "Processing",
+     "Send in progress"
+    ],
+    [
+     "SENT",
+     "Sent - Waiting PAS",
+     "Accepted by PAS, waiting feedback"
+    ],
+    [
+     "PR_RECEIVED",
+     "PR Received",
+     "PAS PR No + Date received"
+    ],
+    [
+     "PO_RECEIVED",
+     "PO Received",
+     "PAS PO received, PR not yet"
+    ],
+    [
+     "COMPLETED",
+     "Completed",
+     "PR and PO received"
+    ],
+    [
+     "FAILED",
+     "Failed",
+     "Send failed or PAS error"
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Status = COMPLETED if PR and PO, PR_RECEIVED if PR only, PO_RECEIVED if PO only, SENT if none; FAILED on send error or PAS error feedback (SM-07). Existing ELIPS-PAS standard replaces this model (OQ-02).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Overdue flag: SENT / PR / PO received without feedback for more than 24 h (TBD). Visual only.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Detail",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Sections A-G with source labels (ELIPS / PAS feedback). Read only.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Interface Log / Audit",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Events SA_APPROVED, SA_SENT_TO_PAS, PAS_REQUEST_SUCCESS, PAS_REQUEST_FAILED, PAS_PR_RECEIVED, PAS_PO_RECEIVED, PAS_FEEDBACK_FAILED, PAS_PROCESS_COMPLETED with time, actor, correlation ID, previous / new status, error.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Retry Interface",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "1.",
+   "text": "Shown for FAILED SA without PAS values; enabled only with the retry authorization (IELP Admin, proposed, OQ-08); backend checks again (message no. 6).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "2.",
+   "text": "Status PROCESSING, attempt + 1, same correlation ID; result SENT (message no. 4) or FAILED with error (message no. 5).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "3.",
+   "text": "PAS-side failure (PR / PO creation failed) is not resent; PAS sends the missing data later (message no. 7).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 Background processes (outside this screen)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Interface batch: sends NOT_SENT SA from the outbox, retries PAS_UNAVAILABLE / TIMEOUT automatically (5, 15, 60 min, 3 attempts - TBD).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "PAS feedback API: idempotent by feedback id; matched by SA Number + correlation ID; staged PR then PO update the same SA; conflicts, unknown SA, missing PR No / PR Date / PO No rejected and logged; PO received sets Daily orders 'SA Approved with PO Number'. Refer UISS-Batch PAS Interface (TBD) and docs/sa-monitoring-spec.md §13-§20.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Integration errors never remove an SA from this screen (SM-11).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.10 Open Questions",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 2,
+   "columns": [
+    {
+     "title": "ID",
+     "width": 6
+    },
+    {
+     "title": "Question",
+     "width": 40
+    }
+   ],
+   "rows": [
+    [
+     "OQ-01",
+     "PAS interface contract (push / file / queue, content, feedback channel, auth)."
+    ],
+    [
+     "OQ-02",
+     "Existing ELIPS-PAS status standard; definition of Completed."
+    ],
+    [
+     "OQ-03",
+     "Content of tab Service Acceptance List (WBS Group)."
+    ],
+    [
+     "OQ-04",
+     "SA Date different from approval date?"
+    ],
+    [
+     "OQ-05",
+     "May PAS correct PR / PO numbers after sending?"
+    ],
+    [
+     "OQ-06",
+     "Uniqueness of PAS PR / PAS PO across SA."
+    ],
+    [
+     "OQ-07",
+     "Feedback timeout threshold; reminder / e-mail?"
+    ],
+    [
+     "OQ-08",
+     "Who may retry / resend / correct / cancel?"
+    ],
+    [
+     "OQ-09",
+     "SA Det No format."
+    ],
+    [
+     "OQ-10",
+     "Service Type source and WBS Consumption Master rule."
+    ],
+    [
+     "OQ-11",
+     "PAS PO feedback updates Daily Monitoring status?"
+    ],
+    [
+     "OQ-13",
+     "PAS PR / PO per SA header or per delivery?"
+    ],
+    [
+     "OQ-14",
+     "Definition of tab Inter Plant."
+    ],
+    [
+     "OQ-15",
+     "Excel export layout and maximum rows."
+    ]
+   ],
+   "row_lines": "all"
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "SA No",
+     "ielp.SA_DETAIL.SA_CODE",
+     "varchar(16)",
+     "N",
+     "R",
+     "-",
+     "Conflict"
+    ],
+    [
+     "SA Type",
+     "ielp.SA_HEADER.SA_TYPE",
+     "varchar(1)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "SA Det No",
+     "ielp.SA_DETAIL.SA_DETAIL_ID",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Delivery No / Date",
+     "ielp.SA_DETAIL.DTP_DET_ID",
+     "varchar(100)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Truck Company",
+     "ielp.SA_HEADER.COMPANY_ID",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "PAS PR / PO No / PR Date",
+     "ielp.SA_DETAIL.PAS_PR_NUMBER",
+     "varchar(20)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Interface Status",
+     "ielp.SA_DETAIL.PAS_STATUS",
+     "varchar(100)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Route Code",
+     "ielp.SA_DETAIL.ROUTE_HEADER_ID",
+     "varchar(100)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Ctr Size",
+     "ielp.SA_DETAIL.CTR_SIZE",
+     "varchar(2)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Total KM / Rate / Currency",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Price",
+     "ielp.SA_DETAIL.TOTAL_PRICE",
+     "varchar(100)",
+     "N",
+     "R",
+     "-",
+     "Conflict"
+    ],
+    [
+     "WBS %",
+     "ielp.SA_WBS_PERCENTAGE.WBS_PERCENTAGE",
+     "varchar(20)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Approval Date",
+     "ielp.SA_DETAIL.APPROVED_DATE",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Integration log",
+     "ielp.LOG_ITGPAS.STS_CODE",
+     "varchar(10)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-SA-01 SA number length: UISS / code: SA_NO Char 22 (sa-rules.js saNumber). DB: SA_CODE varchar(16); SA_HEADER_ID varchar(20). Recommendation: Shorten the SA number format or widen SA_CODE (DB change request)",
+    "G-SA-02 Amounts as text: UISS / code: Numeric KM / price / cost. DB: SA_DETAIL.PRICE, TOTAL_PRICE varchar(100); TOTAL_TRIP varchar(10); SA_HEADER.SA_TOTAL varchar(5). Recommendation: Store numbers as text with fixed format or change types",
+    "G-SA-03 Total KM / rate per KM: UISS / code: TOTAL_KM, RATE_PER_KM, CURRENCY on SA. DB: No such columns (ROUTE_PRICE_ID -> MS_ROUTE_PRICE). Recommendation: Derive from MS_ROUTE_PRICE / TB_M_MILEAGE",
+    "G-SA-04 Status codes: UISS / code: Text statuses. DB: SA_HEADER.STATUS_CODE varchar(1), SA_DETAIL.STATUS_CODE varchar(2), SA_TYPE varchar(1). Recommendation: Code values TBD",
+    "G-SAM-01 Interface tracking: UISS / code: CORRELATION_ID, INTERFACE_ATTEMPT, FEEDBACK_STS, ERROR_CD on SA header. DB: SA_DETAIL PAS_* per detail; log in LOG_ITGPAS. Recommendation: Track per SA_DETAIL; attempts / correlation id TBD",
+    "G-SAM-02 VISION columns: UISS / code: -. DB: SA_DETAIL.IS_VISION / VISION_* exist. Recommendation: Meaning TBD (other interface?)"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "PAS_STATUS values",
+    "Meaning of VISION_* columns",
+    "Monthly SA detail (fixed cost) rows in SA_DETAIL"
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "Export Excel (review addition, SA-07)"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "[Export Excel] (sa-monitoring.js:224) writes the current filtered list to \"SA Monitoring_YYYYMMDDHHMISS.xlsx\", sheet \"SA Monitoring\"; nothing exported when the list is empty (toast \"Tidak ada data untuk diexport\").",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Tab Service Acceptance List (WBS Group): columns SA Number, SA Type, SA Approval Date, Approved By, Trucking Code, Trucking Company, Delivery Count, Total KM, Total Cost, Currency, PAS PR Number, PAS PR Date, PAS PO Number, Interface Status, Feedback status, error, last update.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Tab Service Acceptance List (detail): SA No, SA Type, SA Det No, Delivery No, Delivery Date, Trucking Code, PAS PR No, PAS PO No, PAS PR Date, Interface Status, Route Code, Total KM, ELIPS PO No, Rate / KM, Price, Currency, WBS % and WBS cost per WBS (CS, RRE, RRR, SP, CE, CI).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Sources: ielp.SA_HEADER / SA_DETAIL / SA_WBS_PERCENTAGE (see Database Specification); KM / rate / currency have no column (G-SA-03).",
+   "level": 2
+  }
+ ],
+ "display_messages": [
+  {
+   "event": "Open screen",
+   "cause": "Driver / no authorization",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA Monitoring is not available for this role.",
+   "action": "-"
+  },
+  {
+   "event": "Search",
+   "cause": "No SA for the criteria",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No Data Found",
+   "action": "-"
+  },
+  {
+   "event": "Export Excel",
+   "cause": "No row",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Tidak ada data untuk diexport",
+   "action": "-"
+  },
+  {
+   "event": "Retry Interface",
+   "cause": "Sent",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "SA {SA Number} sent to PAS",
+   "action": "-"
+  },
+  {
+   "event": "Retry Interface",
+   "cause": "Send failed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Error message} (PAS_UNAVAILABLE / TIMEOUT / INVALID_REQUEST / PAS_REJECTED)",
+   "action": "Check error, retry later"
+  },
+  {
+   "event": "Retry Interface",
+   "cause": "No retry authorization",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Retry Interface needs the retry authorization",
+   "action": "-"
+  },
+  {
+   "event": "Retry Interface",
+   "cause": "PAS already returned data",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "PAS already returned data; the failed PAS step is handled in PAS (no resend)",
+   "action": "Follow up with PAS"
+  },
+  {
+   "event": "Retry Interface",
+   "cause": "Status not FAILED / changed by another process",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "SA {SA Number} is {status}, cannot be sent",
+   "action": "Refresh"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Interface",
+   "cause": "Send / retry",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{SA_CODE} {event} by {actor}, correlation {id}, {prev} -> {new}.",
+   "exception": "N",
+   "action": "TB_H_SA_INTERFACE row"
+  },
+  {
+   "event": "Interface",
+   "cause": "Send failed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{SA_CODE} PAS_REQUEST_FAILED {code}: {message}.",
+   "exception": "Y",
+   "action": "Retry by batch / authorized user"
+  },
+  {
+   "event": "PAS feedback",
+   "cause": "Accepted",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{SA_CODE} {PAS_PR_RECEIVED / PAS_PO_RECEIVED / PAS_PROCESS_COMPLETED}, feedback {id}.",
+   "exception": "N",
+   "action": "-"
+  },
+  {
+   "event": "PAS feedback",
+   "cause": "Rejected (conflict, missing PR No / Date / PO No, correlation, unknown SA, duplicate PR)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "{SA_CODE} PAS_FEEDBACK_FAILED {code}: {message}, feedback {id}.",
+   "exception": "Y",
+   "action": "Follow up with PAS"
+  },
+  {
+   "event": "PAS feedback",
+   "cause": "Database update failure",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Feedback {id} for {SA_CODE} not saved: {error}.",
+   "exception": "Y",
+   "action": "PAS resends; inform system administrator"
+  }
+ ]
+}

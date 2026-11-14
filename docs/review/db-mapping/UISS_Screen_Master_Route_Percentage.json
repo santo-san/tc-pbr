@@ -1,0 +1,202 @@
+{
+ "uiss": "UISS_Screen_Master_Route_Percentage",
+ "revision": "Database mapping revised to the ELIPS schema: route header = ielp.MS_ROUTE_HEADER (percentage), route code / description = ielp.MS_ROUTE_DETAIL, history = ielp.MS_ROUTE_PERCENTAGE_HIST; ordered stops and distance have no column (conflicts); no sample data",
+ "replace": {
+  "Route Percentage Master (TBD)": "ielp.MS_ROUTE_HEADER",
+  "Route Stop (TBD)": "Route stops (no ELIPS table - TBD)",
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "Route Mileage Master (TBD)": "ielp.TB_M_MILEAGE",
+  "ROUTE_ID (TBD)": "ROUTE_HEADER_ID",
+  "ROUTE_CD (TBD)": "ROUTE_CODE",
+  "ROUTE_DESC (TBD)": "ROUTE_DESCR",
+  "PERCENTAGE (TBD)": "ROUTE_PERCENTAGE_VALUE",
+  "DISTANCE_KM (TBD)": "DISTANCE (MS_ROUTE_PERCENTAGE_HIST, inferred)",
+  "STATUS (TBD)": "IS_DELETE",
+  "LOCATION_CD + LOCATION_NAME (TBD)": "LOCATION_ALIAS + LOCATION_NAME",
+  "LOCATION_CD (TBD)": "LOCATION_ALIAS",
+  "LOCATION_NAME (TBD)": "LOCATION_NAME",
+  "VERSION (TBD)": "VERSION (no column - Conflict)",
+  "CHANGED_BY / CHANGED_DT (TBD)": "UPDATED_BY / UPDATED_DATE",
+  "CREATED_BY / CREATED_DT (TBD)": "CREATED_BY / CREATED_DATE",
+  "CHANGED_DT (TBD)": "UPDATED_DATE",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "ROUTE_CD / ROUTE_DESC / DISTANCE_KM / PERCENTAGE (TBD)": "ROUTE_PERCENTAGE_VALUE (ROUTE_CODE / ROUTE_DESCR in MS_ROUTE_DETAIL; distance: no column)"
+ },
+ "fields": [
+  {
+   "ui": "Route Code",
+   "items": [
+    "Route Code"
+   ],
+   "table": "ielp.MS_ROUTE_DETAIL",
+   "column": "ROUTE_CODE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(100) NOT NULL, per ROUTE_HEADER_ID."
+  },
+  {
+   "ui": "Route Description",
+   "items": [
+    "Route Description",
+    "Description"
+   ],
+   "table": "ielp.MS_ROUTE_DETAIL",
+   "column": "ROUTE_DESCR",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Percentage",
+   "items": [
+    "Percentage",
+    "Percentage (%)"
+   ],
+   "table": "ielp.MS_ROUTE_HEADER",
+   "column": "ROUTE_PERCENTAGE_VALUE",
+   "rw": "R/W",
+   "mapping": "0 < % <= 100",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "float NOT NULL (UISS Number 5,2)."
+  },
+  {
+   "ui": "Location Pick / stop",
+   "items": [
+    "Location Pick",
+    "Code"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ALIAS",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Location Name",
+   "items": [
+    "Location Name"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Distance (Km)",
+   "items": [
+    "Distance (Km)"
+   ],
+   "table": "ielp.MS_ROUTE_PERCENTAGE_HIST",
+   "column": "DISTANCE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "int in the history table; no distance on MS_ROUTE_HEADER."
+  },
+  {
+   "ui": "Status (Deactivate)",
+   "items": [],
+   "table": "ielp.MS_ROUTE_HEADER",
+   "column": "IS_DELETE",
+   "rw": "R/W",
+   "mapping": "Deactivate -> IS_DELETE (values TBD)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Created By",
+   "items": [
+    "Created By"
+   ],
+   "table": "ielp.MS_ROUTE_HEADER",
+   "column": "CREATED_BY",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Changed Dt",
+   "items": [
+    "Changed Dt"
+   ],
+   "table": "ielp.MS_ROUTE_HEADER",
+   "column": "UPDATED_DATE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Ordered stops (sequence, leg km)",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "No stop / sequence table."
+  },
+  {
+   "ui": "Sync flag",
+   "items": [],
+   "table": "ielp.MS_ROUTE_HEADER",
+   "column": "IS_SYNC",
+   "rw": "-",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Exists in ELIPS (sync to another system?), not used by the mock-up."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MRP-01",
+   "topic": "Route stops",
+   "uiss": "Ordered stops with leg distance",
+   "code": "-",
+   "db": "MS_ROUTE_DETAIL has only ROUTE_CODE / ROUTE_DESCR",
+   "data": "No sample data",
+   "recommendation": "New table or encode stops in ROUTE_CODE (confirm)"
+  },
+  {
+   "id": "G-MRP-02",
+   "topic": "Distance",
+   "uiss": "DISTANCE_KM on the route",
+   "code": "-",
+   "db": "Only MS_ROUTE_PERCENTAGE_HIST.DISTANCE int (per period)",
+   "data": "No sample data",
+   "recommendation": "Confirm source; decimals not stored"
+  },
+  {
+   "id": "G-MRP-03",
+   "topic": "Percentage storage",
+   "uiss": "Number 5,2",
+   "code": "-",
+   "db": "MS_ROUTE_HEADER float; HIST varchar(4)",
+   "data": "No sample data",
+   "recommendation": "Confirm which table is maintained by the screen"
+  }
+ ],
+ "tbd": [
+  "Relation MS_ROUTE (ROUTE_CODE, PRICE_CODE) vs MS_ROUTE_DETAIL",
+  "Role of MS_ROUTE_PERCENTAGE_HIST (period copy?)",
+  "ROUTE_HEADER_ID generation"
+ ]
+}

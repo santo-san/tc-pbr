@@ -1,0 +1,195 @@
+{
+ "uiss": "UISS_Report_Delivery_Note",
+ "revision": "Database mapping revised: Surat Jalan items sourced from ielp.ORDER_CYCLE (cycle = delivery), MS_DRIVER, MS_LOCATION, SA_DETAIL; deliveryId mapped to ORDER_CYCLE_ID (inferred); KETERANGAN, logo, stamp TBD; no sample data",
+ "replace": {
+  "Daily Order (TBD)": "ielp.ORDER_CYCLE",
+  "Daily Cycle (TBD)": "ielp.ORDER_CYCLE",
+  "Master Driver (TBD)": "ielp.MS_DRIVER",
+  "Service Acceptance (TBD)": "ielp.SA_DETAIL",
+  "Daily Cycle / Master Location (TBD)": "ielp.ORDER_CYCLE / ielp.MS_LOCATION",
+  "Driver Name (TBD)": "DRIVER_NAME (MS_DRIVER by DRIVER_ID)",
+  "Phone (TBD)": "MOBILE_PHONE",
+  "License Plate (TBD)": "LICENSE_PLATE",
+  "Start Cycle date-time (TBD)": "START_DATE",
+  "SA Number (TBD)": "SA_CODE",
+  "No. Order (TBD)": "ORDER_NO",
+  "Cycle Order No. (TBD)": "ORDER_CYCLE_ID (inferred)",
+  "Cycle Sequence (TBD)": "CYCLE_SEQ",
+  "From Location Code - Name (TBD)": "FROM_LOC + LOCATION_NAME",
+  "To Location Code - Name (TBD)": "TO_LOC + LOCATION_NAME",
+  "Container No. (TBD)": "CONTAINER_NO"
+ },
+ "fields": [
+  {
+   "ui": "Nama (driver)",
+   "items": [
+    "Nama"
+   ],
+   "table": "ielp.MS_DRIVER",
+   "column": "DRIVER_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "by ORDER_CYCLE.DRIVER_ID."
+  },
+  {
+   "ui": "No. Telp",
+   "items": [
+    "No. Telp"
+   ],
+   "table": "ielp.MS_DRIVER",
+   "column": "MOBILE_PHONE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "PHONE or MOBILE_PHONE?"
+  },
+  {
+   "ui": "No Polisi",
+   "items": [
+    "No Polisi"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "LICENSE_PLATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Tanggal",
+   "items": [
+    "Tanggal"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "START_DATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "SA Number",
+   "items": [
+    "SA Number"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "SA_CODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(16); also SA_DETAIL.SA_CODE."
+  },
+  {
+   "ui": "No Order",
+   "items": [
+    "No Order"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "ORDER_NO",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "No Cycle Order (deliveryId)",
+   "items": [
+    "No Cycle Order"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "ORDER_CYCLE_ID",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "varchar(20); format YYMMDDC2XXX999 to confirm."
+  },
+  {
+   "ui": "Cycle",
+   "items": [
+    "Cycle"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "CYCLE_SEQ",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Lokasi Asal / Tujuan",
+   "items": [
+    "LOKASI ASAL",
+    "LOKASI TUJUAN"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "CTR NO",
+   "items": [
+    "CTR NO"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "CONTAINER_NO",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "KETERANGAN",
+   "items": [
+    "KETERANGAN"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "ui": "Delivery note file / GR attachment",
+   "items": [],
+   "table": "ielp.ORDER_FILES",
+   "column": "FILE_PATH",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Attachment record table TBD."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-DN-01",
+   "topic": "deliveryId",
+   "uiss": "No Cycle Order YYMMDDC2XXX999",
+   "code": "-",
+   "db": "ORDER_CYCLE_ID varchar(20) PK (format unknown)",
+   "data": "No sample data",
+   "recommendation": "Confirm the cycle order number field"
+  }
+ ],
+ "tbd": [
+  "KETERANGAN source",
+  "Logo / stamp images",
+  "PAS GR attachment record"
+ ]
+}

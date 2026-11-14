@@ -1,0 +1,109 @@
+{
+ "uiss": "UISS_Screen_Master_Priority",
+ "revision": "Database review: no ELIPS table holds route priority - priority columns marked TBD - Not confirmed from existing schema/data/code; locations / mileage mapped to ielp.MS_LOCATION / ielp.TB_M_MILEAGE; no sample data",
+ "replace": {
+  "Route Priority Master (TBD)": "Route Priority Master (no ELIPS table - TBD)",
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "Route Mileage Master (TBD)": "ielp.TB_M_MILEAGE",
+  "LOCATION_CD + LOCATION_NAME (TBD)": "LOCATION_ALIAS + LOCATION_NAME",
+  "LOCATION_NAME (TBD)": "LOCATION_NAME",
+  "MILEAGE_KM (TBD)": "MILEAGE"
+ },
+ "fields": [
+  {
+   "ui": "From / To (list)",
+   "items": [
+    "From",
+    "To"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ALIAS",
+   "rw": "R",
+   "mapping": "Active locations",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "From / To Description",
+   "items": [
+    "From Description",
+    "To Description"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Mileage",
+   "items": [
+    "Mileage"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "MILEAGE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "decimal(18,0)."
+  },
+  {
+   "ui": "Priority",
+   "items": [
+    "Priority"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "ui": "Created / Changed By / DT",
+   "items": [
+    "Created DT",
+    "Created By",
+    "Changed DT",
+    "Changed By"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "ui": "(table) Route Priority Master",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Missing",
+   "note": "TBD - Not confirmed from existing schema/data/code"
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MPY-01",
+   "topic": "Route priority storage",
+   "uiss": "Route Priority Master",
+   "code": "-",
+   "db": "No table in ELIPS",
+   "data": "No sample data",
+   "recommendation": "New table needed (DB change request) or confirm existing storage"
+  }
+ ],
+ "tbd": [
+  "Table / columns for route priority (FROM, TO, PRIORITY_NO, audit)"
+ ]
+}

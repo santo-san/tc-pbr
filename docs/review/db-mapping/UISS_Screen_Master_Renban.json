@@ -1,0 +1,152 @@
+{
+ "uiss": "UISS_Screen_Master_Renban",
+ "revision": "Database mapping revised to the ELIPS schema (ielp.MS_RENBAN_TCPBR): key PLANT_CD + DEST_CD + RENBAN_CD, SOURCE_LOCATION_ID, VERSION and audit columns confirmed by the DDL; plant name source TBD; no sample data",
+ "replace": {
+  "Renban Master (TBD)": "ielp.MS_RENBAN_TCPBR",
+  "PLANT_CD (TBD)": "PLANT_CD",
+  "DEST_CD (TBD)": "DEST_CD",
+  "RENBAN_CD (TBD)": "RENBAN_CD",
+  "SOURCE_CD (TBD)": "SOURCE_LOCATION_ID",
+  "Source Master (TBD)": "ielp.MS_LOCATION (inferred)",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DT",
+  "CHANGED_BY (TBD)": "CHANGED_BY",
+  "CHANGED_DT (TBD)": "CHANGED_DT",
+  "VERSION (TBD)": "VERSION",
+  "Plant Master (TBD)": "Plant source (TBD)",
+  "PLANT_NAME (TBD)": "plant name (source TBD)"
+ },
+ "fields": [
+  {
+   "ui": "Plant",
+   "items": [
+    "Plant (Code - Description)"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "PLANT_CD",
+   "rw": "R/W",
+   "mapping": "Code from plant list (source TBD)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(10) PK."
+  },
+  {
+   "ui": "Dest",
+   "items": [
+    "Dest"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "DEST_CD",
+   "rw": "R/W",
+   "mapping": "UPPER, ^[A-Z0-9]{1,10}$",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Renban Code",
+   "items": [
+    "Renban Code"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "RENBAN_CD",
+   "rw": "R/W",
+   "mapping": "UPPER, ^[A-Z0-9]{1,3}$",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Source",
+   "items": [
+    "Source"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "SOURCE_LOCATION_ID",
+   "rw": "R/W",
+   "mapping": "Location (inferred MS_LOCATION.LOCATION_ID)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(20) NOT NULL; UISS had SOURCE_CD."
+  },
+  {
+   "ui": "Created By",
+   "items": [
+    "Created By"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "CREATED_BY",
+   "rw": "W (insert)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Created Dt",
+   "items": [
+    "Created Dt"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "CREATED_DT",
+   "rw": "W (insert)",
+   "mapping": "default sysdatetime()",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Changed By",
+   "items": [
+    "Changed By"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "CHANGED_BY",
+   "rw": "W (update)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Changed Dt",
+   "items": [
+    "Changed Dt"
+   ],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "CHANGED_DT",
+   "rw": "W (update)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "(concurrency) Version",
+   "items": [],
+   "table": "ielp.MS_RENBAN_TCPBR",
+   "column": "VERSION",
+   "rw": "W",
+   "mapping": "+1 on update, default 1",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MRB-01",
+   "topic": "Plant name",
+   "uiss": "PLANT_CD + PLANT_NAME from Plant Master",
+   "code": "-",
+   "db": "No plant master with PLANT_CD varchar(10) found (TB_M_LOGISTIC_POINT.PLANT_CD is char(1))",
+   "data": "No sample data",
+   "recommendation": "Confirm the plant list source"
+  }
+ ],
+ "tbd": [
+  "Plant list source",
+  "SOURCE_LOCATION_ID = MS_LOCATION.LOCATION_ID? (inferred)",
+  "Legacy ielp.MS_RENBAN still used?"
+ ]
+}

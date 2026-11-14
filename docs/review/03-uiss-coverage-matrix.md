@@ -1,5 +1,9 @@
 # 03 - UISS Coverage Matrix
 
+> **Status after Phase 6-8 (14-Nov-26):** all 60 "Potentially Incorrect" UISS were revised to the ELIPS schema (rev [DB-R1]); the 4 "Missing" are covered by
+> UISS_Screen_TCPBR_Menu_Authorization (COM-01/02), UISS_Batch_SA_PAS_Interface (INT-04), UISS_Batch_IPMS_DTP_Interface (INT-05); the "Incomplete" DM-05 / SA-07 got sections in their UISS.
+> Remaining open items are Conflicts (`07`) and TBD (`10`). The table below is the Phase 2 baseline.
+
 Compares every function of `01-function-inventory.md` with the UISS of `02-uiss-inventory.md`.
 
 **Implementation Status**: *Implemented* = working in the mock-up code · *Simulated* = the screen simulates an external

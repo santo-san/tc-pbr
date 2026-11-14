@@ -1,0 +1,1349 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement",
+  "block_name": "Screen",
+  "function_name": "TBD PR Inquiry",
+  "created_date": "28-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "28-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on screenshots, HTML mock-up (monthly.html) and confirmed rules (docs/monthly-pr-po-rules.md) 28-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: PR = ielp.CRITERIA_SCORE_HEADER / CRITERIA_SCORE_DETAIL_FINAL (PR_NO_DET per company), routes = CRITERIA_SCORE_DETAIL_ROUTE, approvals = CRITERIA_SCORE_APPROVAL; conflicts recorded; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To display monthly PRs per production month with approval status per level (SH, DpH, DH), order sharing and released-by information.",
+   "To display the route detail of each PR and download it."
+  ],
+  "display_order": [
+   {
+    "section": "List",
+    "fields": [
+     {
+      "field": "Production Month",
+      "order": "Ascending"
+     },
+     {
+      "field": "PR Number",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "Detail PR - Route",
+    "fields": [
+     {
+      "field": "Route",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "Detail PR - Approval History",
+    "fields": [
+     {
+      "field": "Action date time",
+      "order": "Descending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Search",
+    "function": "To retrieve records according to the specified criteria."
+   },
+   {
+    "name": "Clear",
+    "function": "Clear criteria and reset the screen to its initial value."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide column groups of the list."
+   },
+   {
+    "name": "PR Number link",
+    "function": "To open Detail PR modal (route detail and approval history)."
+   },
+   {
+    "name": "Download",
+    "function": "To download the route detail of the PR as CSV."
+   },
+   {
+    "name": "Route Search / Kolom",
+    "function": "To filter routes and show / hide route columns in the modal."
+   },
+   {
+    "name": "Close (x)",
+    "function": "To close the modal."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Initial / Search Result Mode",
+    "sections": [
+     {
+      "section": "Search Criteria",
+      "description": "default criteria",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Kolom": "E",
+       "PR Number link": "E",
+       "Download": "E",
+       "Route Search / Kolom": "D",
+       "Close (x)": "D"
+      }
+     },
+     {
+      "section": "List",
+      "description": "documents within user data scope",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Kolom": "E",
+       "PR Number link": "E",
+       "Download": "E",
+       "Route Search / Kolom": "D",
+       "Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Detail PR Modal Mode",
+    "sections": [
+     {
+      "section": "Modal",
+      "description": "route detail + history",
+      "buttons": {
+       "Search": "D",
+       "Clear": "D",
+       "Kolom": "D",
+       "PR Number link": "D",
+       "Download": "D",
+       "Route Search / Kolom": "E",
+       "Close (x)": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Supplier users see only their own trucking documents."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for PR Inquiry",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "l",
+      "label": "PR Inquiry screen",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "d",
+      "label": "Detail PR modal",
+      "type": "screen"
+     },
+     {
+      "id": "f",
+      "label": "CSV file",
+      "type": "document"
+     }
+    ],
+    "edges": [
+     {
+      "from": "l",
+      "to": "d",
+      "label": "PR Number"
+     },
+     {
+      "from": "d",
+      "to": "l",
+      "label": "Close (x)"
+     },
+     {
+      "from": "l",
+      "to": "f",
+      "label": "Download"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Search",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "e1",
+      "label": "On Click of Search button",
+      "type": "event"
+     },
+     {
+      "id": "q",
+      "label": "From <= To?",
+      "type": "decision"
+     },
+     {
+      "id": "m1",
+      "label": "Show message no. 1",
+      "type": "message"
+     },
+     {
+      "id": "r",
+      "label": "Retrieve PRs within user scope",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+      "type": "db"
+     },
+     {
+      "id": "f",
+      "label": "Data found?",
+      "type": "decision"
+     },
+     {
+      "id": "m2",
+      "label": "Show No Data Found (msg 2)",
+      "type": "message"
+     },
+     {
+      "id": "g",
+      "label": "Display list (page 1)",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "e1"
+     },
+     {
+      "from": "e1",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "m1",
+      "label": "No"
+     },
+     {
+      "from": "q",
+      "to": "r",
+      "label": "Yes"
+     },
+     {
+      "from": "r",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "r",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "m2",
+      "label": "No"
+     },
+     {
+      "from": "f",
+      "to": "g",
+      "label": "Yes"
+     },
+     {
+      "from": "g",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q",
+      "m1"
+     ],
+     [
+      "r",
+      "db"
+     ],
+     [
+      "f",
+      "m2"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. PR Inquiry - Search Result (screenshot from user)",
+   "image": "img/UISS_Screen_PR_Inquiry/3.png"
+  },
+  {
+   "caption": "2. Detail PR modal (screenshot from user)",
+   "image": "img/UISS_Screen_PR_Inquiry/4.png"
+  },
+  {
+   "caption": "3. Search Result with all status types (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Inquiry/pri_01_list.png",
+   "notes": [
+    "Mock-up only: 'Login sebagai' combo box simulates the login role; not part of the real screen."
+   ]
+  },
+  {
+   "caption": "4. Detail PR modal - Approval History (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Inquiry/pri_03_detail_history.png"
+  },
+  {
+   "caption": "5. Supplier login - own data only (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Inquiry/pri_04_supplier_scope.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Download Driver App",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "name": "Landing Page",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "group": "<Search Criteria Section>"
+  },
+  {
+   "name": "PR Number",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "PR_NO_DET",
+   "type": "Varchar",
+   "len": "11",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "X..TBD..X",
+   "validation": "",
+   "description": "Partial match on PR Number.\nDB: ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET varchar(11) NULL [Revised] varchar(11); period PR_NO on CRITERIA_SCORE_HEADER."
+  },
+  {
+   "name": "Prod. Month From",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 7,
+   "io": "I",
+   "control": "Month picker",
+   "justified": "Left",
+   "initial": "Current month",
+   "required": "N",
+   "format": "MONTH YYYY",
+   "validation": "From <= To (msg 1)",
+   "description": "Filter Production Month >= value."
+  },
+  {
+   "name": "Prod. Month To",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 7,
+   "io": "I",
+   "control": "Month picker",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "MONTH YYYY",
+   "validation": "From <= To (msg 1)",
+   "description": "Filter Production Month <= value."
+  },
+  {
+   "name": "Status",
+   "source": "Fixed list",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Options: Perlu approval saya, Pending (all levels), Waiting SH, Waiting DpH, Waiting DH, Approved, Rejected, Returned (perlu submit ulang)."
+  },
+  {
+   "name": "Search",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.2."
+  },
+  {
+   "name": "Clear",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.2."
+  },
+  {
+   "name": "Status Legend",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Panel",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Pending, Approved, Rejected, Skip, Returned, - (no status). Plus rule text."
+  },
+  {
+   "group": "<List Section>"
+  },
+  {
+   "name": "Search (list)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Free text filter on displayed columns, applied on key-in."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column group: show / hide."
+  },
+  {
+   "name": "Production Month",
+   "source": "ielp.CRITERIA_SCORE_HEADER",
+   "field": "CRITERIA_PERIODE",
+   "type": "Varchar",
+   "len": "7",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "MM/YYYY-9",
+   "validation": "",
+   "description": "'-n' = sequence of PR creation for the same production month. Default sort ascending, then PR Number.\nDB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7); PR_SEQ int default 1."
+  },
+  {
+   "name": "PR Number",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "PR_NO_DET",
+   "type": "Varchar",
+   "len": "11",
+   "io": "O",
+   "control": "Hyperlink",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "XXX9999999",
+   "validation": "",
+   "description": "Trucking code + YYMM + running no. Click opens Detail PR modal. Rejected / Returned badge shown below.\nDB: ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET varchar(11) NULL [Revised] varchar(11); period PR_NO on CRITERIA_SCORE_HEADER."
+  },
+  {
+   "name": "Download",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (icon)",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Download route detail of the PR as CSV."
+  },
+  {
+   "name": "Status SH / DpH / DH",
+   "source": "ielp.CRITERIA_SCORE_APPROVAL",
+   "field": "APPROVAL_STS",
+   "type": "Varchar",
+   "len": "2",
+   "io": "O",
+   "control": "Icon (dot)",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Colour: Pending yellow, Approved green, Rejected red, Skip light blue, - dashed.\nDB: ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS varchar(2) NULL default (0) [TBD] varchar(2); APPROVAL_CLASS = level (values TBD)."
+  },
+  {
+   "name": "Current PIC",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "CREATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Always the user who generated the PR.\nDB: ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY varchar(500) NULL [Revised]"
+  },
+  {
+   "name": "PR date",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "CREATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY varchar(500) NULL [Revised]"
+  },
+  {
+   "name": "Trucking Code",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "XXX",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID varchar(10) NULL [Conflict] UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20)."
+  },
+  {
+   "name": "Trucking Name",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID varchar(10) NULL [Conflict] UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20)."
+  },
+  {
+   "name": "Order Sharing - Percentage",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_ORDER_SHARING",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9%",
+   "validation": "",
+   "description": "From trucking sharing master (TBD).\nDB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING float NULL [Revised] float."
+  },
+  {
+   "name": "Order Sharing - Qty",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_TRIP",
+   "type": "Int",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZ9",
+   "validation": "",
+   "description": "Sum of route Qty Total.\nDB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_TRIP int NULL [Revised]"
+  },
+  {
+   "name": "Order Sharing - Total Price",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_PRICE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "Z,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Sum of route Price Total.\nDB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE float NULL [Revised] float."
+  },
+  {
+   "name": "Released By SH / DpH / DH",
+   "source": "ielp.CRITERIA_SCORE_APPROVAL",
+   "field": "APPROVAL_STS",
+   "type": "Varchar",
+   "len": "2",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "user / DD.MM.YYYY",
+   "validation": "",
+   "description": "User and date when Approved; 'Rejected' badge with user/date; 'Skip' badge; '-' otherwise.\nDB: ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS varchar(2) NULL default (0) [TBD] varchar(2); APPROVAL_CLASS = level (values TBD)."
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "'Showing n to m of x records (filtered from y total entries)'",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Rows per page",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "10",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50."
+  },
+  {
+   "name": "Pagination (< 1 2 ... >)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "group": "<Detail PR Modal>"
+  },
+  {
+   "name": "Title",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Detail PR for #<PR Number>'."
+  },
+  {
+   "name": "Search (route)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Filter on Route code and description."
+  },
+  {
+   "name": "Kolom (route)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show / hide Route Percentage, Qty, Price."
+  },
+  {
+   "name": "Route",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_HEADER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Code (e.g. A1_K1E_D1) and location names joined by \" - \". Sort ascending; click header to reverse.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID varchar(10) NOT NULL [Revised] + ROUTE varchar(500)."
+  },
+  {
+   "name": "Route Percentage",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_PERCENTAGE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9%",
+   "validation": "",
+   "description": "Route Qty Total / PR Total Qty, rounded (TBD, OP-09).\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_PERCENTAGE_VALUE float NULL [Revised]"
+  },
+  {
+   "name": "Qty 20 / 40 / Total",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_QTY_20",
+   "type": "Int",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9",
+   "validation": "",
+   "description": "Total = Qty 20 + Qty 40.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_QTY_20 int NULL [Revised] ROUTE_QTY_40, ROUTE_QTY."
+  },
+  {
+   "name": "Price 20 / 40 / Total",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "PRICE_20",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "Z,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Total = Qty 20 x Price 20 + Qty 40 x Price 40.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.PRICE_20 float NULL [Revised] PRICE_40, TOTAL_PRICE_ALL."
+  },
+  {
+   "name": "Footer: Sharing Percentage / Total QTY / Total. Price",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_PRICE",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "Z9.9 % / ZZZ,ZZ9 / Z,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE float NULL [Revised] float."
+  },
+  {
+   "name": "Route paging",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label + Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Showing n to m of x records', 10 rows per page."
+  },
+  {
+   "name": "Approval History grid",
+   "source": "approval history (no ELIPS table - TBD)",
+   "field": "ACTION_DT, USER_ID, ROLE, ACTION, FROM_STATUS, TO_STATUS, REASON, APPROVAL_REMARK",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Columns Waktu, User (+Role), Aksi, Dari, Ke, Reason / Catatan; latest first.\nDB: TBD - No history table; approvals in CRITERIA_SCORE_APPROVAL / PO_APPROVAL rows."
+  },
+  {
+   "name": "Close (x)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  }
+ ],
+ "data_map": {
+  "blocks": [],
+  "note": "Not applicable - this screen does not insert/update data."
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Access Control",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Role",
+     "width": 12
+    },
+    {
+     "title": "Data scope",
+     "width": 12
+    },
+    {
+     "title": "Actions",
+     "width": 22
+    }
+   ],
+   "rows": [
+    [
+     "IELP Admin",
+     "All",
+     "View"
+    ],
+    [
+     "SH / DpH / DH VPLD",
+     "All",
+     "View"
+    ],
+    [
+     "General Affair Dept",
+     "All",
+     "View"
+    ],
+    [
+     "Supplier (trucking)",
+     "Own trucking only",
+     "View"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "Supplier restriction applies to list, search, totals, detail and download (message no. 3).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Search Operation",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "5.2.1 Initial Display",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "'PR Number' blank, 'Prod. Month From' = Current month, 'Prod. Month To' blank, 'Status' = Blank.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "List shows PRs within the user data scope matching the initial criteria, sorted by Production Month then PR Number ascending, 10 rows per page.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.2.2 Button Operation",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "User clicks 'Search'.",
+   "level": 2
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "If Prod. Month From > Prod. Month To, display message no. 1. Stop.",
+    "Retrieve PRs by PR Number (partial), production month range and Status within the user data scope.",
+    "If no data, show 'No Data Found' (message no. 2)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "User clicks 'Clear': reset all criteria and the list Search box, show all documents within the user data scope.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Key-in on list 'Search' filters immediately. Click a sortable header to sort; click again to reverse.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "User clicks 'Kolom': show / hide the checked column groups.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Detail and Download",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "User clicks 'PR Number': open 'Detail PR for #<No>' modal with the route detail (10 rows per page, sortable by Route, searchable) and the totals footer: '% Sharing Percentage for <Code>', 'Total QTY', 'Total. Price'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Route Percentage = route Qty Total / document Total Qty (TBD, OP-09). Price Total = Qty 20 x Price 20 + Qty 40 x Price 40.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Approval History lists every action on the document, latest first.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "User clicks 'Download' icon: download CSV '<PR Number>.csv' with header data, every route and a TOTAL row (format TBD, OP-10).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.4 PR Status",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "PR Status",
+     "width": 14
+    },
+    {
+     "title": "Condition",
+     "width": 32
+    }
+   ],
+   "rows": [
+    [
+     "Waiting SH / DpH / DH",
+     "Lowest level still Pending"
+    ],
+    [
+     "Approved",
+     "DH Approved (lower levels Approved or Skip); PO created"
+    ],
+    [
+     "Rejected",
+     "Any level Rejected"
+    ],
+    [
+     "Returned",
+     "PO Rejected by GA; PR back to created state, needs resubmit from PR Creation"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "Level status: Pending, Approved, Rejected, Skip, '-' (not reached / cleared). Current PIC is always the PR generator (createdBy).",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "This screen does not insert / update data.",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Production Month / PR seq",
+     "ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE",
+     "varchar(7)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "PR Number (per trucking company)",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET",
+     "varchar(11)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Trucking Code / Name",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Order Sharing %",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Order Sharing Qty",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_TRIP",
+     "int",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Order Sharing Total Price",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Approval status per level",
+     "ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS",
+     "varchar(2)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Route",
+     "ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID",
+     "varchar(10)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Route Percentage",
+     "ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_PERCENTAGE_VALUE",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Qty 20 / 40",
+     "ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_QTY_20",
+     "int",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Price 20 / 40",
+     "ielp.CRITERIA_SCORE_DETAIL_ROUTE.PRICE_20",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Approval History",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Current PIC / PR date",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY",
+     "varchar(500)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MO-01 PR document: UISS / code: PR Header per trucking company with own PR number. DB: CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET). Recommendation: Use PR_NO_DET per company (confirm)",
+    "G-MO-02 Approval levels: UISS / code: SH / DpH / DH per PR. DB: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2). Recommendation: Level codes TBD",
+    "G-MO-03 Approval history: UISS / code: History grid with from / to status, role. DB: No history table. Recommendation: Show approval rows or add a history table",
+    "G-MO-04 Trucking code: UISS / code: Varchar 3. DB: COMPANY_ID varchar(10). Recommendation: Align with Master Trucking Company"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "APPROVAL_STS / APPROVAL_CLASS values",
+    "CRITERIA_HEADER_ID / PR number generation"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Click [Search] button",
+   "cause": "Prod. Month From later than Prod. Month To",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Prod. Month From must be earlier than or equal to Prod. Month To.",
+   "action": "Correct the month range and click Search"
+  },
+  {
+   "event": "Click [Search] button / key-in Search",
+   "cause": "No data matches the criteria",
+   "type": "Info",
+   "msg_id": "STD090001AINF",
+   "message": "No Data Found",
+   "action": "Change the criteria"
+  },
+  {
+   "group": "Detail / Download Operation"
+  },
+  {
+   "event": "Click [PR Number] link / [Download]",
+   "cause": "Document outside the login user data scope (Supplier)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "You are not authorized to access {Document No}.",
+   "action": "Contact IELP Admin"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "-",
+   "cause": "-",
+   "type": "-",
+   "msg_id": "-",
+   "message": "Not applicable - inquiry only.",
+   "exception": "N",
+   "action": "-"
+  }
+ ]
+}

@@ -1,0 +1,190 @@
+{
+ "folders": {
+  "01_Daily_Order_Monitoring": {
+   "uiss": [
+    "UISS_Screen_Daily_Order_Monitoring",
+    "UISS_Report_Download_Daily_Order_Monitoring"
+   ],
+   "docs": [
+    "daily-monitoring-rules.md"
+   ]
+  },
+  "02_Planning_Order_DTP": {
+   "uiss": [
+    "UISS_Screen_DTP_Creation",
+    "UISS_Batch_DTP_Excel_Upload",
+    "UISS_Batch_DTP_Queue_Processing",
+    "UISS_Batch_DTP_Switching",
+    "UISS_Batch_IPMS_DTP_Interface"
+   ],
+   "docs": [
+    "dtp-creation-rules.md",
+    "dtp-switching-spec.md"
+   ]
+  },
+  "03_Planning_Truck_Assignment": {
+   "uiss": [
+    "UISS_Screen_Planning_Truck_Assignment",
+    "UISS_Batch_Driver_Order_Sync"
+   ],
+   "docs": [
+    "truck-assignment-spec.md"
+   ]
+  },
+  "04_Delivery_Note": {
+   "uiss": [
+    "UISS_Report_Delivery_Note",
+    "UISS_Batch_ELIPS_PAS_GR_Attachment"
+   ],
+   "docs": [
+    "delivery-note-spec.md",
+    "TC-PBR_Delivery_Note.md",
+    "TC-PBR_Delivery_Note.xlsx",
+    "elips-pas-gr-attachment-spec.md"
+   ]
+  },
+  "05_SA_Approval": {
+   "uiss": [
+    "UISS_Screen_SA_Approval"
+   ],
+   "docs": [
+    "sa-approval-spec.md"
+   ]
+  },
+  "06_SA_Monitoring": {
+   "uiss": [
+    "UISS_Screen_SA_Monitoring",
+    "UISS_Batch_SA_PAS_Interface"
+   ],
+   "docs": [
+    "sa-monitoring-spec.md"
+   ]
+  },
+  "07_Master_Trucking_Company": {
+   "uiss": [
+    "UISS_Screen_Master_Trucking_Company"
+   ],
+   "docs": [
+    "master-trucking-company-rules.md"
+   ]
+  },
+  "08_Master_Location": {
+   "uiss": [
+    "UISS_Screen_Master_Location"
+   ],
+   "docs": [
+    "master-location-rules.md"
+   ]
+  },
+  "09_Master_Mileage": {
+   "uiss": [
+    "UISS_Screen_Master_Mileage",
+    "UISS_Batch_Master_Mileage_Upload"
+   ],
+   "docs": [
+    "master-mileage-rules.md"
+   ]
+  },
+  "10_Master_Price": {
+   "uiss": [
+    "UISS_Screen_Master_Price"
+   ],
+   "docs": [
+    "master-price-rules.md"
+   ]
+  },
+  "11_Master_Priority": {
+   "uiss": [
+    "UISS_Screen_Master_Priority"
+   ],
+   "docs": [
+    "master-priority-rules.md"
+   ]
+  },
+  "12_Master_KPI": {
+   "uiss": [
+    "UISS_Screen_Master_KPI"
+   ],
+   "docs": [
+    "master-kpi-rules.md"
+   ]
+  },
+  "13_Master_Route_Percentage": {
+   "uiss": [
+    "UISS_Screen_Master_Route_Percentage"
+   ],
+   "docs": [
+    "master-route-percentage-rules.md"
+   ]
+  },
+  "14_Master_Renban": {
+   "uiss": [
+    "UISS_Screen_Master_Renban"
+   ],
+   "docs": [
+    "master-renban-rules.md"
+   ]
+  },
+  "15_PR_Creation": {
+   "uiss": [
+    "UISS_Screen_PR_Creation"
+   ],
+   "docs": [
+    "pr-creation-rules.md"
+   ]
+  },
+  "16_Monthly_PR_PO_Approval_Inquiry": {
+   "uiss": [
+    "UISS_Screen_PR_Inquiry",
+    "UISS_Screen_PR_Approval",
+    "UISS_Screen_PO_Approval",
+    "UISS_Screen_PO_Inquiry"
+   ],
+   "docs": [
+    "monthly-pr-po-rules.md"
+   ]
+  },
+  "17_PAS_PR_Interface": {
+   "uiss": [
+    "UISS_Batch_ELIPS_PAS_PR_Interface",
+    "UISS_Batch_PAS_ELIPS_PR_PO_Callback"
+   ],
+   "docs": [
+    "elips-pas-pr-interface-spec.md",
+    "pas-elips-callback-spec.md",
+    "current-tjava-json-to-pas.java"
+   ]
+  },
+  "18_Menu_Authorization": {
+   "uiss": [
+    "UISS_Screen_TCPBR_Menu_Authorization"
+   ],
+   "docs": []
+  }
+ },
+ "moved_docs": {
+  "docs/daily-monitoring-rules.md": "docs/uiss/01_Daily_Order_Monitoring/daily-monitoring-rules.md",
+  "docs/dtp-creation-rules.md": "docs/uiss/02_Planning_Order_DTP/dtp-creation-rules.md",
+  "docs/dtp-switching-spec.md": "docs/uiss/02_Planning_Order_DTP/dtp-switching-spec.md",
+  "docs/truck-assignment-spec.md": "docs/uiss/03_Planning_Truck_Assignment/truck-assignment-spec.md",
+  "docs/delivery-note-spec.md": "docs/uiss/04_Delivery_Note/delivery-note-spec.md",
+  "docs/tc-pbr/TC-PBR_Delivery_Note.md": "docs/uiss/04_Delivery_Note/TC-PBR_Delivery_Note.md",
+  "docs/tc-pbr/TC-PBR_Delivery_Note.xlsx": "docs/uiss/04_Delivery_Note/TC-PBR_Delivery_Note.xlsx",
+  "docs/pas-interface/elips-pas-gr-attachment-spec.md": "docs/uiss/04_Delivery_Note/elips-pas-gr-attachment-spec.md",
+  "docs/sa-approval-spec.md": "docs/uiss/05_SA_Approval/sa-approval-spec.md",
+  "docs/sa-monitoring-spec.md": "docs/uiss/06_SA_Monitoring/sa-monitoring-spec.md",
+  "docs/master-trucking-company-rules.md": "docs/uiss/07_Master_Trucking_Company/master-trucking-company-rules.md",
+  "docs/master-location-rules.md": "docs/uiss/08_Master_Location/master-location-rules.md",
+  "docs/master-mileage-rules.md": "docs/uiss/09_Master_Mileage/master-mileage-rules.md",
+  "docs/master-price-rules.md": "docs/uiss/10_Master_Price/master-price-rules.md",
+  "docs/master-priority-rules.md": "docs/uiss/11_Master_Priority/master-priority-rules.md",
+  "docs/master-kpi-rules.md": "docs/uiss/12_Master_KPI/master-kpi-rules.md",
+  "docs/master-route-percentage-rules.md": "docs/uiss/13_Master_Route_Percentage/master-route-percentage-rules.md",
+  "docs/master-renban-rules.md": "docs/uiss/14_Master_Renban/master-renban-rules.md",
+  "docs/pr-creation-rules.md": "docs/uiss/15_PR_Creation/pr-creation-rules.md",
+  "docs/monthly-pr-po-rules.md": "docs/uiss/16_Monthly_PR_PO_Approval_Inquiry/monthly-pr-po-rules.md",
+  "docs/pas-interface/elips-pas-pr-interface-spec.md": "docs/uiss/17_PAS_PR_Interface/elips-pas-pr-interface-spec.md",
+  "docs/pas-interface/pas-elips-callback-spec.md": "docs/uiss/17_PAS_PR_Interface/pas-elips-callback-spec.md",
+  "docs/pas-interface/current-tjava-json-to-pas.java": "docs/uiss/17_PAS_PR_Interface/current-tjava-json-to-pas.java"
+ }
+}

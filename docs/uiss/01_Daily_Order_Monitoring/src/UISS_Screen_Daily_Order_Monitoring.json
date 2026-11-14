@@ -1,0 +1,3682 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement",
+  "block_name": "Screen",
+  "function_name": "TBD Daily Order Monitoring",
+  "created_date": "28-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "28-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on screenshots, HTML mock-up and workflow rules (docs/daily-monitoring-rules.md) 28-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "28-Oct-26",
+   "reviewed_by": "",
+   "description": "Screen Flow verified against workflow.js transitions: added LP Admin re-release, SA/PAS failure loops, LP Admin cycle path; split cycle diagram per actor; clarified Submit / SA / PAS error branches"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: orders / cycles = ielp.ORDER_CYCLE (+ DTP_HEADER / DTP_n_DETAIL), history = LOG_ACTIVITY_ORDER (inferred), files = ORDER_FILES, truck history = ORDER_TRUCK_H, masters MS_TRUCK_REGISTRATION / MS_DRIVER / MS_LOCATION; conflicts recorded; no sample data; added Print / PDF section (DM-05)"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To monitor daily orders (DTP) per date, location and DTP type together with the status of every cycle (Cycle 1 - Cycle 5).",
+   "To display the order detail per cycle: truck, driver, route, Container Number, activity time and supporting files (Foto Surat Jalan, Finish Cycle Foto, Surat Jalan ELIPS).",
+   "To let IELP Admin assign an order to a truck number (Order Release) and trigger the SA / PAS process.",
+   "To let Supplier with LP Admin access process their own orders manually: Order Release -> Pickup Container -> Finish Cycle -> Finish Order.",
+   "To restrict Supplier users to their own data only and keep a status history (who, when, from/to status, reason) for every status change."
+  ],
+  "display_order": [
+   {
+    "section": "Order List",
+    "fields": [
+     {
+      "field": "No. Order",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "Order Detail - Cycle",
+    "fields": [
+     {
+      "field": "Cycle No",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "Order Detail - Status History",
+    "fields": [
+     {
+      "field": "Action Date Time",
+      "order": "Descending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Download Driver App",
+    "function": "To download the Driver App installer (existing function)."
+   },
+   {
+    "name": "Landing Page",
+    "function": "To go back to ELIPS landing page (existing function)."
+   },
+   {
+    "name": "Find",
+    "function": "To retrieve records according to the specified criteria."
+   },
+   {
+    "name": "Clear",
+    "function": "Clear criteria and reset the screen to its initial value."
+   },
+   {
+    "name": "Tab ALL / DTP 1 - DTP 4",
+    "function": "To filter the Order List by DTP type (ALL = no filter)."
+   },
+   {
+    "name": "Refresh",
+    "function": "To reload the Order List with the latest data and update 'Last Sync at'."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide columns of the Order List."
+   },
+   {
+    "name": "Export",
+    "function": "To export the displayed Order List (current criteria) to Excel (.csv) or Print / PDF."
+   },
+   {
+    "name": "Detail (Action icon)",
+    "function": "To open the Order Detail modal of the selected order."
+   },
+   {
+    "name": "Assign Truck",
+    "function": "IELP Admin: to assign the order to a truck number. Order Status becomes Order Release."
+   },
+   {
+    "name": "Order Release",
+    "function": "LP Admin: to release the order with Reason and Driver. Order Status becomes Order Release."
+   },
+   {
+    "name": "Pickup Container",
+    "function": "LP Admin: to record Container Number with Reason. Cycle Status becomes Pickup Container."
+   },
+   {
+    "name": "Finish Cycle",
+    "function": "LP Admin: to finish the current cycle with Reason. Cycle Status becomes Finish Cycle."
+   },
+   {
+    "name": "Finish Order",
+    "function": "LP Admin: to finish the order with Reason. Order Status becomes Finish Daily Order."
+   },
+   {
+    "name": "Process to SA",
+    "function": "IELP Admin: to send the finished order to SA. Order Status becomes SA Approved (with timestamp)."
+   },
+   {
+    "name": "Process to PAS",
+    "function": "IELP Admin: to send the SA Approved order to PAS and receive PO Number. Order Status becomes SA Approved with PO Number."
+   },
+   {
+    "name": "Cycle header",
+    "function": "To expand / collapse the cycle section in Order Detail."
+   },
+   {
+    "name": "View",
+    "function": "To preview the file (Foto Surat Jalan / Finish Cycle Foto) of the cycle."
+   },
+   {
+    "name": "Surat Jalan ELIPS",
+    "function": "To display the Surat Jalan document of the cycle."
+   },
+   {
+    "name": "PDF",
+    "function": "To print / save the Surat Jalan of the cycle as PDF."
+   },
+   {
+    "name": "Submit",
+    "function": "To validate the action input and save the status change."
+   },
+   {
+    "name": "Cancel / Close (x)",
+    "function": "To close the modal without saving."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Initial / Search Result Mode",
+    "sections": [
+     {
+      "section": "Search Criteria",
+      "description": "Date From = system date, other criteria blank / <Select>",
+      "buttons": {
+       "Download Driver App": "E",
+       "Landing Page": "E",
+       "Find": "E",
+       "Clear": "E",
+       "Tab ALL / DTP 1 - DTP 4": "E",
+       "Refresh": "E",
+       "Kolom": "E",
+       "Export": "E",
+       "Detail (Action icon)": "E",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "D",
+       "View": "D",
+       "Surat Jalan ELIPS": "D",
+       "PDF": "D",
+       "Submit": "D",
+       "Cancel / Close (x)": "D"
+      }
+     },
+     {
+      "section": "Order List",
+      "description": "orders within the login user data scope, refer below 3)",
+      "buttons": {
+       "Download Driver App": "E",
+       "Landing Page": "E",
+       "Find": "E",
+       "Clear": "E",
+       "Tab ALL / DTP 1 - DTP 4": "E",
+       "Refresh": "E",
+       "Kolom": "E",
+       "Export": "E",
+       "Detail (Action icon)": "E",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "D",
+       "View": "D",
+       "Surat Jalan ELIPS": "D",
+       "PDF": "D",
+       "Submit": "D",
+       "Cancel / Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Order Detail Mode - IELP Admin",
+    "sections": [
+     {
+      "section": "Summary & Action",
+      "description": "workflow buttons shown only when allowed, refer below 1)",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "E",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "E",
+       "Process to PAS": "E",
+       "Cycle header": "D",
+       "View": "D",
+       "Surat Jalan ELIPS": "D",
+       "PDF": "D",
+       "Submit": "D",
+       "Cancel / Close (x)": "D"
+      }
+     },
+     {
+      "section": "Cycle & Status History",
+      "description": "display only, refer below 2)",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "E",
+       "View": "E",
+       "Surat Jalan ELIPS": "E",
+       "PDF": "E",
+       "Submit": "D",
+       "Cancel / Close (x)": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Order Detail Mode - Supplier (LP Admin)",
+    "sections": [
+     {
+      "section": "Summary & Action",
+      "description": "own supplier order only, refer below 1)",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "D",
+       "Order Release": "E",
+       "Pickup Container": "E",
+       "Finish Cycle": "E",
+       "Finish Order": "E",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "D",
+       "View": "D",
+       "Surat Jalan ELIPS": "D",
+       "PDF": "D",
+       "Submit": "D",
+       "Cancel / Close (x)": "D"
+      }
+     },
+     {
+      "section": "Cycle & Status History",
+      "description": "display only, refer below 2)",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "E",
+       "View": "E",
+       "Surat Jalan ELIPS": "E",
+       "PDF": "E",
+       "Submit": "D",
+       "Cancel / Close (x)": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Order Detail Mode - Supplier (Viewer)",
+    "sections": [
+     {
+      "section": "Summary & Action",
+      "description": "read only, no workflow button",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "D",
+       "View": "D",
+       "Surat Jalan ELIPS": "D",
+       "PDF": "D",
+       "Submit": "D",
+       "Cancel / Close (x)": "E"
+      }
+     },
+     {
+      "section": "Cycle & Status History",
+      "description": "display only, refer below 2)",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "E",
+       "View": "E",
+       "Surat Jalan ELIPS": "E",
+       "PDF": "E",
+       "Submit": "D",
+       "Cancel / Close (x)": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Action Input Mode",
+    "sections": [
+     {
+      "section": "Action modal",
+      "description": "input fields depend on action, refer Item No. 55-62",
+      "buttons": {
+       "Download Driver App": "D",
+       "Landing Page": "D",
+       "Find": "D",
+       "Clear": "D",
+       "Tab ALL / DTP 1 - DTP 4": "D",
+       "Refresh": "D",
+       "Kolom": "D",
+       "Export": "D",
+       "Detail (Action icon)": "D",
+       "Assign Truck": "D",
+       "Order Release": "D",
+       "Pickup Container": "D",
+       "Finish Cycle": "D",
+       "Finish Order": "D",
+       "Process to SA": "D",
+       "Process to PAS": "D",
+       "Cycle header": "D",
+       "View": "D",
+       "Surat Jalan ELIPS": "D",
+       "PDF": "D",
+       "Submit": "E",
+       "Cancel / Close (x)": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) A workflow button is displayed only when the login role is allowed to do the action AND the current Order Status / Cycle Status allows it (Operation Description 5.5).",
+   "2) View 'Foto Surat Jalan' is enabled after Pickup Container; View 'Finish Cycle Foto' after Finish Cycle; Surat Jalan ELIPS and PDF after Start Cycle.",
+   "3) IELP Admin sees all orders. Supplier (Viewer / LP Admin) sees only orders whose Trucking Company is the login supplier."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Order Monitoring",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "m",
+      "label": "Order Monitoring screen",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "d",
+      "label": "Order Detail modal",
+      "type": "screen"
+     },
+     {
+      "id": "a",
+      "label": "Action Input modal",
+      "type": "screen"
+     },
+     {
+      "id": "f",
+      "label": "File Preview modal",
+      "type": "screen"
+     },
+     {
+      "id": "s",
+      "label": "Surat Jalan modal",
+      "type": "screen"
+     },
+     {
+      "id": "p",
+      "label": "Print / PDF",
+      "type": "document"
+     }
+    ],
+    "edges": [
+     {
+      "from": "m",
+      "to": "d",
+      "label": "Detail"
+     },
+     {
+      "from": "d",
+      "to": "m",
+      "label": "Close (x)"
+     },
+     {
+      "from": "d",
+      "to": "a",
+      "label": "Workflow button"
+     },
+     {
+      "from": "a",
+      "to": "d",
+      "label": "Submit OK / Cancel"
+     },
+     {
+      "from": "d",
+      "to": "f",
+      "label": "View"
+     },
+     {
+      "from": "d",
+      "to": "s",
+      "label": "Surat Jalan ELIPS"
+     },
+     {
+      "from": "s",
+      "to": "p",
+      "label": "PDF"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Order Status Transition",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "p",
+      "label": "Planning Order",
+      "type": "process"
+     },
+     {
+      "id": "r",
+      "label": "Order Release",
+      "type": "process"
+     },
+     {
+      "id": "rd",
+      "label": "Change driver (LP Admin)",
+      "type": "note"
+     },
+     {
+      "id": "st",
+      "label": "Start Daily Order",
+      "type": "process"
+     },
+     {
+      "id": "f",
+      "label": "Finish Daily Order",
+      "type": "process"
+     },
+     {
+      "id": "fx",
+      "label": "SA failed: log, retry",
+      "type": "message"
+     },
+     {
+      "id": "sa",
+      "label": "SA Approved",
+      "type": "process"
+     },
+     {
+      "id": "sx",
+      "label": "PAS failed: log, retry",
+      "type": "message"
+     },
+     {
+      "id": "po",
+      "label": "SA Approved with PO Number",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "p",
+      "label": "DTP Check & Submit (IELP Admin)"
+     },
+     {
+      "from": "p",
+      "to": "r",
+      "label": "Assign Truck (IELP Admin) / Order Release (LP)"
+     },
+     {
+      "from": "r",
+      "to": "rd",
+      "label": "Order Release again"
+     },
+     {
+      "from": "rd",
+      "to": "r"
+     },
+     {
+      "from": "r",
+      "to": "st",
+      "label": "Start Order (Driver) / Pickup (LP)"
+     },
+     {
+      "from": "st",
+      "to": "f",
+      "label": "Finish Order (Driver / LP)"
+     },
+     {
+      "from": "f",
+      "to": "fx",
+      "label": "Process to SA failed"
+     },
+     {
+      "from": "fx",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "sa",
+      "label": "Process to SA OK"
+     },
+     {
+      "from": "sa",
+      "to": "sx",
+      "label": "Process to PAS failed"
+     },
+     {
+      "from": "sx",
+      "to": "sa"
+     },
+     {
+      "from": "sa",
+      "to": "po",
+      "label": "Process to PAS + PO No."
+     },
+     {
+      "from": "po",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "r",
+      "rd"
+     ],
+     [
+      "f",
+      "fx"
+     ],
+     [
+      "sa",
+      "sx"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Cycle Status Transition - Driver (Driver App)",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "d",
+      "label": "DTP Creation Release",
+      "type": "process"
+     },
+     {
+      "id": "c",
+      "label": "Start Cycle",
+      "type": "process"
+     },
+     {
+      "id": "p",
+      "label": "Pickup Container (input Container No.)",
+      "type": "process"
+     },
+     {
+      "id": "f",
+      "label": "Finish Cycle",
+      "type": "process"
+     },
+     {
+      "id": "q",
+      "label": "Next cycle? (max 5)",
+      "type": "decision"
+     },
+     {
+      "id": "e",
+      "label": "Finish Daily Order",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "d",
+      "label": "DTP created (Cycle 1)"
+     },
+     {
+      "from": "d",
+      "to": "c",
+      "label": "Start Order"
+     },
+     {
+      "from": "c",
+      "to": "p"
+     },
+     {
+      "from": "p",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "c",
+      "label": "Yes: Start Next Cycle"
+     },
+     {
+      "from": "q",
+      "to": "e",
+      "label": "No: Finish Order"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Cycle Status Transition - Supplier LP Admin",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "d",
+      "label": "DTP Creation Release",
+      "type": "process"
+     },
+     {
+      "id": "p",
+      "label": "Pickup Container (Reason + Container No.)",
+      "type": "process"
+     },
+     {
+      "id": "f",
+      "label": "Finish Cycle (Reason)",
+      "type": "process"
+     },
+     {
+      "id": "q",
+      "label": "Next cycle? (max 5)",
+      "type": "decision"
+     },
+     {
+      "id": "e",
+      "label": "Finish Daily Order",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "d",
+      "label": "Order Release (Reason, Driver)"
+     },
+     {
+      "from": "d",
+      "to": "p",
+      "label": "Pickup (auto Start Cycle)"
+     },
+     {
+      "from": "p",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "p",
+      "label": "Yes: Pickup (auto new cycle)"
+     },
+     {
+      "from": "q",
+      "to": "e",
+      "label": "No: Finish Order: Reason"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Workflow Action [Submit]",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Submit button",
+      "type": "event"
+     },
+     {
+      "id": "m",
+      "label": "Mandatory filled?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 6",
+      "type": "message"
+     },
+     {
+      "id": "st",
+      "label": "Role & status allowed?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 7 / 8",
+      "type": "message"
+     },
+     {
+      "id": "v",
+      "label": "Field validation OK?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Show message no. 11 - 23",
+      "type": "message"
+     },
+     {
+      "id": "u",
+      "label": "Update order / cycle status",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.DTP_2_DETAIL / ielp.ORDER_CYCLE",
+      "type": "db"
+     },
+     {
+      "id": "h",
+      "label": "Insert status history",
+      "type": "process"
+     },
+     {
+      "id": "hdb",
+      "label": "ielp.LOG_ACTIVITY_ORDER",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Refresh detail & list, msg 10",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "m"
+     },
+     {
+      "from": "m",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "m",
+      "to": "st",
+      "label": "Yes"
+     },
+     {
+      "from": "st",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "st",
+      "to": "v",
+      "label": "Yes"
+     },
+     {
+      "from": "v",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "v",
+      "to": "u",
+      "label": "Yes"
+     },
+     {
+      "from": "u",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "u",
+      "to": "h"
+     },
+     {
+      "from": "h",
+      "to": "hdb",
+      "style": "dashed"
+     },
+     {
+      "from": "h",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "m",
+      "e1"
+     ],
+     [
+      "st",
+      "e2"
+     ],
+     [
+      "v",
+      "e3"
+     ],
+     [
+      "u",
+      "db"
+     ],
+     [
+      "h",
+      "hdb"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Process to SA",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Process to SA",
+      "type": "event"
+     },
+     {
+      "id": "c",
+      "label": "All cycles finished with Container No.?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 24",
+      "type": "message"
+     },
+     {
+      "id": "sa",
+      "label": "Send order to SA",
+      "type": "process"
+     },
+     {
+      "id": "ok",
+      "label": "SA success?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Log failure, status unchanged, msg 25",
+      "type": "message"
+     },
+     {
+      "id": "u1",
+      "label": "Set SA Approved + timestamp",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.DTP_2_DETAIL / ielp.LOG_ACTIVITY_ORDER",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "c",
+      "to": "sa",
+      "label": "Yes"
+     },
+     {
+      "from": "sa",
+      "to": "ok"
+     },
+     {
+      "from": "ok",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "ok",
+      "to": "u1",
+      "label": "Yes"
+     },
+     {
+      "from": "u1",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "u1",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "c",
+      "e1"
+     ],
+     [
+      "ok",
+      "e2"
+     ],
+     [
+      "u1",
+      "db"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Process to PAS",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Process to PAS",
+      "type": "event"
+     },
+     {
+      "id": "pas",
+      "label": "Send order to PAS",
+      "type": "process"
+     },
+     {
+      "id": "ok",
+      "label": "PO Number returned?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Log failure, stays SA Approved, msg 26",
+      "type": "message"
+     },
+     {
+      "id": "fmt",
+      "label": "PO Number format valid?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 27",
+      "type": "message"
+     },
+     {
+      "id": "u2",
+      "label": "Set SA Approved with PO Number",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.DTP_2_DETAIL / ielp.LOG_ACTIVITY_ORDER",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "pas"
+     },
+     {
+      "from": "pas",
+      "to": "ok"
+     },
+     {
+      "from": "ok",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "ok",
+      "to": "fmt",
+      "label": "Yes"
+     },
+     {
+      "from": "fmt",
+      "to": "e2",
+      "label": "No"
+     },
+     {
+      "from": "fmt",
+      "to": "u2",
+      "label": "Yes"
+     },
+     {
+      "from": "u2",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "u2",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "ok",
+      "e1"
+     ],
+     [
+      "fmt",
+      "e2"
+     ],
+     [
+      "u2",
+      "db"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. On Load / Search Result (screenshot from user)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/01_user_order_list.png"
+  },
+  {
+   "caption": "2. Order Detail modal (screenshot from user)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/02_user_order_detail.png"
+  },
+  {
+   "caption": "3. Search Result with Cycle Status and Order Status (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/03_mock_search_result.png",
+   "notes": [
+    "Mock-up only: 'Login sebagai' combo box simulates the login role; it is not part of the real screen."
+   ]
+  },
+  {
+   "caption": "4. Order Detail - IELP Admin, order in Planning Order (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/04_mock_detail_ip_planning.png",
+   "notes": [
+    "Order summary, action section, cycle section and status history ('Riwayat Status')."
+   ]
+  },
+  {
+   "caption": "5. Action Input - Assign Truck, mandatory error (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/05_mock_assign_truck_error.png"
+  },
+  {
+   "caption": "6. Order Detail - Status History with SA / PO (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/06_mock_detail_history.png"
+  },
+  {
+   "caption": "7. Action Input - LP Admin Order Release, Reason and Driver mandatory (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/07_mock_lp_release_error.png"
+  },
+  {
+   "caption": "8. Action Input - LP Admin Pickup Container, invalid check digit (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/07b_mock_lp_pickup_error.png"
+  },
+  {
+   "caption": "9. Order Detail - Supplier Viewer, read only (HTML mock-up)",
+   "image": "img/UISS_Screen_Daily_Order_Monitoring/08_mock_detail_viewer.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Download Driver App",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "name": "Landing Page",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "group": "<Search Criteria Section>"
+  },
+  {
+   "name": "Date From",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "System date",
+   "required": "N",
+   "format": "DD/MM/YYYY",
+   "validation": "Date From <= Date To (msg 1)",
+   "description": "Filter Order Date >= Date From."
+  },
+  {
+   "name": "Date To",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 10,
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "DD/MM/YYYY",
+   "validation": "Date From <= Date To (msg 1)",
+   "description": "Filter Order Date <= Date To."
+  },
+  {
+   "name": "From Loc.",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "FROM_LOC",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "<Select>",
+   "required": "N",
+   "format": "X..TBD..X",
+   "validation": "",
+   "description": "List of DTP origin locations.\nDB: ielp.ORDER_CYCLE.FROM_LOC varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "To Loc.",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "TO_LOC",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "<Select>",
+   "required": "N",
+   "format": "X..TBD..X",
+   "validation": "",
+   "description": "List of DTP destination locations.\nDB: ielp.ORDER_CYCLE.TO_LOC varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Find",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.2."
+  },
+  {
+   "name": "Clear",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.2."
+  },
+  {
+   "group": "<Order List Section>"
+  },
+  {
+   "name": "Tab ALL / DTP 1 / DTP 2 / DTP 3 / DTP 4",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "Tab",
+   "justified": "Left",
+   "initial": "ALL",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Filter by DTP Type."
+  },
+  {
+   "name": "Last Sync at",
+   "source": "System",
+   "field": "--",
+   "type": "Datetime",
+   "len": 20,
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "Load time",
+   "required": "N",
+   "format": "'Last Sync at : 'D Month YYYY HH:MI:SS",
+   "validation": "",
+   "description": "Time of the last data load / Refresh."
+  },
+  {
+   "name": "Refresh",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Search",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "X..TBD..X",
+   "validation": "",
+   "description": "Free text search on No. Order, Trucking Comp., License Plate, Driver, location, Renban, Shift, Type, Order/Cycle Status, Container No., PO Number. Applied on key-in."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column: Date, No. Order, Type, Trucking Comp., License Plate, DTP Loc. From/To, Renban, Shift, FA, Cycle 1-5, Order Status."
+  },
+  {
+   "name": "Export",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Options: 'Export ke Excel (.csv)', 'Print / PDF'. Exports rows matching current criteria within the user data scope."
+  },
+  {
+   "name": "Action",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (icon)",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Open Order Detail modal."
+  },
+  {
+   "name": "Date",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_DATE",
+   "type": "Date",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "DD/MM/YYYY",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.ORDER_DATE date NULL [Revised] date; DTP_HEADER.DTP_DATE for the plan date."
+  },
+  {
+   "name": "No. Order",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "X..18..X",
+   "validation": "",
+   "description": "Example 261026C20000020425.\nDB: ielp.ORDER_CYCLE.ORDER_NO varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "Type",
+   "source": "ielp.DTP_HEADER",
+   "field": "DTP_TYPE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "DTP1 - DTP4.\nDB: ielp.DTP_HEADER.DTP_TYPE varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "Trucking Comp.",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Use supplier code but display supplier name.\nDB: ielp.ORDER_CYCLE.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "License Plate",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "LICENSE_PLATE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Assigned truck; '-' when not assigned.\nDB: ielp.ORDER_CYCLE.LICENSE_PLATE varchar(20) NULL [Revised]"
+  },
+  {
+   "name": "DTP Loc. From",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "FROM_LOC",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.FROM_LOC varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "DTP Loc. To",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "TO_LOC",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.TO_LOC varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Renban",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "RENBAN",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "99999",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.RENBAN varchar(500) NULL [Revised]"
+  },
+  {
+   "name": "Shift",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "SHIFT",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "DAY / NIGHT.\nDB: ielp.ORDER_CYCLE.SHIFT varchar(100) NULL [Revised]"
+  },
+  {
+   "name": "FA",
+   "source": "ielp.DTP_2_DETAIL",
+   "field": "FA flag (no column - TBD)",
+   "type": "Char",
+   "len": 1,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "X",
+   "validation": "",
+   "description": "TBD: meaning of FA flag.\nDB: TBD - No FA flag column (PO_NUMBER_FA?)."
+  },
+  {
+   "name": "Cycle 1 - Cycle 5",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "STATUS_CODE",
+   "type": "Varchar",
+   "len": "3",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "YYYY-MM-DD HH:MI:SS",
+   "validation": "",
+   "description": "Per cycle: latest activity time, Cycle Status badge (DTP Creation Release / Start Cycle / Pickup Container / Finish Cycle) and Container No. Red (x) icon when cycle does not exist.\nDB: ielp.ORDER_CYCLE.STATUS_CODE varchar(3) NOT NULL [TBD] Codes via MS_STATUS (data needed)."
+  },
+  {
+   "name": "Order Status",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "STATUS_CODE",
+   "type": "Varchar",
+   "len": "3",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Badge: Planning Order / Order Release / Start Daily Order / Finish Daily Order / SA Approved (with SA timestamp) / SA Approved with PO Number (with PO Number and timestamp).\nDB: ielp.ORDER_CYCLE.STATUS_CODE varchar(3) NOT NULL [TBD] Codes via MS_STATUS (data needed)."
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "'Showing n to m of x records (filtered from y total entries)'",
+   "validation": "",
+   "description": "Total entries = orders within user data scope."
+  },
+  {
+   "name": "Rows per page",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "10",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50 / 100."
+  },
+  {
+   "name": "Pagination (< 1 2 ... >)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "group": "<Order Detail Modal - Summary Section>"
+  },
+  {
+   "name": "No. Order",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.ORDER_NO varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "Date / Shift",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_DATE",
+   "type": "Date",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "DD/MM/YYYY - X..X",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.ORDER_DATE date NULL [Revised] date; DTP_HEADER.DTP_DATE for the plan date."
+  },
+  {
+   "name": "Trucking Company",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Type / Renban",
+   "source": "ielp.DTP_HEADER",
+   "field": "DTP_TYPE",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.DTP_HEADER.DTP_TYPE varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "License Plate",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "LICENSE_PLATE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.LICENSE_PLATE varchar(20) NULL [Revised]"
+  },
+  {
+   "name": "Driver",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "DRIVER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Use driver user ID but display driver name.\nDB: ielp.ORDER_CYCLE.DRIVER_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Planned / Actual Cycle",
+   "source": "ielp.DTP_2_DETAIL / ielp.ORDER_CYCLE",
+   "field": "planned cycles (no column - TBD) / count of started cycles",
+   "type": "Number",
+   "len": 1,
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "9 / 9",
+   "validation": "",
+   "description": "DB: TBD - No planned-cycle column; actual = count of ORDER_CYCLE rows."
+  },
+  {
+   "name": "Order Status",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "STATUS_CODE",
+   "type": "Varchar",
+   "len": "3",
+   "io": "O",
+   "control": "Badge",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.STATUS_CODE varchar(3) NOT NULL [TBD] Codes via MS_STATUS (data needed)."
+  },
+  {
+   "name": "Cycle Status",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "STATUS_CODE",
+   "type": "Varchar",
+   "len": "3",
+   "io": "O",
+   "control": "Badge",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.STATUS_CODE varchar(3) NOT NULL [TBD] Codes via MS_STATUS (data needed)."
+  },
+  {
+   "name": "SA Approved",
+   "source": "ielp.SA_DETAIL",
+   "field": "APPROVED_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD HH:MI:SS",
+   "validation": "",
+   "description": "'-' when not yet SA Approved.\nDB: ielp.SA_DETAIL.APPROVED_DATE datetime NULL [TBD]"
+  },
+  {
+   "name": "PO Number",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "9999999999 (YYYY-MM-DD HH:MI:SS)",
+   "validation": "",
+   "description": "'-' when not yet received.\nDB: ielp.ORDER_CYCLE.PO_NUMBER varchar(20) NULL [Revised]"
+  },
+  {
+   "group": "<Order Detail Modal - Action Section>"
+  },
+  {
+   "name": "Workflow action buttons",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Label 'Aksi <Role>:' followed by the allowed buttons (Assign Truck, Order Release, Pickup Container, Finish Cycle, Finish Order, Process to SA, Process to PAS). When none is allowed show 'Tidak ada aksi ...' or, for Supplier Viewer, 'Akses hanya lihat'. Refer 5.5."
+  },
+  {
+   "group": "<Order Detail Modal - Cycle Section (repeated per cycle)>"
+  },
+  {
+   "name": "CYCLE n + Cycle Status",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "STATUS_CODE",
+   "type": "Varchar",
+   "len": "3",
+   "io": "O",
+   "control": "Accordion header",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Click to expand / collapse.\nDB: ielp.ORDER_CYCLE.STATUS_CODE varchar(3) NOT NULL [TBD] Codes via MS_STATUS (data needed)."
+  },
+  {
+   "name": "Police No",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "LICENSE_PLATE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.LICENSE_PLATE varchar(20) NULL [Revised]"
+  },
+  {
+   "name": "Driver",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "DRIVER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.DRIVER_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Trucking Company",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.ORDER_CYCLE.COMPANY_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Route From -> To",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "FROM_LOC",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Cycle 1 = DTP From -> To; next cycles alternate (TBD, OP-11).\nDB: ielp.ORDER_CYCLE.FROM_LOC varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Container No",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "CONTAINER_NO",
+   "type": "Varchar",
+   "len": "11",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "AAAU9999999",
+   "validation": "",
+   "description": "'-' before Pickup Container.\nDB: ielp.ORDER_CYCLE.CONTAINER_NO varchar(11) NULL [Verified]"
+  },
+  {
+   "name": "Order No (cycle)",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "CYCLE_SEQ",
+   "type": "Varchar",
+   "len": "2",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Example 261027C2PBM671. Generation rule TBD.\nDB: ielp.ORDER_CYCLE.CYCLE_SEQ varchar(2) NOT NULL [Revised]"
+  },
+  {
+   "name": "Activity List: Start Cycle / Pick Up / Finish Cycle",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "START_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "DD/MM/YYYY HH:MI",
+   "validation": "",
+   "description": "'Belum dilakukan' when blank.\nDB: ielp.ORDER_CYCLE.START_DATE datetime NULL [Revised] PICKUP_DATE, COMPLETE_DATE; *_BY_LP flags, lat / long, geofence flags also exist."
+  },
+  {
+   "name": "Files: Foto Surat Jalan / Finish Cycle Foto + View",
+   "source": "ielp.ORDER_FILES",
+   "field": "FILE_NAME",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid + Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Uploaded from Driver App (TBD). View disabled when file does not exist.\nDB: ielp.ORDER_FILES.FILE_NAME varchar(500) NULL [Revised] FILE_TYPE, FILE_PATH."
+  },
+  {
+   "name": "Surat Jalan ELIPS",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show Surat Jalan (order, cycle, truck, driver, container, route, activity time, signature area)."
+  },
+  {
+   "name": "PDF",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Open Surat Jalan in new window and call print (save as PDF)."
+  },
+  {
+   "group": "<Order Detail Modal - Status History Section>"
+  },
+  {
+   "name": "Status History grid",
+   "source": "ielp.LOG_ACTIVITY_ORDER",
+   "field": "ACT",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Columns: Waktu, User (+Role), Aksi, Dari, Ke, Reason / Catatan. Failed SA/PAS rows highlighted red.\nDB: ielp.LOG_ACTIVITY_ORDER.ACT varchar(100) NULL [TBD] Inferred; columns ACT, STS_CODE, STS_MESSAGE, REMARK, CREATED_BY, CRETED_DATE."
+  },
+  {
+   "group": "<Action Input Modal>"
+  },
+  {
+   "name": "Order / current status",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "ORDER_NO",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Header text of the modal.\nDB: ielp.ORDER_CYCLE.ORDER_NO varchar(20) NOT NULL [Revised]"
+  },
+  {
+   "name": "Truck Number",
+   "source": "ielp.MS_TRUCK_REGISTRATION",
+   "field": "LICENSE_PLATE",
+   "type": "Varchar",
+   "len": "20",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "<Select>",
+   "required": "Y",
+   "format": "",
+   "validation": "Refer 5.6.1 (msg 11-13)",
+   "description": "Assign Truck only. Trucks of the order Trucking Company, label 'plate (lisensi s/d YYYY-MM-DD)' + '- aktif di <Order No>' when used by an active order.\nDB: ielp.MS_TRUCK_REGISTRATION.LICENSE_PLATE varchar(20) NOT NULL [Revised] STNK_EXPIRED for license check."
+  },
+  {
+   "name": "Driver",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "DRIVER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "<Select>",
+   "required": "Y",
+   "format": "",
+   "validation": "Refer 5.6.2 (msg 15, 16)",
+   "description": "Order Release (LP Admin) only. Drivers of the order Trucking Company; inactive drivers marked.\nDB: ielp.ORDER_CYCLE.DRIVER_ID varchar(10) NULL [Revised]"
+  },
+  {
+   "name": "Reason",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text area",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "X..TBD..X",
+   "validation": "Min 10 characters (msg 14)",
+   "description": "Mandatory for every LP Admin action (Order Release, Pickup Container, Finish Cycle, Finish Order).\nDB: TBD - LOG_ACTIVITY_ORDER.REMARK or ORDER_REMARK (inferred)."
+  },
+  {
+   "name": "Container Number",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "CONTAINER_NO",
+   "type": "Varchar",
+   "len": "11",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "AAAU9999999",
+   "validation": "ISO 6346 + check digit, unique (msg 17-20)",
+   "description": "Pickup Container only. Converted to upper case; spaces and \"-\" removed.\nDB: ielp.ORDER_CYCLE.CONTAINER_NO varchar(11) NULL [Verified]"
+  },
+  {
+   "name": "PO Number",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "20",
+   "io": "O",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "From PAS",
+   "required": "Y",
+   "format": "45 + 99999999 (TBD)",
+   "validation": "msg 26, 27",
+   "description": "Process to PAS only. Returned by PAS (mock-up lets user key-in for simulation).\nDB: ielp.ORDER_CYCLE.PO_NUMBER varchar(20) NULL [Revised]"
+  },
+  {
+   "name": "Submit",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer 5.6."
+  },
+  {
+   "name": "Cancel / Close (x)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Assign Truck - [Submit]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Truck Number",
+      "dest_field": "LICENSE_PLATE"
+     },
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Order Release'"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Order Release (LP) - [Submit]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Driver",
+      "dest_field": "DRIVER_ID"
+     },
+     {
+      "dest_field": "LICENSE_PLATE",
+      "description": "Keep if filled; else driver's registered truck from ielp.MS_DRIVER"
+     },
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Order Release'"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.ORDER_CYCLE",
+     "operation": "Update",
+     "description": "Pickup Container - [Submit]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      },
+      {
+       "field": "CYCLE_SEQ",
+       "value": "Latest cycle of the order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Container Number",
+      "dest_field": "CONTAINER_NO",
+      "description": "Upper case, spaces/'-' removed"
+     },
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Pickup Container'"
+     },
+     {
+      "dest_field": "START_DATE",
+      "description": "Server system date, only when LP Admin picks up on Order Release"
+     },
+     {
+      "dest_field": "PICKUP_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.ORDER_CYCLE",
+     "operation": "Insert",
+     "description": "LP pickup after Finish Cycle",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Selected No. Order"
+     },
+     {
+      "dest_field": "CYCLE_SEQ",
+      "description": "Max cycle no + 1 (max 5)"
+     },
+     {
+      "dest_field": "FROM_LOC / TO_LOC",
+      "description": "Alternate DTP From/To (TBD, OP-11)"
+     },
+     {
+      "source_field": "Container Number",
+      "dest_field": "CONTAINER_NO"
+     },
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Pickup Container'"
+     },
+     {
+      "dest_field": "START_DT, PICKUP_DATE",
+      "description": "Server system date [Conflict: START_DT is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "ORDER_CYCLE_ID, DTP_HEADER_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Pickup on Order Release (LP)",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Start Daily Order'"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.ORDER_CYCLE",
+     "operation": "Update",
+     "description": "Finish Cycle - [Submit]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      },
+      {
+       "field": "CYCLE_SEQ",
+       "value": "Latest cycle of the order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Finish Cycle'"
+     },
+     {
+      "dest_field": "COMPLETE_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Finish Order - [Submit]",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'Finish Daily Order'"
+     },
+     {
+      "dest_field": "COMPLETE_DATE",
+      "description": "Server system date [Conflict: COMPLETE_DATE is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "SA interface response (TBD)",
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Process to SA - success",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'SA Approved'"
+     },
+     {
+      "dest_field": "SA approval date (SA_DETAIL.APPROVED_DATE, inferred)",
+      "description": "SA response timestamp (TBD) / server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "PAS interface response (TBD)",
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Process to PAS - success",
+     "keys": [
+      {
+       "field": "ORDER_NO",
+       "value": "Selected No. Order"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "'SA Approved with PO Number'"
+     },
+     {
+      "source_field": "PO Number",
+      "dest_field": "PO_NUMBER"
+     },
+     {
+      "dest_field": "PO received date (no column - TBD)",
+      "description": "PAS response timestamp (TBD) / server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER",
+     "operation": "Insert",
+     "description": "Every action / SA-PAS failure",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO",
+      "description": "Selected No. Order"
+     },
+     {
+      "dest_field": "CYCLE_SEQ",
+      "description": "Latest cycle no [Conflict: CYCLE_SEQ is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "ACT",
+      "description": "Action name, '(GAGAL)' suffix when failed"
+     },
+     {
+      "dest_field": "from status (no column - TBD)",
+      "description": "Order Status / Cycle Status before"
+     },
+     {
+      "dest_field": "STS_CODE",
+      "description": "Order Status / Cycle Status after"
+     },
+     {
+      "source_field": "Reason",
+      "dest_field": "REMARK",
+      "description": "Blank for IELP Admin / Driver"
+     },
+     {
+      "dest_field": "STS_MESSAGE",
+      "description": "System note (auto start cycle, actual vs planned, error text)"
+     },
+     {
+      "dest_field": "role (no column - TBD)",
+      "description": "Login user role"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server system date [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "LOG_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Access Control",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "The data scope and allowed actions follow the login user role:",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Role",
+     "width": 10
+    },
+    {
+     "title": "Data scope",
+     "width": 14
+    },
+    {
+     "title": "Actions on this screen",
+     "width": 22
+    }
+   ],
+   "rows": [
+    [
+     "IELP Admin",
+     "All orders",
+     "Assign Truck, Process to SA, Process to PAS"
+    ],
+    [
+     "Supplier (LP Admin)",
+     "Own supplier orders only",
+     "Order Release, Pickup Container, Finish Cycle, Finish Order (Reason mandatory)"
+    ],
+    [
+     "Supplier (Viewer)",
+     "Own supplier orders only",
+     "None (read only)"
+    ],
+    [
+     "Driver",
+     "Orders of the truck used at login",
+     "Driver App only (refer 5.7)"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "The supplier restriction applies to the Order List, search, paging total, Export and Order Detail. Opening an order outside the scope shows message no. 4.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Search Operation",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "5.2.1 Initial Display",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "'Date From' = system date, 'Date To' blank, 'From Loc.' / 'To Loc.' = <Select>, Tab = ALL, Search box blank.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Order List shows orders within the user data scope matching the initial criteria, sorted by No. Order ascending, 10 rows per page.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "'Last Sync at' shows the data load time.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.2.2 Button Operation",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "User clicks 'Find'.",
+   "level": 2
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "If Date From and Date To are filled and Date From > Date To, display message no. 1. Stop.",
+    "Retrieve orders by Date From, Date To, From Loc., To Loc., selected DTP tab and Search text within the user data scope.",
+    "If there is no data retrieved, show empty grid with message no. 2."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "User clicks 'Clear': reset all criteria (including Search) and show all orders within the user data scope.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "User clicks a DTP tab: filter by DTP Type; ALL = no filter. Key-in on 'Search' filters immediately.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "User clicks 'Refresh': reload the list with latest data and update 'Last Sync at'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "e.",
+   "text": "User clicks a column header: sort by that column; click again to reverse. Order Status sorts by workflow sequence.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "f.",
+   "text": "User clicks 'Export' > 'Export ke Excel (.csv)': export all rows matching current criteria (not only current page) with Driver, Cycle 1-5 status + container, Order Status, SA Approved At and PO Number. If no row, display message no. 3. 'Print / PDF' prints the list.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "g.",
+   "text": "User clicks 'Kolom': show / hide the checked columns (screen only).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Order Detail",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "User clicks the Action icon: open Order Detail modal (Summary, Action, Cycle n sections, Status History).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Cycle sections are shown for every existing cycle, Cycle 1 first. Activity time blank is shown as 'Belum dilakukan'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Files: 'View' Foto Surat Jalan enabled after Pickup Container; Finish Cycle Foto after Finish Cycle. 'Surat Jalan ELIPS' and 'PDF' enabled after Start Cycle. If pop-up is blocked when clicking 'PDF', display message no. 5.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Status History lists every status change and failed SA/PAS attempt, latest first.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "e.",
+   "text": "Driver actions (Start Order, Pickup Container, Finish Cycle, Start Next Cycle, Finish Order) are done in the Driver App and are shown on this screen after Refresh.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Status Definition",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Order Status",
+     "width": 14
+    },
+    {
+     "title": "Set when",
+     "width": 32
+    }
+   ],
+   "rows": [
+    [
+     "Planning Order",
+     "DTP created by Check & Submit (Planning Order screen)"
+    ],
+    [
+     "Order Release",
+     "IELP Admin assigns the order to a truck number, or LP Admin does Order Release (Reason, Driver)"
+    ],
+    [
+     "Start Daily Order",
+     "Driver starts the order (Driver App), or LP Admin Pickup Container on Order Release"
+    ],
+    [
+     "Finish Daily Order",
+     "Driver or LP Admin finishes the order"
+    ],
+    [
+     "SA Approved",
+     "Order successfully processed to SA; SA timestamp saved"
+    ],
+    [
+     "SA Approved with PO Number",
+     "Order successfully processed to PAS and PO Number received"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Cycle Status",
+     "width": 14
+    },
+    {
+     "title": "Set when",
+     "width": 32
+    }
+   ],
+   "rows": [
+    [
+     "DTP Creation Release",
+     "Cycle 1 created together with the DTP"
+    ],
+    [
+     "Start Cycle",
+     "Driver starts the order (Cycle 1) or starts the next cycle (Cycle 2, 3, ...)"
+    ],
+    [
+     "Pickup Container",
+     "Container picked up; Container Number recorded"
+    ],
+    [
+     "Finish Cycle",
+     "Cycle finished"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "Container Number must be recorded on every cycle. Maximum 5 cycles per order (TBD, OP-07).",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Status Transition Rules",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "An action is allowed only from the status below; otherwise display message no. 7. A role not listed gets message no. 8.",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Action",
+     "width": 11
+    },
+    {
+     "title": "Role",
+     "width": 9
+    },
+    {
+     "title": "From status",
+     "width": 14
+    },
+    {
+     "title": "To status",
+     "width": 14
+    }
+   ],
+   "rows": [
+    [
+     "Assign Truck",
+     "IELP Admin",
+     "Planning Order",
+     "Order Release"
+    ],
+    [
+     "Order Release",
+     "LP Admin",
+     "Planning Order / Order Release",
+     "Order Release"
+    ],
+    [
+     "Start Order",
+     "Driver (App)",
+     "Order Release",
+     "Start Daily Order / Start Cycle"
+    ],
+    [
+     "Pickup Container",
+     "Driver, LP Admin",
+     "Start Daily Order + Start Cycle",
+     "Pickup Container"
+    ],
+    [
+     "Pickup Container",
+     "LP Admin",
+     "Order Release (auto Start Cycle) or last cycle Finish Cycle (auto new cycle)",
+     "Start Daily Order / Pickup Container"
+    ],
+    [
+     "Finish Cycle",
+     "Driver, LP Admin",
+     "Start Daily Order + Pickup Container",
+     "Finish Cycle"
+    ],
+    [
+     "Start Next Cycle",
+     "Driver (App)",
+     "Start Daily Order + Finish Cycle, cycles < 5",
+     "Start Cycle (new cycle)"
+    ],
+    [
+     "Finish Order",
+     "Driver, LP Admin",
+     "Start Daily Order + last cycle Finish Cycle",
+     "Finish Daily Order"
+    ],
+    [
+     "Process to SA",
+     "IELP Admin / Batch",
+     "Finish Daily Order",
+     "SA Approved + timestamp"
+    ],
+    [
+     "Process to PAS",
+     "IELP Admin / Batch",
+     "SA Approved",
+     "SA Approved with PO Number"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Button Operation (Action Input modal)",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "Common for all actions on 'Submit': 1. If a mandatory field is blank, display message no. 6. Stop. 2. Check role and status (5.5); if not allowed, message no. 7 / 8. Stop. 3. Run the action validation below. 4. Update the order / cycle (Data Edit Mapping), insert status history (user, role, time, from/to status, reason, note), close the modal, refresh Order Detail and Order List and display message no. 10. If the record was changed by another user, display message no. 9.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.6.1 Assign Truck (IELP Admin)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "If the truck is not registered or not owned by the order Trucking Company, display message no. 11. Stop.",
+    "If truck license date < order date, display message no. 12. Stop.",
+    "If the truck is assigned to another order in Order Release / Start Daily Order with the same date and shift, display message no. 13. Stop.",
+    "Otherwise set Truck No and Order Status = Order Release."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "text",
+   "text": "5.6.2 Order Release (LP Admin) - Reason, Driver",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "If Reason has fewer than 10 characters, display message no. 14. Stop.",
+    "If the driver is not registered, inactive or not owned by the order supplier, display message no. 15. Stop.",
+    "If the order has no truck and the driver has no registered truck, display message no. 16. Stop.",
+    "Otherwise set Driver, Truck No (driver's registered truck when blank) and Order Status = Order Release."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "text",
+   "text": "5.6.3 Pickup Container (LP Admin) - Reason, Container Number",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Reason check as 5.6.2 (message no. 14).",
+    "If Order Status is Order Release and Driver is blank, display message no. 21. Stop.",
+    "If the last cycle is Finish Cycle and the order already has 5 cycles, display message no. 22. Stop.",
+    "Container Number: not ISO 6346 format -> message no. 17; wrong check digit -> no. 18; used by another cycle of the same order -> no. 19; in Pickup Container on another order -> no. 20. Stop.",
+    "From Order Release: set Order Status = Start Daily Order and Cycle 1 Start Date = system date. After Finish Cycle: create the next cycle with Start Date = system date.",
+    "Set Container No, Cycle Status = Pickup Container, Pickup Date = system date."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "text",
+   "text": "5.6.4 Finish Cycle (LP Admin) - Reason",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Reason check (message no. 14). If Container No of the cycle is blank, display message no. 23. Stop.",
+    "Set Cycle Status = Finish Cycle, Finish Date = system date."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "text",
+   "text": "5.6.5 Finish Order (LP Admin) - Reason",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Reason check (message no. 14). If any cycle has no Container No, display message no. 23. Stop.",
+    "Set Order Status = Finish Daily Order. If actual cycles < planned cycles, note 'Actual x of planned y cycles' in history (allowed, TBD OP-06)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "text",
+   "text": "5.6.6 Process to SA / Process to PAS (IELP Admin)",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Process to SA: if any cycle is not Finish Cycle or has no Container No, display message no. 24. Stop. Send to SA; if failed, keep status, log failure (Logging no. 2) and display message no. 25. If successful, set Order Status = SA Approved and SA Approved Date.",
+    "Process to PAS: send to PAS; if no PO Number is returned, keep SA Approved, log failure (Logging no. 3) and display message no. 26. If PO Number format is invalid, display message no. 27. If successful, set Order Status = SA Approved with PO Number, PO Number and PO Received Date.",
+    "Whether SA / PAS is also run by a scheduled batch is TBD (OP-10)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Related Functions (separate UISS)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Planning Order screen - DTP Check & Submit: Date, Type, Trucking Comp., Shift, From/To Loc., Renban (5 digits, unique per supplier + date + shift), Planned Cycle (1-5) mandatory; date not in the past; From <> To. Creates order Planning Order / DTP Creation Release.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Driver App - Login with User ID, Truck No. and truck license date: user ID registered and active, truck registered and owned by the driver supplier, license date equals master and not expired. Driver sees only orders of that truck; Start Order only when the truck has no other order in Start Daily Order.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Driver App - Start Order, Pickup Container (Container Number mandatory), Finish Cycle, Start Next Cycle, Finish Order follow the rules in 5.5 and 5.6 without Reason.",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Date",
+     "ielp.ORDER_CYCLE.ORDER_DATE",
+     "date",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "No. Order",
+     "ielp.ORDER_CYCLE.ORDER_NO",
+     "varchar(20)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Type (DTP 1-4)",
+     "ielp.DTP_HEADER.DTP_TYPE",
+     "varchar(1)",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Trucking Comp.",
+     "ielp.ORDER_CYCLE.COMPANY_ID",
+     "varchar(10)",
+     "N",
+     "R",
+     "Name from MS_TRUCKING_COMPANY",
+     "Revised"
+    ],
+    [
+     "License Plate",
+     "ielp.ORDER_CYCLE.LICENSE_PLATE",
+     "varchar(20)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Driver",
+     "ielp.ORDER_CYCLE.DRIVER_ID",
+     "varchar(10)",
+     "N",
+     "R/W",
+     "Name from MS_DRIVER",
+     "Revised"
+    ],
+    [
+     "From / To",
+     "ielp.ORDER_CYCLE.FROM_LOC",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "To",
+     "ielp.ORDER_CYCLE.TO_LOC",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Renban",
+     "ielp.ORDER_CYCLE.RENBAN",
+     "varchar(500)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Shift",
+     "ielp.ORDER_CYCLE.SHIFT",
+     "varchar(100)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "FA",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Cycle status",
+     "ielp.ORDER_CYCLE.STATUS_CODE",
+     "varchar(3)",
+     "Y",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Cycle sequence",
+     "ielp.ORDER_CYCLE.CYCLE_SEQ",
+     "varchar(2)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Container No",
+     "ielp.ORDER_CYCLE.CONTAINER_NO",
+     "varchar(11)",
+     "N",
+     "R/W",
+     "-",
+     "Verified"
+    ],
+    [
+     "Start / Pick Up / Finish",
+     "ielp.ORDER_CYCLE.START_DATE",
+     "datetime",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "SA approved",
+     "ielp.SA_DETAIL.APPROVED_DATE",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "PO Number",
+     "ielp.ORDER_CYCLE.PO_NUMBER",
+     "varchar(20)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Planned / Actual Cycle",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Files",
+     "ielp.ORDER_FILES.FILE_NAME",
+     "varchar(500)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Status history",
+     "ielp.LOG_ACTIVITY_ORDER.ACT",
+     "varchar(100)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Truck Number (picker)",
+     "ielp.MS_TRUCK_REGISTRATION.LICENSE_PLATE",
+     "varchar(20)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Driver (picker)",
+     "ielp.MS_DRIVER.DRIVER_ID",
+     "varchar(10)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Truck change history",
+     "ielp.ORDER_TRUCK_H.LICENSE_PLATE",
+     "varchar(20)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Reason (release / reject)",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-DM-01 Order vs cycle: UISS / code: Daily Order + Daily Order Cycle tables. DB: ORDER_CYCLE (one row per cycle) + DTP_n_DETAIL (order). Recommendation: Order-level status = latest cycle / DTP_n_DETAIL.STATUS_CODE (confirm)",
+    "G-DM-02 Status codes: UISS / code: Text statuses (Planning Order, Order Release, ...). DB: STATUS_CODE varchar(3), MS_STATUS. Recommendation: Map with MS_STATUS data",
+    "G-DM-03 Status history columns: UISS / code: FROM_STATUS, ROLE, REASON. DB: LOG_ACTIVITY_ORDER has ACT, STS_CODE, REMARK only. Recommendation: Confirm the history table",
+    "G-DM-04 FA / planned cycle / PO received date: UISS / code: Columns on the order. DB: No columns. Recommendation: Confirm source"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "MS_STATUS codes (order, cycle)",
+    "Which DTP_n_DETAIL per DTP type",
+    "Accept / reject by LP storage"
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "Print / PDF (review addition, DM-05)"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Menu Export > \"Print / PDF\" calls the browser print of the current list (app.js:326 window.print()); the printed content is the visible list with the active filters and columns. No server call, no database access.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Paper size, header / footer and page breaks follow the browser print settings - TBD - Not confirmed from existing schema/data/code.",
+   "level": 2
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Click [Find] button",
+   "cause": "Date From later than Date To",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Date From must be earlier than or equal to Date To.",
+   "action": "Correct the date range and click Find"
+  },
+  {
+   "event": "Click [Find] button / key-in Search",
+   "cause": "No order matches the criteria",
+   "type": "Info",
+   "msg_id": "STD090001AINF",
+   "message": "No Data Found",
+   "action": "Change the criteria"
+  },
+  {
+   "event": "Click [Export] > Excel",
+   "cause": "No record to export",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "There is no data to export.",
+   "action": "Change the criteria"
+  },
+  {
+   "group": "Order Detail Operation"
+  },
+  {
+   "event": "Click [Detail] (Action icon)",
+   "cause": "Order is outside the login user data scope",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "You are not authorized to access order {Order No}.",
+   "action": "Contact IELP Admin"
+  },
+  {
+   "event": "Click [PDF] button",
+   "cause": "Browser pop-up is blocked",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Pop-up is blocked by the browser. Please allow pop-up to print Surat Jalan.",
+   "action": "Allow pop-up and click PDF again"
+  },
+  {
+   "group": "Workflow Action Operation (common)"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Mandatory field is not filled",
+   "type": "Error",
+   "msg_id": "MSTD0075AERR",
+   "message": "Mandatory Field Not Entered",
+   "action": "Fill all mandatory field and click Submit"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Action not allowed for current Order / Cycle Status",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Action} can only be performed when status is {Allowed Status}.",
+   "action": "Refresh and check the order status"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Login role is not allowed to do the action",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Role} is not allowed to perform {Action}.",
+   "action": "Contact LP Admin / IELP Admin"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Order changed by another user",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Error in Update because of concurrency check.",
+   "action": "Refresh and retry"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Action saved successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{Action} completed. Order Status: {Order Status} / Cycle Status: {Cycle Status}.",
+   "action": "-"
+  },
+  {
+   "group": "Assign Truck Operation"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Truck not registered / not owned by Trucking Company",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck {Truck No} is not registered for {Trucking Company}.",
+   "action": "Select another truck"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Truck license date before order date",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "License of truck {Truck No} expired on {License Date}, before order date {Order Date}.",
+   "action": "Select another truck / renew license"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Truck already in active order same date and shift",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Truck {Truck No} is already assigned to order {Order No} ({Shift} {Order Date}).",
+   "action": "Select another truck"
+  },
+  {
+   "group": "Order Release Operation (LP Admin)"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Reason fewer than 10 characters",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for Reason. The format must be minimum 10 characters",
+   "action": "Complete the reason and click Submit"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Driver not registered, inactive or other supplier",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Driver {Driver} is not active or not registered for {Trucking Company}.",
+   "action": "Select another driver"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Order has no truck and driver has no registered truck",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Driver {Driver} has no registered truck. Please ask IELP Admin to assign a truck.",
+   "action": "Contact IELP Admin"
+  },
+  {
+   "group": "Pickup Container Operation"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Container Number not ISO 6346 format",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for Container Number. The format must be AAAU9999999",
+   "action": "Correct the Container Number"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Container Number check digit wrong",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Invalid check digit for Container Number {Container No}.",
+   "action": "Correct the Container Number"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Container Number used in another cycle of the same order",
+   "type": "Error",
+   "msg_id": "MSTD0039AERR",
+   "message": "Duplication found for Container Number {Container No}",
+   "action": "Input the correct Container Number"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Container Number still in Pickup Container on another order",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Container Number {Container No} is still active in order {Order No}.",
+   "action": "Finish the other order cycle first"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "LP Admin pickup on Order Release without Driver",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Please perform Order Release with Driver first.",
+   "action": "Do Order Release first"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Order already has 5 cycles",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Maximum 5 cycles per order has been reached.",
+   "action": "Finish the order"
+  },
+  {
+   "group": "Finish Cycle / Finish Order Operation"
+  },
+  {
+   "event": "Click [Submit] button",
+   "cause": "Container Number of a cycle not recorded",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Container Number of Cycle {n} has not been recorded.",
+   "action": "Record the Container Number first"
+  },
+  {
+   "group": "SA / PAS Operation"
+  },
+  {
+   "event": "Click [Process to SA] > [Submit]",
+   "cause": "Not all cycles Finish Cycle with Container Number",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "All cycles must be Finish Cycle with Container Number before SA process.",
+   "action": "Complete the cycles"
+  },
+  {
+   "event": "Click [Process to SA] > [Submit]",
+   "cause": "SA rejected / interface error",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA process failed for order {Order No}: {SA Error}. Status is not changed.",
+   "action": "Check data and retry"
+  },
+  {
+   "event": "Click [Process to PAS] > [Submit]",
+   "cause": "PAS did not return PO Number",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PAS did not return PO Number for order {Order No}. Status remains SA Approved.",
+   "action": "Retry later / contact PAS admin"
+  },
+  {
+   "event": "Click [Process to PAS] > [Submit]",
+   "cause": "PO Number format invalid",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for PO Number. The format must be 45 + 8 digits",
+   "action": "Check PAS response"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Workflow action [Submit]",
+   "cause": "Status changed successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{Action} by {User} ({Role}) on {Order No} cycle {n}: {From Status} -> {To Status}. Reason: {Reason}",
+   "exception": "N",
+   "action": "Insert into status history"
+  },
+  {
+   "event": "Process to SA",
+   "cause": "SA rejected / interface error",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "SA process failed for order {Order No}: {SA Error}.",
+   "exception": "Y",
+   "action": "Display Message no. 25"
+  },
+  {
+   "event": "Process to PAS",
+   "cause": "PAS did not return PO Number",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PAS process failed for order {Order No}: {PAS Error}.",
+   "exception": "Y",
+   "action": "Display Message no. 26"
+  },
+  {
+   "event": "Process to SA / PAS",
+   "cause": "Cannot connect to SA / PAS interface",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Cannot connect to {SA/PAS} interface.",
+   "exception": "Y",
+   "action": "Display Message no. 25 / 26"
+  },
+  {
+   "event": "Process to PAS",
+   "cause": "PO Number received",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "PO Number {PO No} received for order {Order No}.",
+   "exception": "N",
+   "action": "Insert into status history"
+  }
+ ]
+}

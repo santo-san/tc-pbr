@@ -1,0 +1,299 @@
+{
+ "uiss": "UISS_Screen_Master_Location",
+ "revision": "Database mapping revised to the ELIPS schema (ielp.MS_LOCATION): column names / types from the DDL; coordinates and radius are varchar in ELIPS; Active / Inactive and VERSION have no column (conflicts); no sample data",
+ "replace": {
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "LOCATION_ALIAS (TBD)": "LOCATION_ALIAS",
+  "LOCATION_NAME (TBD)": "LOCATION_NAME",
+  "GMAP_ADDRESS (TBD)": "LOCATION_ADDRESS_ORI",
+  "PHYSICAL_ADDRESS (TBD)": "LOCATION_ADRESS",
+  "SUB_AREA_CD (TBD)": "LOCATION_SUB",
+  "SUB_AREA_NAME (TBD)": "sub area name (source TBD)",
+  "Sub Area Master (TBD)": "Sub Area source (TBD)",
+  "LATITUDE, LONGITUDE (TBD)": "LOCATION_LATITUDE, LOCATION_LANGITUDE",
+  "LATITUDE (TBD)": "LOCATION_LATITUDE",
+  "LONGITUDE (TBD)": "LOCATION_LANGITUDE",
+  "RADIUS_M (TBD)": "RADIUS",
+  "AUTO_FINISH_FLAG (TBD)": "AUTO_FINISH",
+  "AUTO_CYCLE_FLAG (TBD)": "AUTO_CYCLE",
+  "CYCLE_TO_AREA (TBD)": "CYCLE_LOC_TO",
+  "STATUS (TBD)": "IS_DELETE (Active / Inactive: no column - Conflict)",
+  "CREATED_BY, CREATED_DT (TBD)": "CREATED_BY, CREATED_DATE",
+  "UPDATED_BY, UPDATED_DT (TBD)": "UPDATED_BY, UPDATED_DATE",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "UPDATED_BY (TBD)": "UPDATED_BY",
+  "UPDATED_DT (TBD)": "UPDATED_DATE",
+  "VERSION (TBD)": "VERSION (no column in ELIPS - Conflict)"
+ },
+ "fields": [
+  {
+   "ui": "Location Name",
+   "items": [
+    "Location Name",
+    "Loc Name"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_NAME",
+   "rw": "R/W",
+   "mapping": "TRIM, UPPER",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "UI max 100 < DB 5000."
+  },
+  {
+   "ui": "Location Alias (Code)",
+   "items": [
+    "Location Alias",
+    "Location Code"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ALIAS",
+   "rw": "R/W",
+   "mapping": "UPPER, unique",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "UI max 10 < DB 100; LOCATION_ID (PK) is a separate key."
+  },
+  {
+   "ui": "Location Address Google Map",
+   "items": [
+    "Location Address Google Map",
+    "G.Map Address"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ADDRESS_ORI",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "Link by name (inferred)."
+  },
+  {
+   "ui": "Physical Location Address",
+   "items": [
+    "Physical Location Address",
+    "Physical Address"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ADRESS",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "Column spelled LOCATION_ADRESS."
+  },
+  {
+   "ui": "Location Sub Area",
+   "items": [
+    "Location Sub Area",
+    "Loc Sub Area"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_SUB",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "LOCATION_SUB / LOCATION_AREA varchar(10); list source TBD."
+  },
+  {
+   "ui": "Radius (m)",
+   "items": [
+    "Radius (m)"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "RADIUS",
+   "rw": "R/W",
+   "mapping": "Numeric > 0 stored as text",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "varchar(5) default '50'."
+  },
+  {
+   "ui": "Auto Finish Order",
+   "items": [
+    "Auto Finish Order",
+    "Auto Finish"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "AUTO_FINISH",
+   "rw": "R/W",
+   "mapping": "Yes / No -> values TBD (default 0)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Auto Generate Cycle",
+   "items": [
+    "Auto Generate Cycle",
+    "Auto Cycle"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "AUTO_CYCLE",
+   "rw": "R/W",
+   "mapping": "Yes / No -> values TBD (default 0)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Cycle To Area",
+   "items": [
+    "Cycle To Area"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "CYCLE_LOC_TO",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Latitude",
+   "items": [
+    "Latitude"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_LATITUDE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "varchar(100) NOT NULL; UI Number(10,7)."
+  },
+  {
+   "ui": "Longitude",
+   "items": [
+    "Longitude"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_LANGITUDE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "Column spelled LANGITUDE; varchar(100)."
+  },
+  {
+   "ui": "Coordinates (list)",
+   "items": [
+    "Coordinates"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_LATITUDE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Status Active / Inactive",
+   "items": [
+    "Status"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "IS_DELETE",
+   "rw": "R/W",
+   "mapping": "Deactivate / Delete -> IS_DELETE (values TBD)",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "No separate inactive state."
+  },
+  {
+   "ui": "Created By / At",
+   "items": [
+    "Created By / Created At"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "CREATED_BY",
+   "rw": "W (insert)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Updated By / At",
+   "items": [
+    "Updated By / Updated At"
+   ],
+   "table": "ielp.MS_LOCATION",
+   "column": "UPDATED_BY",
+   "rw": "W (update)",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "(key) Location ID",
+   "items": [],
+   "table": "ielp.MS_LOCATION",
+   "column": "LOCATION_ID",
+   "rw": "W (insert)",
+   "mapping": "Generated - rule TBD",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "(system) App ID",
+   "items": [],
+   "table": "ielp.MS_LOCATION",
+   "column": "APP_ID",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MLC-01",
+   "topic": "Coordinates type",
+   "uiss": "Number(10,7)",
+   "code": "-",
+   "db": "LOCATION_LATITUDE / LOCATION_LANGITUDE varchar(100) NOT NULL",
+   "data": "No sample data",
+   "recommendation": "Store as text with 7 decimals; validate in the application"
+  },
+  {
+   "id": "G-MLC-02",
+   "topic": "Radius",
+   "uiss": "Number",
+   "code": "-",
+   "db": "RADIUS varchar(5) default '50'",
+   "data": "No sample data",
+   "recommendation": "Max 5 characters"
+  },
+  {
+   "id": "G-MLC-03",
+   "topic": "Active / Inactive",
+   "uiss": "STATUS + Deactivate",
+   "code": "master-location.js deactivate",
+   "db": "Only IS_DELETE varchar(100)",
+   "data": "No sample data",
+   "recommendation": "Confirm deactivate = IS_DELETE or add a status column"
+  },
+  {
+   "id": "G-MLC-04",
+   "topic": "Concurrency",
+   "uiss": "VERSION",
+   "code": "-",
+   "db": "No VERSION column",
+   "data": "No sample data",
+   "recommendation": "Use UPDATED_DATE or add VERSION"
+  }
+ ],
+ "tbd": [
+  "LOCATION_ID generation; which key other tables use (FROM_LOC / TO_LOC varchar(10) = LOCATION_ID or LOCATION_ALIAS?)",
+  "Values of AUTO_FINISH / AUTO_CYCLE / IS_DELETE",
+  "Source of LOCATION_AREA / LOCATION_SUB",
+  "APP_ID value"
+ ]
+}

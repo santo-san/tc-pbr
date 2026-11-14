@@ -1,0 +1,576 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch / Interface",
+  "function_name": "TBD IPMS to DTP Interface (Load / Refresh from IPMS)",
+  "created_date": "14-Nov-26",
+  "created_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "Newly created in the UISS review (docs/review 04 M3) from the simulated IPMS load in dtp.js (pullIpms / loadIpms); IPMS source tables TBD - Not confirmed from existing schema/data/code"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To receive the DTP records of a plan date from IPMS into the Planning Order grid (button \"Load / Refresh from IPMS\"), as simulated in dtp.js."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "b",
+      "label": "Planning Order: Load / Refresh from IPMS",
+      "type": "screen"
+     },
+     {
+      "id": "i",
+      "label": "IPMS (source TBD)",
+      "type": "db"
+     },
+     {
+      "id": "p",
+      "label": "Receive new records of the date",
+      "type": "process"
+     },
+     {
+      "id": "d",
+      "label": "ielp.DTP_2_DETAIL (inferred)",
+      "type": "db"
+     }
+    ],
+    "edges": [
+     {
+      "from": "b",
+      "to": "p"
+     },
+     {
+      "from": "i",
+      "to": "p"
+     },
+     {
+      "from": "p",
+      "to": "d"
+     }
+    ]
+   }
+  },
+  "inputs": [
+   {
+    "name": "IPMS DTP data",
+    "type": "DB / API",
+    "description": "TBD - Not confirmed from existing schema/data/code"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "ielp.DTP_2_DETAIL",
+    "type": "DB",
+    "description": "DTP records, data source IPMS (inferred)"
+   }
+  ],
+  "constraints": [
+   "Only records not received before for the date are added (dtp.js:60 pullIpms: PULLED[date]).",
+   "Received records are validated like Excel / Manual records (dtp-rules.js makeRecord / validate) and keep their status (Ready / Error)."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START (button)",
+     "type": "start"
+    },
+    {
+     "id": "c",
+     "label": "Call IPMS for the plan date",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "q",
+     "label": "IPMS responding?",
+     "type": "decision",
+     "step": 2
+    },
+    {
+     "id": "x",
+     "label": "Message: interface error",
+     "type": "message"
+    },
+    {
+     "id": "a",
+     "label": "Add new records, validate, payment type default",
+     "type": "process",
+     "step": 3
+    },
+    {
+     "id": "e",
+     "label": "Toast n records / no new data",
+     "type": "end"
+    }
+   ],
+   "same_rank": [
+    [
+     "q",
+     "x"
+    ]
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "c"
+    },
+    {
+     "from": "c",
+     "to": "q"
+    },
+    {
+     "from": "q",
+     "to": "x",
+     "label": "No"
+    },
+    {
+     "from": "q",
+     "to": "a",
+     "label": "Yes"
+    },
+    {
+     "from": "a",
+     "to": "e"
+    }
+   ]
+  },
+  "steps": [
+   "Show \"Receiving data from IPMS interface...\" and request the records of the selected plan date (dtp.js:703 loadIpms).",
+   "IPMS not responding: \"IPMS interface is not responding (simulated). No record was received. Please try again later.\" - nothing added (log 1).",
+   "Add only records not received before (first call: initial set, refresh: the rest); each record gets data source IPMS, is validated, gets the default payment type (By Resources while a slot is free, else By Trip - KM-14) and a history entry \"Received from IPMS\" (dtp.js:67 addRecord).",
+   "Result: \"n record(s) received from IPMS\" or \"No new data from IPMS\" (log 2 / 3)."
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": {
+     "table": "IPMS record (source TBD)"
+    },
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Insert",
+     "description": "Step 3 - each new record (inferred)"
+    },
+    "mappings": [
+     {
+      "source_field": "io",
+      "dest_field": "SERVICE_TYPE"
+     },
+     {
+      "source_field": "roundUse",
+      "dest_field": "IS_ROUNDUSE"
+     },
+     {
+      "source_field": "lp",
+      "dest_field": "COMPANY_ID"
+     },
+     {
+      "source_field": "renban",
+      "dest_field": "RENBAN"
+     },
+     {
+      "source_field": "from / to",
+      "dest_field": "FROM_LOC / TO_LOC"
+     },
+     {
+      "source_field": "etd",
+      "dest_field": "ETD"
+     },
+     {
+      "source_field": "ctrSize",
+      "dest_field": "CTR_SIZE / CTR_TYPE"
+     },
+     {
+      "source_field": "agent",
+      "dest_field": "SHIPPING_AGENT"
+     },
+     {
+      "source_field": "bookNo",
+      "dest_field": "CTR_BOOKING_NO"
+     },
+     {
+      "source_field": "vessel",
+      "dest_field": "VESSEL"
+     },
+     {
+      "source_field": "truckType",
+      "dest_field": "TRUCK_TYPE"
+     },
+     {
+      "source_field": "container",
+      "dest_field": "CONTAINER_NO"
+     },
+     {
+      "source_field": "shift",
+      "dest_field": "SHIFT"
+     },
+     {
+      "source_field": "dg",
+      "dest_field": "IS_DG"
+     },
+     {
+      "source_field": "arrDate / arrTime",
+      "dest_field": "ARRIVAL_DATE / ARRIVAL_TIME"
+     },
+     {
+      "source_field": "exporter / importerCd / dest",
+      "dest_field": "(no column - Conflict G-DTP-05)"
+     },
+     {
+      "dest_field": "DTP_DET_ID, ORDER_NO, DTP_HEADER_ID, CREATED_DATE, UPDATED_DATE",
+      "description": "NOT NULL - generation TBD - Not confirmed from existing schema/data/code"
+     },
+     {
+      "dest_field": "STATUS_CODE",
+      "description": "Validation result (codes TBD)"
+     },
+     {
+      "dest_field": "data source / payment type",
+      "description": "No column (Conflict G-DTP-03 / G-DTP-05)"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "Description",
+   "num": "4."
+  },
+  {
+   "type": "text",
+   "text": "Implemented only as a simulation (dtp.js:44 ipmsPool generates 10 records per date; the 6th fails once in the queue). The real IPMS interface (system, tables, trigger, record key for \"already received\") is TBD - Not confirmed from existing schema/data/code.",
+   "level": 1,
+   "bold": false
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Load from IPMS",
+   "cause": "IPMS not responding",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "IPMS interface is not responding. No record was received. Please try again later.",
+   "action": {
+    "system": "Nothing added",
+    "user": "Try again later"
+   }
+  },
+  {
+   "event": "Load from IPMS",
+   "cause": "New records",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} record(s) received from IPMS",
+   "action": {
+    "system": "Records added",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Load from IPMS",
+   "cause": "No new records",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No new data from IPMS",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "ielp.DTP_2_DETAIL",
+   "kind": "transaction",
+   "proposed": false,
+   "description": "Existing ELIPS table (inferred target for the Universal DTP)",
+   "columns": [
+    [
+     "DTP_DET_ID",
+     "VARCHAR(20)",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "ORDER_NO",
+     "VARCHAR(20)",
+     "Y",
+     "N",
+     ""
+    ],
+    [
+     "COMPANY_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "LICENSE_PLATE",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DRIVER_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FROM_LOC",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TO_LOC",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PO_NUMBER",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_BOOKING_NO",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SOURCES",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "COUNTRY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "VESSEL",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SHIPPING_AGENT",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FORWADING_AGENT",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TOTAL_BL",
+     "NUMERIC(38, 0)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CONTAINER_NO",
+     "VARCHAR(11)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_SIZE",
+     "INT",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SEAL_NO",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "RENBAN",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_DATE",
+     "DATETIME",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_HEADER_ID",
+     "VARCHAR(10)",
+     "",
+     "N",
+     ""
+    ],
+    [
+     "IS_DELETE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "SERVICE_TYPE",
+     "VARCHAR(5)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "TRUCK_TYPE",
+     "VARCHAR(5)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_BY",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "UPDATED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ETD",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STATUS_CODE",
+     "VARCHAR(3)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_ROUNDUSE",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "DESCRIPTION",
+     "VARCHAR(MAX)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "SHIFT",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_SA",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "CTR_TYPE",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IS_DG",
+     "VARCHAR(1)",
+     "",
+     "Y",
+     "default '0'"
+    ],
+    [
+     "ARRIVAL_DATE",
+     "DATE",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ARRIVAL_TIME",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CTR_SIZE_PLN_UPD",
+     "INT",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  }
+ ]
+}

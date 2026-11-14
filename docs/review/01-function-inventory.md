@@ -10,7 +10,7 @@ Review date: 14-Nov-2026 · Repository: `tc-pbr` (branch `main`) · Reviewer rol
 | Business rules live in **pure rule modules** (UMD, tested with Node). They act as the "backend / service layer" of the mock-up. | `workflow.js`, `dtp-rules.js`, `sa-rules.js`, `sa-pas-rules.js`, `dn-rules.js`, `master-*.js`, `monthly-workflow.js`, `pr-creation-rules.js`; tests `tests/*.test.js` (10 files). |
 | "Database operations" are **in-memory arrays** seeded in the page scripts; some screens keep state in `localStorage`. | e.g. `VENDORS` (`master.js`), `LOCATIONS` (`location.js`), `MILEAGES` (`mileage.js`), `RECS` (`dtp.js:27` localStorage), `SAS` (`sa.js:51`, `sa-monitoring.js:24`), PAS attachments (`delivery-note.js:8`). |
 | Authentication is **simulated** by a "Login sebagai" role selector; roles are checked by the rule modules. | `index.html:63`, `monthly.html:165`, `app.js:510 setActor`, `app.js:519 openLogin`; `workflow.js:26 roleLabel`, `workflow.js:57 canView`. Roles: IELP Admin, Planner VPLD, Supplier (Viewer / LP Admin), Driver, System; Monthly: VPLD Staff, Section Head, approvers, GA, Supplier. |
-| Interfaces to PAS / Talend / HiveMQ are **specified only** (UISS-Batch + specs); the screens simulate their result. | `docs/pas-interface/*.md`, `docs/pas-interface/current-tjava-json-to-pas.java`; simulation in `workflow.js:307-321`, `sa-monitoring.js:189 runSim`, `delivery-note.js:21-29`. |
+| Interfaces to PAS / Talend / HiveMQ are **specified only** (UISS-Batch + specs); the screens simulate their result. | `docs/uiss/17_PAS_PR_Interface/*.md`, `docs/uiss/04_Delivery_Note/elips-pas-gr-attachment-spec.md`, `docs/uiss/17_PAS_PR_Interface/current-tjava-json-to-pas.java`; simulation in `workflow.js:307-321`, `sa-monitoring.js:189 runSim`, `delivery-note.js:21-29`. |
 
 Consequence for this review: the trace **UI -> code -> "API" -> DB** ends in the mock-up at the rule module and the
 in-memory store. The link to real tables can only come from the ELIPS schema (`docs/db/ELIPS_Schema.sql`) and is
@@ -132,9 +132,9 @@ Legend for "UISS Available?": **Y** = a UISS covers it · **P** = partially (fun
 
 | ID | Module | Screen/Page | Function | Description | Code Reference | Related API/Service | Related DB | UISS Available? |
 |----|--------|-------------|----------|-------------|----------------|---------------------|------------|-----------------|
-| INT-01 | Interface | - | ELIPS TC-PBR -> PAS PR interface (Talend DB-to-DB) | Send PRs to PAS | `docs/pas-interface/elips-pas-pr-interface-spec.md`, `current-tjava-json-to-pas.java` (existing tJava) | Talend | PAS tables | Y (UISS_Batch_ELIPS_PAS_PR_Interface) - **no code in repo** |
-| INT-02 | Interface | - | PAS -> ELIPS callback PR / PO number | Write back PR / PO no. | `docs/pas-interface/pas-elips-callback-spec.md` | Talend | - | Y (UISS_Batch_PAS_ELIPS_PR_PO_Callback) - **no code in repo** |
-| INT-03 | Interface | - | Surat Jalan PDF to PAS FTP for Auto GR | GR attachment job | `docs/pas-interface/elips-pas-gr-attachment-spec.md`; simulated in `dn-rules.js attachPAS` | Talend / FTP | - | Y (UISS_Batch_ELIPS_PAS_GR_Attachment) |
+| INT-01 | Interface | - | ELIPS TC-PBR -> PAS PR interface (Talend DB-to-DB) | Send PRs to PAS | `docs/uiss/17_PAS_PR_Interface/elips-pas-pr-interface-spec.md`, `current-tjava-json-to-pas.java` (existing tJava) | Talend | PAS tables | Y (UISS_Batch_ELIPS_PAS_PR_Interface) - **no code in repo** |
+| INT-02 | Interface | - | PAS -> ELIPS callback PR / PO number | Write back PR / PO no. | `docs/uiss/17_PAS_PR_Interface/pas-elips-callback-spec.md` | Talend | - | Y (UISS_Batch_PAS_ELIPS_PR_PO_Callback) - **no code in repo** |
+| INT-03 | Interface | - | Surat Jalan PDF to PAS FTP for Auto GR | GR attachment job | `docs/uiss/04_Delivery_Note/elips-pas-gr-attachment-spec.md`; simulated in `dn-rules.js attachPAS` | Talend / FTP | - | Y (UISS_Batch_ELIPS_PAS_GR_Attachment) |
 | INT-04 | Interface | - | SA -> PAS (Proses ke PAS) | Send SA, PO feedback | simulated `workflow.js:318`, `sa-pas-rules.js send, applyFeedback` | - | - | P (in SA Monitoring UISS; no UISS-Batch) |
 | INT-05 | Interface | - | IPMS -> DTP interface | DTP records from IPMS | simulated `dtp.js pullIpms` | - | - | P (in DTP Creation UISS; no UISS-Batch) |
 

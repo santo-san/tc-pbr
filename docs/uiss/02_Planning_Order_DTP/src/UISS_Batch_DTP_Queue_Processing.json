@@ -1,0 +1,1446 @@
+{
+ "doc_type": "batch",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Batch",
+  "function_name": "TBD DTP Creation - Queue Processing",
+  "created_date": "02-Nov-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "02-Nov-26",
+   "reviewed_by": "",
+   "description": "Initial draft (processing queue of submitted DTP records) 02-Nov-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Payment Type of the DTP record (PAY_TYPE) is copied to the Daily order (By Resources / By Trip) for slot monitoring and later processes"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised: records -> ielp.DTP_2_DETAIL, daily order / cycle -> ielp.ORDER_CYCLE (one row per cycle), history -> ielp.LOG_ACTIVITY_ORDER (inferred); conflicts recorded; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To process the DTP records submitted on DTP Creation: create one Daily order per record for the LP Admin (Planning Order / DTP Creation Release).",
+   "In case of an error the record is set to FAILED with the reason; the planner can retry it. Successful records are never processed twice."
+  ],
+  "operation_flow": {
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "a",
+      "label": "DTP Creation: Submit DTP",
+      "type": "event"
+     },
+     {
+      "id": "b",
+      "label": "ielp.DTP_2_DETAIL (SUBMITTED / QUEUED)",
+      "type": "db"
+     },
+     {
+      "id": "c",
+      "label": "Queue processing batch",
+      "type": "process"
+     },
+     {
+      "id": "d",
+      "label": "Daily Order (Planning Order)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "LP Admin: Daily Monitoring",
+      "type": "screen"
+     }
+    ],
+    "edges": [
+     {
+      "from": "a",
+      "to": "b"
+     },
+     {
+      "from": "b",
+      "to": "c"
+     },
+     {
+      "from": "c",
+      "to": "d",
+      "label": "Processed"
+     },
+     {
+      "from": "d",
+      "to": "e"
+     }
+    ]
+   }
+  },
+  "inputs": [
+   {
+    "name": "ielp.DTP_2_DETAIL",
+    "type": "DB",
+    "description": "STATUS SUBMITTED / QUEUED (Retry sets QUEUED)"
+   },
+   {
+    "name": "System Master (TB_M_SYSTEM, TBD)",
+    "type": "DB",
+    "description": "Batch size, max attempts (TBD)"
+   },
+   {
+    "name": "ielp.MS_TRUCKING_COMPANY / Location Master / DTP Data Mapping (TBD)",
+    "type": "DB",
+    "description": "LP and location names, re-check"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "ielp.ORDER_CYCLE",
+    "type": "DB",
+    "description": "if processed (existing Daily order table)"
+   },
+   {
+    "name": "ielp.ORDER_CYCLE",
+    "type": "DB",
+    "description": "first cycle DTP Creation Release"
+   },
+   {
+    "name": "ielp.DTP_2_DETAIL",
+    "type": "DB",
+    "description": "PROCESSED / FAILED"
+   },
+   {
+    "name": "ielp.LOG_ACTIVITY_ORDER",
+    "type": "DB",
+    "description": "status history"
+   }
+  ],
+  "extra_tables": [
+   {
+    "title": "Execution Schedule",
+    "columns": [
+     {
+      "title": "Item",
+      "width": 12
+     },
+     {
+      "title": "Description",
+      "width": 30
+     }
+    ],
+    "rows": [
+     [
+      "Trigger",
+      "Job scheduler every N seconds (TBD) or message queue"
+     ],
+     [
+      "Concurrency",
+      "Row lock / skip locked; one record per transaction"
+     ],
+     [
+      "Re-run",
+      "Safe: only SUBMITTED / QUEUED are selected"
+     ],
+     [
+      "Retry",
+      "Planner Retry on Failed; max attempts TBD"
+     ]
+    ]
+   }
+  ],
+  "constraints": [
+   "Table names are proposed; align them with the project naming convention.",
+   "Daily order table and order number format follow the existing Daily Monitoring design (TBD)."
+  ]
+ },
+ "func_flow": {
+  "flow": {
+   "direction": "TB",
+   "nodes": [
+    {
+     "id": "s",
+     "label": "START",
+     "type": "start"
+    },
+    {
+     "id": "p1",
+     "label": "Retrieve parameters",
+     "type": "process",
+     "step": 1
+    },
+    {
+     "id": "sm",
+     "label": "System Master (TB_M_SYSTEM, TBD)",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "p2",
+     "label": "Select SUBMITTED / QUEUED records",
+     "type": "process",
+     "step": 2
+    },
+    {
+     "id": "rq",
+     "label": "ielp.DTP_2_DETAIL",
+     "type": "db",
+     "lane": "input"
+    },
+    {
+     "id": "d2",
+     "label": "Any record?",
+     "type": "decision"
+    },
+    {
+     "id": "p3",
+     "label": "Set PROCESSING, attempt + 1",
+     "type": "process",
+     "step": 3
+    },
+    {
+     "id": "p4",
+     "label": "Re-check LP and location mapping",
+     "type": "process",
+     "step": 4
+    },
+    {
+     "id": "d4",
+     "label": "Still valid?",
+     "type": "decision"
+    },
+    {
+     "id": "p5",
+     "label": "Create Daily order + cycle",
+     "type": "process",
+     "step": 5
+    },
+    {
+     "id": "ord",
+     "label": "ielp.DTP_2_DETAIL",
+     "type": "db",
+     "lane": "output"
+    },
+    {
+     "id": "d5",
+     "label": "Created?",
+     "type": "decision"
+    },
+    {
+     "id": "p6",
+     "label": "Set PROCESSED + ORDER_NO",
+     "type": "process",
+     "step": 6
+    },
+    {
+     "id": "p7",
+     "label": "Set FAILED + reason",
+     "type": "process",
+     "step": 7
+    },
+    {
+     "id": "d8",
+     "label": "More records?",
+     "type": "decision",
+     "step": 8
+    },
+    {
+     "id": "e",
+     "label": "END",
+     "type": "end"
+    },
+    {
+     "id": "x4",
+     "label": "Not valid: go to step 7",
+     "type": "message"
+    },
+    {
+     "id": "e0",
+     "label": "END (nothing to do)",
+     "type": "end"
+    },
+    {
+     "id": "x8",
+     "label": "Next record: back to step 3",
+     "type": "message"
+    }
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "p1"
+    },
+    {
+     "from": "sm",
+     "to": "p1"
+    },
+    {
+     "from": "p1",
+     "to": "p2"
+    },
+    {
+     "from": "rq",
+     "to": "p2"
+    },
+    {
+     "from": "p2",
+     "to": "d2"
+    },
+    {
+     "from": "d2",
+     "to": "e0",
+     "label": "No"
+    },
+    {
+     "from": "d2",
+     "to": "p3",
+     "label": "Yes"
+    },
+    {
+     "from": "p3",
+     "to": "p4"
+    },
+    {
+     "from": "p4",
+     "to": "d4"
+    },
+    {
+     "from": "d4",
+     "to": "x4",
+     "label": "No"
+    },
+    {
+     "from": "d4",
+     "to": "p5",
+     "label": "Yes"
+    },
+    {
+     "from": "p5",
+     "to": "ord"
+    },
+    {
+     "from": "p5",
+     "to": "d5"
+    },
+    {
+     "from": "d5",
+     "to": "p6",
+     "label": "Yes"
+    },
+    {
+     "from": "d5",
+     "to": "p7",
+     "label": "No"
+    },
+    {
+     "from": "p6",
+     "to": "d8"
+    },
+    {
+     "from": "p7",
+     "to": "d8"
+    },
+    {
+     "from": "d8",
+     "to": "x8",
+     "label": "Yes"
+    },
+    {
+     "from": "d8",
+     "to": "e",
+     "label": "No"
+    }
+   ],
+   "same_rank": [
+    [
+     "d2",
+     "e0"
+    ],
+    [
+     "d4",
+     "x4"
+    ],
+    [
+     "d8",
+     "x8"
+    ]
+   ]
+  },
+  "steps": [
+   {
+    "text": "Log message no. 1. Retrieve DTP_QUEUE_BATCH_SIZE and DTP_QUEUE_MAX_ATTEMPT from System Master (TB_M_SYSTEM, TBD) (TBD).",
+    "children": [
+     "Not configured: log message no. 3. Stop.",
+     "DB connection error: log message no. 2. Stop."
+    ]
+   },
+   {
+    "text": "Select up to the batch size from ielp.DTP_2_DETAIL WHERE STATUS IN ('SUBMITTED', 'QUEUED') ORDER BY SUBMITTED_DT, DTP_DET_ID (row lock, skip locked); SUBMITTED records are set to QUEUED first.",
+    "children": [
+     "None: log message no. 4. End."
+    ]
+   },
+   {
+    "text": "Per record (own transaction): set STATUS 'PROCESSING', ATTEMPT_CNT + 1, history."
+   },
+   {
+    "text": "Re-check that LP is active and FROM / TO are still in the data mapping.",
+    "children": [
+     "Not valid: go to step 7 with message no. 5."
+    ]
+   },
+   {
+    "text": "Create the Daily order (Planning Order) and its first cycle (DTP Creation Release) with a new ORDER_NO (refer 4.2).",
+    "children": [
+     "Error / timeout: rollback the order, go to step 7 with message no. 6."
+    ]
+   },
+   {
+    "text": "Set the record PROCESSED with ORDER_NO, clear FAIL_REASON, history; commit. Log message no. 8. The order is visible for the LP Admin (Daily Monitoring)."
+   },
+   {
+    "text": "Set the record FAILED with FAIL_REASON, history; commit. The planner can Retry (status back to QUEUED).",
+    "children": [
+     "ATTEMPT_CNT >= max: log message no. 7."
+    ]
+   },
+   {
+    "text": "Next record; when all are handled, log message no. 9. Exit."
+   }
+  ]
+ },
+ "data_map": {
+  "blocks": [
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "STATUS",
+       "value": "'SUBMITTED'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Step 2",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'QUEUED' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER",
+     "operation": "Insert",
+     "description": "Status QUEUED"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "source_field": "DTP_DET_ID",
+      "dest_field": "DTP_DET_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'QUEUED' [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'In processing queue' [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "LOG_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "STATUS",
+       "value": "'QUEUED'"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Step 3",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "ATTEMPT_CNT",
+      "description": "ATTEMPT_CNT + 1 [Conflict: ATTEMPT_CNT is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER",
+     "operation": "Insert",
+     "description": "Status PROCESSING"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "source_field": "DTP_DET_ID",
+      "dest_field": "DTP_DET_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSING' [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'Picked up by the queue service' [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "LOG_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.ORDER_CYCLE",
+     "operation": "Insert",
+     "description": "Step 5"
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO",
+      "description": "YYMMDD + 'C2' + running number (existing format, TBD)"
+     },
+     {
+      "source_field": "DTP_DATE",
+      "dest_field": "ORDER_DT",
+      "description": "[Conflict: ORDER_DT is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "DTP_TYPE",
+      "description": "'UNIVERSAL' [Conflict: DTP_TYPE is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "source_field": "COMPANY_ID",
+      "dest_field": "SUPPLIER (LP)",
+      "description": "LP code / name from master"
+     },
+     {
+      "source_field": "FROM_LOC / TO_LOC",
+      "dest_field": "FROM_LOC / TO_LOC",
+      "description": "Location from data mapping"
+     },
+     {
+      "source_field": "RENBAN",
+      "dest_field": "RENBAN"
+     },
+     {
+      "source_field": "SHIFT",
+      "dest_field": "SHIFT",
+      "description": "'-' when blank"
+     },
+     {
+      "source_field": "IS_ROUNDUSE",
+      "dest_field": "PLANNED_CYCLE",
+      "description": "2 if 'Y' else 1 (TBD OP-05) [Conflict: PLANNED_CYCLE is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "ORDER_STATUS",
+      "description": "'Planning Order' [Conflict: ORDER_STATUS is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "TRUCK_NO / DRIVER",
+      "description": "NULL [Conflict: TRUCK_NO is not a column of ielp.ORDER_CYCLE] [Conflict: DRIVER is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "source_field": "DTP_DET_ID, SERVICE_TYPE, EXPORTER, IMPORTER_CD, CONTAINER_NO, DEST_CD, VESSEL",
+      "dest_field": "DTP reference fields (TBD)",
+      "description": "Traceability to the DTP record"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Submitting planner (SUBMITTED_BY) / server date-time"
+     },
+     {
+      "source_field": "PAY_TYPE",
+      "dest_field": "PAY_TYPE (proposed, no column in ELIPS - Conflict)",
+      "description": "Payment Type of the DTP record (By Resources / By Trip)"
+     },
+     {
+      "dest_field": "ORDER_CYCLE_ID, DTP_HEADER_ID, STATUS_CODE, CYCLE_SEQ",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.ORDER_CYCLE",
+     "operation": "Insert",
+     "description": "Step 5"
+    },
+    "mappings": [
+     {
+      "dest_field": "ORDER_NO",
+      "description": "New order"
+     },
+     {
+      "dest_field": "CYCLE_NO",
+      "description": "1 [Conflict: CYCLE_NO is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "dest_field": "CYCLE_STATUS",
+      "description": "'DTP Creation Release' [Conflict: CYCLE_STATUS is not a column of ielp.ORDER_CYCLE]"
+     },
+     {
+      "source_field": "FROM_LOC / TO_LOC",
+      "dest_field": "FROM_LOC / TO_LOC"
+     },
+     {
+      "dest_field": "ORDER_CYCLE_ID, DTP_HEADER_ID, CREATED_DATE, STATUS_CODE, CYCLE_SEQ",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Step 6",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSED' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "ORDER_NO",
+      "description": "New order number"
+     },
+     {
+      "dest_field": "FAIL_REASON",
+      "description": "NULL [Conflict: FAIL_REASON is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER",
+     "operation": "Insert",
+     "description": "Status PROCESSED"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "source_field": "DTP_DET_ID",
+      "dest_field": "DTP_DET_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'PROCESSED' [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "'Daily order <ORDER_NO> created for LP Admin' [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "LOG_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.DTP_2_DETAIL",
+     "operation": "Update",
+     "description": "Step 7",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "STATUS",
+      "description": "'FAILED' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "FAIL_REASON",
+      "description": "Error message (no. 5 / 6) [Conflict: FAIL_REASON is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "VERSION",
+      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+     },
+     {
+      "dest_field": "UPDATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "UPDATED_DATE",
+      "description": "Server date-time"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.DTP_2_DETAIL",
+     "keys": [
+      {
+       "field": "DTP_DET_ID",
+       "value": "Current record"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.LOG_ACTIVITY_ORDER",
+     "operation": "Insert",
+     "description": "Status FAILED"
+    },
+    "mappings": [
+     {
+      "dest_field": "HIST_ID",
+      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "source_field": "DTP_DET_ID",
+      "dest_field": "DTP_DET_ID"
+     },
+     {
+      "dest_field": "STATUS",
+      "description": "'FAILED' [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "NOTE",
+      "description": "FAIL_REASON [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Batch ID (TBD)"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+     },
+     {
+      "dest_field": "LOG_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   }
+  ]
+ },
+ "func_desc": [
+  {
+   "type": "heading",
+   "text": "4. DESCRIPTION",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "Background service for the records submitted on DTP Creation. Each record is handled in its own transaction so one failure never blocks the others.",
+   "level": 1,
+   "bold": false
+  },
+  {
+   "type": "heading",
+   "text": "4.1 Status flow of a record",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "From",
+     "width": 10
+    },
+    {
+     "title": "To",
+     "width": 10
+    },
+    {
+     "title": "By",
+     "width": 22
+    }
+   ],
+   "rows": [
+    [
+     "READY",
+     "SUBMITTED",
+     "Screen [Confirm Submit]"
+    ],
+    [
+     "SUBMITTED",
+     "QUEUED",
+     "Batch step 2"
+    ],
+    [
+     "QUEUED",
+     "PROCESSING",
+     "Batch step 3"
+    ],
+    [
+     "PROCESSING",
+     "PROCESSED",
+     "Batch step 6"
+    ],
+    [
+     "PROCESSING",
+     "FAILED",
+     "Batch step 7"
+    ],
+    [
+     "FAILED",
+     "QUEUED",
+     "Screen [Retry]"
+    ]
+   ],
+   "level": 1,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "4.2 Daily order",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "One order per DTP record; type UNIVERSAL; status Planning Order; first cycle DTP Creation Release (same as orders created by DTP Check & Submit).",
+    "LP name and location names come from the masters / data mapping; Planned Cycle = 2 when IS_ROUNDUSE = 'Y', else 1 (TBD OP-05).",
+    "The LP Admin sees the order in Daily Monitoring (Truck Assignment menu TBD); Reject by LP returns it to the planner (calendar: Rejected by LP)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "4.3 No double processing",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Only SUBMITTED / QUEUED records are selected; PROCESSED is final.",
+    "Row lock (skip locked) prevents two runs from taking the same record.",
+    "ORDER_NO is written in the same transaction as the order; a rollback leaves the record without order (FAILED)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "4.4 Errors",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Master changed since submit (no. 5): FAILED; correct master, then Retry.",
+    "Order creation error / timeout (no. 6): FAILED, retryable.",
+    "Attempts >= max (no. 7): stays FAILED, notification TBD (OP-08)."
+   ],
+   "marker": "1.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "level": 1,
+   "bold": true,
+   "text": "4.x Payment Type (rev 0.2)"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "level": 2,
+   "text": "The Daily order keeps the Payment Type of its DTP record. Submit already guarantees a valid Payment Type for companies with Master KPI (DTP Creation KM-15); the queue does not change it."
+  }
+ ],
+ "func_desc_layout": "two",
+ "logging_messages": [
+  {
+   "event": "Batch start",
+   "cause": "Scheduler run",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP queue processing started (<N> record(s) waiting).",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Connect to database",
+   "cause": "Cannot connect",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "Database cannot be connected.",
+   "action": {
+    "system": "Stop; retry next run",
+    "user": "Contact administrator"
+   }
+  },
+  {
+   "event": "Retrieve parameters",
+   "cause": "Batch size / max attempts not configured",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "System Master parameter <PARAM> for DTP queue is not configured.",
+   "action": {
+    "system": "Stop",
+    "user": "Maintain System Master"
+   }
+  },
+  {
+   "event": "Select queue",
+   "cause": "No record waiting",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No DTP record waiting in the queue.",
+   "action": {
+    "system": "End",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Re-check master",
+   "cause": "LP inactive / location mapping removed since submit",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_DET_ID>: <COLUMN> <VALUE> is no longer valid. Record set to FAILED.",
+   "action": {
+    "system": "Set FAILED (not retryable until corrected)",
+    "user": "Correct master data, then Retry"
+   }
+  },
+  {
+   "event": "Create Daily order",
+   "cause": "DB error / timeout",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_DET_ID>: Daily order could not be created (<ERROR>). Record set to FAILED (retryable).",
+   "action": {
+    "system": "Rollback order; set FAILED; continue with next record",
+    "user": "Retry on DTP Creation"
+   }
+  },
+  {
+   "event": "Create Daily order",
+   "cause": "Attempts exceeded the maximum (TBD)",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_DET_ID> failed <ATTEMPT_CNT> times.",
+   "action": {
+    "system": "Keep FAILED; notify (TBD)",
+    "user": "Contact administrator"
+   }
+  },
+  {
+   "event": "Create Daily order",
+   "cause": "Order created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP record <DTP_DET_ID> processed: Daily order <ORDER_NO> (<COMPANY_ID>, <DTP_DATE>).",
+   "action": {
+    "system": "Set PROCESSED",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Batch end",
+   "cause": "All selected records handled",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP queue processing finished: <PROCESSED> processed, <FAILED> failed.",
+   "action": {
+    "system": "-",
+    "user": "-"
+   }
+  },
+  {
+   "event": "Any step",
+   "cause": "Unexpected error",
+   "type": "Critical",
+   "msg_id": "TBD",
+   "message": "DTP queue processing stopped: <EXCEPTION>.",
+   "action": {
+    "system": "Rollback current record; stop",
+    "user": "Contact administrator"
+   }
+  }
+ ],
+ "tables": [
+  {
+   "name": "ielp.LOG_ACTIVITY_ORDER",
+   "kind": "history",
+   "proposed": false,
+   "description": "Existing ELIPS table (columns from ELIPS_Schema.sql)",
+   "columns": [
+    [
+     "LOG_ID",
+     "VARCHAR(20)",
+     "Y",
+     "N",
+     ""
+    ],
+    [
+     "MENU_ID",
+     "VARCHAR(50)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ACT",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "ORDER_NO",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PROCESS_ID",
+     "VARCHAR(3)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "URL",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "IP",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PARAM_REQ",
+     "NVARCHAR(MAX)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "PARAM_RES",
+     "NVARCHAR(MAX)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "FILENAME",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "REMARK",
+     "VARCHAR(500)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "COST_TIME",
+     "NUMERIC(38, 0)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STS_CODE",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "STS_MESSAGE",
+     "VARCHAR(1000)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CREATED_BY",
+     "VARCHAR(100)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "CRETED_DATE",
+     "DATETIME",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_TYPE",
+     "VARCHAR(2)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_DET_ID",
+     "VARCHAR(20)",
+     "",
+     "Y",
+     ""
+    ],
+    [
+     "DTP_HEADER_ID",
+     "VARCHAR(10)",
+     "",
+     "Y",
+     ""
+    ]
+   ]
+  }
+ ],
+ "appendix": [
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Order No",
+     "ielp.ORDER_CYCLE.ORDER_NO",
+     "varchar(20)",
+     "Y",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Cycle sequence",
+     "ielp.ORDER_CYCLE.CYCLE_SEQ",
+     "varchar(2)",
+     "Y",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "DTP header",
+     "ielp.ORDER_CYCLE.DTP_HEADER_ID",
+     "varchar(10)",
+     "Y",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "DTP detail",
+     "ielp.ORDER_CYCLE.DTP_DET_ID",
+     "varchar(20)",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Cycle status",
+     "ielp.ORDER_CYCLE.STATUS_CODE",
+     "varchar(3)",
+     "Y",
+     "W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Record status",
+     "ielp.DTP_2_DETAIL.STATUS_CODE",
+     "varchar(3)",
+     "N",
+     "W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Attempt count / fail reason",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Activity log",
+     "ielp.LOG_ACTIVITY_ORDER.STS_CODE",
+     "varchar(10)",
+     "N",
+     "W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-DTP-01 Record table: UISS / code: TB_R_DTP_RECORD (one table, all models). DB: DTP_HEADER + DTP_1..4_DETAIL per DTP type. Recommendation: Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
+    "G-DTP-02 Order number at creation: UISS / code: ORDER_NO assigned by queue processing. DB: DTP_2_DETAIL.ORDER_NO NOT NULL, PK. Recommendation: Confirm when ORDER_NO is generated in ELIPS",
+    "G-DTP-03 Payment type: UISS / code: PAY_TYPE per record (dtp-rules.js setPayType). DB: No column. Recommendation: DB change request",
+    "G-DTP-04 Status values: UISS / code: Text statuses. DB: STATUS_CODE varchar(3) + MS_STATUS. Recommendation: Map statuses to MS_STATUS codes (data needed)",
+    "G-DTQ-01 Retry counters: UISS / code: ATTEMPT_CNT, FAIL_REASON. DB: No columns. Recommendation: Keep in LOG_ACTIVITY_ORDER or add columns"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "DTP records are stored per DTP type in ielp.DTP_1_DETAIL .. DTP_4_DETAIL; the Universal DTP template columns (round use, booking no., shipping agent, ETD, arrival date / time) match ielp.DTP_2_DETAIL (inferred).",
+    "ORDER_CYCLE_ID / ORDER_NO generation",
+    "Planned cycles: one ORDER_CYCLE row created per cycle at start or all at once?"
+   ]
+  }
+ ]
+}

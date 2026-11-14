@@ -1,0 +1,416 @@
+{
+ "uiss": "UISS_Screen_Daily_Order_Monitoring",
+ "revision": "Database mapping revised to the ELIPS schema: orders / cycles = ielp.ORDER_CYCLE (+ DTP_HEADER / DTP_n_DETAIL), history = LOG_ACTIVITY_ORDER (inferred), files = ORDER_FILES, truck history = ORDER_TRUCK_H, masters MS_TRUCK_REGISTRATION / MS_DRIVER / MS_LOCATION; conflicts recorded; no sample data",
+ "replace": {
+  "Daily Order Status History (TBD)": "ielp.LOG_ACTIVITY_ORDER",
+  "Daily Order Cycle (TBD)": "ielp.ORDER_CYCLE",
+  "Daily Order (TBD)": "ielp.DTP_2_DETAIL",
+  "Daily Cycle (TBD)": "ielp.ORDER_CYCLE",
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "Truck Master (TBD)": "ielp.MS_TRUCK_REGISTRATION",
+  "Driver Master (TBD)": "ielp.MS_DRIVER",
+  "Master Driver (TBD)": "ielp.MS_DRIVER",
+  "Master Trucking Company (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "Service Acceptance (TBD)": "ielp.SA_DETAIL",
+  "ORDER_NO (TBD)": "ORDER_NO",
+  "DTP_TYPE (TBD)": "DTP_TYPE (DTP_HEADER)",
+  "SUPPLIER_CD (TBD)": "COMPANY_ID",
+  "TRUCK_NO (TBD)": "LICENSE_PLATE",
+  "FROM_LOC (TBD)": "FROM_LOC",
+  "TO_LOC (TBD)": "TO_LOC",
+  "RENBAN (TBD)": "RENBAN",
+  "SHIFT (TBD)": "SHIFT",
+  "FA_FLAG (TBD)": "FA flag (no column - TBD)",
+  "CYCLE_NO (TBD)": "CYCLE_SEQ",
+  "CYCLE_STATUS (TBD)": "STATUS_CODE",
+  "CONTAINER_NO (TBD)": "CONTAINER_NO",
+  "ORDER_STATUS (TBD)": "STATUS_CODE",
+  "START_DT (TBD)": "START_DATE",
+  "PICKUP_DT (TBD)": "PICKUP_DATE",
+  "FINISH_DT (TBD)": "COMPLETE_DATE",
+  "DRIVER_ID (TBD)": "DRIVER_ID",
+  "SA_APPROVED_DT (TBD)": "SA approval date (SA_DETAIL.APPROVED_DATE, inferred)",
+  "PO_NO (TBD)": "PO_NUMBER",
+  "PO_RECEIVED_DT (TBD)": "PO received date (no column - TBD)",
+  "UPDATED_BY (TBD)": "UPDATED_BY",
+  "UPDATED_DT (TBD)": "UPDATED_DATE",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "CYCLE_ORDER_NO (TBD)": "ORDER_CYCLE_ID (inferred)",
+  "PLANNED_CYCLE (TBD)": "planned cycles (no column - TBD)",
+  "LOCATION_NAME (TBD)": "LOCATION_NAME",
+  "ORDER_DATE (TBD)": "ORDER_DATE",
+  "ACTION (TBD)": "ACT",
+  "REASON (TBD)": "REMARK",
+  "NOTE (TBD)": "STS_MESSAGE",
+  "TO_STATUS (TBD)": "STS_CODE",
+  "FROM_STATUS (TBD)": "from status (no column - TBD)",
+  "ROLE (TBD)": "role (no column - TBD)",
+  "File storage (TBD)": "ielp.ORDER_FILES"
+ },
+ "fields": [
+  {
+   "ui": "Date",
+   "items": [
+    "Date",
+    "Date / Shift"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "ORDER_DATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "date; DTP_HEADER.DTP_DATE for the plan date."
+  },
+  {
+   "ui": "No. Order",
+   "items": [
+    "No. Order",
+    "Order / current status"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "ORDER_NO",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Type (DTP 1-4)",
+   "items": [
+    "Type",
+    "Type / Renban"
+   ],
+   "table": "ielp.DTP_HEADER",
+   "column": "DTP_TYPE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Trucking Comp.",
+   "items": [
+    "Trucking Comp.",
+    "Trucking Company"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "COMPANY_ID",
+   "rw": "R",
+   "mapping": "Name from MS_TRUCKING_COMPANY",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "License Plate",
+   "items": [
+    "License Plate",
+    "Police No"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "LICENSE_PLATE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Driver",
+   "items": [
+    "Driver"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "DRIVER_ID",
+   "rw": "R/W",
+   "mapping": "Name from MS_DRIVER",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "From / To",
+   "items": [
+    "DTP Loc. From",
+    "From Loc.",
+    "Route From -> To"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "FROM_LOC",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "To",
+   "items": [
+    "DTP Loc. To",
+    "To Loc."
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "TO_LOC",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Renban",
+   "items": [
+    "Renban"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "RENBAN",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Shift",
+   "items": [
+    "Shift"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "SHIFT",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "FA",
+   "items": [
+    "FA"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "No FA flag column (PO_NUMBER_FA?)."
+  },
+  {
+   "ui": "Cycle status",
+   "items": [
+    "Cycle 1 - Cycle 5",
+    "Cycle Status",
+    "CYCLE n + Cycle Status",
+    "Order Status"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "STATUS_CODE",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Codes via MS_STATUS (data needed)."
+  },
+  {
+   "ui": "Cycle sequence",
+   "items": [
+    "Order No (cycle)"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "CYCLE_SEQ",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Container No",
+   "items": [
+    "Container No",
+    "Container Number"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "CONTAINER_NO",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Start / Pick Up / Finish",
+   "items": [
+    "Activity List: Start Cycle / Pick Up / Finish Cycle"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "START_DATE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "PICKUP_DATE, COMPLETE_DATE; *_BY_LP flags, lat / long, geofence flags also exist."
+  },
+  {
+   "ui": "SA approved",
+   "items": [
+    "SA Approved"
+   ],
+   "table": "ielp.SA_DETAIL",
+   "column": "APPROVED_DATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "PO Number",
+   "items": [
+    "PO Number"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "PO_NUMBER",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Planned / Actual Cycle",
+   "items": [
+    "Planned / Actual Cycle"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "No planned-cycle column; actual = count of ORDER_CYCLE rows."
+  },
+  {
+   "ui": "Files",
+   "items": [
+    "Files: Foto Surat Jalan / Finish Cycle Foto + View"
+   ],
+   "table": "ielp.ORDER_FILES",
+   "column": "FILE_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "FILE_TYPE, FILE_PATH."
+  },
+  {
+   "ui": "Status history",
+   "items": [
+    "Status History grid"
+   ],
+   "table": "ielp.LOG_ACTIVITY_ORDER",
+   "column": "ACT",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "Inferred; columns ACT, STS_CODE, STS_MESSAGE, REMARK, CREATED_BY, CRETED_DATE."
+  },
+  {
+   "ui": "Truck Number (picker)",
+   "items": [
+    "Truck Number"
+   ],
+   "table": "ielp.MS_TRUCK_REGISTRATION",
+   "column": "LICENSE_PLATE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "STNK_EXPIRED for license check."
+  },
+  {
+   "ui": "Driver (picker)",
+   "items": [],
+   "table": "ielp.MS_DRIVER",
+   "column": "DRIVER_ID",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "DRIVER_LICENSE_EXPIRED."
+  },
+  {
+   "ui": "Truck change history",
+   "items": [],
+   "table": "ielp.ORDER_TRUCK_H",
+   "column": "LICENSE_PLATE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "ORDER_TRUCK_H: ORDER_NO, LICENSE_PLATE, REMARK."
+  },
+  {
+   "ui": "Reason (release / reject)",
+   "items": [
+    "Reason"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "LOG_ACTIVITY_ORDER.REMARK or ORDER_REMARK (inferred)."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-DM-01",
+   "topic": "Order vs cycle",
+   "uiss": "Daily Order + Daily Order Cycle tables",
+   "code": "-",
+   "db": "ORDER_CYCLE (one row per cycle) + DTP_n_DETAIL (order)",
+   "data": "No sample data",
+   "recommendation": "Order-level status = latest cycle / DTP_n_DETAIL.STATUS_CODE (confirm)"
+  },
+  {
+   "id": "G-DM-02",
+   "topic": "Status codes",
+   "uiss": "Text statuses (Planning Order, Order Release, ...)",
+   "code": "-",
+   "db": "STATUS_CODE varchar(3), MS_STATUS",
+   "data": "No sample data",
+   "recommendation": "Map with MS_STATUS data"
+  },
+  {
+   "id": "G-DM-03",
+   "topic": "Status history columns",
+   "uiss": "FROM_STATUS, ROLE, REASON",
+   "code": "-",
+   "db": "LOG_ACTIVITY_ORDER has ACT, STS_CODE, REMARK only",
+   "data": "No sample data",
+   "recommendation": "Confirm the history table"
+  },
+  {
+   "id": "G-DM-04",
+   "topic": "FA / planned cycle / PO received date",
+   "uiss": "Columns on the order",
+   "code": "-",
+   "db": "No columns",
+   "data": "No sample data",
+   "recommendation": "Confirm source"
+  }
+ ],
+ "tbd": [
+  "MS_STATUS codes (order, cycle)",
+  "Which DTP_n_DETAIL per DTP type",
+  "Accept / reject by LP storage"
+ ]
+}

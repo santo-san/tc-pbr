@@ -1,0 +1,2359 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement",
+  "block_name": "Screen",
+  "function_name": "TBD PO Approval",
+  "created_date": "28-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "28-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on screenshots, HTML mock-up (monthly.html) and confirmed rules (docs/monthly-pr-po-rules.md) 28-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "13-Nov-26",
+   "reviewed_by": "",
+   "description": "Role name corrected: 'IP Admin' -> 'IELP Admin' (role code IELP_ADMIN); no functional change"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: PO = ielp.PO_HEADER (period) / PO_DETAIL (PO_NUMBER per company), approval = PO_APPROVAL, auto-approve deadline = PO_APPROVAL_EST.APPROVAL_LIMIT (inferred), PR lines = CRITERIA_SCORE_*; conflicts recorded; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To let General Affair Department approve or reject POs manually before the auto approve deadline.",
+   "To show the auto approve deadline (PO date + Day + 1 from System Master) and let IELP Admin run the auto approve job.",
+   "To return the PR to PR Creation (resubmit required) when the PO is rejected."
+  ],
+  "display_order": [
+   {
+    "section": "List",
+    "fields": [
+     {
+      "field": "Production Month",
+      "order": "Ascending"
+     },
+     {
+      "field": "PO Number",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "Detail PO - Route",
+    "fields": [
+     {
+      "field": "Route",
+      "order": "Ascending"
+     }
+    ]
+   },
+   {
+    "section": "Detail PO - Approval History",
+    "fields": [
+     {
+      "field": "Action date time",
+      "order": "Descending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Search",
+    "function": "To retrieve records according to the specified criteria."
+   },
+   {
+    "name": "Clear",
+    "function": "Clear criteria and reset the screen to its initial value."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide column groups of the list."
+   },
+   {
+    "name": "Select",
+    "function": "To tick documents to be processed (row and select-all check box)."
+   },
+   {
+    "name": "Approve",
+    "function": "To approve the ticked POs after confirmation."
+   },
+   {
+    "name": "Reject",
+    "function": "To reject the ticked POs with Reason after confirmation."
+   },
+   {
+    "name": "Run Auto Approve",
+    "function": "IELP Admin: to run the PO auto approve job immediately."
+   },
+   {
+    "name": "PO Number link",
+    "function": "To open Detail PO modal (route detail and approval history)."
+   },
+   {
+    "name": "Download",
+    "function": "To download the route detail of the PO as CSV."
+   },
+   {
+    "name": "Modal Approve",
+    "function": "To approve the PO shown in the detail modal."
+   },
+   {
+    "name": "Modal Reject",
+    "function": "To reject the PO shown in the detail modal."
+   },
+   {
+    "name": "Submit",
+    "function": "Approve / Reject button in the confirmation modal: to save the decision."
+   },
+   {
+    "name": "Batal",
+    "function": "To close the confirmation modal without saving."
+   },
+   {
+    "name": "Close (x)",
+    "function": "To close the modal."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Initial Mode - General Affair",
+    "sections": [
+     {
+      "section": "Search Criteria",
+      "description": "default criteria",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Kolom": "E",
+       "Select": "E",
+       "Approve": "D",
+       "Reject": "D",
+       "Run Auto Approve": "D",
+       "PO Number link": "E",
+       "Download": "E",
+       "Modal Approve": "D",
+       "Modal Reject": "D",
+       "Submit": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     },
+     {
+      "section": "List",
+      "description": "no row ticked",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Kolom": "E",
+       "Select": "E",
+       "Approve": "D",
+       "Reject": "D",
+       "Run Auto Approve": "D",
+       "PO Number link": "E",
+       "Download": "E",
+       "Modal Approve": "D",
+       "Modal Reject": "D",
+       "Submit": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Rows Selected Mode",
+    "sections": [
+     {
+      "section": "List",
+      "description": "one or more rows ticked",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Kolom": "E",
+       "Select": "E",
+       "Approve": "E",
+       "Reject": "E",
+       "Run Auto Approve": "D",
+       "PO Number link": "E",
+       "Download": "E",
+       "Modal Approve": "D",
+       "Modal Reject": "D",
+       "Submit": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Other Role Mode",
+    "sections": [
+     {
+      "section": "List",
+      "description": "notice shown, refer below 1)",
+      "buttons": {
+       "Search": "E",
+       "Clear": "E",
+       "Kolom": "E",
+       "Select": "D",
+       "Approve": "D",
+       "Reject": "D",
+       "Run Auto Approve": "E",
+       "PO Number link": "E",
+       "Download": "E",
+       "Modal Approve": "D",
+       "Modal Reject": "D",
+       "Submit": "D",
+       "Batal": "D",
+       "Close (x)": "D"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Detail PO Modal Mode",
+    "sections": [
+     {
+      "section": "Modal",
+      "description": "refer below 2)",
+      "buttons": {
+       "Search": "D",
+       "Clear": "D",
+       "Kolom": "D",
+       "Select": "D",
+       "Approve": "D",
+       "Reject": "D",
+       "Run Auto Approve": "D",
+       "PO Number link": "D",
+       "Download": "D",
+       "Modal Approve": "E",
+       "Modal Reject": "E",
+       "Submit": "D",
+       "Batal": "D",
+       "Close (x)": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Confirmation Modal Mode",
+    "sections": [
+     {
+      "section": "Modal",
+      "description": "Reason shown for Reject",
+      "buttons": {
+       "Search": "D",
+       "Clear": "D",
+       "Kolom": "D",
+       "Select": "D",
+       "Approve": "D",
+       "Reject": "D",
+       "Run Auto Approve": "D",
+       "PO Number link": "D",
+       "Download": "D",
+       "Modal Approve": "D",
+       "Modal Reject": "D",
+       "Submit": "E",
+       "Batal": "E",
+       "Close (x)": "E"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Approve / Reject stay visible but disabled for roles other than General Affair. 'Jalankan Auto Approve sekarang' is shown for IELP Admin only.",
+   "2) Modal Approve / Reject are enabled only when the login user can process this PO; otherwise disabled with the reason text."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for PO Approval",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "l",
+      "label": "PO Approval screen",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "d",
+      "label": "Detail PO modal",
+      "type": "screen"
+     },
+     {
+      "id": "f",
+      "label": "CSV file",
+      "type": "document"
+     },
+     {
+      "id": "c",
+      "label": "Confirmation modal",
+      "type": "screen"
+     }
+    ],
+    "edges": [
+     {
+      "from": "l",
+      "to": "d",
+      "label": "PO Number"
+     },
+     {
+      "from": "d",
+      "to": "l",
+      "label": "Close (x)"
+     },
+     {
+      "from": "l",
+      "to": "f",
+      "label": "Download"
+     },
+     {
+      "from": "l",
+      "to": "c",
+      "label": "Approve / Reject"
+     },
+     {
+      "from": "c",
+      "to": "l",
+      "label": "Submit / Batal"
+     },
+     {
+      "from": "d",
+      "to": "c",
+      "label": "Modal Approve / Reject"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Search",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "e1",
+      "label": "On Click of Search button",
+      "type": "event"
+     },
+     {
+      "id": "q",
+      "label": "From <= To?",
+      "type": "decision"
+     },
+     {
+      "id": "m1",
+      "label": "Show message no. 1",
+      "type": "message"
+     },
+     {
+      "id": "r",
+      "label": "Retrieve POs within user scope",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.PO_HEADER",
+      "type": "db"
+     },
+     {
+      "id": "f",
+      "label": "Data found?",
+      "type": "decision"
+     },
+     {
+      "id": "m2",
+      "label": "Show No Data Found (msg 2)",
+      "type": "message"
+     },
+     {
+      "id": "g",
+      "label": "Display list (page 1)",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "e1"
+     },
+     {
+      "from": "e1",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "m1",
+      "label": "No"
+     },
+     {
+      "from": "q",
+      "to": "r",
+      "label": "Yes"
+     },
+     {
+      "from": "r",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "r",
+      "to": "f"
+     },
+     {
+      "from": "f",
+      "to": "m2",
+      "label": "No"
+     },
+     {
+      "from": "f",
+      "to": "g",
+      "label": "Yes"
+     },
+     {
+      "from": "g",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q",
+      "m1"
+     ],
+     [
+      "r",
+      "db"
+     ],
+     [
+      "f",
+      "m2"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Approve / Reject PO",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Approve / Reject (submit)",
+      "type": "event"
+     },
+     {
+      "id": "q0",
+      "label": "General Affair user?",
+      "type": "decision"
+     },
+     {
+      "id": "m0",
+      "label": "Show message no. 7",
+      "type": "message"
+     },
+     {
+      "id": "q1",
+      "label": "PO Pending and before deadline?",
+      "type": "decision"
+     },
+     {
+      "id": "m1",
+      "label": "Show message no. 8 / 9",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "Reject?",
+      "type": "decision"
+     },
+     {
+      "id": "a",
+      "label": "Set PO Approved",
+      "type": "process"
+     },
+     {
+      "id": "r",
+      "label": "Set PO Rejected; PR Returned",
+      "type": "process"
+     },
+     {
+      "id": "e",
+      "label": "Refresh list, msg 11",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q0"
+     },
+     {
+      "from": "q0",
+      "to": "m0",
+      "label": "No"
+     },
+     {
+      "from": "q0",
+      "to": "q1",
+      "label": "Yes"
+     },
+     {
+      "from": "q1",
+      "to": "m1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "a",
+      "label": "No"
+     },
+     {
+      "from": "q2",
+      "to": "r",
+      "label": "Yes (Reason >= 10)"
+     },
+     {
+      "from": "a",
+      "to": "e"
+     },
+     {
+      "from": "r",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q0",
+      "m0"
+     ],
+     [
+      "q1",
+      "m1"
+     ],
+     [
+      "a",
+      "r"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Auto Approve Job",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "Scheduler / Run Auto Approve",
+      "type": "event"
+     },
+     {
+      "id": "g",
+      "label": "Get Pending POs",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.PO_HEADER",
+      "type": "db"
+     },
+     {
+      "id": "q",
+      "label": "Now >= PO date + Day + 1?",
+      "type": "decision"
+     },
+     {
+      "id": "k",
+      "label": "Keep Pending",
+      "type": "message"
+     },
+     {
+      "id": "u",
+      "label": "Set Auto Approved by SYSTEM",
+      "type": "process"
+     },
+     {
+      "id": "h",
+      "label": "approval history (no ELIPS table - TBD)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "END",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "g"
+     },
+     {
+      "from": "g",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "g",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "k",
+      "label": "No"
+     },
+     {
+      "from": "q",
+      "to": "u",
+      "label": "Yes"
+     },
+     {
+      "from": "u",
+      "to": "h",
+      "style": "dashed"
+     },
+     {
+      "from": "u",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "g",
+      "db"
+     ],
+     [
+      "q",
+      "k"
+     ],
+     [
+      "u",
+      "h"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "PO Status Transition",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "p",
+      "label": "Pending",
+      "type": "process"
+     },
+     {
+      "id": "a",
+      "label": "Approved (GA)",
+      "type": "process"
+     },
+     {
+      "id": "aa",
+      "label": "Auto Approved (SYSTEM)",
+      "type": "process"
+     },
+     {
+      "id": "r",
+      "label": "Rejected (PR Returned)",
+      "type": "message"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "p",
+      "label": "PR approved by DH"
+     },
+     {
+      "from": "p",
+      "to": "a",
+      "label": "GA approve"
+     },
+     {
+      "from": "p",
+      "to": "aa",
+      "label": "Day + 1 passed"
+     },
+     {
+      "from": "p",
+      "to": "r",
+      "label": "GA reject + Reason"
+     }
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. IELP Admin - buttons disabled, Run Auto Approve (HTML mock-up)",
+   "image": "img/UISS_Screen_PO_Approval/poa_01_ipadmin_auto.png",
+   "notes": [
+    "Mock-up only: 'Login sebagai' combo box simulates the login role; not part of the real screen."
+   ]
+  },
+  {
+   "caption": "2. General Affair - Pending POs with deadline (HTML mock-up)",
+   "image": "img/UISS_Screen_PO_Approval/poa_02_ga_list.png"
+  },
+  {
+   "caption": "3. Reject confirmation with Reason (HTML mock-up)",
+   "image": "img/UISS_Screen_PO_Approval/poa_03_reject_reason.png"
+  },
+  {
+   "caption": "4. Detail PO modal with Approve / Reject (HTML mock-up)",
+   "image": "img/UISS_Screen_PO_Approval/poa_04_detail_with_actions.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Download Driver App",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "name": "Landing Page",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Existing function."
+  },
+  {
+   "group": "<Search Criteria Section>"
+  },
+  {
+   "name": "PO Number",
+   "source": "ielp.PO_DETAIL",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "16",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "X..TBD..X",
+   "validation": "",
+   "description": "Partial match on PO Number.\nDB: ielp.PO_DETAIL.PO_NUMBER varchar(16) NULL [Revised] varchar(16) per COMPANY_ID (+ ROUTE, PO_TYPE)."
+  },
+  {
+   "name": "Prod. Month From",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 7,
+   "io": "I",
+   "control": "Month picker",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "MONTH YYYY",
+   "validation": "From <= To (msg 1)",
+   "description": "Filter Production Month >= value."
+  },
+  {
+   "name": "Prod. Month To",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Date",
+   "len": 7,
+   "io": "I",
+   "control": "Month picker",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "MONTH YYYY",
+   "validation": "From <= To (msg 1)",
+   "description": "Filter Production Month <= value."
+  },
+  {
+   "name": "Status",
+   "source": "Fixed list",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "'Pending'",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Options: Pending, Approved, Auto Approved, Rejected."
+  },
+  {
+   "name": "Search",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.2."
+  },
+  {
+   "name": "Clear",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.2."
+  },
+  {
+   "name": "Status Legend",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Panel",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Pending, Approved, Auto Approved, Rejected. Plus rule text."
+  },
+  {
+   "group": "<List Section>"
+  },
+  {
+   "name": "Approve",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Always shown. Enabled only for General Affair with at least one ticked row; label shows count."
+  },
+  {
+   "name": "Reject",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Same condition as Approve."
+  },
+  {
+   "name": "Jalankan Auto Approve sekarang",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "IELP Admin only. Runs the auto approve job immediately."
+  },
+  {
+   "name": "Notice",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Shown when the login role cannot approve, explaining who can."
+  },
+  {
+   "name": "Select all (header)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "CheckBox",
+   "justified": "Center",
+   "initial": "<unchecked>",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Ticks all selectable rows on the current page."
+  },
+  {
+   "name": "Select (row)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "I",
+   "control": "CheckBox",
+   "justified": "Center",
+   "initial": "<unchecked>",
+   "required": "N",
+   "format": "",
+   "validation": "Enabled only when the row can be processed by the login user",
+   "description": ""
+  },
+  {
+   "name": "Search (list)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Free text filter on displayed columns, applied on key-in."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column group: show / hide."
+  },
+  {
+   "name": "Production Month",
+   "source": "ielp.PO_HEADER",
+   "field": "PO_PERIODE",
+   "type": "Varchar",
+   "len": "7",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "MM/YYYY-9",
+   "validation": "",
+   "description": "DB: ielp.PO_HEADER.PO_PERIODE varchar(7) NULL [Revised] varchar(7); PO_SEQ."
+  },
+  {
+   "name": "PO Number",
+   "source": "ielp.PO_DETAIL",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "16",
+   "io": "O",
+   "control": "Hyperlink",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "'PO' + PR Number",
+   "validation": "",
+   "description": "Click opens Detail PO modal.\nDB: ielp.PO_DETAIL.PO_NUMBER varchar(16) NULL [Revised] varchar(16) per COMPANY_ID (+ ROUTE, PO_TYPE)."
+  },
+  {
+   "name": "Download",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (icon)",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Download route detail of the PO as CSV."
+  },
+  {
+   "name": "PR Number",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "PR_NO_DET",
+   "type": "Varchar",
+   "len": "11",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET varchar(11) NULL [Revised]"
+  },
+  {
+   "name": "PO Status",
+   "source": "ielp.PO_HEADER",
+   "field": "APPROVAL_STS",
+   "type": "Varchar",
+   "len": "1",
+   "io": "O",
+   "control": "Badge",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Pending / Approved / Auto Approved / Rejected (+ reject reason).\nDB: ielp.PO_HEADER.APPROVAL_STS varchar(1) NULL [TBD]"
+  },
+  {
+   "name": "Auto Approve At",
+   "source": "ielp.PO_APPROVAL_EST",
+   "field": "APPROVAL_LIMIT",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY HH:MI",
+   "validation": "",
+   "description": "PO date + Day + 1 (System Master). For Pending: 'sisa x jam y menit'.\nDB: ielp.PO_APPROVAL_EST.APPROVAL_LIMIT datetime NULL [TBD] Per PO_PERIODE + APPROVAL_CLASS (inferred)."
+  },
+  {
+   "name": "Approved By",
+   "source": "ielp.PO_APPROVAL",
+   "field": "APPROVAL_BY",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "user / DD.MM.YYYY HH:MI",
+   "validation": "",
+   "description": "GA user or 'SYSTEM' for auto approve; '-' while Pending.\nDB: ielp.PO_APPROVAL.APPROVAL_BY varchar(100) NULL [Revised] APPROVAL_DATE, APPROVAL_REMARK, APPROVAL_CLASS."
+  },
+  {
+   "name": "PO date",
+   "source": "ielp.PO_HEADER",
+   "field": "CREATED_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "DD.MM.YYYY",
+   "validation": "",
+   "description": "DB: ielp.PO_HEADER.CREATED_DATE datetime NULL [Revised]"
+  },
+  {
+   "name": "Trucking Code",
+   "source": "ielp.PO_DETAIL",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "XXX",
+   "validation": "",
+   "description": "DB: ielp.PO_DETAIL.COMPANY_ID varchar(10) NULL [Conflict]"
+  },
+  {
+   "name": "Trucking Name",
+   "source": "ielp.PO_DETAIL",
+   "field": "COMPANY_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.PO_DETAIL.COMPANY_ID varchar(10) NULL [Conflict]"
+  },
+  {
+   "name": "Order Sharing - Percentage",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_ORDER_SHARING",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9%",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING float NULL [Revised]"
+  },
+  {
+   "name": "Order Sharing - Qty",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_ORDER_SHARING",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZ9",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING float NULL [Revised]"
+  },
+  {
+   "name": "Order Sharing - Total Price",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_ORDER_SHARING",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "Z,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING float NULL [Revised]"
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "'Showing n to m of x records (filtered from y total entries)'",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Rows per page",
+   "source": "Fixed",
+   "field": "--",
+   "type": "Number",
+   "len": 3,
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "10",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 / 25 / 50."
+  },
+  {
+   "name": "Pagination (< 1 2 ... >)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "group": "<Detail PO Modal>"
+  },
+  {
+   "name": "Title",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Detail PO for #<PO Number>'."
+  },
+  {
+   "name": "Approve (modal)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Approve this document only; same as list Approve. Disabled with reason text when not allowed."
+  },
+  {
+   "name": "Reject (modal)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Reject this document only; same as list Reject."
+  },
+  {
+   "name": "Search (route)",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Filter on Route code and description."
+  },
+  {
+   "name": "Kolom (route)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show / hide Route Percentage, Qty, Price."
+  },
+  {
+   "name": "Route",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_HEADER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "",
+   "validation": "",
+   "description": "Code (e.g. A1_K1E_D1) and location names joined by \" - \". Sort ascending; click header to reverse.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID varchar(10) NOT NULL [Revised]"
+  },
+  {
+   "name": "Route Percentage",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_HEADER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9%",
+   "validation": "",
+   "description": "Route Qty Total / PR Total Qty, rounded (TBD, OP-09).\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID varchar(10) NOT NULL [Revised]"
+  },
+  {
+   "name": "Qty 20 / 40 / Total",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_HEADER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9",
+   "validation": "",
+   "description": "Total = Qty 20 + Qty 40.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID varchar(10) NOT NULL [Revised]"
+  },
+  {
+   "name": "Price 20 / 40 / Total",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_ROUTE",
+   "field": "ROUTE_HEADER_ID",
+   "type": "Varchar",
+   "len": "10",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "Z,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "Total = Qty 20 x Price 20 + Qty 40 x Price 40.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID varchar(10) NOT NULL [Revised]"
+  },
+  {
+   "name": "Footer: Sharing Percentage / Total QTY / Total. Price",
+   "source": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+   "field": "TOTAL_ORDER_SHARING",
+   "type": "Float",
+   "len": "-",
+   "io": "O",
+   "control": "Label",
+   "justified": "Right",
+   "initial": "",
+   "required": "",
+   "format": "Z9.9 % / ZZZ,ZZ9 / Z,ZZZ,ZZZ,ZZ9",
+   "validation": "",
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING float NULL [Revised]"
+  },
+  {
+   "name": "Route paging",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label + Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Showing n to m of x records', 10 rows per page."
+  },
+  {
+   "name": "Approval History grid",
+   "source": "approval history (no ELIPS table - TBD)",
+   "field": "ACTION_DT, USER_ID, ROLE, ACTION, FROM_STATUS, TO_STATUS, REASON, APPROVAL_REMARK",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Columns Waktu, User (+Role), Aksi, Dari, Ke, Reason / Catatan; latest first.\nDB: TBD - Approvals in PO_APPROVAL rows."
+  },
+  {
+   "name": "Close (x)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "group": "<Approve / Reject Confirmation Modal>"
+  },
+  {
+   "name": "Title",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Approve PO' / 'Reject PO'."
+  },
+  {
+   "name": "Selected PO list",
+   "source": "ielp.PO_DETAIL",
+   "field": "PO_NUMBER",
+   "type": "Varchar",
+   "len": "16",
+   "io": "O",
+   "control": "List",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'<n> PO dipilih' + one line per document.\nDB: ielp.PO_DETAIL.PO_NUMBER varchar(16) NULL [Revised] varchar(16) per COMPANY_ID (+ ROUTE, PO_TYPE)."
+  },
+  {
+   "name": "Confirmation text",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Approve only."
+  },
+  {
+   "name": "Reason",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text area",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "X..TBD..X",
+   "validation": "Min 10 characters (msg 5, 6)",
+   "description": "Reject only."
+  },
+  {
+   "name": "Approve / Reject (submit)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": ""
+  },
+  {
+   "name": "Batal",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Close without saving."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.PO_HEADER",
+     "operation": "Update",
+     "description": "Approve PO - [Approve]",
+     "keys": [
+      {
+       "field": "PO_NUMBER",
+       "value": "Selected PO Number"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "APPROVAL_STS",
+      "description": "'Approved'"
+     },
+     {
+      "dest_field": "APPROVAL_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "APPROVAL_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT (TBD)",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.PO_HEADER",
+     "operation": "Update",
+     "description": "Reject PO - [Reject]",
+     "keys": [
+      {
+       "field": "PO_NUMBER",
+       "value": "Selected PO Number"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "APPROVAL_STS",
+      "description": "'Rejected'"
+     },
+     {
+      "source_field": "Reason",
+      "dest_field": "APPROVAL_REMARK"
+     },
+     {
+      "dest_field": "APPROVAL_BY",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "APPROVAL_DATE",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "UPDATED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT (TBD)",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.PO_HEADER",
+     "keys": [
+      {
+       "field": "PO_NUMBER",
+       "value": "Selected PO Number"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+     "operation": "Update",
+     "description": "Reject PO - return PR",
+     "keys": [
+      {
+       "field": "PR_NO_DET",
+       "value": "PR_NO of the PO"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "PR_STATUS (TBD)",
+      "description": "'Returned' (resubmit from PR Creation)"
+     },
+     {
+      "dest_field": "UPDATED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT (TBD)",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.PO_HEADER",
+     "keys": [
+      {
+       "field": "PO_NUMBER",
+       "value": "Selected PO Number"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.CRITERIA_SCORE_APPROVAL",
+     "operation": "Update",
+     "description": "Reject PO - clear levels",
+     "keys": [
+      {
+       "field": "PR_NO_DET",
+       "value": "PR_NO of the PO"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "APPROVAL_STS",
+      "description": "'-' for SH, DpH, DH"
+     },
+     {
+      "dest_field": "APPROVED_BY, APPROVED_DT, APPROVAL_REMARK",
+      "description": "Blank [Conflict: APPROVED_BY is not a column of ielp.CRITERIA_SCORE_APPROVAL] [Conflict: APPROVED_DT is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+     },
+     {
+      "dest_field": "UPDATED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "UPDATED_DT (TBD)",
+      "description": "Server system date"
+     }
+    ]
+   },
+   {
+    "source": {
+     "table": "ielp.PO_HEADER",
+     "keys": [
+      {
+       "field": "APPROVAL_STS",
+       "value": "'Pending' and AUTO_APPROVE_DT <= system date"
+      }
+     ]
+    },
+    "destination": {
+     "table": "ielp.PO_HEADER",
+     "operation": "Update",
+     "description": "Auto approve job",
+     "keys": [
+      {
+       "field": "PO_NUMBER",
+       "value": "Selected PO Number"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "APPROVAL_STS",
+      "description": "'Auto Approved'"
+     },
+     {
+      "dest_field": "APPROVAL_BY",
+      "description": "'SYSTEM'"
+     },
+     {
+      "dest_field": "APPROVAL_DATE",
+      "description": "Server system date (job run)"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "approval history (no ELIPS table - TBD)",
+     "operation": "Insert",
+     "description": "Every approve / reject / auto",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "DOC_NO (TBD)",
+      "description": "PO Number (and PR Number when returned)"
+     },
+     {
+      "dest_field": "ACTION (TBD)",
+      "description": "'Approve PO' / 'Reject PO' / 'Auto Approve PO' / 'Dikembalikan (PO Rejected)'"
+     },
+     {
+      "dest_field": "FROM_STATUS / TO_STATUS (TBD)",
+      "description": "Status before / after"
+     },
+     {
+      "source_field": "Reason",
+      "dest_field": "APPROVAL_REMARK"
+     },
+     {
+      "dest_field": "ROLE (TBD)",
+      "description": "Login user role / SYSTEM"
+     },
+     {
+      "dest_field": "CREATED_BY",
+      "description": "Login user ID / 'SYSTEM'"
+     },
+     {
+      "dest_field": "CREATED_DATE",
+      "description": "Server system date"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Access Control",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Role",
+     "width": 12
+    },
+    {
+     "title": "Data scope",
+     "width": 12
+    },
+    {
+     "title": "Actions",
+     "width": 22
+    }
+   ],
+   "rows": [
+    [
+     "IELP Admin",
+     "All",
+     "View, Run auto approve (PO)"
+    ],
+    [
+     "SH / DpH / DH VPLD",
+     "All",
+     "View"
+    ],
+    [
+     "General Affair Dept",
+     "All",
+     "Approve / Reject PO (before deadline)"
+    ],
+    [
+     "Supplier (trucking)",
+     "Own trucking only",
+     "View"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "Supplier restriction applies to list, search, totals, detail and download (message no. 3).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Search Operation",
+   "level": 0
+  },
+  {
+   "type": "text",
+   "text": "5.2.1 Initial Display",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "'PO Number' blank, 'Prod. Month From' = Blank, 'Prod. Month To' blank, 'Status' = 'Pending'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "List shows POs within the user data scope matching the initial criteria, sorted by Production Month then PO Number ascending, 10 rows per page.",
+   "level": 2
+  },
+  {
+   "type": "text",
+   "text": "5.2.2 Button Operation",
+   "level": 1,
+   "bold": true
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "User clicks 'Search'.",
+   "level": 2
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "If Prod. Month From > Prod. Month To, display message no. 1. Stop.",
+    "Retrieve POs by PO Number (partial), production month range and Status within the user data scope.",
+    "If no data, show 'No Data Found' (message no. 2)."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "User clicks 'Clear': reset all criteria and the list Search box, show all documents within the user data scope.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Key-in on list 'Search' filters immediately. Click a sortable header to sort; click again to reverse.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "User clicks 'Kolom': show / hide the checked column groups.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Detail and Download",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "User clicks 'PO Number': open 'Detail PO for #<No>' modal with the route detail (10 rows per page, sortable by Route, searchable) and the totals footer: '% Sharing Percentage for <Code>', 'Total QTY', 'Total. Price'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Route Percentage = route Qty Total / document Total Qty (TBD, OP-09). Price Total = Qty 20 x Price 20 + Qty 40 x Price 40.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Approval History lists every action on the document, latest first.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "User clicks 'Download' icon: download CSV '<PO Number>.csv' with header data, every route and a TOTAL row (format TBD, OP-10).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.4 PO Status",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "PO Status",
+     "width": 14
+    },
+    {
+     "title": "Condition",
+     "width": 32
+    }
+   ],
+   "rows": [
+    [
+     "Pending",
+     "Created when PR is approved by DH; deadline = PO date + Day + 1 (System Master)"
+    ],
+    [
+     "Approved",
+     "Approved manually by General Affair before the deadline"
+    ],
+    [
+     "Auto Approved",
+     "Deadline passed; set by the scheduled job (Approved By = SYSTEM)"
+    ],
+    [
+     "Rejected",
+     "Rejected by General Affair with Reason; PR returned to PR Creation"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Approve / Reject Operation",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Rows can be ticked only when the login user is General Affair and the PO is Pending and before its deadline.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Approve (submit): set PO Approved, Approved By = login user, Approved Date = system date; insert Approval History.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Reject (submit): Reason mandatory (min 10 characters). Set PO Rejected with Reason. The PR goes back to the state it had right after PR Creation: PR Status = Returned, all levels cleared to '-', resubmit required from PR Creation. Insert Approval History on PO and PR.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "If no PO is ticked, display message no. 4. Reason blank / too short: message no. 5 / 6. Not General Affair: no. 7. PO not Pending: no. 8. Deadline passed: no. 9 (the job will auto approve). Concurrency: no. 10. Success: no. 11.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Auto Approve",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "A scheduled job (frequency TBD, OP-03) sets every Pending PO with system date >= Auto Approve At to Auto Approved, Approved By = SYSTEM.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "IELP Admin can run the job immediately with 'Jalankan Auto Approve sekarang'; result in message no. 12.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Day + 1 is calculated as PO date + 24 hours (TBD, OP-01).",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "PO Number",
+     "ielp.PO_DETAIL.PO_NUMBER",
+     "varchar(16)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Production Month",
+     "ielp.PO_HEADER.PO_PERIODE",
+     "varchar(7)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "PR Number",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET",
+     "varchar(11)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO Status",
+     "ielp.PO_HEADER.APPROVAL_STS",
+     "varchar(1)",
+     "N",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Auto Approve At",
+     "ielp.PO_APPROVAL_EST.APPROVAL_LIMIT",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "TBD"
+    ],
+    [
+     "Approved By",
+     "ielp.PO_APPROVAL.APPROVAL_BY",
+     "varchar(100)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "PO date",
+     "ielp.PO_HEADER.CREATED_DATE",
+     "datetime",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Trucking Code / Name",
+     "ielp.PO_DETAIL.COMPANY_ID",
+     "varchar(10)",
+     "N",
+     "R",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Order Sharing",
+     "ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING",
+     "float",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Route lines",
+     "ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID",
+     "varchar(10)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Approval History",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MO-02 Approval levels: UISS / code: SH / DpH / DH per PR. DB: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2). Recommendation: Level codes TBD",
+    "G-MO-03 Approval history: UISS / code: History grid with from / to status, role. DB: No history table. Recommendation: Show approval rows or add a history table",
+    "G-MO-04 Trucking code: UISS / code: Varchar 3. DB: COMPANY_ID varchar(10). Recommendation: Align with Master Trucking Company",
+    "G-PO-01 PO number source: UISS / code: PO number created in ELIPS (monthly-workflow.js createPO). DB: PO_DETAIL.PO_NUMBER varchar(16); PAS returns PO numbers (SA_DETAIL.PAS_PO_NUMBER). Recommendation: Confirm whether the monthly PO number is ELIPS or PAS generated"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "PO APPROVAL_STS values",
+    "PO_TYPE values",
+    "APPROVAL_LIMIT meaning"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Click [Search] button",
+   "cause": "Prod. Month From later than Prod. Month To",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Prod. Month From must be earlier than or equal to Prod. Month To.",
+   "action": "Correct the month range and click Search"
+  },
+  {
+   "event": "Click [Search] button / key-in Search",
+   "cause": "No data matches the criteria",
+   "type": "Info",
+   "msg_id": "STD090001AINF",
+   "message": "No Data Found",
+   "action": "Change the criteria"
+  },
+  {
+   "group": "Detail / Download Operation"
+  },
+  {
+   "event": "Click [PO Number] link / [Download]",
+   "cause": "Document outside the login user data scope (Supplier)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "You are not authorized to access {Document No}.",
+   "action": "Contact IELP Admin"
+  },
+  {
+   "group": "Approve / Reject Operation"
+  },
+  {
+   "event": "Click [Approve] / [Reject] button",
+   "cause": "No PO selected",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Please select at least one PO.",
+   "action": "Tick the documents and click again"
+  },
+  {
+   "event": "Click [Reject] > [Reject] (submit)",
+   "cause": "Reason is blank",
+   "type": "Error",
+   "msg_id": "MSTD0075AERR",
+   "message": "Mandatory Field Not Entered",
+   "action": "Fill Reason and click Reject"
+  },
+  {
+   "event": "Click [Reject] > [Reject] (submit)",
+   "cause": "Reason fewer than 10 characters",
+   "type": "Error",
+   "msg_id": "MSTD0050AERR",
+   "message": "Invalid format for Reason. The format must be minimum 10 characters",
+   "action": "Complete the reason"
+  },
+  {
+   "event": "Click [Approve] / [Reject] (submit)",
+   "cause": "Login role is not allowed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Manual PO approve / reject can only be done by General Affair Department.",
+   "action": "Login with the correct role"
+  },
+  {
+   "event": "Click [Approve] / [Reject] (submit)",
+   "cause": "PO is no longer Pending",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "PO {PO No} is already {Status}.",
+   "action": "Refresh the list"
+  },
+  {
+   "event": "Click [Approve] / [Reject] (submit)",
+   "cause": "Auto approve deadline already passed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Deadline of PO {PO No} has passed. The PO will be auto approved by the system.",
+   "action": "No action needed"
+  },
+  {
+   "event": "Click [Approve] / [Reject] (submit)",
+   "cause": "Document changed by another user",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Error in Update because of concurrency check.",
+   "action": "Refresh and retry"
+  },
+  {
+   "event": "Click [Approve] / [Reject] (submit)",
+   "cause": "Saved successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} PO approved / rejected. PR returned to PR Creation: {PR No list}.",
+   "action": "-"
+  },
+  {
+   "group": "Auto Approve Operation"
+  },
+  {
+   "event": "Click [Jalankan Auto Approve sekarang]",
+   "cause": "Job executed",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} PO auto approved: {PO No list}. / No PO has passed its deadline.",
+   "action": "-"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Approve PO",
+   "cause": "GA approved",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Approve PO {PO No} by {User}.",
+   "exception": "N",
+   "action": "Insert into Approval History"
+  },
+  {
+   "event": "Reject PO",
+   "cause": "GA rejected",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Reject PO {PO No} by {User}. Reason: {Reason}. PR {PR No} returned to PR Creation.",
+   "exception": "N",
+   "action": "Insert into Approval History (PO and PR)"
+  },
+  {
+   "event": "Auto approve job",
+   "cause": "Deadline passed",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "PO {PO No} auto approved by SYSTEM (deadline {Deadline}).",
+   "exception": "N",
+   "action": "Insert into Approval History"
+  },
+  {
+   "event": "Auto approve job",
+   "cause": "Job failed",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Auto approve job failed: {Error}.",
+   "exception": "N",
+   "action": "Check job log / scheduler (TBD)"
+  }
+ ]
+}

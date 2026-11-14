@@ -1,0 +1,281 @@
+{
+ "uiss": "UISS_Screen_Master_Trucking_Company",
+ "revision": "Database mapping revised to the ELIPS schema (ielp.MS_TRUCKING_COMPANY): column names, types and lengths from the DDL; Deletion = IS_DELETE; conflicts recorded (UI lengths vs DB, no VERSION / SERVICE_TYPE column); no sample data",
+ "replace": {
+  "Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "VENDOR_NAME (TBD)": "COMPANY_NAME",
+  "VENDOR_CD (TBD)": "COMPANY_CODE",
+  "SAP_VENDOR_CD (TBD)": "SAP_COMPANY_CODE",
+  "SERVICE_TYPE (TBD)": "SERVICE_TYPE (no column in ELIPS - TBD)",
+  "NPWP (TBD)": "NPWP",
+  "CONTACT_NAME (TBD)": "CONTACT_NAME",
+  "EMAIL (TBD)": "EMAIL",
+  "PHONE (TBD)": "PHONE",
+  "MOBILE_PHONE (TBD)": "MOBILE_PHONE",
+  "ADDRESS (TBD)": "COMPANY_ADDRESS",
+  "DELETION_FLAG (TBD)": "IS_DELETE",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DATE",
+  "CHANGED_BY (TBD)": "UPDATED_BY",
+  "CHANGED_DT (TBD)": "UPDATED_DATE",
+  "VENDOR_ID (TBD)": "COMPANY_ID",
+  "VERSION (TBD)": "VERSION (no column in ELIPS - Conflict)"
+ },
+ "fields": [
+  {
+   "ui": "Vendor Name",
+   "items": [
+    "Vendor Name"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_NAME",
+   "rw": "R/W",
+   "mapping": "TRIM, single spaces, UPPER",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "UI max 100 < DB 500."
+  },
+  {
+   "ui": "Vendor Code",
+   "items": [
+    "Vendor Code"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_CODE",
+   "rw": "R/W",
+   "mapping": "TRIM, UPPER",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
+  },
+  {
+   "ui": "SAP Vendor Code",
+   "items": [
+    "SAP Vendor Code"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "SAP_COMPANY_CODE",
+   "rw": "R/W",
+   "mapping": "TRIM",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "UI rule 10 digits vs DB varchar(20)."
+  },
+  {
+   "ui": "Service Type",
+   "items": [
+    "Service Type"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "Fixed list MRO",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
+  },
+  {
+   "ui": "NPWP",
+   "items": [
+    "NPWP"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "NPWP",
+   "rw": "R/W",
+   "mapping": "Digits -> 999.999.999.9-999.999",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Contact Name",
+   "items": [
+    "Contact Name"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "CONTACT_NAME",
+   "rw": "R/W",
+   "mapping": "TRIM",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "UI max 100 < DB 200."
+  },
+  {
+   "ui": "E-Mail",
+   "items": [
+    "E-Mail"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "EMAIL",
+   "rw": "R/W",
+   "mapping": "TRIM, LOWER",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "UI allows 100, DB varchar(50)."
+  },
+  {
+   "ui": "Phone",
+   "items": [
+    "Phone"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "PHONE",
+   "rw": "R/W",
+   "mapping": "TRIM",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Mobile Phone",
+   "items": [
+    "Mobile Phone"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "MOBILE_PHONE",
+   "rw": "R/W",
+   "mapping": "TRIM",
+   "evidence": "Schema; Code",
+   "status": "Verified",
+   "note": ""
+  },
+  {
+   "ui": "Address",
+   "items": [
+    "Address"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_ADDRESS",
+   "rw": "R/W",
+   "mapping": "TRIM",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "UI max 300 < DB 500."
+  },
+  {
+   "ui": "Deletion",
+   "items": [
+    "Deletion"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "IS_DELETE",
+   "rw": "W (delete) / R",
+   "mapping": "'0' active / '1' deleted (values TBD; default 0)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "UISS had DELETION_FLAG Y/N."
+  },
+  {
+   "ui": "Created By / Created Date",
+   "items": [
+    "Created By / Created Date"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "CREATED_BY",
+   "rw": "W (insert)",
+   "mapping": "Login user; CREATED_DATE = server date",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Updated By / Updated Date",
+   "items": [
+    "Updated By / Updated Date"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "UPDATED_BY",
+   "rw": "W (update)",
+   "mapping": "Login user; UPDATED_DATE = server date",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "(key) Company ID",
+   "items": [],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_ID",
+   "rw": "W (insert)",
+   "mapping": "Generated - rule TBD",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "(system) App ID",
+   "items": [],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "APP_ID",
+   "rw": "W (insert)",
+   "mapping": "Default 'ENVITRUCK'",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "(concurrency) Version",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Conflict",
+   "note": "Optimistic lock by VERSION (master-trucking.js update) has no column."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MTC-01",
+   "topic": "E-Mail length",
+   "uiss": "Varchar 100",
+   "code": "master-trucking.js",
+   "db": "EMAIL varchar(50)",
+   "data": "No sample data",
+   "recommendation": "Limit UI to 50 or extend the column (DB change request)"
+  },
+  {
+   "id": "G-MTC-02",
+   "topic": "Vendor / SAP code format",
+   "uiss": "3 chars / 10 digits",
+   "code": "-",
+   "db": "COMPANY_CODE / SAP_COMPANY_CODE varchar(20)",
+   "data": "No sample data",
+   "recommendation": "Confirm the rules against existing codes"
+  },
+  {
+   "id": "G-MTC-03",
+   "topic": "Concurrency check",
+   "uiss": "VERSION (msg 15)",
+   "code": "-",
+   "db": "No VERSION column",
+   "data": "No sample data",
+   "recommendation": "Use UPDATED_DATE as optimistic lock or add VERSION"
+  },
+  {
+   "id": "G-MTC-04",
+   "topic": "Service Type",
+   "uiss": "SERVICE_TYPE MRO",
+   "code": "-",
+   "db": "No column (BUSINESS_TYPE int)",
+   "data": "No sample data",
+   "recommendation": "Confirm whether BUSINESS_TYPE holds the service type"
+  },
+  {
+   "id": "G-MTC-05",
+   "topic": "Deletion flag",
+   "uiss": "DELETION_FLAG Y / N",
+   "code": "-",
+   "db": "IS_DELETE varchar(1) default 0",
+   "data": "No sample data",
+   "recommendation": "Use IS_DELETE (values to confirm)"
+  }
+ ],
+ "tbd": [
+  "COMPANY_ID generation rule",
+  "APP_ID value for TC-PBR records",
+  "BUSINESS_TYPE meaning",
+  "Use of MS_TRUCKING_COMPANY_CY / MS_TRUCKING_COMPANY_TMP (not in the mock-up)"
+ ]
+}

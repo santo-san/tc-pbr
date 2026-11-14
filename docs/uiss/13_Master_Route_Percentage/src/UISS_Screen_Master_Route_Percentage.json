@@ -1,0 +1,1839 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD Master Route Percentage",
+  "created_date": "30-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "30-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on existing Route Entry screen and HTML mock-up (docs/master-route-percentage-rules.md) 30-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database mapping revised to the ELIPS schema: route header = ielp.MS_ROUTE_HEADER (percentage), route code / description = ielp.MS_ROUTE_DETAIL, history = ielp.MS_ROUTE_PERCENTAGE_HIST; ordered stops and distance have no column (conflicts); no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To define the routes used in PR creation as a sequence of Master Location stops (START, VIA, END).",
+   "To generate Route Code and Route Description and to calculate the route distance automatically.",
+   "To maintain the percentage share of each active route (total max 100%) used to split the quantity in PR creation."
+  ],
+  "display_order": [
+   {
+    "section": "List Active Route Percentage",
+    "fields": [
+     {
+      "field": "Created Dt (newest first)",
+      "order": "Descending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "Location Pick",
+    "function": "To add an active location as the last stop of the route."
+   },
+   {
+    "name": "Move / Delete stop",
+    "function": "To reorder (up / down) or remove a stop."
+   },
+   {
+    "name": "Percentage",
+    "function": "To key-in the route percentage."
+   },
+   {
+    "name": "Save",
+    "function": "To validate and save: insert in Add Mode, update in Edit Mode."
+   },
+   {
+    "name": "Clear",
+    "function": "Clear criteria and reset the screen to its initial value (Add Mode)."
+   },
+   {
+    "name": "Search",
+    "function": "To filter the list by keyword."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide list columns."
+   },
+   {
+    "name": "Opsi",
+    "function": "Edit: change the screen into Edit Mode. Deactivate: set the route Inactive after confirmation."
+   },
+   {
+    "name": "Percentage in list",
+    "function": "To change the percentage directly in the list."
+   },
+   {
+    "name": "Pagination",
+    "function": "To move between pages."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Add Mode (initial)",
+    "sections": [
+     {
+      "section": "Route Entry",
+      "description": "no stop, refer below 1)",
+      "buttons": {
+       "Location Pick": "E",
+       "Move / Delete stop": "E",
+       "Percentage": "E",
+       "Save": "E",
+       "Clear": "E",
+       "Search": "D",
+       "Kolom": "D",
+       "Opsi": "D",
+       "Percentage in list": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "List",
+      "description": "active routes, refer below 2)",
+      "buttons": {
+       "Location Pick": "D",
+       "Move / Delete stop": "D",
+       "Percentage": "D",
+       "Save": "D",
+       "Clear": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Opsi": "E",
+       "Percentage in list": "E",
+       "Pagination": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Edit Mode",
+    "sections": [
+     {
+      "section": "Route Entry",
+      "description": "selected route loaded",
+      "buttons": {
+       "Location Pick": "E",
+       "Move / Delete stop": "E",
+       "Percentage": "E",
+       "Save": "E",
+       "Clear": "E",
+       "Search": "D",
+       "Kolom": "D",
+       "Opsi": "D",
+       "Percentage in list": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "List",
+      "description": "edited row highlighted",
+      "buttons": {
+       "Location Pick": "D",
+       "Move / Delete stop": "D",
+       "Percentage": "D",
+       "Save": "D",
+       "Clear": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Opsi": "E",
+       "Percentage in list": "E",
+       "Pagination": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Saving Mode",
+    "sections": [
+     {
+      "section": "Route Entry",
+      "description": "request in progress",
+      "buttons": {
+       "Location Pick": "E",
+       "Move / Delete stop": "E",
+       "Percentage": "E",
+       "Save": "D",
+       "Clear": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Opsi": "D",
+       "Percentage in list": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "List",
+      "description": "unchanged until saved",
+      "buttons": {
+       "Location Pick": "D",
+       "Move / Delete stop": "D",
+       "Percentage": "D",
+       "Save": "D",
+       "Clear": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Opsi": "E",
+       "Percentage in list": "E",
+       "Pagination": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Deactivate Confirmation",
+    "sections": [
+     {
+      "section": "Route Entry",
+      "description": "behind the dialog",
+      "buttons": {
+       "Location Pick": "D",
+       "Move / Delete stop": "D",
+       "Percentage": "D",
+       "Save": "D",
+       "Clear": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Opsi": "D",
+       "Percentage in list": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "List",
+      "description": "behind the dialog",
+      "buttons": {
+       "Location Pick": "D",
+       "Move / Delete stop": "D",
+       "Percentage": "D",
+       "Save": "D",
+       "Clear": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Opsi": "D",
+       "Percentage in list": "D",
+       "Pagination": "D"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Move Up is disabled on the first stop and Move Down on the last stop.",
+   "2) Empty list: message no. 15; empty search: message no. 16."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Route Percentage",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "l",
+      "label": "Master Location (active stops)",
+      "type": "screen"
+     },
+     {
+      "id": "mi",
+      "label": "Master Mileage (leg distance)",
+      "type": "screen"
+     },
+     {
+      "id": "s",
+      "label": "Route Percentage screen",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "pr",
+      "label": "PR creation: quantity split by route percentage",
+      "type": "subprocess"
+     }
+    ],
+    "edges": [
+     {
+      "from": "l",
+      "to": "s"
+     },
+     {
+      "from": "mi",
+      "to": "s"
+     },
+     {
+      "from": "s",
+      "to": "pr"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Building the Route",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Select of Location Pick",
+      "type": "event"
+     },
+     {
+      "id": "q",
+      "label": "Active, not the last stop, max 10?",
+      "type": "decision"
+     },
+     {
+      "id": "e",
+      "label": "Show message no. 1 / 2 / 3",
+      "type": "message"
+     },
+     {
+      "id": "a",
+      "label": "Add as last stop (END); previous END becomes VIA",
+      "type": "process"
+     },
+     {
+      "id": "b",
+      "label": "Rebuild Route Code, Description, Distance",
+      "type": "process"
+     },
+     {
+      "id": "m",
+      "label": "Optional: move / remove stops (rebuild again)",
+      "type": "io"
+     },
+     {
+      "id": "x",
+      "label": "Ready to Save",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "e",
+      "label": "No"
+     },
+     {
+      "from": "q",
+      "to": "a",
+      "label": "Yes"
+     },
+     {
+      "from": "a",
+      "to": "b"
+     },
+     {
+      "from": "b",
+      "to": "m"
+     },
+     {
+      "from": "m",
+      "to": "x"
+     }
+    ],
+    "same_rank": [
+     [
+      "q",
+      "e"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Save",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Save button",
+      "type": "event"
+     },
+     {
+      "id": "q1",
+      "label": ">= 2 stops, none twice in a row, all active?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 4 / 5 / 1",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "Route Code used by an active route?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 6",
+      "type": "message"
+     },
+     {
+      "id": "q3",
+      "label": "Percentage valid and total <= 100%?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Show message no. 7 / 8 / 9",
+      "type": "message"
+     },
+     {
+      "id": "w",
+      "label": "Insert / update route, stops, distance (Edit: version check)",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "ielp.MS_ROUTE_HEADER",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Clear entry, refresh list, msg 11 / 12",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "e2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "q3",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "w",
+      "label": "Yes"
+     },
+     {
+      "from": "w",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "w",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "e1"
+     ],
+     [
+      "q2",
+      "e2"
+     ],
+     [
+      "q3",
+      "e3"
+     ],
+     [
+      "w",
+      "db"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Distance Calculation",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "For each leg From -> To",
+      "type": "start"
+     },
+     {
+      "id": "q",
+      "label": "Active in Master Mileage?",
+      "type": "decision"
+     },
+     {
+      "id": "mm",
+      "label": "ielp.TB_M_MILEAGE",
+      "type": "db"
+     },
+     {
+      "id": "a",
+      "label": "Use Master Mileage KM",
+      "type": "process"
+     },
+     {
+      "id": "b",
+      "label": "Straight-line distance from Master Location coordinates (estimate)",
+      "type": "process"
+     },
+     {
+      "id": "t",
+      "label": "Distance = sum of legs; mark est. if any estimate",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "mm",
+      "style": "dashed"
+     },
+     {
+      "from": "q",
+      "to": "a",
+      "label": "Yes"
+     },
+     {
+      "from": "q",
+      "to": "b",
+      "label": "No"
+     },
+     {
+      "from": "a",
+      "to": "t"
+     },
+     {
+      "from": "b",
+      "to": "t"
+     }
+    ],
+    "same_rank": [
+     [
+      "q",
+      "mm"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Route Entry / List Active Route Percentage - reference screen (from user)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/ref_route_percentage.png"
+  },
+  {
+   "caption": "2. Add Mode - initial display (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r01_initial.png"
+  },
+  {
+   "caption": "3. Save without stops / percentage (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r02_mandatory.png"
+  },
+  {
+   "caption": "4. Route A1 -> A2 built; code, description, distance generated (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r03_entry.png"
+  },
+  {
+   "caption": "5. Three stops START / VIA / END, reordered (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r04_three_stops.png"
+  },
+  {
+   "caption": "6. Total percentage above 100% (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r05_total_exceeded.png"
+  },
+  {
+   "caption": "7. Route saved, Total Percentage 100% (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r06_saved.png"
+  },
+  {
+   "caption": "8. List sorted by percentage (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r07_sorted.png"
+  },
+  {
+   "caption": "9. Opsi menu (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r08_opsi.png"
+  },
+  {
+   "caption": "10. Edit Mode - route loaded into Route Entry (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r09_edit.png"
+  },
+  {
+   "caption": "11. Deactivate confirmation (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r10_deactivate.png"
+  },
+  {
+   "caption": "12. Search without result (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r11_no_result.png"
+  },
+  {
+   "caption": "13. Kolom - column selection (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Route_Percentage/r12_kolom.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Route Percentage'."
+  },
+  {
+   "name": "Breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Master - Route Percentage'. Menu: Master > Route Percentage."
+  },
+  {
+   "group": "<Route Entry Section>"
+  },
+  {
+   "name": "Route Entry (title)",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Route Entry'; 'Route Entry - Edit {Code}' in Edit Mode."
+  },
+  {
+   "name": "Route Code",
+   "source": "ielp.MS_ROUTE_DETAIL",
+   "field": "ROUTE_CODE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Text box (read only)",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "CODE_CODE_..",
+   "validation": "Unique among active routes (msg 6)",
+   "description": "Stop codes joined by '_' (e.g. A1_A2). Rebuilt on every stop change (RP-02).\nDB: ielp.MS_ROUTE_DETAIL.ROUTE_CODE varchar(100) NOT NULL [Revised] varchar(100) NOT NULL, per ROUTE_HEADER_ID."
+  },
+  {
+   "name": "Location Pick",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Combo Box (searchable, clear x)",
+   "justified": "Left",
+   "initial": "'Select Location'",
+   "required": "N",
+   "format": "CODE - NAME",
+   "validation": "Active (msg 1); not the last stop (msg 2); max 10 (msg 3)",
+   "description": "Selecting a location adds it as the last stop. x clears the box.\nDB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Route Description",
+   "source": "ielp.MS_ROUTE_DETAIL",
+   "field": "ROUTE_DESCR",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Text box (read only)",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "",
+   "validation": "",
+   "description": "Location names joined by ' - ' (RP-02).\nDB: ielp.MS_ROUTE_DETAIL.ROUTE_DESCR varchar(500) NULL [Revised]"
+  },
+  {
+   "name": "Move (↑ ↓)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Swap the stop with the one above / below. Up disabled on the first stop, Down on the last."
+  },
+  {
+   "name": "Delete (⊗)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Remove the stop from the route."
+  },
+  {
+   "name": "Code",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Location Name",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_NAME",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_NAME varchar(5000) NOT NULL [Revised]"
+  },
+  {
+   "name": "Descr",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": 5,
+   "io": "O",
+   "control": "Grid (badge)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "START (first, blue), END (last, green), VIA (between, grey)."
+  },
+  {
+   "name": "Percentage",
+   "source": "ielp.MS_ROUTE_HEADER",
+   "field": "ROUTE_PERCENTAGE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "ZZ9.99",
+   "validation": "Mandatory (msg 7); 0 < % <= 100, 2 dec. (msg 8); total <= 100% (msg 9)",
+   "description": "Comma accepted as decimal separator.\nDB: ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE float NOT NULL [Revised] float NOT NULL (UISS Number 5,2)."
+  },
+  {
+   "name": "Distance (Km)",
+   "source": "ielp.MS_ROUTE_PERCENTAGE_HIST",
+   "field": "DISTANCE",
+   "type": "Int",
+   "len": "-",
+   "io": "O",
+   "control": "Text box (read only)",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "N",
+   "format": "ZZZ,ZZ9.99",
+   "validation": "",
+   "description": "Calculated (5.3). '(incl. estimate)' when a leg is not in Master Mileage; tooltip lists the legs. Not on the reference screen (TBD, OP-01).\nDB: ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE int NULL [Conflict] int in the history table; no distance on MS_ROUTE_HEADER."
+  },
+  {
+   "name": "Save",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer 5.4. Disabled and labelled 'Saving...' while processing."
+  },
+  {
+   "name": "Clear",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Clear Route Entry and return to Add Mode."
+  },
+  {
+   "group": "<List Active Route Percentage Section>"
+  },
+  {
+   "name": "Search",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Placeholder 'Search'",
+   "required": "N",
+   "format": "",
+   "validation": "No result: msg 16",
+   "description": "Filters on all visible columns."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Show / hide columns. Default hidden: Created By, Changed Dt."
+  },
+  {
+   "name": "Opsi",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Menu: Edit (load into Route Entry) / Deactivate (msg 13)."
+  },
+  {
+   "name": "Route Code",
+   "source": "ielp.MS_ROUTE_DETAIL",
+   "field": "ROUTE_CODE",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_DETAIL.ROUTE_CODE varchar(100) NOT NULL [Revised] varchar(100) NOT NULL, per ROUTE_HEADER_ID."
+  },
+  {
+   "name": "Description",
+   "source": "ielp.MS_ROUTE_DETAIL",
+   "field": "ROUTE_DESCR",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_ROUTE_DETAIL.ROUTE_DESCR varchar(500) NULL [Revised]"
+  },
+  {
+   "name": "Distance (Km)",
+   "source": "ielp.MS_ROUTE_PERCENTAGE_HIST",
+   "field": "DISTANCE",
+   "type": "Int",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZ9.99",
+   "validation": "",
+   "description": "'est.' mark when it includes an estimate.\nDB: ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE int NULL [Conflict] int in the history table; no distance on MS_ROUTE_HEADER."
+  },
+  {
+   "name": "Percentage (%)",
+   "source": "ielp.MS_ROUTE_HEADER",
+   "field": "ROUTE_PERCENTAGE_VALUE",
+   "type": "Float",
+   "len": "-",
+   "io": "I/O",
+   "control": "Text box in grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "Y",
+   "format": "ZZ9.99",
+   "validation": "Same as Percentage (msg 8 / 9)",
+   "description": "Editable in the list: saved on Enter / leaving the box (5.5). Header click: sort descending / ascending / default.\nDB: ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE float NOT NULL [Revised] float NOT NULL (UISS Number 5,2)."
+  },
+  {
+   "name": "Created By",
+   "source": "ielp.MS_ROUTE_HEADER",
+   "field": "CREATED_BY",
+   "type": "Varchar",
+   "len": "500",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Hidden by default.\nDB: ielp.MS_ROUTE_HEADER.CREATED_BY varchar(500) NOT NULL [Revised]"
+  },
+  {
+   "name": "Changed Dt",
+   "source": "ielp.MS_ROUTE_HEADER",
+   "field": "UPDATED_DATE",
+   "type": "Datetime",
+   "len": "-",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "",
+   "format": "YYYY-MM-DD HH:MI",
+   "validation": "",
+   "description": "Hidden by default.\nDB: ielp.MS_ROUTE_HEADER.UPDATED_DATE datetime NULL [Revised]"
+  },
+  {
+   "name": "Empty list text",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "msg 15 / msg 16."
+  },
+  {
+   "group": "<Footer Section>"
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Menampilkan n - m dari x data'."
+  },
+  {
+   "name": "Total Percentage",
+   "source": "System",
+   "field": "--",
+   "type": "Number",
+   "len": "5,2",
+   "io": "O",
+   "control": "Label",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZ9.99%",
+   "validation": "",
+   "description": "Sum of active routes; green at 100%, otherwise amber with '(x% unassigned)'."
+  },
+  {
+   "name": "Pagination (‹ 1 2 ›)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "10 rows per page (TBD)."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_ROUTE_HEADER",
+     "operation": "Insert",
+     "description": "Add Mode - [Save]",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "source_field": "Route Code",
+      "dest_field": "ROUTE_CODE",
+      "description": "Stop codes joined by '_' [Conflict: ROUTE_CODE is not a column of ielp.MS_ROUTE_HEADER]"
+     },
+     {
+      "source_field": "Route Description",
+      "dest_field": "ROUTE_DESCR",
+      "description": "Names joined by ' - ' [Conflict: ROUTE_DESCR is not a column of ielp.MS_ROUTE_HEADER]"
+     },
+     {
+      "source_field": "Distance (Km)",
+      "dest_field": "DISTANCE (MS_ROUTE_PERCENTAGE_HIST, inferred)",
+      "description": "Recalculated on the server (5.3)"
+     },
+     {
+      "dest_field": "DISTANCE_EST_FLG (TBD)",
+      "description": "'Y' if a leg is estimated"
+     },
+     {
+      "source_field": "Percentage",
+      "dest_field": "ROUTE_PERCENTAGE_VALUE",
+      "description": "2 decimals"
+     },
+     {
+      "dest_field": "IS_DELETE",
+      "description": "'Active'"
+     },
+     {
+      "dest_field": "CREATED_BY / CREATED_DATE",
+      "description": "Login user ID / server date"
+     },
+     {
+      "dest_field": "UPDATED_BY / UPDATED_DATE",
+      "description": "Login user ID / server date"
+     },
+     {
+      "dest_field": "VERSION (no column - Conflict)",
+      "description": "1"
+     },
+     {
+      "dest_field": "ROUTE_HEADER_ID",
+      "description": "NOT NULL in ELIPS without default - value TBD - Not confirmed from existing schema/data/code"
+     }
+    ]
+   },
+   {
+    "source": "Stops table",
+    "destination": {
+     "table": "Route stops (no ELIPS table - TBD)",
+     "operation": "Insert",
+     "description": "[Save] - each stop",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "dest_field": "ROUTE_HEADER_ID",
+      "description": "Saved route"
+     },
+     {
+      "source_field": "Code",
+      "dest_field": "LOCATION_ALIAS",
+      "description": "Location code"
+     },
+     {
+      "dest_field": "SEQ_NO (TBD)",
+      "description": "1..n in table order"
+     },
+     {
+      "source_field": "Descr",
+      "dest_field": "STOP_TYPE (TBD)",
+      "description": "START / VIA / END"
+     },
+     {
+      "dest_field": "LEG_KM (TBD)",
+      "description": "KM from the previous stop (0 for START)"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "ielp.MS_ROUTE_HEADER",
+     "operation": "Update",
+     "description": "Edit Mode - [Save]",
+     "keys": [
+      {
+       "field": "ROUTE_HEADER_ID",
+       "value": "Route of the row"
+      },
+      {
+       "field": "VERSION (no column - Conflict)",
+       "value": "Version loaded"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Route Code / Description / Distance / Percentage",
+      "dest_field": "ROUTE_PERCENTAGE_VALUE (ROUTE_CODE / ROUTE_DESCR in MS_ROUTE_DETAIL; distance: no column)",
+      "description": "As Insert"
+     },
+     {
+      "dest_field": "UPDATED_BY / UPDATED_DATE",
+      "description": "Login user ID / server date"
+     },
+     {
+      "dest_field": "VERSION (no column - Conflict)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": "System",
+    "destination": {
+     "table": "Route stops (no ELIPS table - TBD)",
+     "operation": "Delete",
+     "description": "Edit Mode - [Save]",
+     "keys": [
+      {
+       "field": "ROUTE_HEADER_ID",
+       "value": "Edited route"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "(all stops)",
+      "description": "Replaced by the new stops (insert block above)"
+     }
+    ]
+   },
+   {
+    "source": "List",
+    "destination": {
+     "table": "ielp.MS_ROUTE_HEADER",
+     "operation": "Update",
+     "description": "Percentage in list",
+     "keys": [
+      {
+       "field": "ROUTE_HEADER_ID",
+       "value": "Route of the row"
+      },
+      {
+       "field": "VERSION (no column - Conflict)",
+       "value": "Version loaded"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "Percentage (%)",
+      "dest_field": "ROUTE_PERCENTAGE_VALUE",
+      "description": "2 decimals"
+     },
+     {
+      "dest_field": "UPDATED_BY / UPDATED_DATE",
+      "description": "Login user ID / server date"
+     },
+     {
+      "dest_field": "VERSION (no column - Conflict)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": "List",
+    "destination": {
+     "table": "ielp.MS_ROUTE_HEADER",
+     "operation": "Update",
+     "description": "Opsi > Deactivate",
+     "keys": [
+      {
+       "field": "ROUTE_HEADER_ID",
+       "value": "Route of the row"
+      },
+      {
+       "field": "VERSION (no column - Conflict)",
+       "value": "Version loaded"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "IS_DELETE",
+      "description": "'Inactive'"
+     },
+     {
+      "dest_field": "UPDATED_BY / UPDATED_DATE",
+      "description": "Login user ID / server date"
+     },
+     {
+      "dest_field": "VERSION (no column - Conflict)",
+      "description": "VERSION + 1"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Title 'Route Percentage', breadcrumb 'Master - Route Percentage'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Route Entry in Add Mode: Route Code, Route Description and Distance blank; stops table empty; Percentage blank.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "List Active Route Percentage: active routes, newest first, 10 per page. Footer: Total Percentage. No data: message no. 15.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Building the Route (RP-01, RP-02)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Location Pick lists ACTIVE Master Location as 'Code - Name'. Selecting adds the location as the last stop (no. 1 / 2 / 3).",
+    "Descr: first stop START, last stop END, the others VIA.",
+    "Move up / down swaps two stops; Delete removes a stop.",
+    "After every change: Route Code = codes joined by '_', Route Description = names joined by ' - ', Distance recalculated."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Distance (RP-04)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Each leg From -> To uses the Active Master Mileage KM; if none, the straight-line distance between the Master Location coordinates (estimate).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Distance = sum of the legs, 2 decimals; marked 'est.' when a leg is estimated. Source of distance TBD (OP-01).",
+   "level": 2
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Route",
+     "width": 14
+    },
+    {
+     "title": "Legs",
+     "width": 22
+    },
+    {
+     "title": "Distance",
+     "width": 10
+    }
+   ],
+   "rows": [
+    [
+     "D1_S1_X1",
+     "D1->S1 3 (Mileage) + S1->X1 14 (Mileage)",
+     "17"
+    ],
+    [
+     "A1_A2",
+     "A1->A2 113.93 (estimate)",
+     "113.93 est."
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Save (RP-01, RP-03, RP-05, RP-06)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Step 1 - At least 2 stops (no. 4), all active, none twice in a row (no. 5). Stop.",
+    "Step 2 - Route Code not used by an active route, excluding the edited one (no. 6). Stop.",
+    "Step 3 - Percentage required (no. 7), 0 < % <= 100 with max 2 decimals (no. 8). Stop.",
+    "Step 4 - Total of active routes incl. this one <= 100% (no. 9). Stop.",
+    "Step 5 - Edit: version check (no. 10). Save route and stops in one transaction.",
+    "Success: clear Route Entry, refresh list, message no. 11 / 12."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Percentage in the List (RP-07)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Change the value and press Enter or leave the box: same checks as Save step 3-4; error: old value restored (no. 8 / 9).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Success: message no. 12; Total Percentage refreshed.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Opsi: Edit / Deactivate (RP-08, RP-09)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Edit loads stops and percentage into Route Entry (title 'Route Entry - Edit {Code}'); Clear returns to Add Mode.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Deactivate: confirmation no. 13; status Inactive, removed from the list, percentage released (no. 14). Not physically deleted.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Total Percentage and PR Creation (RP-06, RP-10)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Total Percentage = sum of active routes; green at 100%, otherwise '(x% unassigned)'.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "PR creation splits the quantity over active routes in proportion to the percentage (largest remainder; ties by higher percentage, then code). What is split and whether 100% is required: TBD (OP-02).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Search, Kolom, Sort",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Search on all visible columns; no match: message no. 16.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Kolom shows / hides columns; Percentage header toggles descending / ascending / default order.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.9 Security and Audit",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Access follows the existing role framework (View / Add / Edit / Deactivate Route Percentage, TBD).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Audit: Created By / Dt, Changed By / Dt.",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "Route Code",
+     "ielp.MS_ROUTE_DETAIL.ROUTE_CODE",
+     "varchar(100)",
+     "Y",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Route Description",
+     "ielp.MS_ROUTE_DETAIL.ROUTE_DESCR",
+     "varchar(500)",
+     "N",
+     "R/W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Percentage",
+     "ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE",
+     "float",
+     "Y",
+     "R/W",
+     "0 < % <= 100",
+     "Revised"
+    ],
+    [
+     "Location Pick / stop",
+     "ielp.MS_LOCATION.LOCATION_ALIAS",
+     "varchar(100)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Location Name",
+     "ielp.MS_LOCATION.LOCATION_NAME",
+     "varchar(5000)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Distance (Km)",
+     "ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE",
+     "int",
+     "N",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Status (Deactivate)",
+     "ielp.MS_ROUTE_HEADER.IS_DELETE",
+     "varchar(1)",
+     "Y",
+     "R/W",
+     "Deactivate -> IS_DELETE (values TBD)",
+     "Revised"
+    ],
+    [
+     "Created By",
+     "ielp.MS_ROUTE_HEADER.CREATED_BY",
+     "varchar(500)",
+     "Y",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Changed Dt",
+     "ielp.MS_ROUTE_HEADER.UPDATED_DATE",
+     "datetime",
+     "N",
+     "W",
+     "-",
+     "Revised"
+    ],
+    [
+     "Ordered stops (sequence, leg km)",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Conflict"
+    ],
+    [
+     "Sync flag",
+     "ielp.MS_ROUTE_HEADER.IS_SYNC",
+     "varchar(1)",
+     "N",
+     "-",
+     "-",
+     "TBD"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MRP-01 Route stops: UISS / code: Ordered stops with leg distance. DB: MS_ROUTE_DETAIL has only ROUTE_CODE / ROUTE_DESCR. Recommendation: New table or encode stops in ROUTE_CODE (confirm)",
+    "G-MRP-02 Distance: UISS / code: DISTANCE_KM on the route. DB: Only MS_ROUTE_PERCENTAGE_HIST.DISTANCE int (per period). Recommendation: Confirm source; decimals not stored",
+    "G-MRP-03 Percentage storage: UISS / code: Number 5,2. DB: MS_ROUTE_HEADER float; HIST varchar(4). Recommendation: Confirm which table is maintained by the screen"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "Relation MS_ROUTE (ROUTE_CODE, PRICE_CODE) vs MS_ROUTE_DETAIL",
+    "Role of MS_ROUTE_PERCENTAGE_HIST (period copy?)",
+    "ROUTE_HEADER_ID generation"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Location Pick"
+  },
+  {
+   "event": "Select [Location Pick]",
+   "cause": "Location not ACTIVE in Master Location (RP-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Location {Code} is not an active location in Master Location.",
+   "action": "Select an active location"
+  },
+  {
+   "event": "Select [Location Pick]",
+   "cause": "Same as the last stop (RP-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Location {Code} is already the last stop of the route.",
+   "action": "Select another location"
+  },
+  {
+   "event": "Select [Location Pick]",
+   "cause": "More than 10 stops (RP-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "A route can have at most 10 locations.",
+   "action": "Remove a stop first"
+  },
+  {
+   "group": "Save Operation (Add / Edit)"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Less than 2 stops (RP-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Route must have at least 2 locations (start and end).",
+   "action": "Pick the start and end location"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Same location twice in a row after reordering (RP-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Location {Code} cannot follow itself. Please change the order.",
+   "action": "Move or remove the stop"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Route Code used by an active route (RP-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Route {Code} already exists. Please edit the existing route.",
+   "action": "Edit the existing route"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Percentage blank (RP-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Percentage is required.",
+   "action": "Input Percentage"
+  },
+  {
+   "event": "Click [Save] / change % in list",
+   "cause": "Not a number, <= 0, > 100 or more than 2 decimals (RP-05)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Percentage must be a number greater than 0 and at most 100, with max 2 decimals.",
+   "action": "Input a valid percentage"
+  },
+  {
+   "event": "Click [Save] / change % in list",
+   "cause": "Total of active routes above 100% (RP-06)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Total percentage of active routes would be {t}%. The maximum is 100%.",
+   "action": "Lower this or another route's percentage"
+  },
+  {
+   "event": "Click [Save] / [Deactivate]",
+   "cause": "Record changed by another user",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Error in Update because of concurrency check.",
+   "action": "Clear and retry"
+  },
+  {
+   "event": "Click [Save] button (Add)",
+   "cause": "Saved successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {Code} has been successfully created.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Save] (Edit) / change % in list",
+   "cause": "Updated successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {Code} has been successfully updated.",
+   "action": "-"
+  },
+  {
+   "group": "Deactivate Operation"
+  },
+  {
+   "event": "Click Opsi > [Deactivate]",
+   "cause": "Confirmation (RP-09)",
+   "type": "Confirmation",
+   "msg_id": "TBD",
+   "message": "Deactivate route {Code} ({Description})? Percentage {p}% is released and the route is no longer used in PR creation.",
+   "action": "Click Deactivate or Batal"
+  },
+  {
+   "event": "Click [Deactivate] in confirmation",
+   "cause": "Deactivated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {Code} has been deactivated and is no longer used in PR creation.",
+   "action": "-"
+  },
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Open screen",
+   "cause": "No active route",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No active route found.",
+   "action": "Create a route in Route Entry"
+  },
+  {
+   "event": "Key-in [Search]",
+   "cause": "No row matches the keyword",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No route found for the selected criteria.",
+   "action": "Change or clear the keyword"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Click [Save] (Add)",
+   "cause": "Route created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {Code} created with {p}% ({Distance} Km) by {User}.",
+   "exception": "N",
+   "action": "Audit: Created By / Dt"
+  },
+  {
+   "event": "Click [Save] (Edit) / change % in list",
+   "cause": "Route updated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {Code} updated by {User}: percentage {old} -> {new}, stops {old} -> {new}.",
+   "exception": "N",
+   "action": "Audit: Changed By / Dt"
+  },
+  {
+   "event": "Click [Deactivate]",
+   "cause": "Route deactivated",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {Code} deactivated by {User}.",
+   "exception": "N",
+   "action": "Audit: Changed By / Dt"
+  },
+  {
+   "event": "Distance calculation",
+   "cause": "Leg not in Master Mileage",
+   "type": "Warning",
+   "msg_id": "TBD",
+   "message": "Leg {From} -> {To} of route {Code} uses a straight-line estimate ({Km} Km).",
+   "exception": "N",
+   "action": "Register the leg in Master Mileage (TBD, OP-01)"
+  },
+  {
+   "event": "Any save",
+   "cause": "DB error (transaction rolled back)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Failed to save route {Code}: {Error}.",
+   "exception": "Y",
+   "action": "Display system error message (TBD); data not saved"
+  }
+ ]
+}

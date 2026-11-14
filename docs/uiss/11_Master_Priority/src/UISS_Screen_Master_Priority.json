@@ -1,0 +1,1856 @@
+{
+ "doc_type": "screen",
+ "header": {
+  "phase": "DR",
+  "project_name": "ELIPS Enhancement (TC-PBR)",
+  "block_name": "Screen",
+  "function_name": "TBD Master Priority",
+  "created_date": "30-Oct-26",
+  "created_by": "Susanto",
+  "updated_date": "14-Nov-26",
+  "updated_by": "Susanto"
+ },
+ "revisions": [
+  {
+   "revision": "0.1",
+   "author": "Susanto",
+   "date": "30-Oct-26",
+   "reviewed_by": "",
+   "description": "Initial draft based on existing Master Priority screen and HTML mock-up (docs/master-priority-rules.md) 30-Oct-26"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R1] Database review: no ELIPS table holds route priority - priority columns marked TBD - Not confirmed from existing schema/data/code; locations / mileage mapped to ielp.MS_LOCATION / ielp.TB_M_MILEAGE; no sample data"
+  }
+ ],
+ "general": {
+  "objective": [
+   "To maintain the priority order of routes (From -> To) used as the reference for Trucking Payment by Resource.",
+   "To add a route at a given priority, change its priority (edit or up / down) and delete it, keeping the numbers 1..n without gaps.",
+   "To ensure every route uses active locations of Master Location and is registered in Master Mileage."
+  ],
+  "display_order": [
+   {
+    "section": "Priority List",
+    "fields": [
+     {
+      "field": "Priority",
+      "order": "Ascending"
+     }
+    ]
+   }
+  ],
+  "buttons": [
+   {
+    "name": "From / To",
+    "function": "Searchable drop-down: to select an active location from Master Location by code or name."
+   },
+   {
+    "name": "Priority",
+    "function": "To key-in the priority number (optional)."
+   },
+   {
+    "name": "Cancel",
+    "function": "Clear criteria and reset the screen to its initial value (Add Mode)."
+   },
+   {
+    "name": "Save",
+    "function": "To validate and save: insert in Add Mode, update in Edit Mode, renumber the other routes."
+   },
+   {
+    "name": "Search",
+    "function": "To filter the list by keyword."
+   },
+   {
+    "name": "Kolom",
+    "function": "To show / hide list columns."
+   },
+   {
+    "name": "Export XLS",
+    "function": "To export the filtered list to Excel."
+   },
+   {
+    "name": "Up / Down",
+    "function": "To swap the priority of the row with the row above / below."
+   },
+   {
+    "name": "Edit",
+    "function": "Change the screen into Edit Mode with the selected route loaded."
+   },
+   {
+    "name": "Delete",
+    "function": "To delete the route after confirmation and renumber the routes below."
+   },
+   {
+    "name": "Pagination",
+    "function": "To move between pages."
+   }
+  ],
+  "screen_modes": [
+   {
+    "mode": "Add Mode (initial)",
+    "sections": [
+     {
+      "section": "Input",
+      "description": "From / To = placeholder, Priority blank",
+      "buttons": {
+       "From / To": "E",
+       "Priority": "E",
+       "Cancel": "E",
+       "Save": "E",
+       "Search": "E",
+       "Kolom": "E",
+       "Export XLS": "E",
+       "Up / Down": "D",
+       "Edit": "D",
+       "Delete": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "Priority List",
+      "description": "all routes by priority, refer below 1)",
+      "buttons": {
+       "From / To": "D",
+       "Priority": "D",
+       "Cancel": "D",
+       "Save": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Export XLS": "E",
+       "Up / Down": "E",
+       "Edit": "E",
+       "Delete": "E",
+       "Pagination": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Edit Mode",
+    "sections": [
+     {
+      "section": "Input",
+      "description": "selected route loaded",
+      "buttons": {
+       "From / To": "E",
+       "Priority": "E",
+       "Cancel": "E",
+       "Save": "E",
+       "Search": "E",
+       "Kolom": "E",
+       "Export XLS": "E",
+       "Up / Down": "D",
+       "Edit": "D",
+       "Delete": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "Priority List",
+      "description": "edited row highlighted, refer below 2)",
+      "buttons": {
+       "From / To": "D",
+       "Priority": "D",
+       "Cancel": "D",
+       "Save": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Export XLS": "E",
+       "Up / Down": "E",
+       "Edit": "E",
+       "Delete": "E",
+       "Pagination": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Saving Mode",
+    "sections": [
+     {
+      "section": "Input",
+      "description": "request in progress, refer below 3)",
+      "buttons": {
+       "From / To": "D",
+       "Priority": "D",
+       "Cancel": "D",
+       "Save": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Export XLS": "E",
+       "Up / Down": "D",
+       "Edit": "D",
+       "Delete": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "Priority List",
+      "description": "unchanged until saved",
+      "buttons": {
+       "From / To": "D",
+       "Priority": "D",
+       "Cancel": "D",
+       "Save": "D",
+       "Search": "E",
+       "Kolom": "E",
+       "Export XLS": "E",
+       "Up / Down": "E",
+       "Edit": "E",
+       "Delete": "E",
+       "Pagination": "E"
+      }
+     }
+    ]
+   },
+   {
+    "mode": "Delete Confirmation",
+    "sections": [
+     {
+      "section": "Input",
+      "description": "behind the confirmation dialog",
+      "buttons": {
+       "From / To": "D",
+       "Priority": "D",
+       "Cancel": "D",
+       "Save": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Export XLS": "D",
+       "Up / Down": "D",
+       "Edit": "D",
+       "Delete": "D",
+       "Pagination": "D"
+      }
+     },
+     {
+      "section": "Priority List",
+      "description": "behind the confirmation dialog",
+      "buttons": {
+       "From / To": "D",
+       "Priority": "D",
+       "Cancel": "D",
+       "Save": "D",
+       "Search": "D",
+       "Kolom": "D",
+       "Export XLS": "D",
+       "Up / Down": "D",
+       "Edit": "D",
+       "Delete": "D",
+       "Pagination": "D"
+      }
+     }
+    ]
+   }
+  ],
+  "screen_mode_remarks": [
+   "1) Up disabled on priority 1, Down disabled on the last priority. Empty list: message no. 14; empty search: message no. 15.",
+   "2) Up / Down in Edit Mode resets the form to Add Mode first (the loaded version would be outdated).",
+   "3) Save shows 'Saving...' and is disabled together with Cancel until the server responds."
+  ]
+ },
+ "screen_flow": [
+  {
+   "title": "Screen Flow for Master Priority",
+   "flow": {
+    "direction": "LR",
+    "nodes": [
+     {
+      "id": "l",
+      "label": "Master Location (active locations)",
+      "type": "screen"
+     },
+     {
+      "id": "mi",
+      "label": "Master Mileage (route mileage)",
+      "type": "screen"
+     },
+     {
+      "id": "s",
+      "label": "Master Priority screen",
+      "type": "screen",
+      "screen_id": "TBD"
+     },
+     {
+      "id": "x",
+      "label": "Excel file",
+      "type": "document"
+     },
+     {
+      "id": "t",
+      "label": "Trucking Payment by Resource",
+      "type": "subprocess"
+     }
+    ],
+    "edges": [
+     {
+      "from": "l",
+      "to": "s"
+     },
+     {
+      "from": "mi",
+      "to": "s"
+     },
+     {
+      "from": "s",
+      "to": "x",
+      "label": "Export XLS"
+     },
+     {
+      "from": "s",
+      "to": "t",
+      "label": "Route priority"
+     }
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Save - Validation",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Save button",
+      "type": "event"
+     },
+     {
+      "id": "q1",
+      "label": "From, To filled, different and active?",
+      "type": "decision"
+     },
+     {
+      "id": "e1",
+      "label": "Show message no. 1 / 2 / 3 / 4",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "Route already has a priority?",
+      "type": "decision"
+     },
+     {
+      "id": "e2",
+      "label": "Show message no. 5",
+      "type": "message"
+     },
+     {
+      "id": "q3",
+      "label": "Route in Master Mileage?",
+      "type": "decision"
+     },
+     {
+      "id": "e3",
+      "label": "Show message no. 6",
+      "type": "message"
+     },
+     {
+      "id": "q4",
+      "label": "Priority blank or in range?",
+      "type": "decision"
+     },
+     {
+      "id": "e4",
+      "label": "Show message no. 7",
+      "type": "message"
+     },
+     {
+      "id": "n",
+      "label": "Continue to Store",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q1"
+     },
+     {
+      "from": "q1",
+      "to": "e1",
+      "label": "No"
+     },
+     {
+      "from": "q1",
+      "to": "q2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "e2",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "q3",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "e3",
+      "label": "No"
+     },
+     {
+      "from": "q3",
+      "to": "q4",
+      "label": "Yes"
+     },
+     {
+      "from": "q4",
+      "to": "e4",
+      "label": "No"
+     },
+     {
+      "from": "q4",
+      "to": "n",
+      "label": "Yes"
+     }
+    ],
+    "same_rank": [
+     [
+      "q1",
+      "e1"
+     ],
+     [
+      "q2",
+      "e2"
+     ],
+     [
+      "q3",
+      "e3"
+     ],
+     [
+      "q4",
+      "e4"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Save - Store and Renumber",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "From validation",
+      "type": "start"
+     },
+     {
+      "id": "q",
+      "label": "Add Mode?",
+      "type": "decision"
+     },
+     {
+      "id": "a",
+      "label": "Priority p = input, or n+1 if blank",
+      "type": "process"
+     },
+     {
+      "id": "u",
+      "label": "Version check; p = input, or current if blank",
+      "type": "process"
+     },
+     {
+      "id": "ec",
+      "label": "Show message no. 8",
+      "type": "message"
+     },
+     {
+      "id": "w",
+      "label": "Insert / update route at p; routes from p shift by one; numbers 1..n",
+      "type": "process"
+     },
+     {
+      "id": "db",
+      "label": "Route Priority Master (no ELIPS table - TBD)",
+      "type": "db"
+     },
+     {
+      "id": "e",
+      "label": "Reset form, refresh list, msg 9 / 10",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "a",
+      "label": "Yes"
+     },
+     {
+      "from": "q",
+      "to": "u",
+      "label": "No"
+     },
+     {
+      "from": "u",
+      "to": "ec",
+      "label": "Changed"
+     },
+     {
+      "from": "a",
+      "to": "w"
+     },
+     {
+      "from": "u",
+      "to": "w"
+     },
+     {
+      "from": "w",
+      "to": "db",
+      "style": "dashed"
+     },
+     {
+      "from": "w",
+      "to": "e"
+     }
+    ],
+    "same_rank": [
+     [
+      "u",
+      "ec"
+     ],
+     [
+      "w",
+      "db"
+     ]
+    ]
+   }
+  },
+  {
+   "title": "Screen Flow for Up / Down and Delete",
+   "flow": {
+    "direction": "TB",
+    "nodes": [
+     {
+      "id": "s",
+      "label": "START",
+      "type": "start"
+     },
+     {
+      "id": "ev",
+      "label": "On Click of Up / Down / Delete",
+      "type": "event"
+     },
+     {
+      "id": "q",
+      "label": "Which button?",
+      "type": "decision"
+     },
+     {
+      "id": "sw",
+      "label": "Swap priority with the route above / below",
+      "type": "process"
+     },
+     {
+      "id": "db1",
+      "label": "Route Priority Master (no ELIPS table - TBD)",
+      "type": "db"
+     },
+     {
+      "id": "e1",
+      "label": "Refresh list, msg 11",
+      "type": "end"
+     },
+     {
+      "id": "c",
+      "label": "Confirmation message no. 12",
+      "type": "message"
+     },
+     {
+      "id": "q2",
+      "label": "Delete clicked?",
+      "type": "decision"
+     },
+     {
+      "id": "x",
+      "label": "Close dialog, no change (Batal)",
+      "type": "end"
+     },
+     {
+      "id": "d",
+      "label": "Delete route; routes below move up by one",
+      "type": "process"
+     },
+     {
+      "id": "db2",
+      "label": "Route Priority Master (no ELIPS table - TBD)",
+      "type": "db"
+     },
+     {
+      "id": "e2",
+      "label": "Refresh list, msg 13",
+      "type": "end"
+     }
+    ],
+    "edges": [
+     {
+      "from": "s",
+      "to": "ev"
+     },
+     {
+      "from": "ev",
+      "to": "q"
+     },
+     {
+      "from": "q",
+      "to": "sw",
+      "label": "Up / Down"
+     },
+     {
+      "from": "q",
+      "to": "c",
+      "label": "Delete"
+     },
+     {
+      "from": "sw",
+      "to": "db1",
+      "style": "dashed"
+     },
+     {
+      "from": "sw",
+      "to": "e1"
+     },
+     {
+      "from": "c",
+      "to": "q2"
+     },
+     {
+      "from": "q2",
+      "to": "d",
+      "label": "Yes"
+     },
+     {
+      "from": "q2",
+      "to": "x",
+      "label": "No"
+     },
+     {
+      "from": "d",
+      "to": "db2",
+      "style": "dashed"
+     },
+     {
+      "from": "d",
+      "to": "e2"
+     }
+    ],
+    "same_rank": [
+     [
+      "sw",
+      "db1"
+     ],
+     [
+      "q2",
+      "x"
+     ],
+     [
+      "d",
+      "db2"
+     ]
+    ]
+   }
+  }
+ ],
+ "screen_layout": [
+  {
+   "caption": "1. Master Priority - reference screen (from user)",
+   "image": "img/UISS_Screen_Master_Priority/ref_priority.png"
+  },
+  {
+   "caption": "2. Add Mode - initial display (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q01_initial.png"
+  },
+  {
+   "caption": "3. Validation - mandatory From / To (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q02_mandatory.png"
+  },
+  {
+   "caption": "4. Validation - route not in Master Mileage (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q03_no_mileage.png"
+  },
+  {
+   "caption": "5. Validation - route already has a priority (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q04_duplicate.png"
+  },
+  {
+   "caption": "6. Add SNT -> KRW at priority 3, routes below shifted (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q05_added.png"
+  },
+  {
+   "caption": "7. Validation - priority out of range (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q06_range.png"
+  },
+  {
+   "caption": "8. Up - SNT -> KRW moved to priority 2 (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q07_moved_up.png"
+  },
+  {
+   "caption": "9. Edit Mode - row loaded into the form (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q08_edit.png"
+  },
+  {
+   "caption": "10. Delete confirmation (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q09_delete_confirm.png"
+  },
+  {
+   "caption": "11. Search without result (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q10_no_result.png"
+  },
+  {
+   "caption": "12. Kolom - column selection (HTML mock-up)",
+   "image": "img/UISS_Screen_Master_Priority/q11_kolom.png"
+  }
+ ],
+ "items": [
+  {
+   "group": "<Header Section>"
+  },
+  {
+   "name": "Page title",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Master Priority'."
+  },
+  {
+   "name": "Breadcrumb",
+   "source": "Fixed",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Master - Master Priority'. Menu: Master > Priority."
+  },
+  {
+   "group": "<Input Section>"
+  },
+  {
+   "name": "From",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Combo Box (searchable)",
+   "justified": "Left",
+   "initial": "'Select From'",
+   "required": "Y",
+   "format": "CODE - NAME",
+   "validation": "Mandatory (msg 1); active location (msg 4); <> To (msg 3)",
+   "description": "List = ACTIVE locations of Master Location, sorted by code, shown as 'Code - Name'. Type to search by code or name. No free text. Stores the location code.\nDB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "To",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "I",
+   "control": "Combo Box (searchable)",
+   "justified": "Left",
+   "initial": "'Select To'",
+   "required": "Y",
+   "format": "CODE - NAME",
+   "validation": "Mandatory (msg 2); active location (msg 4); route unique (msg 5); in Master Mileage (msg 6)",
+   "description": "Same behaviour as From.\nDB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "Priority",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Number",
+   "len": "4 (TBD)",
+   "io": "I",
+   "control": "Text box (number spinner)",
+   "justified": "Left",
+   "initial": "Placeholder 'Enter Priority'",
+   "required": "N",
+   "format": "ZZZ9",
+   "validation": "Whole number 1..n+1 (Add) / 1..n (Edit) (msg 7)",
+   "description": "Blank on Add = last priority; blank on Edit = keep current priority.\nDB: TBD - TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "name": "Cancel",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Clear the input section and return to Add Mode."
+  },
+  {
+   "name": "Save",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Refer Operation Description 5.3. Disabled and labelled 'Saving...' while processing (no double submission)."
+  },
+  {
+   "name": "Search",
+   "source": "Key-in",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Placeholder 'Search'",
+   "required": "N",
+   "format": "",
+   "validation": "No result: msg 15",
+   "description": "Filters the list immediately on all columns (partial match, case-insensitive)."
+  },
+  {
+   "name": "Kolom",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button (drop-down)",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Check box per column: show / hide. All columns shown by default."
+  },
+  {
+   "name": "Export XLS",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Export all rows matching Search with the visible columns, in priority order, to 'Master_Priority_YYYYMMDD.xls'."
+  },
+  {
+   "group": "<Priority List Section>"
+  },
+  {
+   "name": "Up (↑)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Swap priority with the route above (5.4). Disabled on priority 1. msg 11."
+  },
+  {
+   "name": "Down (↓)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Swap priority with the route below (5.4). Disabled on the last priority. msg 11."
+  },
+  {
+   "name": "Edit (✎)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Load the row into the Input Section (Edit Mode); row highlighted."
+  },
+  {
+   "name": "Delete (🗑)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Confirmation msg 12; delete and renumber (5.5)."
+  },
+  {
+   "name": "From",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "From Description",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_NAME",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Name of From in Master Location.\nDB: ielp.MS_LOCATION.LOCATION_NAME varchar(5000) NOT NULL [Revised]"
+  },
+  {
+   "name": "To",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_ALIAS",
+   "type": "Varchar",
+   "len": "100",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: ielp.MS_LOCATION.LOCATION_ALIAS varchar(100) NOT NULL [Revised]"
+  },
+  {
+   "name": "To Description",
+   "source": "ielp.MS_LOCATION",
+   "field": "LOCATION_NAME",
+   "type": "Varchar",
+   "len": "5000",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Name of To in Master Location.\nDB: ielp.MS_LOCATION.LOCATION_NAME varchar(5000) NOT NULL [Revised]"
+  },
+  {
+   "name": "Trip",
+   "source": "System",
+   "field": "--",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "From code + To code, e.g. 'DPCMRCYKRW' (TBD whether stored)."
+  },
+  {
+   "name": "Mileage",
+   "source": "ielp.TB_M_MILEAGE",
+   "field": "MILEAGE",
+   "type": "Decimal",
+   "len": "18,0",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ,ZZ9.99",
+   "validation": "",
+   "description": "Active mileage of the route in Master Mileage; '-' if none.\nDB: ielp.TB_M_MILEAGE.MILEAGE decimal(18, 0) NULL [Revised] decimal(18,0)."
+  },
+  {
+   "name": "Priority",
+   "source": "Route Priority Master (no ELIPS table - TBD)",
+   "field": "PRIORITY_NO (TBD)",
+   "type": "Number",
+   "len": "4 (TBD)",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "ZZZ9",
+   "validation": "",
+   "description": "Highlighted column (yellow, bold). Default sort: Priority ascending.\nDB: TBD - TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "name": "Created DT",
+   "source": "Route Priority Master (no ELIPS table - TBD)",
+   "field": "CREATED_DT (TBD)",
+   "type": "Datetime",
+   "len": 16,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "DD/MM/YYYY HH:MI",
+   "validation": "",
+   "description": "DB: TBD - TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "name": "Created By",
+   "source": "Route Priority Master (no ELIPS table - TBD)",
+   "field": "CREATED_BY (TBD)",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: TBD - TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "name": "Changed DT",
+   "source": "Route Priority Master (no ELIPS table - TBD)",
+   "field": "CHANGED_DT (TBD)",
+   "type": "Datetime",
+   "len": 16,
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "",
+   "format": "DD/MM/YYYY HH:MI",
+   "validation": "",
+   "description": "DB: TBD - TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "name": "Changed By",
+   "source": "Route Priority Master (no ELIPS table - TBD)",
+   "field": "CHANGED_BY (TBD)",
+   "type": "Varchar",
+   "len": "TBD",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "DB: TBD - TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "name": "Empty list text",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "msg 14 when no data; msg 15 when Search returns nothing."
+  },
+  {
+   "group": "<Paging Section>"
+  },
+  {
+   "name": "Paging info",
+   "source": "System",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Menampilkan n - m dari x data'."
+  },
+  {
+   "name": "Pagination (‹ 1 ›)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "20 rows per page (TBD). Previous disabled on page 1, next on the last page."
+  }
+ ],
+ "data_map": {
+  "blocks": [
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "Route Priority Master (no ELIPS table - TBD)",
+     "operation": "Insert",
+     "description": "Add Mode - [Save]",
+     "keys": []
+    },
+    "mappings": [
+     {
+      "source_field": "From",
+      "dest_field": "FROM_LOCATION (TBD)",
+      "description": "Location code"
+     },
+     {
+      "source_field": "To",
+      "dest_field": "TO_LOCATION (TBD)",
+      "description": "Location code"
+     },
+     {
+      "source_field": "Priority",
+      "dest_field": "PRIORITY_NO (TBD)",
+      "description": "Input; blank = max + 1"
+     },
+     {
+      "dest_field": "CREATED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CREATED_DT (TBD)",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "CHANGED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CHANGED_DT (TBD)",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (TBD)",
+      "description": "1"
+     }
+    ]
+   },
+   {
+    "source": "Key-in from screen",
+    "destination": {
+     "table": "Route Priority Master (no ELIPS table - TBD)",
+     "operation": "Update",
+     "description": "Edit Mode - [Save]",
+     "keys": [
+      {
+       "field": "FROM_LOCATION (TBD)",
+       "value": "From of the selected row (before edit)"
+      },
+      {
+       "field": "TO_LOCATION (TBD)",
+       "value": "To of the selected row (before edit)"
+      },
+      {
+       "field": "VERSION (TBD)",
+       "value": "Version loaded into the form"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "source_field": "From",
+      "dest_field": "FROM_LOCATION (TBD)",
+      "description": "Location code"
+     },
+     {
+      "source_field": "To",
+      "dest_field": "TO_LOCATION (TBD)",
+      "description": "Location code"
+     },
+     {
+      "source_field": "Priority",
+      "dest_field": "PRIORITY_NO (TBD)",
+      "description": "Input; blank = not changed"
+     },
+     {
+      "dest_field": "CHANGED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CHANGED_DT (TBD)",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (TBD)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": "System (renumber)",
+    "destination": {
+     "table": "Route Priority Master (no ELIPS table - TBD)",
+     "operation": "Update",
+     "description": "[Save] / [Delete] - other routes",
+     "keys": [
+      {
+       "field": "PRIORITY_NO (TBD)",
+       "value": "Routes at / after the affected position"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "PRIORITY_NO (TBD)",
+      "description": "+1 (insert / move down) or -1 (delete / move up) to keep 1..n"
+     },
+     {
+      "dest_field": "CHANGED_BY / CHANGED_DT (TBD)",
+      "description": "Not changed (TBD, OP-06)"
+     }
+    ]
+   },
+   {
+    "source": "Screen row",
+    "destination": {
+     "table": "Route Priority Master (no ELIPS table - TBD)",
+     "operation": "Update",
+     "description": "[Up] / [Down] - both rows",
+     "keys": [
+      {
+       "field": "FROM_LOCATION (TBD)",
+       "value": "From of the selected row (before edit)"
+      },
+      {
+       "field": "TO_LOCATION (TBD)",
+       "value": "To of the selected row (before edit)"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "PRIORITY_NO (TBD)",
+      "description": "Swapped with the neighbour"
+     },
+     {
+      "dest_field": "CHANGED_BY (TBD)",
+      "description": "Login user ID"
+     },
+     {
+      "dest_field": "CHANGED_DT (TBD)",
+      "description": "Server system date"
+     },
+     {
+      "dest_field": "VERSION (TBD)",
+      "description": "VERSION + 1"
+     }
+    ]
+   },
+   {
+    "source": "Screen row",
+    "destination": {
+     "table": "Route Priority Master (no ELIPS table - TBD)",
+     "operation": "Delete",
+     "description": "[Delete] - confirmed",
+     "keys": [
+      {
+       "field": "FROM_LOCATION (TBD)",
+       "value": "From of the selected row (before edit)"
+      },
+      {
+       "field": "TO_LOCATION (TBD)",
+       "value": "To of the selected row (before edit)"
+      }
+     ]
+    },
+    "mappings": [
+     {
+      "dest_field": "(whole record)",
+      "description": "Physical delete (TBD, OP-04)"
+     }
+    ]
+   }
+  ]
+ },
+ "operation": [
+  {
+   "type": "heading",
+   "text": "5.1 Initial Display",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Title 'Master Priority', breadcrumb 'Master - Master Priority' (menu Master > Priority).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Input Section in Add Mode: From = 'Select From', To = 'Select To', Priority blank ('Enter Priority').",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "From / To list: ACTIVE locations of Master Location, 'Code - Name', sorted by code; searchable by code or name.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "d.",
+   "text": "Priority List sorted by Priority ascending, 20 rows per page (TBD). No data: message no. 14.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "e.",
+   "text": "From / To Description from Master Location; Trip = From + To code; Mileage = active mileage of the route in Master Mileage.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.2 Priority Numbering (PR-05)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Priority 1 is the highest. Numbers are always 1..n without gaps and without duplicates.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Every add, edit, move and delete renumbers the list in the same DB transaction.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.3 Save (Add / Edit)",
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Step 1 - From (no. 1) and To (no. 2) required; From <> To (no. 3); both ACTIVE in Master Location (no. 4). Messages under the field. Stop.",
+    "Step 2 - From + To must not have a priority yet, excluding the edited record (no. 5). Stop.",
+    "Step 3 - Route must be Active in Master Mileage (no. 6). Stop.",
+    "Step 4 - Priority blank or whole number 1..n+1 (Add) / 1..n (Edit) (no. 7). Stop.",
+    "Step 5 - Edit: version check (no. 8).",
+    "Step 6 - Add: p = input or n+1. Edit: p = input or current priority. Put the route at p; routes from p onward shift by one.",
+    "Success: reset form to Add Mode, refresh list on the page of the saved route, highlight it, message no. 9 / 10."
+   ],
+   "marker": "1.",
+   "level": 3
+  },
+  {
+   "type": "table",
+   "columns": [
+    {
+     "title": "Action",
+     "width": 18
+    },
+    {
+     "title": "Before",
+     "width": 14
+    },
+    {
+     "title": "After",
+     "width": 14
+    }
+   ],
+   "rows": [
+    [
+     "Add SNT -> KRW, priority 3",
+     "A1 B2 C3 D4",
+     "A1 B2 SNT-KRW3 C4 D5"
+    ],
+    [
+     "Add, priority blank",
+     "A1 B2 C3",
+     "A1 B2 C3 new4"
+    ],
+    [
+     "Edit C priority 3 -> 1",
+     "A1 B2 C3",
+     "C1 A2 B3"
+    ],
+    [
+     "Delete B",
+     "A1 B2 C3",
+     "A1 C2"
+    ]
+   ],
+   "level": 2,
+   "row_lines": "all"
+  },
+  {
+   "type": "heading",
+   "text": "5.4 Up / Down (PR-06)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Up swaps the priority with the route above; Down with the route below. Up disabled on 1, Down disabled on n.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Both swapped routes get Changed By / Changed DT; message no. 11. The page follows the moved route.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "In Edit Mode the form is reset to Add Mode first.",
+   "level": 2
+  },
+  {
+   "type": "column_break"
+  },
+  {
+   "type": "heading",
+   "text": "5.5 Delete (PR-07)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Confirmation message no. 12 (buttons Batal / Delete).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Delete: remove the route, routes below move up by one; message no. 13. Physical delete (TBD, OP-04).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.6 Search, Kolom, Export XLS",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Search filters immediately on all columns; no match: message no. 15.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Kolom shows / hides columns; Action is always shown.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "Export XLS exports all rows matching Search with the visible columns; Mileage and Priority exported as numbers.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.7 Trucking Payment by Resource (PR-11)",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Candidate routes are ordered by priority (lowest number first); routes without priority come last.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Exact use of the priority in the payment calculation: TBD (OP-01).",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "5.8 Security and Audit",
+   "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "Access follows the existing role framework (View / Add / Edit / Delete / Export Master Priority, TBD).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "Audit fields: Created DT, Created By, Changed DT, Changed By (format DD/MM/YYYY HH:MI).",
+   "level": 2
+  },
+  {
+   "type": "page_break"
+  },
+  {
+   "type": "heading",
+   "text": "Database Specification (ELIPS AE070_ILS_DB)"
+  },
+  {
+   "type": "text",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "level": 0
+  },
+  {
+   "type": "table",
+   "level": 0,
+   "row_lines": "all",
+   "columns": [
+    {
+     "title": "UI field / element",
+     "width": 9
+    },
+    {
+     "title": "Table.Column",
+     "width": 13
+    },
+    {
+     "title": "Type",
+     "width": 6
+    },
+    {
+     "title": "NN",
+     "width": 2
+    },
+    {
+     "title": "R/W",
+     "width": 3
+    },
+    {
+     "title": "Mapping / rule",
+     "width": 9
+    },
+    {
+     "title": "Status",
+     "width": 4
+    }
+   ],
+   "rows": [
+    [
+     "From / To (list)",
+     "ielp.MS_LOCATION.LOCATION_ALIAS",
+     "varchar(100)",
+     "Y",
+     "R",
+     "Active locations",
+     "Revised"
+    ],
+    [
+     "From / To Description",
+     "ielp.MS_LOCATION.LOCATION_NAME",
+     "varchar(5000)",
+     "Y",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Mileage",
+     "ielp.TB_M_MILEAGE.MILEAGE",
+     "decimal(18, 0)",
+     "N",
+     "R",
+     "-",
+     "Revised"
+    ],
+    [
+     "Priority",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "Created / Changed By / DT",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "TBD"
+    ],
+    [
+     "(table) Route Priority Master",
+     "TBD",
+     "-",
+     "-",
+     "R/W",
+     "-",
+     "Missing"
+    ]
+   ]
+  },
+  {
+   "type": "text",
+   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "G-MPY-01 Route priority storage: UISS / code: Route Priority Master. DB: No table in ELIPS. Recommendation: New table needed (DB change request) or confirm existing storage"
+   ]
+  },
+  {
+   "type": "text",
+   "text": "TBD - Not confirmed from existing schema/data/code",
+   "bold": true,
+   "level": 0
+  },
+  {
+   "type": "bullets",
+   "marker": "-",
+   "level": 0,
+   "items": [
+    "Table / columns for route priority (FROM, TO, PRIORITY_NO, audit)"
+   ]
+  }
+ ],
+ "display_messages": [
+  {
+   "group": "Save Operation (Add / Edit)"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "From not selected (PR-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "From is required.",
+   "action": "Select From and click Save"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "To not selected (PR-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "To is required.",
+   "action": "Select To and click Save"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "From = To (PR-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "From and To cannot be the same.",
+   "action": "Select a different To"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Location not ACTIVE in Master Location (PR-01)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Location {Code} is not an active location in Master Location.",
+   "action": "Select an active location"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "From + To already has a priority (PR-02)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} already has a priority. Please edit the existing record.",
+   "action": "Click Edit on the existing row"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Route not registered (Active) in Master Mileage (PR-03)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} is not registered in Master Mileage. Please register the mileage first.",
+   "action": "Register the route in Master Mileage"
+  },
+  {
+   "event": "Click [Save] button",
+   "cause": "Priority not a whole number in 1..max (PR-04)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Priority must be a whole number between 1 and {max}.",
+   "action": "Input a valid priority or leave it blank"
+  },
+  {
+   "event": "Click [Save] / [Delete] button",
+   "cause": "Record changed or deleted by another user",
+   "type": "Error",
+   "msg_id": "MSTD0114AERR",
+   "message": "Error in Update because of concurrency check.",
+   "action": "Click Cancel, refresh and retry"
+  },
+  {
+   "event": "Click [Save] button (Add)",
+   "cause": "Saved successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} has been added with priority {p}.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Save] button (Edit)",
+   "cause": "Updated successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} has been updated with priority {p}.",
+   "action": "-"
+  },
+  {
+   "group": "Row Action"
+  },
+  {
+   "event": "Click [Up] / [Down] button",
+   "cause": "Priority swapped with the neighbour (PR-06)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} moved to priority {p}.",
+   "action": "-"
+  },
+  {
+   "event": "Click [Delete] button",
+   "cause": "Confirmation (PR-07)",
+   "type": "Confirmation",
+   "msg_id": "TBD",
+   "message": "Delete route {From} -> {To} ({Trip}) with priority {p}? The routes below will move up by one.",
+   "action": "Click Delete to continue or Batal to cancel"
+  },
+  {
+   "event": "Click [Delete] in confirmation",
+   "cause": "Deleted successfully",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} has been deleted. Priorities have been renumbered.",
+   "action": "-"
+  },
+  {
+   "group": "Search Operation"
+  },
+  {
+   "event": "Open screen",
+   "cause": "No priority registered",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No priority data found.",
+   "action": "Add the first route with the form"
+  },
+  {
+   "event": "Key-in [Search]",
+   "cause": "No row matches the keyword",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "No priority data found for the selected criteria.",
+   "action": "Change or clear the keyword"
+  }
+ ],
+ "logging_messages": [
+  {
+   "event": "Click [Save] (Add)",
+   "cause": "Priority created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} added with priority {p} by {User}.",
+   "exception": "N",
+   "action": "Audit: Created By / Created DT"
+  },
+  {
+   "event": "Click [Save] (Edit) / [Up] / [Down]",
+   "cause": "Priority changed",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} priority changed from {Old} to {New} by {User}.",
+   "exception": "N",
+   "action": "Audit: Changed By / Changed DT"
+  },
+  {
+   "event": "Click [Delete]",
+   "cause": "Priority deleted",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "Route {From} -> {To} (priority {p}) deleted by {User}.",
+   "exception": "N",
+   "action": "Audit log (TBD, OP-04)"
+  },
+  {
+   "event": "Click [Save] / [Up] / [Down] / [Delete]",
+   "cause": "DB error during insert / update / delete (transaction rolled back)",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Failed to save priority {From} -> {To}: {Error}.",
+   "exception": "Y",
+   "action": "Display system error message (TBD); data not saved"
+  }
+ ]
+}

@@ -804,7 +804,7 @@ function confirmSubmit() {
 
 route();
 
-// ---------- DTP Switching: rollback of submitted DTP while the driver has not started (docs/dtp-switching-spec.md) ----------
+// ---------- DTP Switching: rollback of submitted DTP while the driver has not started (docs/uiss/02_Planning_Order_DTP/dtp-switching-spec.md) ----------
 function driverStart(o) {
   const d = MASTER.drivers.find(x => x.truck === o.truck && x.active);
   if (!d) return `No active driver registered on truck ${o.truck}`;

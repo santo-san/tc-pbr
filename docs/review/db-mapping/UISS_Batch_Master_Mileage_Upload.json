@@ -1,0 +1,141 @@
+{
+ "uiss": "UISS_Batch_Master_Mileage_Upload",
+ "revision": "Database mapping revised: target master = ielp.TB_M_MILEAGE (definition from the ELIPS DDL); temp / log / history tables stay proposed (not in ELIPS); conflicts recorded; no sample data",
+ "replace": {
+  "Route Mileage Master (TBD)": "ielp.TB_M_MILEAGE",
+  "Location Master (TBD)": "ielp.MS_LOCATION",
+  "LOCATION_ALIAS + LOCATION_NAME (TBD)": "LOCATION_ALIAS + LOCATION_NAME",
+  "LOCATION_NAME (TBD)": "LOCATION_NAME",
+  "FROM_LOCATION (TBD)": "FROM_CODE",
+  "TO_LOCATION (TBD)": "TO_CODE",
+  "MILEAGE_KM (TBD)": "MILEAGE",
+  "STATUS (TBD)": "IS_DELETE (Active / Inactive: no column - Conflict)",
+  "CREATED_BY (TBD)": "CREATED_BY",
+  "CREATED_DT (TBD)": "CREATED_DT",
+  "UPDATED_BY (TBD)": "CHANGED_BY",
+  "UPDATED_DT (TBD)": "CHANGED_DT",
+  "VERSION (TBD)": "VERSION (no column in ELIPS - Conflict)",
+  "Price Master (TBD)": "ielp.MS_ROUTE_PRICE (inferred)",
+  "INSERT Route Mileage Master (TBD)": "INSERT ielp.TB_M_MILEAGE",
+  "UPDATE Route Mileage Master (TBD)": "UPDATE ielp.TB_M_MILEAGE"
+ },
+ "fields": [
+  {
+   "ui": "FROM CODE (file)",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "FROM_CODE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "TO CODE (file)",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "TO_CODE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "Not in PK."
+  },
+  {
+   "ui": "MILEAGE (KM) (file)",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "MILEAGE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "decimal(18,0)."
+  },
+  {
+   "ui": "From / To names",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "LOC_NAME_FROM",
+   "rw": "W",
+   "mapping": "Copy of location names (NOT NULL)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Audit",
+   "items": [],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "CREATED_BY",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Temp / log / history (TB_T_MILEAGE_UPLOAD, TB_R_MILEAGE_UPLOAD_LOG, TB_H_MILEAGE)",
+   "items": [],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "Missing",
+   "note": "Proposed tables, not in ELIPS."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-MML-01",
+   "topic": "Mileage decimals",
+   "uiss": "Number 7,2 (max 2 decimals)",
+   "code": "master-mileage.js parseMileage",
+   "db": "MILEAGE decimal(18,0) - no decimals",
+   "data": "No sample data",
+   "recommendation": "Round to whole KM in the UI or change the column (DB change request)"
+  },
+  {
+   "id": "G-MML-02",
+   "topic": "Route key",
+   "uiss": "From + To unique",
+   "code": "-",
+   "db": "PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key",
+   "data": "No sample data",
+   "recommendation": "Only one route per From is possible with this PK - confirm the table or change the PK"
+  },
+  {
+   "id": "G-MML-03",
+   "topic": "Location names stored",
+   "uiss": "Names read from Master Location",
+   "code": "-",
+   "db": "LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised)",
+   "data": "No sample data",
+   "recommendation": "Copy names on insert / update; define refresh when a location is renamed"
+  },
+  {
+   "id": "G-MML-04",
+   "topic": "Active / Inactive and VERSION",
+   "uiss": "STATUS, VERSION",
+   "code": "-",
+   "db": "Only IS_DELETE varchar(5); no VERSION",
+   "data": "No sample data",
+   "recommendation": "Map status to IS_DELETE; concurrency by CHANGED_DT"
+  },
+  {
+   "id": "G-MML-05",
+   "topic": "LAST_UPLOAD_ID",
+   "uiss": "Column on the route master",
+   "code": "-",
+   "db": "No such column in TB_M_MILEAGE",
+   "data": "No sample data",
+   "recommendation": "Drop or add the column (DB change request)"
+  }
+ ],
+ "tbd": [
+  "Approval for the three proposed tables",
+  "Function ID of the upload (dbo.TB_M_FUNCTION)"
+ ]
+}

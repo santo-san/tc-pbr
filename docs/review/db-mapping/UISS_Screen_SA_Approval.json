@@ -1,0 +1,327 @@
+{
+ "uiss": "UISS_Screen_SA_Approval",
+ "revision": "Database mapping revised to the ELIPS schema: SA = ielp.SA_HEADER / SA_DETAIL (SA_CODE), orders = ORDER_CYCLE (SA_CODE) and DTP_n_DETAIL (IS_SA), rate = MS_ROUTE_PRICE (inferred), monthly PO = PO_DETAIL; proposed request / sequence / history tables flagged; conflicts recorded; no sample data",
+ "replace": {
+  "TB_R_SA_HEADER - PAS block (proposed)": "ielp.SA_DETAIL (PAS_* columns)",
+  "TB_R_SA_HEADER (proposed)": "ielp.SA_HEADER",
+  "TB_R_SA_DETAIL (proposed)": "ielp.SA_DETAIL",
+  "TB_R_SA_HEADER": "ielp.SA_HEADER",
+  "TB_R_SA_DETAIL": "ielp.SA_DETAIL",
+  "TB_H_SA_INTERFACE (proposed)": "ielp.LOG_ITGPAS (inferred)",
+  "TB_R_SA_PAS_OUTBOX (proposed)": "PAS outbox (proposed, not in ELIPS)",
+  "TB_H_SA (proposed)": "SA history (proposed, not in ELIPS)",
+  "TB_R_SA_APPROVAL_REQUEST (proposed)": "SA approval request (proposed, not in ELIPS)",
+  "TB_M_SA_SEQUENCE (proposed)": "SA sequence (proposed, not in ELIPS)",
+  "TB_R_DAILY_ORDER (TBD)": "ielp.ORDER_CYCLE",
+  "TB_R_DTP_RECORD": "ielp.DTP_2_DETAIL",
+  "Daily Cycle (TBD)": "ielp.ORDER_CYCLE",
+  "Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY",
+  "Master Mileage (TBD)": "ielp.TB_M_MILEAGE",
+  "WBS Consumption Master (TBD)": "ielp.MS_WBS / ielp.SA_WBS_PERCENTAGE",
+  "Daily order history (TBD)": "ielp.LOG_ACTIVITY_ORDER (inferred)",
+  "PO / PR (Monthly, TBD)": "ielp.PO_DETAIL / ielp.CRITERIA_SCORE_DETAIL_FINAL",
+  "PO (Monthly, TBD)": "ielp.PO_DETAIL",
+  "PO (TBD)": "ielp.PO_DETAIL / ielp.MS_ROUTE_PRICE (rate, inferred)",
+  "SA_NO": "SA_CODE",
+  "ORDER_DT": "ORDER_DATE",
+  "LP_CD": "COMPANY_ID",
+  "PO_NO": "PO_NUMBER",
+  "CHANGED_BY": "UPDATED_BY",
+  "CHANGED_DT": "UPDATED_DATE",
+  "CREATED_DT": "CREATED_DATE"
+ },
+ "fields": [
+  {
+   "ui": "Order Number / Date",
+   "items": [
+    "Order Number",
+    "Order Date",
+    "Delivery info"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "ORDER_NO",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "DTP Type",
+   "items": [
+    "DTP Type"
+   ],
+   "table": "ielp.DTP_HEADER",
+   "column": "DTP_TYPE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Truck Company",
+   "items": [
+    "Truck Company"
+   ],
+   "table": "ielp.MS_TRUCKING_COMPANY",
+   "column": "COMPANY_NAME",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "PO Number",
+   "items": [
+    "PO Number",
+    "PO Number / PR Number"
+   ],
+   "table": "ielp.SA_DETAIL",
+   "column": "PO_NUMBER",
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(100); PO_DETAIL.PO_NUMBER varchar(16)."
+  },
+  {
+   "ui": "PO Validity / Currency",
+   "items": [
+    "PO Validity",
+    "Currency",
+    "Price / Currency"
+   ],
+   "table": null,
+   "column": null,
+   "rw": "R/W",
+   "mapping": "-",
+   "evidence": "Schema (no table / column found)",
+   "status": "TBD",
+   "note": "No validity / currency on SA; MS_ROUTE_PRICE.VALID_DT_FROM / TO, ROUTE_PRICE_CURRENCY (inferred)."
+  },
+  {
+   "ui": "CTR Size",
+   "items": [
+    "CTR Size"
+   ],
+   "table": "ielp.SA_DETAIL",
+   "column": "CTR_SIZE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(2)."
+  },
+  {
+   "ui": "Total KM",
+   "items": [
+    "Total KM"
+   ],
+   "table": "ielp.TB_M_MILEAGE",
+   "column": "MILEAGE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "Sum of route mileage; no column on SA."
+  },
+  {
+   "ui": "Rate / KM",
+   "items": [
+    "Rate / KM"
+   ],
+   "table": "ielp.MS_ROUTE_PRICE",
+   "column": "ROUTE_PRICE_VALUE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "Price (cost)",
+   "items": [
+    "Price"
+   ],
+   "table": "ielp.SA_DETAIL",
+   "column": "TOTAL_PRICE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "varchar(100)."
+  },
+  {
+   "ui": "Order Route",
+   "items": [
+    "Order Route"
+   ],
+   "table": "ielp.SA_DETAIL",
+   "column": "ORDER_ROUTE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(100)."
+  },
+  {
+   "ui": "Cycle route",
+   "items": [
+    "Cycle n - Order Cycle (n = 1..5)"
+   ],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "FROM_LOC",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "SA number",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "SA_CODE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Conflict",
+   "note": "varchar(16) vs 22-char SA number."
+  },
+  {
+   "ui": "SA header",
+   "items": [],
+   "table": "ielp.SA_HEADER",
+   "column": "SA_HEADER_ID",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "+ SA_PERIODE, COMPANY_ID, PO_NUMBER, SA_TYPE, STATUS_CODE."
+  },
+  {
+   "ui": "Approved by / date",
+   "items": [],
+   "table": "ielp.SA_DETAIL",
+   "column": "APPROVED_BY",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Order flag",
+   "items": [],
+   "table": "ielp.ORDER_CYCLE",
+   "column": "SA_CODE",
+   "rw": "W",
+   "mapping": "SA number written to the cycle",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "DTP flag",
+   "items": [],
+   "table": "ielp.DTP_2_DETAIL",
+   "column": "IS_SA",
+   "rw": "W",
+   "mapping": "'1' when SA approved (inferred)",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": ""
+  },
+  {
+   "ui": "Production Month (monthly)",
+   "items": [
+    "Production Month"
+   ],
+   "table": "ielp.CRITERIA_SCORE_HEADER",
+   "column": "CRITERIA_PERIODE",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "Revised",
+   "note": "varchar(7)."
+  },
+  {
+   "ui": "PO status (monthly)",
+   "items": [
+    "PO Status / PO Released"
+   ],
+   "table": "ielp.PO_HEADER",
+   "column": "APPROVAL_STS",
+   "rw": "R",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": ""
+  },
+  {
+   "ui": "SA type",
+   "items": [],
+   "table": "ielp.SA_HEADER",
+   "column": "SA_TYPE",
+   "rw": "W",
+   "mapping": "-",
+   "evidence": "Schema; Code",
+   "status": "TBD",
+   "note": "varchar(1): daily / monthly values TBD."
+  }
+ ],
+ "conflicts": [
+  {
+   "id": "G-SA-01",
+   "topic": "SA number length",
+   "uiss": "SA_NO Char 22 (sa-rules.js saNumber)",
+   "code": "-",
+   "db": "SA_CODE varchar(16); SA_HEADER_ID varchar(20)",
+   "data": "No sample data",
+   "recommendation": "Shorten the SA number format or widen SA_CODE (DB change request)"
+  },
+  {
+   "id": "G-SA-02",
+   "topic": "Amounts as text",
+   "uiss": "Numeric KM / price / cost",
+   "code": "-",
+   "db": "SA_DETAIL.PRICE, TOTAL_PRICE varchar(100); TOTAL_TRIP varchar(10); SA_HEADER.SA_TOTAL varchar(5)",
+   "data": "No sample data",
+   "recommendation": "Store numbers as text with fixed format or change types"
+  },
+  {
+   "id": "G-SA-03",
+   "topic": "Total KM / rate per KM",
+   "uiss": "TOTAL_KM, RATE_PER_KM, CURRENCY on SA",
+   "code": "-",
+   "db": "No such columns (ROUTE_PRICE_ID -> MS_ROUTE_PRICE)",
+   "data": "No sample data",
+   "recommendation": "Derive from MS_ROUTE_PRICE / TB_M_MILEAGE"
+  },
+  {
+   "id": "G-SA-04",
+   "topic": "Status codes",
+   "uiss": "Text statuses",
+   "code": "-",
+   "db": "SA_HEADER.STATUS_CODE varchar(1), SA_DETAIL.STATUS_CODE varchar(2), SA_TYPE varchar(1)",
+   "data": "No sample data",
+   "recommendation": "Code values TBD"
+  },
+  {
+   "id": "G-SA-05",
+   "topic": "Approval request / sequence / history",
+   "uiss": "TB_R_SA_APPROVAL_REQUEST, TB_M_SA_SEQUENCE, TB_H_SA",
+   "code": "-",
+   "db": "Not in ELIPS",
+   "data": "No sample data",
+   "recommendation": "Confirm whether needed (DB change request)"
+  }
+ ],
+ "tbd": [
+  "SA_HEADER_ID / SA_DETAIL_ID generation",
+  "STATUS_CODE / SA_TYPE values",
+  "SA_ROUTE_PRICE_TMP use (route price per order)"
+ ]
+}
