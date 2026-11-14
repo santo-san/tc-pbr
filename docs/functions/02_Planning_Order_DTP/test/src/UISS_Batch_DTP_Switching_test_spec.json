@@ -1,0 +1,246 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "DTP Creation - DTP Switching (Rollback)",
+  "uiss_name": "UISS-Batch DTP Switching",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Request started",
+     "ref": "UISS: Func Flow step 1, Log no.1, Data Map blk 1",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check TB_R_DTP_SWITCH_REQ (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.1 (Info): 'DTP Switching <REQUEST_ID> started by <USER>: 2 record(s).'",
+      "STATUS PROCESSING, TOTAL_RECORDS 2."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026, tick DTP Switching on the records of the case, [DTP Switching], [Confirm Rollback]."
+     ]
+    },
+    {
+     "key": "queued",
+     "case": "Rollback of a record not yet processed",
+     "ref": "UISS: 4.1, Data Map blk 2, Data Map blk 7, Data Map blk 8",
+     "procedure": [
+      "Check the record (SQL TD-11)."
+     ],
+     "expected": [
+      "Queue row removed; record back to Available; history row."
+     ],
+     "execution": [
+      "Roll back a Queued record."
+     ]
+    },
+    {
+     "key": "processed",
+     "case": "Rollback of a processed record with truck",
+     "ref": "UISS: Func Flow step 5-7, 4.4, 4.5, Log no.10, Data Map blk 3, Data Map blk 4, Data Map blk 5, Data Map blk 6, Data Map blk 9",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check order, truck, driver sync queue, audit (SQL TD-11)."
+     ],
+     "expected": [
+      "Log no.10 (Info): 'DTP <DTP_DET_ID> rolled back from <PREV_STATUS> to <NEW_STATUS>; order <ORDER_NO> cancelled; truck <PLATE_NO> released.'",
+      "ielp.ORDER_CYCLE cancelled, truck released, ORDER_TRUCK_H row, TB_T_DRIVER_SYNC_QUEUE REMOVE event, TB_H_DTP_SWITCH snapshot."
+     ],
+     "execution": [
+      "Roll back a Processed record with truck B 1234 DN, driver not started."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Request finished",
+     "ref": "UISS: Log no.11, Data Map blk 10",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.11 (Info): 'DTP Switching <REQUEST_ID> finished: 2 record(s) rolled back.'",
+      "STATUS SUCCESS, SWITCHED_RECORDS 2, END_DT."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026, tick DTP Switching on the records of the case, [DTP Switching], [Confirm Rollback]."
+     ]
+    },
+    {
+     "key": "idem",
+     "case": "Same request sent again",
+     "ref": "UISS: 4.3, Log no.2",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.2 (Warning): 'DTP Switching request <REQUEST_ID> already processed, result returned.'",
+      "Same result, nothing changed again."
+     ],
+     "execution": [
+      "Resend the same REQUEST_ID (browser tools)."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "auth",
+   "case": "Not allowed / nothing selected",
+   "ref": "UISS: Log no.3, Log no.4",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.3 (Error): 'Only the VPLD Planner can create DTP.'",
+    "Log no.4 (Error): 'Select at least one submitted DTP record that the driver has not started.'"
+   ],
+   "execution": [
+    "Send the request as IELP Admin; send with an empty list."
+   ]
+  },
+  {
+   "key": "db",
+   "case": "DB not reachable",
+   "ref": "UISS: Log no.5",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.5 (Critical): 'Database cannot be connected.'"
+   ],
+   "execution": [
+    "Stop the DB; send."
+   ]
+  },
+  {
+   "key": "elig",
+   "case": "Record not eligible",
+   "ref": "UISS: 4.1, Log no.6, Log no.7, Log no.8",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    },
+    "Check that nothing changed."
+   ],
+   "expected": [
+    "Log no.6 (Error): 'DTP <DTP_DET_ID> has not been submitted. There is nothing to roll back.'",
+    "Log no.7 (Error): 'DTP <DTP_DET_ID> is no longer eligible for rollback. Please refresh the data and try again.'",
+    "Log no.8 (Error): 'DTP <DTP_DET_ID> cannot be rolled back because the driver has already started the process (order <ORDER_NO> <STATUS>).'",
+    "Batch rule: nothing rolled back (4.2)."
+   ],
+   "execution": [
+    "Send an Available record; a record changed meanwhile; a record whose driver started."
+   ]
+  },
+  {
+   "key": "fail",
+   "case": "Rollback failed / stopped",
+   "ref": "UISS: Log no.9, Log no.12",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.9 (Error): 'DTP Switching <REQUEST_ID> failed: <DB_ERROR>. Transaction rolled back.'",
+    "Log no.12 (Critical): 'DTP Switching <REQUEST_ID> stopped: <ERROR>.'",
+    "Transaction rolled back."
+   ],
+   "execution": [
+    "Lock ielp.ORDER_CYCLE; send. Then kill the connection during step 5."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Records of 15-Nov-2026: one Queued, one Processed with truck (driver not started), one started.",
+   "Proposed tables TB_R_DTP_SWITCH_REQ / TB_H_DTP_SWITCH / TB_T_DRIVER_SYNC_QUEUE (DCR) created.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:end}",
+    "title": "Request",
+    "sql": "SELECT * FROM TB_R_DTP_SWITCH_REQ ORDER BY START_DT DESC;"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:queued}, {tc:processed}",
+    "title": "Effects",
+    "sql": "SELECT DTP_DET_ID, STATUS, ORDER_NO, VERSION FROM ielp.DTP_2_DETAIL WHERE DTP_DET_ID IN (:ids);\nSELECT * FROM ielp.ORDER_CYCLE WHERE ORDER_NO = :order_no;\nSELECT * FROM ielp.ORDER_TRUCK_H WHERE ORDER_NO = :order_no;\nSELECT * FROM TB_T_DRIVER_SYNC_QUEUE WHERE ORDER_NO = :order_no;\nSELECT * FROM TB_H_DTP_SWITCH WHERE REQUEST_ID = :req;"
+   }
+  ]
+ }
+}

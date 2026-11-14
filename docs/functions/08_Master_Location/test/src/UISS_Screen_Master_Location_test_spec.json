@@ -1,0 +1,266 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Location",
+  "uiss_name": "UISS-Screen Master Location",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen: form, map and list",
+     "ref": "UISS: Item 1-38, Gen Desc 4.b, 5.1",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open menu Master > Location Code."
+     ],
+     "expected": [
+      "Form blank in Add Mode; map centred on the default area with marker / radius circle controls.",
+      "List of locations with Location Code, Loc Name, Sub Area, Auto Cycle, Cycle To Area, Auto Finish, Coordinates, Radius, addresses, Status; paging."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and no result",
+     "ref": "UISS: Item 21, 5.6, Msg no.17",
+     "procedure": [
+      "Search = \"sunter\".",
+      "Search = \"ZZZ\"."
+     ],
+     "expected": [
+      "Rows matching code, name, sub area or addresses.",
+      "Msg no.17 (Info): 'No Data Found'"
+     ]
+    },
+    {
+     "key": "view",
+     "case": "View location",
+     "ref": "UISS: Item 39-40",
+     "procedure": [
+      "Click Opsi > View on S1."
+     ],
+     "expected": [
+      "Modal with all location fields; Close (x) closes it."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Add Operation",
+   "items": [
+    {
+     "key": "add",
+     "case": "Add location with map pick and DB",
+     "ref": "UISS: Item 3-16, 5.2-5.4, Msg no.10, Log 1",
+     "procedure": [
+      "Location Name = \"depo test\", Alias = \"dt1\", Sub Area = DEPO, Radius = 75, Auto Finish = Yes.",
+      "Type \"Cakung\" in Location Address Google Map, pick a suggestion.",
+      "Click [Save]."
+     ],
+     "expected": [
+      "Latitude / Longitude filled (7 decimals), marker and radius circle shown.",
+      "Msg no.10 (Info): 'Location DT1 - DEPO TEST has been saved successfully.'",
+      "DB (SQL TD-10) ielp.MS_LOCATION: LOCATION_NAME, LOCATION_ALIAS = DT1, LOCATION_LATITUDE / LOCATION_LANGITUDE as text, RADIUS = 75, AUTO_FINISH, STATUS = ACTIVE (DCR-04), VERSION = 1 (DCR-05), CREATED_BY."
+     ]
+    },
+    {
+     "key": "mand",
+     "case": "Mandatory and format errors",
+     "ref": "UISS: 5.3, Msg no.1, Msg no.2, Msg no.4, Msg no.5, Msg no.6, Msg no.7",
+     "procedure": [
+      "Click [Save] with blank form.",
+      "Then enter the invalid values of Test Data table A one by one, [Save]."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Mandatory Field Not Entered'",
+      "Table A: Msg no.2 (Error): 'Invalid format for Location Alias. The format must be letters / numbers, max 10 characters', Msg no.4, Msg no.5, Msg no.6, Msg no.7 for the related field; nothing saved."
+     ]
+    },
+    {
+     "key": "dup",
+     "case": "Duplicate alias",
+     "ref": "UISS: Msg no.3",
+     "procedure": [
+      "Add a location with Alias = \"S1\" (existing)."
+     ],
+     "expected": [
+      "Msg no.3 (Error): 'Duplication found for Location Alias S1'"
+     ]
+    },
+    {
+     "key": "geo",
+     "case": "Address not found / map service unavailable",
+     "ref": "UISS: Item 6, Msg no.11, Msg no.12",
+     "procedure": [
+      "Type \"xxqqzz\" in the address field.",
+      "Block the map / geocoding service and open the screen."
+     ],
+     "expected": [
+      "Msg no.11 (Info): 'Address not found.'",
+      "Msg no.12 (Warning): 'Map service is not available. Please input Latitude and Longitude manually.'; Latitude / Longitude can be typed."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Update Operation",
+   "items": [
+    {
+     "key": "upd",
+     "case": "Edit location",
+     "ref": "UISS: Item 24, 5.4, Msg no.10, Log 2",
+     "procedure": [
+      "Opsi > Edit on DT1; Radius = 100; [Save]."
+     ],
+     "expected": [
+      "Msg no.10 (Info): 'Location DT1 - {Name} has been saved successfully.'",
+      "DB (SQL TD-11): RADIUS = 100, VERSION + 1, UPDATED_BY / UPDATED_DATE."
+     ]
+    },
+    {
+     "key": "inactive",
+     "case": "Edit an INACTIVE location / change alias of a used location",
+     "ref": "UISS: Msg no.8",
+     "procedure": [
+      "Edit INACTIVE X9 and save.",
+      "Edit used S1, change Alias, save."
+     ],
+     "expected": [
+      "Msg no.8 (Error): 'Location X9 is INACTIVE and cannot be changed. / Location Alias cannot be changed because the location is used in delivery transactions.'",
+      "Alias change rejected (second text of Msg no.8)."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Deactivate / Delete Operation",
+   "items": [
+    {
+     "key": "deact",
+     "case": "Deactivate a used location",
+     "ref": "UISS: Item 41-43, 5.5, Msg no.13, Msg no.16, Log 3",
+     "procedure": [
+      "Opsi > Deactivate on S1 (used in delivery), confirm."
+     ],
+     "expected": [
+      "Msg no.13 (Confirm): 'Are you sure you want to deactivate location S1? It will no longer be available for new transactions.'",
+      "Msg no.16 (Info): 'Location S1 has been deactivated (INACTIVE). / Location S1 has been deleted.'",
+      "DB: STATUS = INACTIVE (DCR-04)."
+     ]
+    },
+    {
+     "key": "delete",
+     "case": "Delete an unused location",
+     "ref": "UISS: Msg no.14, Msg no.15, Msg no.16, Log 4",
+     "procedure": [
+      "Opsi > Delete on DT1 (never used), confirm.",
+      "Try Delete on S1 (used)."
+     ],
+     "expected": [
+      "Msg no.14 (Confirm): 'Are you sure you want to delete the record ?'",
+      "DT1 deleted (IS_DELETE, values TBD).",
+      "Msg no.15 (Error): 'Location S1 is used in delivery transactions. Please use Deactivate.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Delivery Geofence (driver)",
+   "items": [
+    {
+     "key": "geofence",
+     "case": "Finish outside the radius / auto finish",
+     "ref": "UISS: 5.7, Msg no.18, Log 5, Log 6",
+     "procedure": [
+      "Driver closes a delivery 300 m from S1 (radius 75).",
+      "Driver arrives inside the radius of a destination with Auto Finish = Yes."
+     ],
+     "expected": [
+      "Msg no.18 (Warning): 'Anda melakukan closing delivery di luar radius lokasi tujuan.'",
+      "Log no.5 written; ORDER_CYCLE.IS_FINISH_EX_GEOFENCE set (inferred).",
+      "Log no.6: delivery finished automatically."
+     ],
+     "tbd": "TBD geofence columns"
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.9, DCR-05",
+   "procedure": [
+    "Users A and B edit DT1; B saves, A saves."
+   ],
+   "expected": [
+    "Msg no.9 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "IELP Admin; locations S1 (used, ACTIVE), X9 (INACTIVE), DT1 created by the add case.",
+   "DCR-04 (STATUS), DCR-05 (VERSION) applied."
+  ],
+  "data": [
+   [
+    "{tc:mand}",
+    "A Alias",
+    "\"D-1\", 11 characters",
+    "Msg 2"
+   ],
+   [
+    "{tc:mand}",
+    "A Latitude / Longitude",
+    "91 / 181",
+    "Msg 4"
+   ],
+   [
+    "{tc:mand}",
+    "A Radius",
+    "0, \"abc\"",
+    "Msg 5"
+   ],
+   [
+    "{tc:mand}",
+    "A Sub Area",
+    "value not in list",
+    "Msg 6"
+   ],
+   [
+    "{tc:mand}",
+    "A Name / addresses",
+    "101 / 301 characters",
+    "Msg 7"
+   ]
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:add}",
+    "title": "Inserted location",
+    "sql": "SELECT LOCATION_NAME, LOCATION_ALIAS, LOCATION_LATITUDE, LOCATION_LANGITUDE, RADIUS, AUTO_FINISH, AUTO_CYCLE, LOCATION_SUB, STATUS, VERSION, CREATED_BY\nFROM ielp.MS_LOCATION WHERE LOCATION_ALIAS = 'DT1';"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:upd}, {tc:deact}",
+    "title": "Updated location",
+    "sql": "SELECT RADIUS, STATUS, IS_DELETE, VERSION, UPDATED_BY, UPDATED_DATE FROM ielp.MS_LOCATION WHERE LOCATION_ALIAS IN ('DT1', 'S1');"
+   }
+  ]
+ }
+}

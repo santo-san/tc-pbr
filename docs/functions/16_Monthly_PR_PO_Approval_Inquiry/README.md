@@ -16,7 +16,10 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_PO_Approval.xlsx](test/ST-ELIPS_TBD_PO_Approval.xlsx)
+- [ST-ELIPS_TBD_PO_Inquiry.xlsx](test/ST-ELIPS_TBD_PO_Inquiry.xlsx)
+- [ST-ELIPS_TBD_PR_Approval.xlsx](test/ST-ELIPS_TBD_PR_Approval.xlsx)
+- [ST-ELIPS_TBD_PR_Inquiry.xlsx](test/ST-ELIPS_TBD_PR_Inquiry.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.CRITERIA_SCORE_APPROVAL`, `ielp.CRITERIA_SCORE_DETAIL_FINAL`, `ielp.CRITERIA_SCORE_DETAIL_ROUTE`, `ielp.CRITERIA_SCORE_HEADER`, `ielp.PO_APPROVAL`, `ielp.PO_APPROVAL_EST`, `ielp.PO_DETAIL`, `ielp.PO_HEADER`
 

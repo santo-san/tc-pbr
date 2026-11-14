@@ -13,7 +13,7 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_Master_KPI.xlsx](test/ST-ELIPS_TBD_Master_KPI.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.CRITERIA_LAST_ORDER`, `ielp.CRITERIA_SCORE_DETAIL`, `ielp.MS_KPI`, `ielp.MS_KPI_PERCENTAGE`, `ielp.MS_TRUCKING_COMPANY`
 

@@ -13,7 +13,7 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_Master_Route_Percentage.xlsx](test/ST-ELIPS_TBD_Master_Route_Percentage.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.MS_LOCATION`, `ielp.MS_ROUTE_DETAIL`, `ielp.MS_ROUTE_HEADER`, `ielp.MS_ROUTE_PERCENTAGE_HIST`
 

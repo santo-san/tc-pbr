@@ -14,7 +14,8 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_Driver_Order_Sync_HiveMQ_TC_PBR_to_Driver_APK.xlsx](test/ST-ELIPS_TBD_Driver_Order_Sync_HiveMQ_TC_PBR_to_Driver_APK.xlsx)
+- [ST-ELIPS_TBD_Planning_Truck_Assignment.xlsx](test/ST-ELIPS_TBD_Planning_Truck_Assignment.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.DTP_2_DETAIL`, `ielp.MS_DRIVER`, `ielp.MS_LOCATION`, `ielp.MS_TRUCK_REGISTRATION`, `ielp.ORDER_CYCLE`, `ielp.ORDER_TRUCK_H`, `ielp.TB_M_DRIVER`
 

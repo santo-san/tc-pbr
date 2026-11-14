@@ -14,7 +14,8 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_SA_to_PAS_Interface_send_feedback.xlsx](test/ST-ELIPS_TBD_SA_to_PAS_Interface_send_feedback.xlsx)
+- [ST-ELIPS_TBD_TC_PBR_Service_Acceptance_Monitoring.xlsx](test/ST-ELIPS_TBD_TC_PBR_Service_Acceptance_Monitoring.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.LOG_ITGPAS`, `ielp.SA_DETAIL`, `ielp.SA_HEADER`, `ielp.SA_WBS_PERCENTAGE`
 

@@ -1,0 +1,411 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Trucking Company",
+  "uiss_name": "UISS-Screen Master Trucking Company",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen: initial Add Mode",
+     "ref": "UISS: Item 1-16, Gen Desc 4.a mode 1, Gen Desc 4.b, 5.1 a-b",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Click menu Master, then submenu Trucking Company."
+     ],
+     "expected": [
+      "Title 'Master Trucking Company', breadcrumb 'Master - Trucking Company'.",
+      "Mode info 'Mode: Add trucking company baru'.",
+      "All fields blank except Service Type = 'MRO'; NPWP placeholder '999.999.999.9-999.999'.",
+      "Button control (mode 1.a / 1.b): form fields, Save, Cancel enabled; Search, Table View, Export .xls, Sort, Update, Delete, Paging enabled."
+     ]
+    },
+    {
+     "key": "list",
+     "case": "Initial list and empty master",
+     "ref": "UISS: Item 17-40, Gen Desc 2.b, 5.1 c, 5.7 a, Msg no.22",
+     "procedure": [
+      "Prepare 12 vendors, 1 deleted (SQL TD-01). Open the screen.",
+      "Empty the master (SQL TD-02) and open the screen again."
+     ],
+     "expected": [
+      "Active and deleted vendors sorted by Vendor Name ascending; 10 rows per page, 'Showing 1 to 10 of 12 records'.",
+      "Created By / Date, Updated By / Date hidden; Deletion Yes (red) / No (green); Update / Delete disabled on deleted rows.",
+      "Empty master: Msg no.22 (Info): 'No Data Found'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search: partial, case-insensitive, no result",
+     "ref": "UISS: Item 18, 5.6 a, MT-30, Msg no.22",
+     "procedure": [
+      "Go to page 2.",
+      "Search = \"maju\".",
+      "Search = \"yes\".",
+      "Search = \"ZZZ-NOT-EXIST\"."
+     ],
+     "expected": [
+      "Step 2: rows containing 'MAJU' in any column; back to page 1; '(filtered from y total entries)'.",
+      "Step 3: only deleted vendors.",
+      "Step 4: Msg no.22 (Info): 'No Data Found'; keyword kept."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Add Operation",
+   "items": [
+    {
+     "key": "add",
+     "case": "Save new vendor: normalisation and DB",
+     "ref": "UISS: Item 3-13, 5.2, 5.3 step 5-7, Msg no.16, Data Map blk 1, Log 1",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Input Vendor Name = \"pt.  maju bersama\", Vendor Code = \"mbl\", SAP Vendor Code = \"4000007001\", NPWP = \"3171234567890123\" (Tab), Contact Name = \"  Budi  \", E-Mail = \"Budi@Maju.co.id\", Phone = \"021-4401234\", Mobile Phone = \"081234567801\", Address = \"Jl. Sunter 1\".",
+      "Click [Save]."
+     ],
+     "expected": [
+      "Vendor Code shows 'MBL' while typing; NPWP shows '317.123.456.7-890.123' after Tab.",
+      "Save / Cancel disabled until the server responds; Msg no.16 (Info): 'MBL - PT. MAJU BERSAMA has been added successfully.'",
+      "Form reset to Add Mode; list shows PT. MAJU BERSAMA, e-mail budi@maju.co.id.",
+      "DB (SQL TD-10) ielp.MS_TRUCKING_COMPANY: COMPANY_NAME, COMPANY_CODE, SAP_COMPANY_CODE, NPWP formatted, EMAIL lower case, IS_DELETE = 0, VERSION = 1 (DCR-02), SERVICE_TYPE = MRO (DCR-03), CREATED_BY = login user."
+     ]
+    },
+    {
+     "key": "mand",
+     "case": "Mandatory fields blank",
+     "ref": "UISS: Item 16, 5.3 step 1, 5.3 step 8, Msg no.1",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Leave all fields blank, click [Save]."
+     ],
+     "expected": [
+      "Msg no.1 (Error): '{Field} is required.' under Vendor Name, Vendor Code, SAP Vendor Code and NPWP at once.",
+      "Focus on Vendor Name; nothing saved."
+     ]
+    },
+    {
+     "key": "fmt",
+     "case": "Format and length errors shown together",
+     "ref": "UISS: 5.3 step 2, Msg no.2, Msg no.3, Msg no.5, Msg no.7, Msg no.8, Msg no.10, Msg no.11, Msg no.12, MT-02..MT-11",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Input the invalid values of Test Data table A (one per field), click [Save]; repeat with the other values of table A.",
+      "Send Service Type = 'XYZ' through the request (browser tools)."
+     ],
+     "expected": [
+      "Each field shows its message at once (table A), e.g. Msg no.3 (Error): 'Vendor Code must be 3 letters / numbers (example: DNX).'",
+      "Msg no.7 (Error): 'Service Type is not valid.'",
+      "Nothing saved (SQL TD-10 no row)."
+     ]
+    },
+    {
+     "key": "bound",
+     "case": "Values exactly at the limits are accepted",
+     "ref": "UISS: Item 3, Item 5, Item 7, Item 9-12, DCR-01",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Input the boundary values of Test Data table B (Vendor Name 100 chars, E-Mail 100 chars, SAP 10 digits, NPWP 16 digits, Phone 6 / 20, Mobile 10 / 15 digits, Address 300).",
+      "Click [Save]."
+     ],
+     "expected": [
+      "Msg no.16 (Info): 'MBL - {name} has been added successfully.' ; values saved unchanged (SQL TD-10; EMAIL varchar(100) after DCR-01)."
+     ]
+    },
+    {
+     "key": "dup",
+     "case": "Duplicate codes among active vendors",
+     "ref": "UISS: 5.3 step 3, Msg no.4, Msg no.6, Msg no.9",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Vendor Code \"DNX\", SAP code and NPWP of active vendor DNX (SQL TD-01); click [Save]."
+     ],
+     "expected": [
+      "Msg no.4 (Error): 'Vendor Code DNX is already used.'",
+      "Msg no.6 (Error): 'SAP Vendor Code 4000006763 is already used.'",
+      "Msg no.9 (Error): 'NPWP is already used by another vendor.'",
+      "All three at once; nothing saved."
+     ]
+    },
+    {
+     "key": "reuse",
+     "case": "Code of a deleted vendor can be reused",
+     "ref": "UISS: 5.3 step 3, Operation Desc Case-Input-Result",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Input Vendor Name = \"PT. MAJU BERSAMA\", Vendor Code = \"MBL\", SAP Vendor Code = \"4000007001\", NPWP = \"3171234567890123\" with Vendor Code \"PNJ\" (old PNJ deleted, SQL TD-03); click [Save]."
+     ],
+     "expected": [
+      "Msg no.16 (Info): 'PNJ - {name} has been added successfully.'; new PNJ active, old PNJ keeps IS_DELETE = 1."
+     ],
+     "tbd": "OP-04"
+    },
+    {
+     "key": "cancel",
+     "case": "Cancel clears the form (Add and Update)",
+     "ref": "UISS: Item 14, 5.4 b, Msg no.18",
+     "procedure": [
+      "Open menu Master > Trucking Company (Add Mode).",
+      "Trigger an error with [Save], click [Cancel].",
+      "Update (✎) MBL, change Contact Name, click [Cancel]."
+     ],
+     "expected": [
+      "Msg no.18 (Info): 'Form has been cleared.'; fields blank, errors removed, Add Mode.",
+      "Step 2: DB unchanged."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Update Operation",
+   "items": [
+    {
+     "key": "upd",
+     "case": "Update vendor: Update Mode and DB",
+     "ref": "UISS: Item 15, Item 36, 5.4 a, Msg no.17, Data Map blk 2, Log 2",
+     "procedure": [
+      "Click Update (✎) on MBL.",
+      "Contact Name = \"Budi\", E-Mail = \"BUDI@MAJU.CO.ID\", click [Save]."
+     ],
+     "expected": [
+      "Fields loaded, Vendor Code read only, row highlighted.",
+      "Msg no.17 (Info): 'MBL - PT. MAJU BERSAMA has been updated successfully.'",
+      "DB (SQL TD-11): EMAIL = budi@maju.co.id, VERSION + 1, UPDATED_BY / UPDATED_DATE = login user / now, CREATED_BY unchanged."
+     ]
+    },
+    {
+     "key": "code",
+     "case": "Vendor Code changed through the request",
+     "ref": "UISS: MT-12, Msg no.13",
+     "procedure": [
+      "Load MBL in Update Mode; change COMPANY_CODE in the request to \"MBX\"; click [Save]."
+     ],
+     "expected": [
+      "Msg no.13 (Error): 'Vendor Code cannot be changed.'; nothing saved."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Delete Operation",
+   "items": [
+    {
+     "key": "del",
+     "case": "Logical delete with confirmation",
+     "ref": "UISS: Item 35, Item 41-44, 5.5 a, 5.5 c, Msg no.19, Msg no.21, Data Map blk 3, Log 3",
+     "procedure": [
+      "Click Delete (🗑) on MBL, click [Batal].",
+      "Click Delete again, click [Delete]."
+     ],
+     "expected": [
+      "Dialog with Msg no.19 (Confirmation): 'Delete MBL - PT. MAJU BERSAMA? The data is not deleted permanently: Deletion becomes Yes and this trucking company cannot be selected in new transactions.'",
+      "Batal: IS_DELETE stays 0.",
+      "Msg no.21 (Info): 'MBL - PT. MAJU BERSAMA has been deleted (Deletion = Yes).'; Update / Delete disabled on the row.",
+      "DB (SQL TD-12): IS_DELETE = 1, VERSION + 1, UPDATED_BY = login user."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "List and Download Operation",
+   "items": [
+    {
+     "key": "util",
+     "case": "Sort, Table View and Paging",
+     "ref": "UISS: Item 19, Item 21, Item 39, Item 40, 5.6 b-c, 5.7 a",
+     "procedure": [
+      "Click header Vendor Code twice.",
+      "Table View: tick Created By, Created Date.",
+      "Tampilkan = 25, go to the last page."
+     ],
+     "expected": [
+      "Ascending then descending.",
+      "Audit columns shown (DD.MM.YYYY HH:MI).",
+      "Page 1 with 25 rows; › disabled on the last page."
+     ]
+    },
+    {
+     "key": "export",
+     "case": "Export .xls of the current search",
+     "ref": "UISS: Item 20, 5.6 d, MT-31, Msg no.23",
+     "procedure": [
+      "Search \"PT\", hide Address, click [Export .xls]."
+     ],
+     "expected": [
+      "File 'Master_Trucking_Company_YYYYMMDD.xls', sheet 'Trucking Company', all filtered rows, visible columns only.",
+      "Msg no.23 (Info): '{n} rows exported.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "open_tr",
+   "case": "Delete vendor used by an open transaction",
+   "ref": "UISS: 5.5 b, MT-21, Msg no.20, Log 4",
+   "procedure": [
+    "PO Monthly Pending for DNX (SQL TD-04).",
+    "Delete DNX, confirm [Delete]."
+   ],
+   "expected": [
+    "Msg no.20 (Error): 'Vendor DNX is still used in PO Monthly, it cannot be deleted.'",
+    "IS_DELETE stays 0 (SQL TD-12)."
+   ],
+   "tbd": "OP-05"
+  },
+  {
+   "key": "deleted",
+   "case": "Update a vendor deleted by another user",
+   "ref": "UISS: MT-12, Msg no.14",
+   "procedure": [
+    "User A loads MBL in Update Mode; user B deletes MBL; A clicks [Save]."
+   ],
+   "expected": [
+    "Msg no.14 (Error): 'Vendor MBL has been deleted and cannot be updated.'"
+   ]
+  },
+  {
+   "key": "version",
+   "case": "Data changed by another user (Update and Delete)",
+   "ref": "UISS: 5.8 a, MT-13, Msg no.15, Log 5, DCR-02",
+   "procedure": [
+    "A and B load MBL; B saves, A clicks [Save].",
+    "A opens delete confirmation of DNX; B updates DNX; A clicks [Delete]."
+   ],
+   "expected": [
+    "Both: Msg no.15 (Error): 'Data has been changed by another user. Please click Cancel and Update again.'",
+    "A's change / delete not saved."
+   ]
+  },
+  {
+   "key": "syserr",
+   "case": "Server / DB error during Save",
+   "ref": "UISS: 5.3 step 6, Msg no.24, Log 6",
+   "procedure": [
+    "Stop the DB connection (test environment).",
+    "Input Vendor Name = \"PT. MAJU BERSAMA\", Vendor Code = \"MBL\", SAP Vendor Code = \"4000007001\", NPWP = \"3171234567890123\", click [Save]."
+   ],
+   "expected": [
+    "Msg no.24 (Error): 'System error. Please contact administrator. ({Error ID})'",
+    "Rolled back: no row inserted."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Login user: IELP Admin.",
+   "Active vendor DNX (SAP 4000006763), deleted vendor PNJ, 12 rows in total.",
+   "DB change requests DCR-01 (EMAIL 100), DCR-02 (VERSION), DCR-03 (SERVICE_TYPE) applied."
+  ],
+  "data": [
+   [
+    "{tc:fmt}",
+    "A Vendor Name / Address",
+    "101 / 301 characters",
+    "Msg 2"
+   ],
+   [
+    "{tc:fmt}",
+    "A Vendor Code",
+    "\"MB\", \"M-B\", \"MBLX\"",
+    "Msg 3"
+   ],
+   [
+    "{tc:fmt}",
+    "A SAP Vendor Code",
+    "\"400000700\", \"40000070011\", \"40000A7001\"",
+    "Msg 5"
+   ],
+   [
+    "{tc:fmt}",
+    "A NPWP",
+    "15 / 17 digits",
+    "Msg 8 [TBD OP-03]"
+   ],
+   [
+    "{tc:fmt}",
+    "A E-Mail",
+    "\"budi@maju\", 101 characters",
+    "Msg 10 / Msg 2"
+   ],
+   [
+    "{tc:fmt}",
+    "A Phone",
+    "\"021-44A\", \"12345\", 21 chars",
+    "Msg 11"
+   ],
+   [
+    "{tc:fmt}",
+    "A Mobile Phone",
+    "\"0712345678\", \"08123\", 16 digits",
+    "Msg 12"
+   ],
+   [
+    "{tc:bound}",
+    "B limits",
+    "see case",
+    "Accepted"
+   ]
+  ],
+  "sql_setup": [
+   {
+    "id": "TD-01",
+    "title": "Vendors",
+    "sql": "INSERT INTO ielp.MS_TRUCKING_COMPANY (COMPANY_ID, COMPANY_CODE, SAP_COMPANY_CODE, COMPANY_NAME, NPWP, IS_DELETE, CREATED_DATE, CREATED_BY)\nVALUES ('V001', 'DNX', '4000006763', 'PT. DUNEX', '317.123.456.7-000.001', '0', GETDATE(), 'test');  -- + 11 rows, PNJ with IS_DELETE '1'"
+   },
+   {
+    "id": "TD-02",
+    "title": "Empty master",
+    "sql": "DELETE FROM ielp.MS_TRUCKING_COMPANY;  -- test DB only"
+   },
+   {
+    "id": "TD-03",
+    "title": "Deleted PNJ",
+    "sql": "UPDATE ielp.MS_TRUCKING_COMPANY SET IS_DELETE = '1' WHERE COMPANY_CODE = 'PNJ';"
+   },
+   {
+    "id": "TD-04",
+    "title": "Open transaction",
+    "sql": "-- ielp.PO_DETAIL row of COMPANY_ID of DNX with PO_HEADER.APPROVAL_STS pending (value TBD)"
+   }
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:add}, {tc:fmt}, {tc:bound}",
+    "title": "Inserted vendor",
+    "sql": "SELECT COMPANY_NAME, COMPANY_CODE, SAP_COMPANY_CODE, NPWP, CONTACT_NAME, EMAIL, PHONE, MOBILE_PHONE, COMPANY_ADDRESS,\nIS_DELETE, SERVICE_TYPE, VERSION, CREATED_BY, CREATED_DATE FROM ielp.MS_TRUCKING_COMPANY WHERE COMPANY_CODE = 'MBL';"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:upd}",
+    "title": "Updated vendor",
+    "sql": "SELECT EMAIL, CONTACT_NAME, VERSION, UPDATED_BY, UPDATED_DATE, CREATED_BY FROM ielp.MS_TRUCKING_COMPANY WHERE COMPANY_CODE = 'MBL';"
+   },
+   {
+    "id": "TD-12",
+    "tc": "{tc:del}, {tc:open_tr}",
+    "title": "Logical delete",
+    "sql": "SELECT COMPANY_CODE, IS_DELETE, VERSION, UPDATED_BY FROM ielp.MS_TRUCKING_COMPANY WHERE COMPANY_CODE IN ('MBL', 'DNX');"
+   }
+  ],
+  "notes": [
+   "Compact script: validations the UISS shows together are tested in one case; value variants in tables A / B."
+  ]
+ }
+}

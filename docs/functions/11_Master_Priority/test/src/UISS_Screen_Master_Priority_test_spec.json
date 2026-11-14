@@ -1,0 +1,169 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Priority",
+  "uiss_name": "UISS-Screen Master Priority",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen",
+     "ref": "UISS: Item 1-28, 5.1, Msg no.14",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open Master > Priority.",
+      "Empty the priority table, reopen."
+     ],
+     "expected": [
+      "Input From / To / Priority; list ordered by priority with Up / Down / Edit / Delete.",
+      "Msg no.14 (Info): 'No priority data found.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and no result",
+     "ref": "UISS: Item 8, Msg no.15",
+     "procedure": [
+      "Search \"KRW\".",
+      "Search \"ZZZ\"."
+     ],
+     "expected": [
+      "Matching routes.",
+      "Msg no.15 (Info): 'No priority data found for the selected criteria.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Add Operation",
+   "items": [
+    {
+     "key": "add",
+     "case": "Add route priority (insert in the middle)",
+     "ref": "UISS: Item 3-7, 5.2, Msg no.9, Log 1",
+     "procedure": [
+      "From = SNT, To = CKR, Priority = 2; [Save]."
+     ],
+     "expected": [
+      "Msg no.9 (Info): 'Route SNT -> CKR has been added with priority 2.'",
+      "Routes from priority 2 move down by one; DB ielp.TB_M_ROUTE_PRIORITY (DCR-13): PRIORITY_NO renumbered."
+     ]
+    },
+    {
+     "key": "val",
+     "case": "Validation errors",
+     "ref": "UISS: 5.2, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.6, Msg no.7",
+     "procedure": [
+      "[Save] blank; From = To; inactive location; existing route; route without mileage; Priority = 0 / 99."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'From is required.', Msg no.2 (Error): 'To is required.'",
+      "Msg no.3 (Error): 'From and To cannot be the same.'",
+      "Msg no.4 (Error): 'Location D9 is not an active location in Master Location.'",
+      "Msg no.5 (Error): 'Route SNT -> KRW already has a priority. Please edit the existing record.'",
+      "Msg no.6 (Error): 'Route X7 -> D1 is not registered in Master Mileage. Please register the mileage first.'",
+      "Msg no.7 (Error): 'Priority must be a whole number between 1 and n+1.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Update Operation",
+   "items": [
+    {
+     "key": "upd",
+     "case": "Edit priority",
+     "ref": "UISS: Item 13, 5.3, Msg no.10, Log 2",
+     "procedure": [
+      "Edit SNT -> CKR, Priority = 1; [Save]."
+     ],
+     "expected": [
+      "Msg no.10 (Info): 'Route SNT -> CKR has been updated with priority 1.'"
+     ]
+    },
+    {
+     "key": "move",
+     "case": "Move up / down",
+     "ref": "UISS: Item 11-12, Msg no.11",
+     "procedure": [
+      "Click ↓ on priority 1."
+     ],
+     "expected": [
+      "Msg no.11 (Info): 'Route {From} -> {To} moved to priority {p}.'",
+      "Neighbours swapped."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Delete Operation",
+   "items": [
+    {
+     "key": "del",
+     "case": "Delete with renumbering",
+     "ref": "UISS: Item 14, Msg no.12, Msg no.13, Log 3",
+     "procedure": [
+      "Delete priority 2, confirm."
+     ],
+     "expected": [
+      "Msg no.12 (Confirmation): 'Delete route {From} -> {To} ({Trip}) with priority {p}? The routes below will move up by one.'",
+      "Msg no.13 (Info): 'Route {From} -> {To} has been deleted. Priorities have been renumbered.'",
+      "Lower routes move up by one."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.8",
+   "procedure": [
+    "A and B edit the same route; B saves first."
+   ],
+   "expected": [
+    "Msg no.8 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "dberr",
+   "case": "DB error",
+   "ref": "UISS: Log 4",
+   "procedure": [
+    "Stop DB; save."
+   ],
+   "expected": [
+    "Log no.4 (Error): 'Failed to save priority {From} -> {To}: {Error}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Active mileage routes SNT->KRW, SNT->CKR; 5 priorities registered.",
+   "DCR-13 (TB_M_ROUTE_PRIORITY) applied."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:add}, {tc:del}",
+    "title": "Priorities",
+    "sql": "SELECT FROM_CODE, TO_CODE, PRIORITY_NO, VERSION FROM TB_M_ROUTE_PRIORITY ORDER BY PRIORITY_NO;"
+   }
+  ]
+ }
+}

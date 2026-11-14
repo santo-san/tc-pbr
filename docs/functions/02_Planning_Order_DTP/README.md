@@ -18,7 +18,11 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_DTP_Creation_DTP_Switching_Rollback.xlsx](test/ST-ELIPS_TBD_DTP_Creation_DTP_Switching_Rollback.xlsx)
+- [ST-ELIPS_TBD_DTP_Creation_Excel_Upload.xlsx](test/ST-ELIPS_TBD_DTP_Creation_Excel_Upload.xlsx)
+- [ST-ELIPS_TBD_DTP_Creation_Planning_Order.xlsx](test/ST-ELIPS_TBD_DTP_Creation_Planning_Order.xlsx)
+- [ST-ELIPS_TBD_DTP_Creation_Queue_Processing.xlsx](test/ST-ELIPS_TBD_DTP_Creation_Queue_Processing.xlsx)
+- [ST-ELIPS_TBD_IPMS_to_DTP_Interface_Load_Refresh_from_IPMS.xlsx](test/ST-ELIPS_TBD_IPMS_to_DTP_Interface_Load_Refresh_from_IPMS.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.CRITERIA_LAST_ORDER`, `ielp.DTP_2_DETAIL`, `ielp.DTP_FILES`, `ielp.DTP_HEADER`, `ielp.LOG_ACTIVITY_ORDER`, `ielp.ORDER_CYCLE`, `ielp.ORDER_CYCLE_ROLLBACK_H`, `ielp.ORDER_TRUCK_H`, `ielp.TB_M_SYSTEM`
 

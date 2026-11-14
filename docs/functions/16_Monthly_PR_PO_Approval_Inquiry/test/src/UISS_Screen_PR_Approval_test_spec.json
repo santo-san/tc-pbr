@@ -1,0 +1,123 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "PR Approval",
+  "uiss_name": "UISS-Screen PR Approval",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen and access",
+     "ref": "UISS: Item 1-9, 5.1, 5.2.1, Msg no.3",
+     "procedure": [
+      "Login as VPLD SH, open Monthly > PR Approval.",
+      "Open a PR of another scope (URL)."
+     ],
+     "expected": [
+      "PR waiting for the user level; Approve / Reject.",
+      "Msg no.3 (Error): 'You are not authorized to access PR-X.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and detail",
+     "ref": "UISS: Item 10-50, 5.2.2, 5.3, 5.4, Msg no.1, Msg no.2",
+     "procedure": [
+      "From > To, [Search]; \"ZZZ\"; valid search; open detail."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Prod. Month From must be earlier than or equal to Prod. Month To.'",
+      "Msg no.2 (Info): 'No Data Found'",
+      "List with status SH / DpH / DH, current PIC; detail with history."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Approve / Reject",
+   "items": [
+    {
+     "key": "approve",
+     "case": "Approve by SH, DpH, DH (PO created)",
+     "ref": "UISS: 5.5, Msg no.4, Msg no.10, Data Map blk 1, Data Map blk 2, Data Map blk 4, Data Map blk 5, Data Map blk 6, Log 1, Log 3",
+     "procedure": [
+      "[Approve] without selection.",
+      "SH selects 2 PR, [Approve], confirm; DpH and DH approve the same PR."
+     ],
+     "expected": [
+      "Msg no.4 (Info): 'Please select at least one PR.'",
+      "Msg no.10 (Info): '2 PR approved / rejected. PO created: {PO No list}.'",
+      "DB (SQL TD-10): ielp.CRITERIA_SCORE_APPROVAL APPROVAL_STS / BY / DATE per level; DH: ielp.PO_HEADER row (PO_NUMBER, PR_NO_DET, APPROVAL_STS); Log no.1 (Info): 'Approve {Level} by {User} on PR {PR No}: {From Status} -> {To Status}. {Skip note} {PO created}'; Log no.3 (Info): 'PO {PO No} created from PR {PR No}, auto approve at {Deadline}.'"
+     ]
+    },
+    {
+     "key": "reject",
+     "case": "Reject with reason",
+     "ref": "UISS: 5.5, Msg no.5, Msg no.6, Data Map blk 3, Log 2",
+     "procedure": [
+      "[Reject] with blank reason; \"no\"; \"route data wrong\", confirm."
+     ],
+     "expected": [
+      "Msg no.5 (Error): 'Mandatory Field Not Entered'",
+      "Msg no.6 (Error): 'Invalid format for Reason. The format must be minimum 10 characters'",
+      "APPROVAL_STS rejected, APPROVAL_REMARK; Log no.2 (Info): 'Reject {Level} by {User} on PR {PR No}. Reason: {Reason}'"
+     ]
+    },
+    {
+     "key": "rule",
+     "case": "Role and level rules",
+     "ref": "UISS: Msg no.7, Msg no.8",
+     "procedure": [
+      "VPLD Staff sends approve (request).",
+      "SH approves a PR already approved by SH."
+     ],
+     "expected": [
+      "Msg no.7 (Error): 'Only VPLD approver (SH / DpH / DH) can approve or reject PR.'",
+      "Msg no.8 (Error): 'Level SH for PR {PR No} is already Approved.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.9",
+   "procedure": [
+    "SH in two browsers approves the same PR."
+   ],
+   "expected": [
+    "Msg no.9 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "PR of 2026-12 waiting SH; users SH, DpH, DH, VPLD Staff.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:approve}, {tc:reject}",
+    "title": "Approval",
+    "sql": "SELECT * FROM ielp.CRITERIA_SCORE_APPROVAL WHERE CRITERIA_DETAIL_FINAL_ID = :id ORDER BY APV_APPROVAL_CLASS;\nSELECT * FROM ielp.PO_HEADER WHERE PR_NO_DET = :pr;"
+   }
+  ]
+ }
+}

@@ -1,0 +1,117 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "SA to PAS Interface (send + feedback)",
+  "uiss_name": "UISS-Batch SA PAS Interface",
+  "uiss_rev": "0.2",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "send",
+     "case": "SA sent to PAS",
+     "ref": "UISS: Func Flow, Log no.6, Data Map blk 1, Data Map blk 3",
+     "procedure": [
+      "Check SA_DETAIL and LOG_ITGPAS (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.6 (Info): 'SA SA-01 sent to PAS (200 SENT).'",
+      "IS_PAS, PAS_STATUS SENT, LOG_ITG_SEND_ID; log row with PARAM_REQ / PARAM_RES."
+     ],
+     "execution": [
+      "Approve an SA on SA Approval (or Retry Interface on SA Monitoring); the send service calls the PAS stub."
+     ]
+    },
+    {
+     "key": "fb",
+     "case": "PR / PO feedback saved",
+     "ref": "UISS: Log no.13, Data Map blk 2",
+     "procedure": [
+      "Check SA_DETAIL (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.13 (Info): 'SA SA-01: PR_RECEIVED / PO_RECEIVED / COMPLETED.'",
+      "PAS_PR_NUMBER / DATE, PAS_PO_NUMBER / DATE, PAS_CALLBACK_STATUS."
+     ],
+     "execution": [
+      "Call the feedback endpoint as PAS (API client) with the payload of the case."
+     ]
+    },
+    {
+     "key": "dup",
+     "case": "Duplicate feedback",
+     "ref": "UISS: Log no.8",
+     "procedure": [
+      "Send the same feedback id again."
+     ],
+     "expected": [
+      "Log no.8 (Info): 'Feedback FB-1 already processed, ignored (DUPLICATE).'"
+     ],
+     "execution": [
+      "Call the feedback endpoint as PAS (API client) with the payload of the case."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "notsend",
+   "case": "Send refused",
+   "ref": "UISS: Log no.1, Log no.2, Log no.3, Log no.4, Log no.5",
+   "procedure": [
+    "Check the response and log."
+   ],
+   "expected": [
+    "Log no.1 (Error): 'SA SA-02 is SENT, cannot be sent (409 NOT_SENDABLE).'",
+    "Log no.2 (Error): 'Retry Interface needs the retry authorization (403 FORBIDDEN).'",
+    "Log no.3 (Error): 'PAS already returned data; the failed PAS step is handled in PAS (no resend) (409 PAS_STEP_FAILED).'",
+    "Log no.4 (Error): 'SA data incomplete (SA Number / deliveries / cost) (422 INVALID_REQUEST).'",
+    "Log no.5 (Error): 'PAS_UNAVAILABLE / TIMEOUT / INVALID_REQUEST / PAS_REJECTED: <message> (502).'"
+   ],
+   "execution": [
+    "Send a SENT SA; retry without authorization; retry after PAS returned data; SA without deliveries; PAS stub TIMEOUT."
+   ]
+  },
+  {
+   "key": "fberr",
+   "case": "Feedback rejected",
+   "ref": "UISS: Log no.7, Log no.9, Log no.10, Log no.11, Log no.12, Log no.14",
+   "procedure": [
+    "Check the response."
+   ],
+   "expected": [
+    "Log no.7 (Error): 'Feedback id, SA Number and type are mandatory (400 INVALID_FORMAT).'",
+    "Log no.9 (Error): 'SA SA-X not found in ELIPS (404 UNKNOWN_SA).'",
+    "Log no.10 (Error): '409 CORRELATION_MISMATCH / NOT_SENT.'",
+    "Log no.11 (Error): '422 MISSING_PR_NO / MISSING_PR_DATE / MISSING_PO_NO; 409 PR_CONFLICT / PO_CONFLICT / DUPLICATE_PR / DUPLICATE_PO.'",
+    "Log no.12 (Error): 'PAS error E01 recorded.'",
+    "Log no.14 (Error): 'Database update failed, feedback not saved (500 DB_ERROR; PAS may resend).'"
+   ],
+   "execution": [
+    "Feedback without id; unknown SA; wrong correlation; missing PR_NO / different PR; PAS error code; DB locked."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "SA-01 approved; PAS stub; API client.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:send}, {tc:fb}",
+    "title": "SA interface",
+    "sql": "SELECT SA_CODE, IS_PAS, PAS_STATUS, PAS_PR_NUMBER, PAS_PR_DATE, PAS_PO_NUMBER, PAS_PO_DATE, PAS_CALLBACK_STATUS FROM ielp.SA_DETAIL WHERE SA_CODE = 'SA-01';\nSELECT * FROM ielp.LOG_ITGPAS WHERE PROCESS_ID = :pid;"
+   }
+  ]
+ }
+}

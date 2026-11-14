@@ -1,0 +1,209 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Planning Truck Assignment",
+  "uiss_name": "UISS-Screen Planning Truck Assignment",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen per role",
+     "ref": "UISS: Item 1-7, 5.1, 5.2, Msg no.1, Msg no.2",
+     "procedure": [
+      "Login as LP Admin of DNX, open Daily > Planning Truck Assignment.",
+      "Login as Planner VPLD, open the screen.",
+      "LP Admin DNX opens an order of PNJ (URL)."
+     ],
+     "expected": [
+      "Calendar with entries per date, legend, last refresh.",
+      "Msg no.1 (Info): 'Planner VPLD: view only. Accept / Reject / Assign / Change Truck are for the LP Admin of the trucking company.'",
+      "Msg no.2 (Error): 'Anda tidak memiliki akses ke order ini.'"
+     ]
+    },
+    {
+     "key": "list",
+     "case": "Order list, filters, refresh, no data",
+     "ref": "UISS: Item 18-32, 5.8, Msg no.27, Msg no.28",
+     "procedure": [
+      "Login as LP Admin of DNX, open Daily > Planning Truck Assignment.",
+      "Filter Delivery Date, Status, License Plate; [Clear].",
+      "Click Refresh.",
+      "Filter a date without orders."
+     ],
+     "expected": [
+      "Matching DNX orders.",
+      "Msg no.27 (Info): 'Data refreshed.'",
+      "Msg no.28 (Info): 'No order found for the selected criteria.'"
+     ]
+    },
+    {
+     "key": "detail",
+     "case": "Order detail and audit trail",
+     "ref": "UISS: Item 8-17, 37-39, 5.7, 5.9",
+     "procedure": [
+      "Open the Assignment Order List of a date; open Detail and Audit Trail of an order."
+     ],
+     "expected": [
+      "Orders with truck, status, seal; Audit Trail from ielp.ORDER_TRUCK_H."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Accept / Reject",
+   "items": [
+    {
+     "key": "accept",
+     "case": "Accept orders",
+     "ref": "UISS: 5.4, Msg no.3, Msg no.4, Msg no.10, Data Map blk 1, Data Map blk 2, Log 1",
+     "procedure": [
+      "[Accept] without selection.",
+      "Select 2 Planning Order orders, [Accept], confirm."
+     ],
+     "expected": [
+      "Msg no.10 (Warning): 'Select at least one order.'",
+      "Msg no.3 (Confirmation): 'Accept 2 order(s)? They can then be assigned to a truck.'",
+      "Msg no.4 (Info): 'Accept Order: 2 order(s).'",
+      "DB (SQL TD-10): ielp.ORDER_CYCLE.LP_STATUS Accepted, LP_ACCEPTED_BY / DT, VERSION + 1; ielp.ORDER_TRUCK_H row; Log no.1 (Info): '{Action} {Order No} by {user}: LP status {prev} -> {new}, plate {prev} -> {new}, reason {reason}.'"
+     ]
+    },
+    {
+     "key": "reject",
+     "case": "Reject orders",
+     "ref": "UISS: Item 33, 5.4, Msg no.6, Msg no.7, Msg no.8, Data Map blk 3, Data Map blk 4",
+     "procedure": [
+      "[Reject] with blank reason, then \"too far\".",
+      "Reject an accepted order.",
+      "Reject with reason \"truck not available\"."
+     ],
+     "expected": [
+      "Msg no.6 (Error): 'Reject Reason wajib diisi. / Reason minimal 10 karakter.'",
+      "Msg no.7 (Error): 'Order sudah di-Accept, tidak bisa di-Reject. / Reject hanya bisa saat status Planning Order dan belum ada truck.'",
+      "Msg no.8 (Info): 'Reject by LP: 1 order(s).'; DB LP_STATUS Rejected, LP_REJECT_REASON."
+     ]
+    },
+    {
+     "key": "accerr",
+     "case": "Accept not allowed",
+     "ref": "UISS: Msg no.5",
+     "procedure": [
+      "Accept a rejected order; an accepted order; an order with truck."
+     ],
+     "expected": [
+      "Msg no.5 (Error): 'Accept hanya bisa saat status Planning Order dan belum ada truck. / Order sudah ditolak LP. / Order sudah di-Accept.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Assign / Change Truck",
+   "items": [
+    {
+     "key": "assign",
+     "case": "Assign Truck",
+     "ref": "UISS: Item 9, 34, 5.5, Msg no.9, Msg no.11, Msg no.21, Data Map blk 5, Data Map blk 6, Data Map blk 7, Log 2",
+     "procedure": [
+      "Select 2 orders, [Assign].",
+      "Select 1 accepted order, [Assign] with blank truck.",
+      "Truck = B 1234 DN, [Assign]."
+     ],
+     "expected": [
+      "Msg no.11 (Warning): 'Assign links one truck to one order: select one order at a time.'",
+      "Msg no.9 (Error): 'Truck is required.'",
+      "Msg no.21 (Info): 'Truck B 1234 DN assigned: the order is now in the Driver app of B 1234 DN.'",
+      "DB: ielp.DTP_2_DETAIL.LICENSE_PLATE / DRIVER_ID, ielp.ORDER_CYCLE ACTIVE_PLATE, STATUS, ielp.ORDER_TRUCK_H row; Log no.2 (Info): 'Order {Order No} assigned to plate {new} (released from {old}).'; driver sync event (ST Driver Order Sync)."
+     ]
+    },
+    {
+     "key": "asgerr",
+     "case": "Assign validation",
+     "ref": "UISS: 5.5, 5.10, Msg no.12, Msg no.13, Msg no.14, Msg no.15, Msg no.16, Msg no.17, Msg no.18, Msg no.19, Msg no.20",
+     "procedure": [
+      "Assign to: a not accepted order; a rejected order; an order with truck.",
+      "Truck: unknown; of PNJ; in maintenance; license expired; used on the same shift; other truck type."
+     ],
+     "expected": [
+      "Msg no.12 (Error): 'Order harus di-Accept terlebih dahulu.' / Msg no.13 (Error): 'Order Rejected tidak dapat di-assign truck.' / Msg no.14 (Error): 'Order sudah punya truck, gunakan Change Truck.'",
+      "Msg no.15 (Error): 'Truck tidak terdaftar.' / Msg no.16 (Error): 'Truck bukan milik trucking company order ini.' / Msg no.17 (Error): 'Truck sedang maintenance.' / Msg no.18 (Error): 'Lisensi truck habis (10-Nov-2026) sebelum tanggal order.' / Msg no.19 (Error): 'Truck sudah di-assign ke order {Order No} ({shift} {date}).' / Msg no.20 (Error): 'Truck type {type} tidak sesuai order ({type}).'"
+     ]
+    },
+    {
+     "key": "change",
+     "case": "Change Truck",
+     "ref": "UISS: Item 35-36, 5.6, Msg no.22, Msg no.23, Msg no.24, Msg no.25, Data Map blk 8, Data Map blk 9, Data Map blk 10, Data Map blk 11",
+     "procedure": [
+      "Change Truck on an order without truck; on a started order.",
+      "Same plate.",
+      "New plate B 5678 DN, reason, confirm."
+     ],
+     "expected": [
+      "Msg no.22 (Error): 'Change Truck hanya bisa untuk order Order Release yang sudah punya truck. / Order sudah dimulai driver, truck tidak bisa diganti.'",
+      "Msg no.23 (Error): 'Truck pengganti harus berbeda dari truck saat ini.'",
+      "Msg no.24 (Confirmation): 'Change the truck of order {Order No} from {old plate} to {new plate}? The order disappears from the driver of {old plate} and appears for {new plate}.' then Msg no.25 (Info): 'Truck changed to B 5678 DN: the order moved to that driver's app.'",
+      "DB: old assignment released, new one active, ielp.ORDER_TRUCK_H row (PREV / NEW plate)."
+     ]
+    },
+    {
+     "key": "multi",
+     "case": "Bulk result with failures",
+     "ref": "UISS: Msg no.26",
+     "procedure": [
+      "Accept 3 orders where one was rejected meanwhile."
+     ],
+     "expected": [
+      "Msg no.26 (Warning): '2 order(s) done. {Order No}: {reason} (one line per failed order)'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.29",
+   "procedure": [
+    "A and B open the same order; B accepts first."
+   ],
+   "expected": [
+    "Msg no.29 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "syserr",
+   "case": "System error with rollback",
+   "ref": "UISS: Msg no.30, Log 3",
+   "procedure": [
+    "Stop DB; Assign."
+   ],
+   "expected": [
+    "Msg no.30 (Error): 'System error. Please contact administrator. ({Error ID})'",
+    "Log no.3 (Error): '{Action} {Order No} failed: {error}. Rolled back.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "LP Admin DNX, Planner VPLD; orders of 15-Nov-2026 in Planning Order for DNX and PNJ.",
+   "Trucks of DNX: B 1234 DN, B 5678 DN (active), maintenance truck, license-expired truck.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:accept}, {tc:assign}, {tc:change}",
+    "title": "Order and history",
+    "sql": "SELECT ORDER_NO, LP_STATUS, ACTIVE_PLATE, STATUS_CODE, VERSION FROM ielp.ORDER_CYCLE WHERE ORDER_NO = :order_no;  -- LP_* [DCR]\nSELECT ORDER_NO, LICENSE_PLATE, DRIVER_ID FROM ielp.DTP_2_DETAIL WHERE ORDER_NO = :order_no;\nSELECT * FROM ielp.ORDER_TRUCK_H WHERE ORDER_NO = :order_no ORDER BY UPDATED_DT;"
+   }
+  ]
+ }
+}

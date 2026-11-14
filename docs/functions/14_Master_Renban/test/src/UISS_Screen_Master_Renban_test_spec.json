@@ -1,0 +1,168 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Renban",
+  "uiss_name": "UISS-Screen Master Renban",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen",
+     "ref": "UISS: Item 1-30, 5.1, Msg no.15",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open Master > Renban.",
+      "Empty the table (test DB), reopen."
+     ],
+     "expected": [
+      "Input Plant / Dest / Renban Code / Source; list with audit; paging.",
+      "Msg no.15 (Info): 'No renban data found.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search, no result, export",
+     "ref": "UISS: Item 12-14, Msg no.16, Msg no.17",
+     "procedure": [
+      "Search \"STM\".",
+      "Search \"ZZZ\".",
+      "Export .xls."
+     ],
+     "expected": [
+      "Matching rows.",
+      "Msg no.16 (Info): 'No renban data found for the selected criteria.'",
+      "Msg no.17 (Info): '{n} rows exported.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Add Operation",
+   "items": [
+    {
+     "key": "add",
+     "case": "Add renban and DB",
+     "ref": "UISS: Item 4-9, 5.2, Msg no.11, Data Map blk 1, Log 1",
+     "procedure": [
+      "Plant = KRW 3, Dest = \"stm\", Renban Code = \"c12\", Source = D1; [Save]."
+     ],
+     "expected": [
+      "Msg no.11 (Info): 'Renban data has been successfully created.'",
+      "DB (SQL TD-10) ielp.MS_RENBAN_TCPBR: PLANT_CD, DEST_CD = STM, RENBAN_CD = C12, SOURCE_LOCATION_ID, VERSION = 1, CREATED_BY / CREATED_DT."
+     ]
+    },
+    {
+     "key": "val",
+     "case": "Validation errors",
+     "ref": "UISS: Item 10, 5.3, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.6, Msg no.7, Msg no.8",
+     "procedure": [
+      "[Save] blank.",
+      "Plant / Source not in list (request).",
+      "Dest \"ST-M\", Renban \"C123\"."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Plant is required.', Msg no.2 (Error): 'Dest is required.', Msg no.3 (Error): 'Renban Code is required.', Msg no.4 (Error): 'Source is required.'",
+      "Msg no.5 (Error): 'Plant is not registered.' / Msg no.6 (Error): 'Source is not registered.'",
+      "Msg no.7 (Error): 'Dest must be letters / numbers only, max 10 characters.' / Msg no.8 (Error): 'Renban Code must be letters / numbers only, max 3 characters.'"
+     ]
+    },
+    {
+     "key": "dup",
+     "case": "Duplicate key",
+     "ref": "UISS: Msg no.9",
+     "procedure": [
+      "Add KRW 3 / STM / C12 again."
+     ],
+     "expected": [
+      "Msg no.9 (Error): 'Renban Code C12 for Plant KRW 3 and Dest STM already exists.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Update Operation",
+   "items": [
+    {
+     "key": "upd",
+     "case": "Edit renban",
+     "ref": "UISS: Item 15, Msg no.12, Data Map blk 2, Log 2",
+     "procedure": [
+      "Edit C12, Source = S1; [Save]."
+     ],
+     "expected": [
+      "Msg no.12 (Info): 'Renban data has been successfully updated.'",
+      "DB (SQL TD-10): SOURCE_LOCATION_ID changed, VERSION + 1, CHANGED_BY / CHANGED_DT."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Delete Operation",
+   "items": [
+    {
+     "key": "del",
+     "case": "Delete renban",
+     "ref": "UISS: Item 16, Msg no.13, Msg no.14, Data Map blk 3, Log 3",
+     "procedure": [
+      "Delete C12, confirm."
+     ],
+     "expected": [
+      "Msg no.13 (Confirmation): 'Delete renban {Plant - Description} / {Dest} / {Renban} (Source {Source})?'",
+      "Msg no.14 (Info): 'Renban {Plant} / {Dest} / {Renban} has been deleted.'",
+      "Row physically deleted."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.10, Log 4",
+   "procedure": [
+    "A and B edit C12; B saves first."
+   ],
+   "expected": [
+    "Msg no.10 (Error): 'Error in Update because of concurrency check.'",
+    "Log no.4 (Warning): 'Concurrency check failed for Renban {Plant}/{Dest}/{Renban} (version {v}).'"
+   ]
+  },
+  {
+   "key": "syserr",
+   "case": "System error",
+   "ref": "UISS: Msg no.18, Log 5",
+   "procedure": [
+    "Stop DB; save."
+   ],
+   "expected": [
+    "Msg no.18 (Error): 'System error. Please contact administrator. ({Error ID})'",
+    "Log no.5 (Error): 'Master Renban {operation} failed: {Exception}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:add}, {tc:upd}",
+    "title": "Renban row",
+    "sql": "SELECT PLANT_CD, DEST_CD, RENBAN_CD, SOURCE_LOCATION_ID, VERSION, CREATED_BY, CREATED_DT, CHANGED_BY, CHANGED_DT FROM ielp.MS_RENBAN_TCPBR WHERE RENBAN_CD = 'C12';"
+   }
+  ]
+ }
+}

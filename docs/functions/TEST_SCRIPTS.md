@@ -1,0 +1,46 @@
+# ST test scripts (Integrated Function Test)
+
+Generated with the `anthropic-skills:uiss-test-script` skill from the UISS of each function (compact style: validations the UISS
+shows together are one case, value variants in Test Data tables). Every Display Message and Logging Message of the UISS is covered
+by at least one case (coverage checked by the build). Database checks use the ELIPS table names of the revised UISS; columns marked
+[DCR] need the DB change requests of [../review/12](../review/12-db-change-requests.md).
+
+Rebuild after a UISS change: edit `scripts/test_specs/f_*.py` (spec per UISS), then
+`python3 docs/functions/scripts/test_specs/run.py [module]` and `python3 docs/functions/scripts/test_specs/summary.py`.
+
+| Folder | UISS (rev) | Test script | Cases | Cases per group | Msg / Log covered |
+|---|---|---|---|---|---|
+| 01_Daily_Order_Monitoring | UISS_Report_Download_Daily_Order_Monitoring (0.4) | [ST-ELIPS_TBD_Download_Daily_Order_Monitoring.xlsx](01_Daily_Order_Monitoring/test/ST-ELIPS_TBD_Download_Daily_Order_Monitoring.xlsx) | 6 | Normal Case 2, Abnormal 4 | 0 / 6 |
+| 01_Daily_Order_Monitoring | UISS_Screen_Daily_Order_Monitoring (0.5) | [ST-ELIPS_TBD_Daily_Order_Monitoring.xlsx](01_Daily_Order_Monitoring/test/ST-ELIPS_TBD_Daily_Order_Monitoring.xlsx) | 14 | Initial 1, Search Operation 1, Order Detail and Print 3, Action Operation (IELP Admin) 3, Action Operation (LP Admin) 4, Abnormal 2 | 30 / 5 |
+| 02_Planning_Order_DTP | UISS_Batch_DTP_Excel_Upload (0.5) | [ST-ELIPS_TBD_DTP_Creation_Excel_Upload.xlsx](02_Planning_Order_DTP/test/ST-ELIPS_TBD_DTP_Creation_Excel_Upload.xlsx) | 9 | Normal Case 4, Abnormal 5 | 0 / 18 |
+| 02_Planning_Order_DTP | UISS_Batch_DTP_Queue_Processing (0.4) | [ST-ELIPS_TBD_DTP_Creation_Queue_Processing.xlsx](02_Planning_Order_DTP/test/ST-ELIPS_TBD_DTP_Creation_Queue_Processing.xlsx) | 9 | Normal Case 5, Abnormal 4 | 0 / 10 |
+| 02_Planning_Order_DTP | UISS_Batch_DTP_Switching (0.5) | [ST-ELIPS_TBD_DTP_Creation_DTP_Switching_Rollback.xlsx](02_Planning_Order_DTP/test/ST-ELIPS_TBD_DTP_Creation_DTP_Switching_Rollback.xlsx) | 9 | Normal Case 5, Abnormal 4 | 0 / 12 |
+| 02_Planning_Order_DTP | UISS_Batch_IPMS_DTP_Interface (0.2) | [ST-ELIPS_TBD_IPMS_to_DTP_Interface_Load_Refresh_from_IPMS.xlsx](02_Planning_Order_DTP/test/ST-ELIPS_TBD_IPMS_to_DTP_Interface_Load_Refresh_from_IPMS.xlsx) | 3 | Normal Case 2, Abnormal 1 | 0 / 3 |
+| 02_Planning_Order_DTP | UISS_Screen_DTP_Creation (0.9) | [ST-ELIPS_TBD_DTP_Creation_Planning_Order.xlsx](02_Planning_Order_DTP/test/ST-ELIPS_TBD_DTP_Creation_Planning_Order.xlsx) | 18 | Initial 3, Manual Entry and Edit 4, Upload and IPMS 2, Select and Submit 3, Master KPI and Payment Type 2, DTP Switching and Maintenance 2, Abnormal 2 | 56 / 4 |
+| 03_Planning_Truck_Assignment | UISS_Batch_Driver_Order_Sync (0.4) | [ST-ELIPS_TBD_Driver_Order_Sync_HiveMQ_TC_PBR_to_Driver_APK.xlsx](03_Planning_Truck_Assignment/test/ST-ELIPS_TBD_Driver_Order_Sync_HiveMQ_TC_PBR_to_Driver_APK.xlsx) | 10 | Normal Case 5, Abnormal 5 | 0 / 17 |
+| 03_Planning_Truck_Assignment | UISS_Screen_Planning_Truck_Assignment (0.4) | [ST-ELIPS_TBD_Planning_Truck_Assignment.xlsx](03_Planning_Truck_Assignment/test/ST-ELIPS_TBD_Planning_Truck_Assignment.xlsx) | 12 | Initial 3, Accept / Reject 3, Assign / Change Truck 4, Abnormal 2 | 30 / 3 |
+| 04_Delivery_Note | UISS_Batch_ELIPS_PAS_GR_Attachment (0.3) | [ST-ELIPS_TBD_ELIPS_Surat_Jalan_PDF_to_PAS_FTP_for_Auto_GR_Talend.xlsx](04_Delivery_Note/test/ST-ELIPS_TBD_ELIPS_Surat_Jalan_PDF_to_PAS_FTP_for_Auto_GR_Talend.xlsx) | 10 | Normal Case 5, Abnormal 5 | 0 / 24 |
+| 04_Delivery_Note | UISS_Report_Delivery_Note (0.4) | [ST-ELIPS_TBD_Delivery_Note_Surat_Jalan.xlsx](04_Delivery_Note/test/ST-ELIPS_TBD_Delivery_Note_Surat_Jalan.xlsx) | 7 | Normal Case 2, Abnormal 5 | 0 / 16 |
+| 05_SA_Approval | UISS_Screen_SA_Approval (0.5) | [ST-ELIPS_TBD_TC_PBR_SA_Approval_Service_Acceptance.xlsx](05_SA_Approval/test/ST-ELIPS_TBD_TC_PBR_SA_Approval_Service_Acceptance.xlsx) | 9 | Initial 1, Search and Calculation 2, Approve Operation 2, Abnormal 4 | 13 / 5 |
+| 06_SA_Monitoring | UISS_Batch_SA_PAS_Interface (0.2) | [ST-ELIPS_TBD_SA_to_PAS_Interface_send_feedback.xlsx](06_SA_Monitoring/test/ST-ELIPS_TBD_SA_to_PAS_Interface_send_feedback.xlsx) | 5 | Normal Case 3, Abnormal 2 | 0 / 14 |
+| 06_SA_Monitoring | UISS_Screen_SA_Monitoring (0.6) | [ST-ELIPS_TBD_TC_PBR_Service_Acceptance_Monitoring.xlsx](06_SA_Monitoring/test/ST-ELIPS_TBD_TC_PBR_Service_Acceptance_Monitoring.xlsx) | 6 | Initial 1, Search Operation 2, Retry Interface 2, PAS Feedback 1 | 8 / 5 |
+| 07_Master_Trucking_Company | UISS_Screen_Master_Trucking_Company (0.5) | [ST-ELIPS_TBD_Master_Trucking_Company.xlsx](07_Master_Trucking_Company/test/ST-ELIPS_TBD_Master_Trucking_Company.xlsx) | 19 | Initial 2, Search Operation 1, Add Operation 7, Update Operation 2, Delete Operation 1, List and Download Operation 2, Abnormal 4 | 24 / 6 |
+| 08_Master_Location | UISS_Screen_Master_Location (0.3) | [ST-ELIPS_TBD_Master_Location.xlsx](08_Master_Location/test/ST-ELIPS_TBD_Master_Location.xlsx) | 13 | Initial 1, Search Operation 2, Add Operation 4, Update Operation 2, Deactivate / Delete Operation 2, Delivery Geofence (driver) 1, Abnormal 1 | 18 / 6 |
+| 09_Master_Mileage | UISS_Batch_Master_Mileage_Upload (0.5) | [ST-ELIPS_TBD_Master_Mileage_Route_Mileage_Upload.xlsx](09_Master_Mileage/test/ST-ELIPS_TBD_Master_Mileage_Route_Mileage_Upload.xlsx) | 11 | Normal Case 5, Abnormal 6 | 0 / 12 |
+| 09_Master_Mileage | UISS_Screen_Master_Mileage (0.7) | [ST-ELIPS_TBD_Master_Mileage_Route_Mileage.xlsx](09_Master_Mileage/test/ST-ELIPS_TBD_Master_Mileage_Route_Mileage.xlsx) | 13 | Initial 1, Search Operation 1, Manual Entry 4, Upload Operation 3, List and Download Operation 1, Abnormal 3 | 21 / 4 |
+| 10_Master_Price | UISS_Screen_Master_Price (0.3) | [ST-ELIPS_TBD_Master_Price_Pricing_Data.xlsx](10_Master_Price/test/ST-ELIPS_TBD_Master_Price_Pricing_Data.xlsx) | 7 | Initial 1, Search Operation 3, Download Operation 1, Price lookup (used by PR Creation) 1, Abnormal 1 | 9 / 3 |
+| 11_Master_Priority | UISS_Screen_Master_Priority (0.3) | [ST-ELIPS_TBD_Master_Priority.xlsx](11_Master_Priority/test/ST-ELIPS_TBD_Master_Priority.xlsx) | 9 | Initial 1, Search Operation 1, Add Operation 2, Update Operation 2, Delete Operation 1, Abnormal 2 | 15 / 4 |
+| 12_Master_KPI | UISS_Screen_Master_KPI (0.5) | [ST-ELIPS_TBD_Master_KPI.xlsx](12_Master_KPI/test/ST-ELIPS_TBD_Master_KPI.xlsx) | 10 | Initial 1, Search Operation 1, KPI Item 2, Trucking Company 4, Abnormal 2 | 22 / 4 |
+| 13_Master_Route_Percentage | UISS_Screen_Master_Route_Percentage (0.3) | [ST-ELIPS_TBD_Master_Route_Percentage.xlsx](13_Master_Route_Percentage/test/ST-ELIPS_TBD_Master_Route_Percentage.xlsx) | 8 | Initial 1, Search Operation 1, Add Operation 2, Update Operation 1, Deactivate Operation 1, Abnormal 2 | 16 / 5 |
+| 14_Master_Renban | UISS_Screen_Master_Renban (0.3) | [ST-ELIPS_TBD_Master_Renban.xlsx](14_Master_Renban/test/ST-ELIPS_TBD_Master_Renban.xlsx) | 9 | Initial 1, Search Operation 1, Add Operation 3, Update Operation 1, Delete Operation 1, Abnormal 2 | 18 / 5 |
+| 15_PR_Creation | UISS_Screen_PR_Creation (0.4) | [ST-ELIPS_TBD_PR_Creation.xlsx](15_PR_Creation/test/ST-ELIPS_TBD_PR_Creation.xlsx) | 9 | Initial 1, Generate Route Plan 4, Create PR 3, Abnormal 1 | 25 / 5 |
+| 16_Monthly_PR_PO_Approval_Inquiry | UISS_Screen_PO_Approval (0.4) | [ST-ELIPS_TBD_PO_Approval.xlsx](16_Monthly_PR_PO_Approval_Inquiry/test/ST-ELIPS_TBD_PO_Approval.xlsx) | 8 | Initial 1, Search Operation 1, Approve / Reject 4, Abnormal 2 | 12 / 4 |
+| 16_Monthly_PR_PO_Approval_Inquiry | UISS_Screen_PO_Inquiry (0.4) | [ST-ELIPS_TBD_PO_Inquiry.xlsx](16_Monthly_PR_PO_Approval_Inquiry/test/ST-ELIPS_TBD_PO_Inquiry.xlsx) | 3 | Initial 1, Search Operation 1, Detail and Download 1 | 3 / 1 |
+| 16_Monthly_PR_PO_Approval_Inquiry | UISS_Screen_PR_Approval (0.4) | [ST-ELIPS_TBD_PR_Approval.xlsx](16_Monthly_PR_PO_Approval_Inquiry/test/ST-ELIPS_TBD_PR_Approval.xlsx) | 6 | Initial 1, Search Operation 1, Approve / Reject 3, Abnormal 1 | 10 / 3 |
+| 16_Monthly_PR_PO_Approval_Inquiry | UISS_Screen_PR_Inquiry (0.4) | [ST-ELIPS_TBD_PR_Inquiry.xlsx](16_Monthly_PR_PO_Approval_Inquiry/test/ST-ELIPS_TBD_PR_Inquiry.xlsx) | 3 | Initial 1, Search Operation 1, Detail and Download 1 | 3 / 1 |
+| 17_PAS_PR_Interface | UISS_Batch_ELIPS_PAS_PR_Interface (0.3) | [ST-ELIPS_TBD_ELIPS_TC_PBR_to_PAS_PR_Interface_Talend_DB_to_DB.xlsx](17_PAS_PR_Interface/test/ST-ELIPS_TBD_ELIPS_TC_PBR_to_PAS_PR_Interface_Talend_DB_to_DB.xlsx) | 10 | Normal Case 5, Abnormal 5 | 0 / 20 |
+| 17_PAS_PR_Interface | UISS_Batch_PAS_ELIPS_PR_PO_Callback (0.3) | [ST-ELIPS_TBD_PAS_to_ELIPS_Callback_PR_PO_Number_Talend_DB_to_DB.xlsx](17_PAS_PR_Interface/test/ST-ELIPS_TBD_PAS_to_ELIPS_Callback_PR_PO_Number_Talend_DB_to_DB.xlsx) | 8 | Normal Case 4, Abnormal 4 | 0 / 20 |
+| 18_Menu_Authorization | UISS_Screen_TCPBR_Menu_Authorization (0.2) | [ST-ELIPS_TBD_TC_PBR_Menu_Authorization.xlsx](18_Menu_Authorization/test/ST-ELIPS_TBD_TC_PBR_Menu_Authorization.xlsx) | 9 | Role Access 8, Database 1 | 1 / 0 |
+| **Total** | 31 UISS | | **282** | | 334 / 245 |
+
+Function ID, tester and programmer are blank / TBD in the Cover sheet (not given in the UISS).

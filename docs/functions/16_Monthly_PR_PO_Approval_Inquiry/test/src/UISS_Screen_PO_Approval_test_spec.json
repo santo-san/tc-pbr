@@ -1,0 +1,148 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "PO Approval",
+  "uiss_name": "UISS-Screen PO Approval",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen and access",
+     "ref": "UISS: Item 1-9, 5.1, 5.2.1, Msg no.3",
+     "procedure": [
+      "Login as GA user, open Monthly > PO Approval.",
+      "Open a PO of another scope (URL)."
+     ],
+     "expected": [
+      "PO waiting approval with Auto Approve At.",
+      "Msg no.3 (Error): 'You are not authorized to access PO-X.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and detail",
+     "ref": "UISS: Item 10-52, 5.2.2, 5.3, 5.4, Msg no.1, Msg no.2",
+     "procedure": [
+      "From > To; \"ZZZ\"; valid search; open detail."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Prod. Month From must be earlier than or equal to Prod. Month To.'",
+      "Msg no.2 (Info): 'No Data Found'",
+      "List and detail with route, qty, price, history."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Approve / Reject",
+   "items": [
+    {
+     "key": "approve",
+     "case": "Approve PO",
+     "ref": "UISS: 5.5, Msg no.4, Msg no.11, Data Map blk 1, Data Map blk 6, Log 1",
+     "procedure": [
+      "[Approve] without selection.",
+      "Select 2 PO, [Approve], confirm."
+     ],
+     "expected": [
+      "Msg no.4 (Info): 'Please select at least one PO.'",
+      "Msg no.11 (Info): '2 PO approved / rejected. PR returned to PR Creation: {PR No list}.'",
+      "DB (SQL TD-10): ielp.PO_HEADER APPROVAL_STS, APPROVAL_BY / DATE; Log no.1 (Info): 'Approve PO {PO No} by {User}.'"
+     ]
+    },
+    {
+     "key": "reject",
+     "case": "Reject PO (PR returned)",
+     "ref": "UISS: 5.5, Msg no.5, Msg no.6, Data Map blk 2, Data Map blk 3, Data Map blk 4, Log 2",
+     "procedure": [
+      "[Reject] blank reason; \"no\"; \"price not agreed\", confirm."
+     ],
+     "expected": [
+      "Msg no.5 (Error): 'Mandatory Field Not Entered'",
+      "Msg no.6 (Error): 'Invalid format for Reason. The format must be minimum 10 characters'",
+      "ielp.PO_HEADER rejected with remark; ielp.CRITERIA_SCORE_DETAIL_FINAL PR status back to PR Creation; ielp.CRITERIA_SCORE_APPROVAL levels cleared; Log no.2 (Info): 'Reject PO {PO No} by {User}. Reason: {Reason}. PR {PR No} returned to PR Creation.'"
+     ]
+    },
+    {
+     "key": "rule",
+     "case": "Role, status and deadline rules",
+     "ref": "UISS: Msg no.7, Msg no.8, Msg no.9",
+     "procedure": [
+      "VPLD Staff sends approve (request).",
+      "Approve an approved PO.",
+      "Approve a PO past its deadline."
+     ],
+     "expected": [
+      "Msg no.7 (Error): 'Manual PO approve / reject can only be done by General Affair Department.'",
+      "Msg no.8 (Error): 'PO {PO No} is already Approved.'",
+      "Msg no.9 (Error): 'Deadline of PO {PO No} has passed. The PO will be auto approved by the system.'"
+     ]
+    },
+    {
+     "key": "auto",
+     "case": "Auto approve job",
+     "ref": "UISS: Item 12, 5.6, Msg no.12, Data Map blk 5, Log 3",
+     "procedure": [
+      "Click Jalankan Auto Approve with a PO past the deadline; click again."
+     ],
+     "expected": [
+      "Msg no.12 (Info): '1 PO auto approved: {PO No list}. / No PO has passed its deadline.'",
+      "ielp.PO_HEADER APPROVAL_BY SYSTEM; Log no.3 (Info): 'PO {PO No} auto approved by SYSTEM (deadline {Deadline}).'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.10",
+   "procedure": [
+    "Two GA users approve the same PO."
+   ],
+   "expected": [
+    "Msg no.10 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "autoerr",
+   "case": "Auto approve job fails",
+   "ref": "UISS: Log 4",
+   "procedure": [
+    "Lock ielp.PO_HEADER; run auto approve."
+   ],
+   "expected": [
+    "Log no.4 (Error): 'Auto approve job failed: {Error}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "PO of 2026-12 waiting; one past its deadline; GA user, VPLD Staff.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:approve}, {tc:reject}, {tc:auto}",
+    "title": "PO",
+    "sql": "SELECT PO_NUMBER, APPROVAL_STS, APPROVAL_BY, APPROVAL_DATE, APPROVAL_REMARK FROM ielp.PO_HEADER WHERE PO_NUMBER IN (:po);"
+   }
+  ]
+ }
+}

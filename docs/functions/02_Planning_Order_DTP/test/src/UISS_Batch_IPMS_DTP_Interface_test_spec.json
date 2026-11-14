@@ -1,0 +1,80 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "IPMS to DTP Interface (Load / Refresh from IPMS)",
+  "uiss_name": "UISS-Batch IPMS DTP Interface",
+  "uiss_rev": "0.2",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "load",
+     "case": "New records received",
+     "ref": "UISS: Func Flow, 4., Log no.2, Data Map blk 1",
+     "procedure": [
+      "Check the grid and DTP table (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.2 (Info): '3 record(s) received from IPMS'",
+      "ielp.DTP_2_DETAIL: 3 rows Data Source IPMS (new columns: DCR); invalid ones Validation Error."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026, click [Load / Refresh from IPMS]."
+     ]
+    },
+    {
+     "key": "none",
+     "case": "No new data",
+     "ref": "UISS: Log no.3",
+     "procedure": [
+      "Click again."
+     ],
+     "expected": [
+      "Log no.3 (Info): 'No new data from IPMS'",
+      "No duplicate rows."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026, click [Load / Refresh from IPMS]."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "down",
+   "case": "IPMS not responding",
+   "ref": "UISS: Log no.1",
+   "procedure": [
+    "Check the screen."
+   ],
+   "expected": [
+    "Log no.1 (Error): 'IPMS interface is not responding. No record was received. Please try again later.'",
+    "Nothing inserted."
+   ],
+   "execution": [
+    "Stop the IPMS stub; click Load / Refresh."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "IPMS stub with 3 records for 15-Nov-2026 (one invalid)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:load}",
+    "title": "IPMS records",
+    "sql": "SELECT * FROM ielp.DTP_2_DETAIL WHERE DTP_DATE = '2026-11-15';  -- Data Source IPMS (column TBD)"
+   }
+  ]
+ }
+}

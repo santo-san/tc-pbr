@@ -1,0 +1,180 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master KPI",
+  "uiss_name": "UISS-Screen Master KPI",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen: tabs, grid, summaries",
+     "ref": "UISS: Item 1-38, 5.1, Msg no.17",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open Master > KPI.",
+      "Empty the KPI tables, reopen."
+     ],
+     "expected": [
+      "Tabs All / By Resources / By Trip, grid with KPI items, Order Sharing %, Daily Trip; summaries By Resources and By Trip above the grid.",
+      "Msg no.17 (Info): 'No KPI data found.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and no result",
+     "ref": "UISS: Item 7, Msg no.18",
+     "procedure": [
+      "Search \"DNX\".",
+      "Search \"ZZZ\"."
+     ],
+     "expected": [
+      "Matching row.",
+      "Msg no.18 (Info): 'No KPI data found for the selected criteria.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "KPI Item",
+   "items": [
+    {
+     "key": "item",
+     "case": "Add KPI item and validation",
+     "ref": "UISS: Item 3-4, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Log 1",
+     "procedure": [
+      "[Add New] blank; 16 characters; existing name; \"Safety\"."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'KPI name is required.'",
+      "Msg no.2 (Error): 'KPI name must be at most 15 characters.'",
+      "Msg no.3 (Error): 'KPI Quality already exists.'",
+      "Msg no.4 (Info): 'KPI Safety has been added. Please fill in the value for each trucking company.'; DB ielp.MS_KPI row."
+     ]
+    },
+    {
+     "key": "itemdel",
+     "case": "Delete KPI item",
+     "ref": "UISS: Msg no.5, Msg no.6",
+     "procedure": [
+      "Click x on KPI header Safety, confirm."
+     ],
+     "expected": [
+      "Msg no.5 (Confirmation): 'Delete KPI Safety? The Safety values of all trucking companies are deleted and Total is recalculated.'",
+      "Msg no.6 (Info): 'KPI Safety has been deleted. Total has been recalculated.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Trucking Company",
+   "items": [
+    {
+     "key": "comp",
+     "case": "Add company and validation",
+     "ref": "UISS: Item 5-6, Item 10, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.19, Log 2",
+     "procedure": [
+      "[+ Add Company] blank; inactive company; company already By Resources added as By Resources; company already By Trip added as By Resources; new company JMP By Trip."
+     ],
+     "expected": [
+      "Msg no.7 (Error): 'Trucking Company is required.'",
+      "Msg no.8 (Error): 'Trucking Company OLD is not active in Master Trucking Company.'",
+      "Msg no.9 (Error): 'Trucking Company DNX is already registered in Master KPI.'",
+      "Msg no.19 (Error): 'Trucking Company PBM is already registered in Master KPI as By Trip.'",
+      "Msg no.10 (Info): 'Trucking Company JMP has been added. Please fill in the KPI values and Order Sharing.'; DB TB_M_KPI_COMPANY (DCR-14)."
+     ]
+    },
+    {
+     "key": "edit",
+     "case": "Edit row: score, KPI values, order sharing, daily trip",
+     "ref": "UISS: Item 12-23, 5.3, Msg no.11, Msg no.12, Msg no.14, Msg no.20, Msg no.21, Log 3",
+     "procedure": [
+      "Edit DNX, then click Edit on PBM.",
+      "Score = 1001; Order Sharing By Trip = 100.555.",
+      "Valid values, ✓."
+     ],
+     "expected": [
+      "Msg no.11 (Warning): 'Save (✓) or cancel (✕) the changes of DNX first.'",
+      "Msg no.12 (Error): '{Score | KPI | Order Sharing} must be a whole number between 0 and {Max}.' / Msg no.20 (Error): 'Order Sharing (By Trip) must be a percentage between 0 and 100 with at most 2 decimals.'",
+      "Msg no.14 (Info): 'KPI data for DNX has been successfully updated.'; Msg no.21 (Warning): 'Total By Trip is 95.00%; it must be 100.00%.' when By Trip total is not 100%."
+     ]
+    },
+    {
+     "key": "trips",
+     "case": "Trips per day (By Trip)",
+     "ref": "UISS: Item 38, Msg no.22",
+     "procedure": [
+      "Trips per day = 1000; then 20."
+     ],
+     "expected": [
+      "Msg no.22 (Error): 'Trips per day (By Trip) must be a whole number between 0 and 999.'",
+      "Daily Trip of By Trip companies recalculated (1 each, rest by %); stored in ielp.TB_M_SYSTEM (DCR-15)."
+     ]
+    },
+    {
+     "key": "compdel",
+     "case": "Delete company row",
+     "ref": "UISS: Item 13, Msg no.15, Msg no.16",
+     "procedure": [
+      "Delete JMP, confirm."
+     ],
+     "expected": [
+      "Msg no.15 (Confirmation): 'Delete {Code - Name} from Master KPI? Order Sharing {n} is no longer counted in Total By Resource, daily order assignment and daily QTY of PR creation.'",
+      "Msg no.16 (Info): 'Trucking Company JMP has been deleted from Master KPI.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.13",
+   "procedure": [
+    "A and B edit DNX; B saves first."
+   ],
+   "expected": [
+    "Msg no.13 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "dberr",
+   "case": "DB error",
+   "ref": "UISS: Log 4",
+   "procedure": [
+    "Stop DB; ✓."
+   ],
+   "expected": [
+    "Log no.4 (Error): 'Failed to save Master KPI data: {Error}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "KPI items Quality, Delivery; companies DNX, PNJ By Resources, PBM By Trip; OLD inactive.",
+   "DCR-14 / DCR-15 (TB_M_KPI_COMPANY, Trips per day) applied."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:edit}",
+    "title": "KPI per company",
+    "sql": "SELECT COMPANY_ID, PAYMENT_TYPE, SCORE, ORDER_SHARING, DAILY_TRIP, VERSION FROM TB_M_KPI_COMPANY;"
+   }
+  ]
+ }
+}

@@ -1,0 +1,281 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "ELIPS Surat Jalan PDF to PAS FTP for Auto GR (Talend)",
+  "uiss_name": "UISS-Batch ELIPS PAS GR Attachment",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Run started",
+     "ref": "UISS: Func Flow step 1, Log no.1, Data Map blk 1",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check the run log (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.1 (Info): 'ELIPS-PAS GR attachment started. Run <RUN_ID>, env <ENV>.'",
+      "Run row with START_DT, RUN_STATUS RUNNING."
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS GR attachment (scheduler / manual run, context of the test environment)."
+     ]
+    },
+    {
+     "key": "upload",
+     "case": "Surat Jalan uploaded to PAS FTP",
+     "ref": "UISS: 4.1-4.3, Log no.16, Data Map blk 2",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check the FTP folder and the file log."
+     ],
+     "expected": [
+      "Log no.16 (Info): 'File <FILE_NAME> (<SIZE> bytes) uploaded to <FTP_DEST>.'",
+      "File name pattern, size and hash logged (UPLOAD_STATUS SUCCESS)."
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS GR attachment (scheduler / manual run, context of the test environment)."
+     ]
+    },
+    {
+     "key": "ind",
+     "case": "Indicators updated",
+     "ref": "UISS: 4.4, Log no.21, Data Map blk 3, Data Map blk 4, Data Map blk 5",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check PAS TB_R_PR_H / TB_R_GR_IR (SQL TD-11)."
+     ],
+     "expected": [
+      "Log no.21 (Info): 'GR <GR_KEY>: <n> files; PR <PR_NO> PR_NOTES <UPDATED|ALREADY_1>; SOURCE_TYPE <before> -> 1.'",
+      "PR_NOTES updated, GR_IR.SOURCE_TYPE 1, one log per GR."
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS GR attachment (scheduler / manual run, context of the test environment)."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Run finished",
+     "ref": "UISS: Log no.23, Data Map blk 6",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.23 (Info): 'GR attachment finished: candidates <n>, success <n>, skipped <n>, failed <n>, files <n>.'"
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS GR attachment (scheduler / manual run, context of the test environment)."
+     ]
+    },
+    {
+     "key": "idem",
+     "case": "Rerun: already uploaded / already 1 / nothing waiting",
+     "ref": "UISS: 4.5, Log no.14, Log no.19, Log no.5",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.14 (Info): 'File <FILE_NAME> already uploaded (run <RUN_ID>), skipped.'",
+      "Log no.19 (Info): 'GR <GR_KEY>: SOURCE_TYPE already 1.'",
+      "Log no.5 (Info): 'No GR waiting for ELIPS attachment.'"
+     ],
+     "execution": [
+      "Run the job again."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "conn",
+   "case": "Connection / FTP errors",
+   "ref": "UISS: Log no.2, Log no.3, Log no.4",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Critical): 'Cannot connect to <PAS|ELIPS> database: <DB_ERROR>.'",
+    "Log no.3 (Critical): 'Cannot connect to PAS FTP <HOST_ALIAS>: <ERROR>.'",
+    "Log no.4 (Critical): 'PAS FTP authentication failed for <HOST_ALIAS>.'"
+   ],
+   "execution": [
+    "Stop the PAS DB; stop the FTP; wrong FTP password (one per run)."
+   ]
+  },
+  {
+   "key": "ident",
+   "case": "Identification errors",
+   "ref": "UISS: 4.1, Log no.6, Log no.7, Log no.8, Log no.9, Log no.10, Log no.11",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.6 (Warning): '<n> GR skipped: PR_NOTES unexpected (<PR_NO list>).'",
+    "Log no.7 (Error): 'GR <GR_KEY>: <PO|PR> not found.'",
+    "Log no.8 (Error): 'GR <GR_KEY>: SA <SA_NUMBER> <not found|callback pending> (PR <PR_NO>, PO <PO_NO>).'",
+    "Log no.9 (Error): 'GR <GR_KEY>: <n> ELIPS records match; nothing uploaded.'",
+    "Log no.10 (Error): 'GR <GR_KEY>: no Surat Jalan for order <ORDER_NO> (<DELIVERY_ID>).'",
+    "Log no.11 (Error): 'Delivery <DELIVERY_ID> matches several cycles; not uploaded.'"
+   ],
+   "execution": [
+    "Prepare GR with unexpected PR_NOTES; without PO; SA not found / callback pending; two ELIPS matches; no Surat Jalan; delivery with several cycles."
+   ]
+  },
+  {
+   "key": "file",
+   "case": "PDF / upload errors",
+   "ref": "UISS: 4.2, 4.3, Log no.12, Log no.13, Log no.15",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.12 (Error): 'Delivery <DELIVERY_ID>: PDF <EMPTY|INVALID|INCOMPLETE|TIMEOUT>: <REASON>.'",
+    "Log no.13 (Error): 'File <FILE_NAME> already exists in <FTP_DEST>; not overwritten.'",
+    "Log no.15 (Error): 'Upload of <FILE_NAME> to <FTP_DEST> failed: <ERROR>.'"
+   ],
+   "execution": [
+    "Empty PDF; file already in FTP; FTP write denied."
+   ]
+  },
+  {
+   "key": "indfail",
+   "case": "Indicator errors and retry",
+   "ref": "UISS: 4.4, 4.5, Log no.17, Log no.18, Log no.20, Log no.22",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.17 (Error): 'PR <PR_NO>: PR_NOTES '<PR_NOTES>' unexpected; indicators not updated.'",
+    "Log no.18 (Warning): 'GR <GR_KEY>: files uploaded; indicator update disabled.'",
+    "Log no.20 (Error): 'GR <GR_KEY>: indicator update failed: <DB_ERROR>; rolled back.'",
+    "Log no.22 (Warning): 'GR <GR_KEY> failed <n> times: <REASON_CD>.'"
+   ],
+   "execution": [
+    "PR_NOTES changed meanwhile; indicator update disabled by context; lock TB_R_GR_IR; repeat failure up to the retry limit."
+   ]
+  },
+  {
+   "key": "stop",
+   "case": "Unexpected stop",
+   "ref": "UISS: Log no.24",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.24 (Critical): 'GR attachment stopped: <ERROR>.'"
+   ],
+   "execution": [
+    "Kill the job."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "PAS test DB with GR waiting (TB_R_GR_IR SOURCE_TYPE <> 1) for ELIPS SA with Surat Jalan; PAS FTP test folder."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:end}",
+    "title": "Run log",
+    "sql": "SELECT * FROM ielp.LOG_ITGPAS ORDER BY CREATED_DATE DESC;  -- run / file / GR log columns inferred (TBD)"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:ind}",
+    "title": "PAS indicators",
+    "sql": "SELECT PR_NO, PR_NOTES, CHANGED_BY, CHANGED_DT FROM TB_R_PR_H WHERE PR_NO = :pr_no;  -- PAS DB\nSELECT SOURCE_TYPE FROM TB_R_GR_IR WHERE <GR key>;"
+   }
+  ]
+ }
+}

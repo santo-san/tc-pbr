@@ -1,0 +1,306 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Mileage - Route Mileage Upload",
+  "uiss_name": "UISS-Batch Master Mileage Upload",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Upload started: log and lock",
+     "ref": "UISS: Func Flow step 1, Log no.1, Data Map blk 1",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check TB_R_MILEAGE_UPLOAD_LOG (SQL TD-10)."
+     ],
+     "expected": [
+      {
+       "text": "Log no.1 (Info): 'Route Mileage upload <UPLOAD_ID> started by login user: file mileage_ok.xlsx.'"
+      },
+      "STATUS PROCESSING while running; FILE_NAME, START_DT, CREATED_BY (DCR-10 table)."
+     ],
+     "execution": [
+      "Login as IELP Admin, open Master > Mileage.",
+      "In the Upload Excel accordion click [Choose File] and select the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "load",
+     "case": "Rows loaded to temp table",
+     "ref": "UISS: Func Flow step 4, Data Map blk 2",
+     "procedure": [
+      "Check TB_T_MILEAGE_UPLOAD (SQL TD-11)."
+     ],
+     "expected": [
+      "One row per data row: ROW_NO, *_TXT as typed, VALIDATION_STATUS N -> V, ACTION NEW / UPDATE / SAME."
+     ],
+     "execution": [
+      "Login as IELP Admin, open Master > Mileage.",
+      "In the Upload Excel accordion click [Choose File] and select the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "new",
+     "case": "New route inserted",
+     "ref": "UISS: Func Flow step 8, Data Map blk 5, MM-24",
+     "procedure": [
+      "Check route SNT -> CKR (SQL TD-12)."
+     ],
+     "expected": [
+      "ielp.TB_M_MILEAGE: FROM_CODE SNT, TO_CODE CKR, LOC_NAME_FROM / TO, MILEAGE 42.00, STATUS Active, LAST_UPLOAD_ID, VERSION 1, CREATED_BY."
+     ],
+     "execution": [
+      "Login as IELP Admin, open Master > Mileage.",
+      "In the Upload Excel accordion click [Choose File] and select the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "upd",
+     "case": "Existing route updated + history",
+     "ref": "UISS: Data Map blk 6, Data Map blk 7",
+     "procedure": [
+      "Check SNT -> KRW and TB_H_MILEAGE (SQL TD-13)."
+     ],
+     "expected": [
+      "MILEAGE 66.50, VERSION + 1, CHANGED_BY / CHANGED_DT; TB_H_MILEAGE OLD 65 NEW 66.5."
+     ],
+     "execution": [
+      "Login as IELP Admin, open Master > Mileage.",
+      "In the Upload Excel accordion click [Choose File] and select the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "ok",
+     "case": "Upload completed",
+     "ref": "UISS: Func Flow step 9, Log no.11, Data Map blk 8, Data Map blk 9",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check log and temp rows."
+     ],
+     "expected": [
+      "Log no.11 (Info): 'Upload completed: 1 route(s) created, 1 route(s) updated.'",
+      "Log STATUS SUCCESS, counts; temp rows deleted."
+     ],
+     "execution": [
+      "Login as IELP Admin, open Master > Mileage.",
+      "In the Upload Excel accordion click [Choose File] and select the test file (Test Data)."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "lock",
+   "case": "Second upload while processing",
+   "ref": "UISS: Log no.2",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Error): 'Another Route Mileage upload is still in progress. Please wait.'",
+    "Nothing changed."
+   ],
+   "execution": [
+    "Start a 1,000-row upload; upload a second file with the same user."
+   ]
+  },
+  {
+   "key": "file",
+   "case": "File errors",
+   "ref": "UISS: Func Flow step 3, Log no.3, Log no.4, Log no.5, Log no.6",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.3 (Error): 'File format is not valid. Please upload the Excel template (.xlsx / .xls).'",
+    "Log no.4 (Error): 'Template is not valid: column FROM CODE, TO CODE, MILEAGE (KM) not found. Please use the Download Template file.'",
+    "Log no.5 (Error): 'The file has no mileage data.'",
+    "Log no.6 (Error): 'The file has 1001 rows; maximum 1000 rows per upload.'",
+    "STATUS ERROR; nothing in temp / master."
+   ],
+   "execution": [
+    "Upload wrong.csv, a file with header FROM | TO | KM, an empty template, a 1,001-row file (one per run)."
+   ]
+  },
+  {
+   "key": "rows",
+   "case": "Row errors: nothing saved",
+   "ref": "UISS: Func Flow step 5-6, Log no.7, Log no.8, MM-25",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    },
+    "Check temp table and master."
+   ],
+   "expected": [
+    "Log no.7 (Error): 'Row 3: Location From and Location To cannot be the same.'",
+    "Log no.8 (Error): '4 row(s) have errors. Nothing was saved; correct the file and upload again.'",
+    "Temp rows E with ERROR_COLUMN / ERROR_MSG; master unchanged."
+   ],
+   "execution": [
+    "Upload mileage_errors.xlsx (Test Data)."
+   ]
+  },
+  {
+   "key": "same",
+   "case": "All routes same mileage",
+   "ref": "UISS: Log no.9",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.9 (Info): 'All routes in the file already have the same mileage. Nothing to save.'"
+   ],
+   "execution": [
+    "Upload a file with only CKR -> KRW = 28."
+   ]
+  },
+  {
+   "key": "db",
+   "case": "DB error during save",
+   "ref": "UISS: Log no.10",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.10 (Error): 'Route Mileage upload <UPLOAD_ID> failed: <DB_ERROR>. Nothing was saved.'",
+    "Rollback; STATUS ERROR."
+   ],
+   "execution": [
+    "Lock TB_M_MILEAGE in the test DB; upload mileage_ok.xlsx."
+   ]
+  },
+  {
+   "key": "sys",
+   "case": "Unexpected error",
+   "ref": "UISS: Log no.12",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.12 (Critical): 'Route Mileage upload <UPLOAD_ID> stopped: <ERROR>.'"
+   ],
+   "execution": [
+    "Stop the DB connection during validation."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Routes SNT->KRW 65, CKR->KRW 28 Active; D9 inactive.",
+   "DCR-06..DCR-10 applied (decimal, PK, STATUS / VERSION, LAST_UPLOAD_ID and the upload tables)."
+  ],
+  "data": [
+   [
+    "{tc:start}-{tc:ok}",
+    "mileage_ok.xlsx",
+    "SNT-CKR 42; SNT-KRW 66,5; CKR-KRW 28",
+    "1 new, 1 update, 1 same"
+   ],
+   [
+    "{tc:rows}",
+    "mileage_errors.xlsx",
+    "SNT-SNT 5; D9-KRW 9; CKR-SNT 0; SNT-KRW twice",
+    "4 row errors"
+   ]
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:ok}",
+    "title": "Upload log",
+    "sql": "SELECT * FROM TB_R_MILEAGE_UPLOAD_LOG ORDER BY UPLOAD_ID DESC;"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:load}, {tc:rows}",
+    "title": "Temp rows",
+    "sql": "SELECT * FROM TB_T_MILEAGE_UPLOAD WHERE UPLOAD_ID = :upload_id ORDER BY ROW_NO;"
+   },
+   {
+    "id": "TD-12",
+    "tc": "{tc:new}",
+    "title": "Inserted route",
+    "sql": "SELECT * FROM ielp.TB_M_MILEAGE WHERE FROM_CODE = 'SNT' AND TO_CODE = 'CKR';"
+   },
+   {
+    "id": "TD-13",
+    "tc": "{tc:upd}",
+    "title": "Update + history",
+    "sql": "SELECT MILEAGE, VERSION, CHANGED_BY FROM ielp.TB_M_MILEAGE WHERE FROM_CODE = 'SNT' AND TO_CODE = 'KRW';\nSELECT * FROM TB_H_MILEAGE WHERE UPLOAD_ID = :upload_id;"
+   }
+  ]
+ }
+}

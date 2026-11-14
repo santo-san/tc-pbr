@@ -17,7 +17,8 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_Delivery_Note_Surat_Jalan.xlsx](test/ST-ELIPS_TBD_Delivery_Note_Surat_Jalan.xlsx)
+- [ST-ELIPS_TBD_ELIPS_Surat_Jalan_PDF_to_PAS_FTP_for_Auto_GR_Talend.xlsx](test/ST-ELIPS_TBD_ELIPS_Surat_Jalan_PDF_to_PAS_FTP_for_Auto_GR_Talend.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.LOG_ITGPAS`, `ielp.MS_DRIVER`, `ielp.MS_LOCATION`, `ielp.ORDER_CYCLE`, `ielp.ORDER_FILES`, `ielp.SA_DETAIL`
 

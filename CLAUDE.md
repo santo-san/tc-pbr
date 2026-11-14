@@ -8,6 +8,9 @@
 - Layout: one folder per function `docs/functions/<NN_Function>/uiss/` = UISS workbooks + rules / spec `.md` + `src/<UISS name>.json`
   (latest spec of every workbook) + `src/img/<UISS name>/` (screenshots, paths relative to `src/`). Update the source JSON
   together with the workbook; rebuild with `python3 docs/functions/scripts/build_all.py <UISS name>`; shared scripts in `docs/functions/scripts/`.
+- ST test scripts live in `docs/functions/<NN_Function>/test/` (generated with `anthropic-skills:uiss-test-script`; spec per UISS in
+  `docs/functions/scripts/test_specs/f_*.py`). When a UISS changes, update its test spec, rebuild with `test_specs/run.py` + `summary.py`
+  and keep every Display / Logging Message covered.
 - Database = existing ELIPS schema `docs/db/ELIPS_Schema.sql` (dictionary `docs/db/schema-dictionary.md`): use its tables / columns /
   types; never invent tables or columns. Anything not confirmed by schema / code is written
   "TBD - Not confirmed from existing schema/data/code"; differences go to `docs/review/07-gap-analysis.md` (no silent change of the app).

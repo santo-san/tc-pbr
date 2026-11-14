@@ -1,0 +1,167 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "TC-PBR SA Approval (Service Acceptance)",
+  "uiss_name": "UISS-Screen SA Approval",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen per role",
+     "ref": "UISS: Item 1-12, 5.1, Msg no.1, Msg no.2, Msg no.3, Log 3",
+     "procedure": [
+      "Login as Planner VPLD, open Service Acceptance > SA Approval.",
+      "Login as IELP Admin, open the screen.",
+      "Login as LP Admin, open the URL.",
+      "Search a period without eligible delivery."
+     ],
+     "expected": [
+      "Order From / To, Regular Trip / Monthly tabs, list with ready / issue count.",
+      "Msg no.1 (Info): 'IELP Admin: view only. Approve is for VPLD.'; Approve hidden.",
+      "Msg no.2 (Error): 'SA Approval is only available for VPLD (approve) and IELP Admin (view).'; Log no.3 (Warning): 'SA approval refused for {user} ({role}): not VPLD.'",
+      "Msg no.3 (Info): 'No Data Found'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search and Calculation",
+   "items": [
+    {
+     "key": "list",
+     "case": "Eligible deliveries and calculation",
+     "ref": "UISS: Item 13-31, 42-45, 5.2, 5.3, 5.4",
+     "procedure": [
+      "Login as Planner VPLD, open Service Acceptance > SA Approval.",
+      "Order From = 01-Nov-2026, Order To = 14-Nov-2026, [Search].",
+      "Open Calculation of an order; open Order Detail."
+     ],
+     "expected": [
+      "One row per finished delivery without SA, sorted Order Date, Order Number; Total KM (sum of route legs from ielp.TB_M_MILEAGE), PO (ielp.PO_HEADER valid on order date), Rate / KM (ielp.MS_ROUTE_PRICE), Price = KM x rate.",
+      "Popup: route & KM, PO & cost, validation list."
+     ]
+    },
+    {
+     "key": "issue",
+     "case": "Validation issues shown per row",
+     "ref": "UISS: 5.3.5, Item 16, Msg no.4",
+     "procedure": [
+      "Search a period with an SRL delivery without valid PO and a route without mileage."
+     ],
+     "expected": [
+      "Msg no.4 (Warning): '{Label} - {detail}, e.g. PO Not Found - No TC-PBR PO for SRL valid on 2026-11-03' ; row not selectable."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Approve Operation",
+   "items": [
+    {
+     "key": "approve",
+     "case": "Approve deliveries (SA per LP + PO)",
+     "ref": "UISS: Item 7-9, 46-49, 5.5-5.8, Msg no.5, Msg no.6, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Data Map blk 9, Log 1",
+     "procedure": [
+      "[Approve] without selection.",
+      "Select 3 ready deliveries of DNX (same PO) and 1 of PNJ, [Approve], [Cancel], again [Confirm Approve]."
+     ],
+     "expected": [
+      "Message: Msg no.9 (Error): 'No delivery selected'",
+      "Msg no.5 (Confirm): 'Approve 4 delivery(ies)? One SA Number is generated per trucking company and PO. Approved deliveries cannot be approved again.'",
+      "Msg no.6 (Info): '2 SA generated for 4 delivery(ies). (list of SA Number, trucking, PO, deliveries, total cost)'",
+      "DB (SQL TD-10): 2 ielp.SA_HEADER rows (SA_CODE, COMPANY_ID, PO_NUMBER, TOTAL_KM / TOTAL_COST, APPROVED_BY), 4 ielp.SA_DETAIL rows, ielp.ORDER_CYCLE SA_CODE / status; Log no.1 (Info): 'SA {SA_CODE} approved by {user}: {n} delivery(ies), PO {PO_NUMBER}, total {cost} {cur}, request {id}.'"
+     ]
+    },
+    {
+     "key": "monthly",
+     "case": "Approve Monthly Truck (fixed cost)",
+     "ref": "UISS: Item 32-41, 5.9, Msg no.12, Msg no.13, Data Map blk 6, Data Map blk 7, Data Map blk 8",
+     "procedure": [
+      "Tab Monthly Truck: select 2 released monthly PO, [Approve], confirm.",
+      "Select a PO approved by another user meanwhile, approve."
+     ],
+     "expected": [
+      "Msg no.12 (Confirm): 'Approve the monthly truck cost of 2 PO(s)? One SA Number is generated per PO. An approved monthly PO cannot be approved again.'",
+      "SA per PO; ielp.PO_DETAIL SA_CODE.",
+      "Msg no.13 (Error): '1 of 1 monthly PO(s) failed revalidation. Nothing was approved. (list per PO)'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "reval",
+   "case": "Revalidation fails: nothing approved",
+   "ref": "UISS: 5.6, Msg no.7, Log 2",
+   "procedure": [
+    "Select 2 deliveries; another user changes the PO of one; confirm."
+   ],
+   "expected": [
+    "Msg no.7 (Error): '1 of 2 delivery(ies) failed revalidation. Nothing was approved. (list per delivery)'",
+    "Log no.2 (Warning): 'SA approval {id} by {user} rejected: {orderNo}: {codes}.'"
+   ]
+  },
+  {
+   "key": "role",
+   "case": "Approve request by non VPLD / empty",
+   "ref": "UISS: Msg no.8, Msg no.9",
+   "procedure": [
+    "Send the approve request as IELP Admin (browser tools); send an empty list."
+   ],
+   "expected": [
+    "Msg no.8 (Error): 'Only VPLD users may approve Service Acceptance'",
+    "Msg no.9 (Error): 'No delivery selected'"
+   ]
+  },
+  {
+   "key": "tx",
+   "case": "Transaction error / request in progress",
+   "ref": "UISS: Msg no.10, Msg no.11, Log 4",
+   "procedure": [
+    "Lock ielp.SA_HEADER; confirm.",
+    "Double click Confirm Approve."
+   ],
+   "expected": [
+    "Msg no.10 (Error): '{error}. Transaction rolled back, nothing was approved.'; Log no.4 (Error): 'SA approval {id} rolled back: {error}.'",
+    "Msg no.11 (Warning): 'Request {id} is still processing'"
+   ]
+  },
+  {
+   "key": "seq",
+   "case": "SA Number conflict / sequence overflow",
+   "ref": "UISS: 5.7, Log 5",
+   "procedure": [
+    "Set the SA sequence (proposed table) to 9999; approve."
+   ],
+   "expected": [
+    "Log no.5 (Error): 'SA Number {SA_CODE} conflict / sequence {key} > 9999.'"
+   ],
+   "tbd": "SA sequence table proposed"
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Users Planner VPLD, IELP Admin, LP Admin.",
+   "Finished deliveries 01-14 Nov 2026 for DNX (PO valid) and PNJ; SRL without valid PO; released monthly PO.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:approve}, {tc:monthly}",
+    "title": "SA created",
+    "sql": "SELECT * FROM ielp.SA_HEADER WHERE APPROVED_DT >= CAST(GETDATE() AS date);\nSELECT * FROM ielp.SA_DETAIL WHERE SA_CODE IN (:sa);\nSELECT ORDER_NO, SA_CODE, STATUS_CODE FROM ielp.ORDER_CYCLE WHERE ORDER_NO IN (:orders);"
+   }
+  ]
+ }
+}

@@ -13,7 +13,7 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_Master_Price_Pricing_Data.xlsx](test/ST-ELIPS_TBD_Master_Price_Pricing_Data.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.ITG_ECAT`, `ielp.MS_ROUTE_PRICE`
 

@@ -14,7 +14,8 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_Master_Mileage_Route_Mileage.xlsx](test/ST-ELIPS_TBD_Master_Mileage_Route_Mileage.xlsx)
+- [ST-ELIPS_TBD_Master_Mileage_Route_Mileage_Upload.xlsx](test/ST-ELIPS_TBD_Master_Mileage_Route_Mileage_Upload.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.MS_LOCATION`, `ielp.TB_M_MILEAGE`
 

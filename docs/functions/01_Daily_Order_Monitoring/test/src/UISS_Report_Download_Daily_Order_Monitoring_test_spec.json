@@ -1,0 +1,124 @@
+{
+ "header": {
+  "doc_type": "report",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Download Daily Order Monitoring",
+  "uiss_name": "UISS-Report Download Daily Order Monitoring",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "file",
+     "case": "Export file: header, criteria, body, footer",
+     "ref": "UISS: Item 1-28, 1., 2.3, 3., 4., Log no.6",
+     "procedure": [
+      "Open the downloaded file."
+     ],
+     "expected": [
+      "Header Report Title, Printed By, Printed Date; Print Criteria = screen criteria.",
+      "One row per order (all pages, grid sort), cycles 1..5 Time / Status / Container, Order Status, SA Approved At, PO Number; Total row.",
+      "Log no.6 (Info): 'n row(s) exported.'"
+     ],
+     "execution": [
+      "Login as IELP Admin, open Daily > Daily Monitoring, set the criteria of the case, click [Export] > [Export ke Excel (.xlsx)]."
+     ]
+    },
+    {
+     "key": "scope",
+     "case": "Data scope by role and filters",
+     "ref": "UISS: 2.3 a-e",
+     "procedure": [
+      "Export as LP Admin of DNX with tab DTP 2 and keyword \"SNT\"."
+     ],
+     "expected": [
+      "Only DNX DTP 2 orders containing \"SNT\"; same rows as the grid."
+     ],
+     "execution": [
+      "Login as LP Admin DNX, open Daily Monitoring, click tab DTP 2, Search \"SNT\", Export."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "nodata",
+   "case": "No data",
+   "ref": "UISS: 2.3 f, Log no.3",
+   "procedure": [
+    "Check the screen and the download folder."
+   ],
+   "expected": [
+    "Log no.3 (Info): 'No data to export. (screen text: Tidak ada data untuk diexport)'",
+    "No file."
+   ],
+   "execution": [
+    "Export with a date without orders."
+   ]
+  },
+  {
+   "key": "max",
+   "case": "Over the maximum rows",
+   "ref": "UISS: Log no.4",
+   "procedure": [
+    "Check the screen."
+   ],
+   "expected": [
+    "Log no.4 (Warning): 'Data exceeds the maximum export rows (max (TBD)). Please narrow the criteria.'"
+   ],
+   "tbd": "Max rows TBD",
+   "execution": [
+    "Export a range above the maximum rows (TBD)."
+   ]
+  },
+  {
+   "key": "session",
+   "case": "Session expired",
+   "ref": "UISS: 2.1, Log no.1",
+   "procedure": [
+    "Check the screen."
+   ],
+   "expected": [
+    "Log no.1 (Error): 'Session expired. Please login again.'"
+   ],
+   "execution": [
+    "Let the session expire, click Export."
+   ]
+  },
+  {
+   "key": "db",
+   "case": "DB not reachable / generation error",
+   "ref": "UISS: 2.2, Log no.2, Log no.5",
+   "procedure": [
+    "Check the screen and log."
+   ],
+   "expected": [
+    "Log no.2 (Critical): 'Database cannot be connected.'",
+    "Log no.5 (Error): 'Failed to generate Daily Order Monitoring report.'"
+   ],
+   "execution": [
+    "Stop the DB connection; export. Then make the file generation fail (test hook)."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Orders of 14-Nov-2026 for DNX and PNJ, some with 5 cycles, SA approved and PO number."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:file}",
+    "title": "Rows expected",
+    "sql": "SELECT d.ORDER_NO, d.LICENSE_PLATE, d.STATUS_CODE, d.PO_NUMBER, c.CYCLE_SEQ, c.STATUS_CODE, c.CONTAINER_NO\nFROM ielp.DTP_2_DETAIL d JOIN ielp.ORDER_CYCLE c ON c.ORDER_NO = d.ORDER_NO ORDER BY d.ORDER_NO, c.CYCLE_SEQ;"
+   }
+  ]
+ }
+}

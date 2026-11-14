@@ -1,0 +1,271 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "ELIPS TC-PBR to PAS PR Interface (Talend DB-to-DB)",
+  "uiss_name": "UISS-Batch ELIPS PAS PR Interface",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Run started and SA claimed",
+     "ref": "UISS: Func Flow step 1-4, 4.1, Log no.1, Data Map blk 1",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check SA_DETAIL (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.1 (Info): 'ELIPS-PAS PR interface started. Run <RUN_ID>.'",
+      "INTERFACE_STATUS PROCESSING, PROCESS_ID, START_DT."
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS PR interface (test context) with approved SA waiting."
+     ]
+    },
+    {
+     "key": "pr",
+     "case": "PR created in PAS",
+     "ref": "UISS: Func Flow step 7-8, Log no.13, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Data Map blk 6, Data Map blk 7, Data Map blk 8, Data Map blk 9, Data Map blk 10",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check PAS tables (SQL TD-11)."
+     ],
+     "expected": [
+      "Log no.13 (Info): 'SA <SA_NUMBER> -> PR <PR_NO> (process <PROCESS_ID>) created; Auto PO job: <Y|N>.'",
+      "TB_R_LOG_H, TB_M_DOC_NUMBERING + 1, TB_H_DOCUMENT_NUMBER, TB_R_PR_H / ITEM / SUBITEM and TB_T_PR_* copies."
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS PR interface (test context) with approved SA waiting."
+     ]
+    },
+    {
+     "key": "autopo",
+     "case": "Auto PO job and ELIPS status",
+     "ref": "UISS: 4.5, Data Map blk 11, Data Map blk 12",
+     "procedure": [
+      "Check TB_T_JOB_AUTOPO and SA_DETAIL."
+     ],
+     "expected": [
+      "Job row when eligible; SA_DETAIL INTERFACE_STATUS SUCCESS, PR_NO."
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS PR interface (test context) with approved SA waiting."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Run finished / nothing to send",
+     "ref": "UISS: Log no.19, Log no.3",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.19 (Info): 'ELIPS-PAS PR interface finished: <n> success, <n> reconciled, <n> failed, <n> skipped.'",
+      "Next run: Log no.3 (Info): 'No SA to interface.'"
+     ],
+     "execution": [
+      "Run the Talend job ELIPS-PAS PR interface (test context) with approved SA waiting."
+     ]
+    },
+    {
+     "key": "idem",
+     "case": "Reconciliation",
+     "ref": "UISS: 4.3, Log no.4, Log no.5, Log no.7",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.4 (Warning): 'SA <SA_NUMBER> stuck in PROCESSING since <START_DT>: reconciled to <SUCCESS|FAILED>.'",
+      "Log no.5 (Warning): 'SA <SA_NUMBER> already claimed by another run, skipped.'",
+      "Log no.7 (Warning): 'SA <SA_NUMBER> already exists in PAS as PR <PR_NO>: marked SUCCESS (reconciled).'"
+     ],
+     "execution": [
+      "SA stuck PROCESSING; two runs in parallel; SA already in PAS."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "conn",
+   "case": "Connection errors",
+   "ref": "UISS: Log no.2",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Critical): 'Cannot connect to <ELIPS|PAS> database: <DB_ERROR>.'"
+   ],
+   "execution": [
+    "Stop the PAS DB."
+   ]
+  },
+  {
+   "key": "val",
+   "case": "Invalid SA",
+   "ref": "UISS: 4.2, Log no.6, Log no.15",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.6 (Error): 'SA <SA_NUMBER> invalid: <FIELD> <REASON>.'",
+    "Log no.15 (Error): 'SA <SA_NUMBER> is not approved by VPLD.'"
+   ],
+   "execution": [
+    "SA without WBS; SA not approved by VPLD."
+   ]
+  },
+  {
+   "key": "pas",
+   "case": "PAS step errors (rolled back)",
+   "ref": "UISS: 4.4, Log no.8, Log no.9, Log no.10, Log no.11, Log no.12, Log no.17, Data Map blk 13",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    },
+    "Check that no PAS row remains."
+   ],
+   "expected": [
+    "Log no.8 (Error): 'SA <SA_NUMBER>: PR number generation failed: <PAS_MESSAGE>.'",
+    "Log no.9 (Error): 'SA <SA_NUMBER>: insert <TABLE> failed: <DB_ERROR>.'",
+    "Log no.10 (Error): 'SA <SA_NUMBER>: SP_ILS_GENERATE_PR_ITEM failed: <RESULT|DB_ERROR>.'",
+    "Log no.11 (Error): 'SA <SA_NUMBER>: budget processing failed: <DB_ERROR>.'",
+    "Log no.12 (Error): 'SA <SA_NUMBER>: Auto PO job insert failed: <DB_ERROR>.'",
+    "Log no.17 (Error): 'SA <SA_NUMBER>: PAS transaction aborted: <DB_ERROR>.'",
+    "SA_DETAIL FAILED, ERROR_MESSAGE, RETRY_COUNT + 1."
+   ],
+   "execution": [
+    "Fail each step with a test hook: numbering, insert, SP_ILS_GENERATE_PR_ITEM, budget, Auto PO, transaction."
+   ]
+  },
+  {
+   "key": "after",
+   "case": "Status update / rollback failures and retry limit",
+   "ref": "UISS: Log no.14, Log no.16, Log no.18",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.14 (Error): 'SA <SA_NUMBER>: PR <PR_NO> created but ELIPS status not updated: <DB_ERROR>.'",
+    "Log no.16 (Critical): 'SA <SA_NUMBER>: rollback failed: <DB_ERROR>. Outcome unknown.'",
+    "Log no.18 (Warning): 'SA <SA_NUMBER> failed <n> times; automatic retry stopped.'"
+   ],
+   "execution": [
+    "Lock SA_DETAIL after PR creation; fail the rollback; fail one SA up to the retry limit."
+   ]
+  },
+  {
+   "key": "stop",
+   "case": "Unexpected stop",
+   "ref": "UISS: Log no.20",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.20 (Critical): 'ELIPS-PAS PR interface stopped: <ERROR>.'"
+   ],
+   "execution": [
+    "Kill the job."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "ELIPS: approved SA with WBS %; PAS test DB.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:autopo}",
+    "title": "ELIPS",
+    "sql": "SELECT SA_CODE, PROCESS_ID, PR_NO, INTERFACE_STATUS, ERROR_MESSAGE, RETRY_COUNT FROM ielp.SA_DETAIL WHERE SA_CODE = :sa;  -- interface columns [DCR]"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:pr}",
+    "title": "PAS",
+    "sql": "SELECT * FROM TB_R_PR_H WHERE PROCESS_ID = :pid;\nSELECT * FROM TB_R_PR_ITEM WHERE PR_NO = :pr;\nSELECT * FROM TB_R_PR_SUBITEM WHERE PR_NO = :pr;\nSELECT * FROM TB_T_JOB_AUTOPO WHERE PROCESS_ID = :pid;"
+   }
+  ]
+ }
+}

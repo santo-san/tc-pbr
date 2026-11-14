@@ -1,0 +1,145 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Price (Pricing Data)",
+  "uiss_name": "UISS-Screen Master Price",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen: filters and list",
+     "ref": "UISS: Item 1-30, 5.1, Msg no.1",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open Master > Price.",
+      "Empty the price table (test DB) and reopen."
+     ],
+     "expected": [
+      "Filters Periode, Trucking Company, Component, Status; list read only with Periode, Trucking Company, Component, Price, Effective Start / End, Status, audit; paging.",
+      "Msg no.1 (Info): 'No price data found.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "filter",
+     "case": "Filter by period / partner / component / status",
+     "ref": "UISS: Item 3-8, 5.2, Msg no.2",
+     "procedure": [
+      "Periode = 2026-11, Trucking Company = DNX, Component = KM, [Search].",
+      "Periode = 2030-01, [Search].",
+      "[Cancel]."
+     ],
+     "expected": [
+      "Only DNX KM price of 202611 (from ielp.MS_ROUTE_PRICE.VALID_DT_FROM / VALID_DT_TO, PRICE_COMPONENT = KM - DCR-12).",
+      "Msg no.2 (Info): 'No price data found for the selected criteria.'",
+      "Filters cleared, full list."
+     ]
+    },
+    {
+     "key": "quick",
+     "case": "Quick search and partner lookup",
+     "ref": "UISS: Item 9, Msg no.3, Msg no.4",
+     "procedure": [
+      "Keyword \"zzz\".",
+      "Type \"xyz\" in Trucking Company."
+     ],
+     "expected": [
+      "Msg no.3 (Info): 'No price data found for the selected criteria.'",
+      "Msg no.4 (Info): 'No trucking company found.'"
+     ]
+    },
+    {
+     "key": "status",
+     "case": "Status column per validity",
+     "ref": "UISS: Item 20, 5.3",
+     "procedure": [
+      "Check a current, a future and an expired price."
+     ],
+     "expected": [
+      "Status Active / Future / Expired by today vs validity dates."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Download Operation",
+   "items": [
+    {
+     "key": "export",
+     "case": "Export and empty export",
+     "ref": "UISS: Item 11, Msg no.5, Msg no.6, Log 1",
+     "procedure": [
+      "Export .xls with rows.",
+      "Filter to no data, Export .xls."
+     ],
+     "expected": [
+      "Msg no.5 (Info): '{n} rows exported.'",
+      "Log no.1 (Info): 'Pricing Data exported by {User}: {n} rows, criteria {Periode / Partner / Component / Status}.'",
+      "Msg no.6 (Warning): 'No data to export.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Price lookup (used by PR Creation)",
+   "items": [
+    {
+     "key": "lookup",
+     "case": "Lookup errors for production month",
+     "ref": "UISS: 5.4, Msg no.7, Msg no.8, Msg no.9, Log 3",
+     "procedure": [
+      "Create PR for SRL 202611 (no KM price).",
+      "Partner with only expired price.",
+      "Partner with two valid prices for the same component."
+     ],
+     "expected": [
+      "Msg no.7 (Error): 'No {Monthly Price | Price per KM} found in Master Price for {Partner} period {YYYYMM}.'",
+      "Msg no.8 (Error): '{Monthly Price | Price per KM} for {Partner} period {YYYYMM} is expired and cannot be used for a new PR Monthly.'",
+      "Msg no.9 (Error): 'More than one valid {Monthly Price | Price per KM} for {Partner} period {YYYYMM}. Please check eCatalogue data.'",
+      "Log no.3 (Warning): 'Price lookup failed for {Partner} {Component} period {YYYYMM}: {Reason}.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "readerr",
+   "case": "Price data cannot be read",
+   "ref": "UISS: Log 2",
+   "procedure": [
+    "Stop the DB; open the screen."
+   ],
+   "expected": [
+    "Log no.2 (Error): 'Failed to read Pricing Data: {Error}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Prices synchronised from eCatalogue for DNX, PNJ, PBM, JMP, SRL (SRL without KM price from 202610).",
+   "DCR-12 (PRICE_COMPONENT) applied."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:filter}",
+    "title": "Prices",
+    "sql": "SELECT COMPANY_CODE, PRICE_COMPONENT, ROUTE_PRICE_VALUE, VALID_DT_FROM, VALID_DT_TO FROM ielp.MS_ROUTE_PRICE WHERE COMPANY_CODE = 'DNX' ORDER BY VALID_DT_FROM;"
+   }
+  ]
+ }
+}

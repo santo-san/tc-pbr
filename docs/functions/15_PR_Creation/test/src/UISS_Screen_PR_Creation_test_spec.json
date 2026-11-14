@@ -1,0 +1,174 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "PR Creation",
+  "uiss_name": "UISS-Screen PR Creation",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen and parameters",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.17",
+     "procedure": [
+      "Login as VPLD Staff, open Monthly > PR Creation.",
+      "Login as Planner VPLD, open the URL."
+     ],
+     "expected": [
+      "PR Creation Type, Operational Month (next month), Logistics Partner, info chips.",
+      "Msg no.17 (Error): 'You are not authorized to create PR. PR Creation is available to VPLD Staff and VPLD Section Head.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Generate Route Plan",
+   "items": [
+    {
+     "key": "param",
+     "case": "Mandatory and period rules",
+     "ref": "UISS: 5.1, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.6, Msg no.7, Msg no.24",
+     "procedure": [
+      "[Create PR] before generate.",
+      "[Generate Route Plan] with blank fields.",
+      "Operational Month = current month (System Master N); = last month; = month N+2.",
+      "Remove the System Master parameter."
+     ],
+     "expected": [
+      "Msg no.24 (Warning): 'Generate the route plan first.'",
+      "Msg no.1 (Error): 'PR Creation Type is required.', Msg no.2 (Error): 'Operational Month is required.', Msg no.3 (Error): 'Logistics Partner is required.'",
+      "Msg no.5 (Error): 'PR for the current operational month ({YYYY-MM}) cannot be created: not allowed by System Master. PR is created in Month N-1 for Month N.' / Msg no.6 (Error): 'Operational Month {YYYY-MM} has already passed. PR cannot be created.' / Msg no.7 (Error): 'PR for Operational Month {YYYY-MM} cannot be created yet. PR is created in Month N-1: the next operational month is {YYYY-MM}.'",
+      "Msg no.4 (Error): 'System Master parameter \"Allow PR creation in current operational month\" is not configured. Please contact the system administrator.'"
+     ]
+    },
+    {
+     "key": "gen",
+     "case": "Route plan calculated",
+     "ref": "UISS: Item 12-28, 5.2-5.4, Msg no.16, Log 1",
+     "procedure": [
+      "Type Route-based, Month 2026-12, LP All, [Generate Route Plan]."
+     ],
+     "expected": [
+      "Msg no.16 (Info): 'Route plan December 2026 calculated for 3 logistics partner(s).'",
+      "Per LP: mileage cost, fixed cost, working days, delivery cost, PR amount, status Ready; Log no.1 (Info): 'Route plan {Type} {YYYY-MM} calculated by {User} for {n} LP ({ready} ready).'"
+     ]
+    },
+    {
+     "key": "generr",
+     "case": "Data source errors per LP",
+     "ref": "UISS: 5.2, 5.3, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.12, Msg no.15",
+     "procedure": [
+      "Generate with: no TMMIN calendar; no active route percentage; LP without Order Sharing; LP with 0 planned orders; LP without price; LP with price 0."
+     ],
+     "expected": [
+      "Msg no.8 (Error): 'TMMIN Calendar (working days) for {YYYY-MM} is not available. Please maintain the TMMIN Calendar first.'",
+      "Msg no.9 (Error): 'No active Route Percentage data. Please maintain Master Route Percentage first.'",
+      "Msg no.10 (Error): 'No Order Sharing for {LP} in Master KPI (By Resources). Route-based PR cannot be calculated.'",
+      "Msg no.11 (Error): 'No orders are planned for {LP} in this month (Order Sharing x Working Days = 0).'",
+      "Msg no.12 (Error): 'No {Monthly Price | Price per KM} found in Master Price for {LP} period {YYYYMM}. (or expired / more than one valid price)'",
+      "Msg no.15 (Error): 'Calculated PR amount for {LP} is not valid (must be greater than 0). Please check the price and planning data.'"
+     ],
+     "tbd": "OP-01"
+    },
+    {
+     "key": "detail",
+     "case": "PR detail pop-up and export",
+     "ref": "UISS: Item 25, 29-39, 5.7, 5.8, Msg no.23",
+     "procedure": [
+      "Click Detail of DNX.",
+      "Click [Export]."
+     ],
+     "expected": [
+      "Routes, %, orders, days, distance, planned cost, components, total.",
+      "Msg no.23 (Info): 'PR_Creation_{Summary | Route_Plan}_{YYYYMM}.xls exported.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Create PR",
+   "items": [
+    {
+     "key": "create",
+     "case": "Create PR and DB",
+     "ref": "UISS: Item 3, 14, 5.5, 5.6, Msg no.18, Msg no.19, Msg no.21, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Log 2",
+     "procedure": [
+      "[Create PR] with nothing selected.",
+      "Select DNX and PNJ (Ready), [Create PR], confirm."
+     ],
+     "expected": [
+      "Msg no.18 (Warning): 'Select at least one logistics partner with status Ready.'",
+      "Msg no.19 (Confirmation): 'Create PR - {Type}: Operational Month {Month}, {n} PR (LP, Sequence, components, amount), Total PR Cost IDR {x}, Approval: {path}. Current PIC: {user}.'",
+      "Msg no.21 (Info): '2 PR created: {PR Nos}. Status: {Waiting SH | Waiting DpH}.'",
+      "DB (SQL TD-10): ielp.CRITERIA_SCORE_DETAIL_FINAL per LP (PR_NO_DET, COMPANY_ID, CRITERIA_PERIODE, PR_SEQ, totals), ielp.CRITERIA_SCORE_DETAIL_ROUTE per component, ielp.CRITERIA_SCORE_APPROVAL per level; Log no.2 (Info): 'PR {PR No} {Type} {LP} {YYYY-MM} sequence {n} amount {IDR} created by {User}; approval starts at {level}.'"
+     ]
+    },
+    {
+     "key": "sh",
+     "case": "Section Head creates PR (SH skip)",
+     "ref": "UISS: 5.6, Log 3",
+     "procedure": [
+      "Login as VPLD Section Head; create a PR."
+     ],
+     "expected": [
+      "Log no.3 (Info): 'PR {PR No}: SH Skip, PR created by Section Head {User}.'",
+      "Approval starts at DpH."
+     ]
+    },
+    {
+     "key": "seq",
+     "case": "Duplicate components and sequence",
+     "ref": "UISS: 5.5, Msg no.13, Msg no.14, Msg no.20, Msg no.22, Log 4",
+     "procedure": [
+      "Generate again for DNX (monthly cost already in PR).",
+      "All routes already in PR.",
+      "Another user created sequence 2 meanwhile; create.",
+      "Create for 2 LP where one fails."
+     ],
+     "expected": [
+      "Msg no.13 (Warning): 'Monthly Cost of {LP} for this operational month is already included in PR {PR No}. It cannot be duplicated.'",
+      "Msg no.14 (Warning): 'All planned routes of {LP} for this operational month are already included in PR {PR Nos}. No new route to create an additional PR sequence.'",
+      "Msg no.20 (Error): 'PR Sequence {n} for {LP} already exists. Please reload the screen.'",
+      "Msg no.22 (Error): 'PR not created: {LP}: {reason} (one line per LP).'; Log no.4 (Warning): 'PR for {LP} {YYYY-MM} not created: {reason}.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "syserr",
+   "case": "System error",
+   "ref": "UISS: Msg no.25, Log 5",
+   "procedure": [
+    "Stop DB; generate."
+   ],
+   "expected": [
+    "Msg no.25 (Error): 'System error. Please contact administrator. ({Error ID})'",
+    "Log no.5 (Error): 'PR Creation {operation} failed: {Exception}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "VPLD Staff / Section Head; Master KPI, Route Percentage, Price, TMMIN calendar for 2026-12.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:create}",
+    "title": "PR created",
+    "sql": "SELECT * FROM ielp.CRITERIA_SCORE_DETAIL_FINAL WHERE CRITERIA_PERIODE = '202612';\nSELECT * FROM ielp.CRITERIA_SCORE_DETAIL_ROUTE WHERE CRITERIA_DETAIL_FINAL_ID IN (:ids);\nSELECT * FROM ielp.CRITERIA_SCORE_APPROVAL WHERE CRITERIA_PERIODE = '202612';"
+   }
+  ]
+ }
+}

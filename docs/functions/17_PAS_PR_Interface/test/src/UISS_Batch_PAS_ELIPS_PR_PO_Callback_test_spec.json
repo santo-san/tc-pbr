@@ -1,0 +1,228 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "PAS to ELIPS Callback - PR / PO Number (Talend DB-to-DB)",
+  "uiss_name": "UISS-Batch PAS ELIPS PR PO Callback",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Run started",
+     "ref": "UISS: Func Flow step 1, Log no.1, Data Map blk 1",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.1 (Info): 'PAS-ELIPS PR/PO callback started. Run <RUN_ID>, mode <A|B>.'",
+      "Run log row."
+     ],
+     "execution": [
+      "Run the Talend job PAS-ELIPS PR/PO callback (mode A, test context)."
+     ]
+    },
+    {
+     "key": "upd",
+     "case": "PR / PO stored in ELIPS",
+     "ref": "UISS: 4.1-4.3, Log no.18, Data Map blk 2, Data Map blk 3",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check SA_DETAIL (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.18 (Info): 'SA <SA_NUMBER>: <n> ielp.SA_DETAIL rows set PR <PR_NO>, PO <PO_NO>.'",
+      "PAS_PR_NUMBER, PAS_PO_NUMBER of all rows of the SA."
+     ],
+     "execution": [
+      "Run the Talend job PAS-ELIPS PR/PO callback (mode A, test context)."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Run finished",
+     "ref": "UISS: Log no.19, Data Map blk 4",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.19 (Info): 'Callback finished: pending <n>, released PO <n>, eligible <n>, updated <n> (<rows> rows), no change <n>, skipped <n>, failed <n>.'"
+     ],
+     "execution": [
+      "Run the Talend job PAS-ELIPS PR/PO callback (mode A, test context)."
+     ]
+    },
+    {
+     "key": "skip",
+     "case": "Not eligible / no change",
+     "ref": "UISS: 4.1, Log no.4, Log no.6, Log no.7, Log no.8, Log no.9, Log no.15",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.4 (Info): 'No callback candidates (pending SA <n>, released PO 0).'",
+      "Log no.6 (Warning): 'SA <SA_NUMBER> / PO <PO_NO>: PAS PR not found.'",
+      "Log no.7 (Info): 'SA <SA_NUMBER>: PR <PR_NO> has no released PO yet.'",
+      "Log no.8 (Warning): 'SA <SA_NUMBER>: PR <PR_NO> PR_NOTES empty - not eligible.'",
+      "Log no.9 (Info): 'SA <SA_NUMBER>: PR <PR_NO> PR_NOTES '<PR_NOTES>' not eligible.'",
+      "Log no.15 (Info): 'SA <SA_NUMBER>: PR <PR_NO> / PO <PO_NO> already stored.'"
+     ],
+     "execution": [
+      "No pending SA; PR missing in PAS; PR without released PO; PR_NOTES empty / other; already stored."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "conn",
+   "case": "Connection / query errors",
+   "ref": "UISS: Log no.2, Log no.3, Log no.5",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Critical): 'Cannot connect to PAS database: <DB_ERROR>.'",
+    "Log no.3 (Critical): 'Cannot connect to ELIPS database: <DB_ERROR>.'",
+    "Log no.5 (Error): 'PAS query failed for chunk <k> (<n> SA): <DB_ERROR>.'"
+   ],
+   "execution": [
+    "Stop PAS DB; stop ELIPS DB; break the PAS query."
+   ]
+  },
+  {
+   "key": "ident",
+   "case": "Identification errors",
+   "ref": "UISS: 4.2, Log no.10, Log no.11, Log no.12, Log no.13, Log no.14",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.10 (Error): 'SA <SA_NUMBER>: <n> PAS PRs found (<PR_NO list>); not updated.'",
+    "Log no.11 (Error): 'SA <SA_NUMBER>: PR <PR_NO> has <n> released POs (<PO list>); not updated.'",
+    "Log no.12 (Error): 'SA <SA_NUMBER> (PR <PR_NO>, PO <PO_NO>) not found in ielp.SA_DETAIL.'",
+    "Log no.13 (Error): 'SA <SA_NUMBER> item <ITEM_NO>: <n> ielp.SA_DETAIL rows match; not updated.'",
+    "Log no.14 (Error): 'SA <SA_NUMBER>: stored PR/PO <OLD> differs from PAS <PR_NO>/<PO_NO>; not overwritten.'"
+   ],
+   "execution": [
+    "Two PAS PR for one SA; PR with two released PO; SA not in ELIPS; duplicate SA_DETAIL rows; different PR stored."
+   ]
+  },
+  {
+   "key": "upderr",
+   "case": "Update errors",
+   "ref": "UISS: Log no.16, Log no.17",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.16 (Error): 'SA <SA_NUMBER>: <n> rows updated, <m> expected; rolled back.'",
+    "Log no.17 (Error): 'SA <SA_NUMBER>: update failed: <DB_ERROR>; rolled back.'",
+    "Rolled back."
+   ],
+   "execution": [
+    "Row count mismatch (test hook); lock SA_DETAIL."
+   ]
+  },
+  {
+   "key": "stop",
+   "case": "Unexpected stop",
+   "ref": "UISS: Log no.20",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.20 (Critical): 'Callback stopped: <ERROR>.'"
+   ],
+   "execution": [
+    "Kill the job."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "SA sent to PAS with PR / PO released in the PAS test DB.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:upd}",
+    "title": "Callback",
+    "sql": "SELECT SA_CODE, PAS_PR_NUMBER, PAS_PO_NUMBER FROM ielp.SA_DETAIL WHERE SA_CODE = :sa;"
+   }
+  ]
+ }
+}

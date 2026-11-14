@@ -13,7 +13,7 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_TC_PBR_Menu_Authorization.xlsx](test/ST-ELIPS_TBD_TC_PBR_Menu_Authorization.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): see UISS
 

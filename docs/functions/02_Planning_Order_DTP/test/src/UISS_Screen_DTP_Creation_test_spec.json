@@ -1,0 +1,362 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "DTP Creation (Planning Order)",
+  "uiss_name": "UISS-Screen DTP Creation",
+  "uiss_rev": "0.9",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "cal",
+     "case": "Calendar and date range",
+     "ref": "UISS: Item 1-12, 5.1, 5.2, Msg no.1, Msg no.2, Msg no.3, Msg no.5",
+     "procedure": [
+      "Login as Planner VPLD.",
+      "Open Daily > Planning Order.",
+      "Click a date before the backdate range, then after the advance range.",
+      "Click a valid date, click [Next] without a DTP card.",
+      "Remove the System Master date range parameter (test DB), reopen."
+     ],
+     "expected": [
+      "Calendar Month view with entries, +n more, open / in queue badges, legend.",
+      "Msg no.2 (Warning): 'Planning date {dd-Mon-yyyy} is before the allowed backdate range ({n} day(s) before today).' / Msg no.3 (Warning): 'Planning date {dd-Mon-yyyy} is after the allowed advance range ({n} day(s) after today).'",
+      "Msg no.5 (Error): 'Please select the Universal DTP.'",
+      "Msg no.1 (Error): 'System Master DTP date range (backdate / advance days) is not configured. Please contact the system administrator.'"
+     ]
+    },
+    {
+     "key": "ro",
+     "case": "View-only roles",
+     "ref": "UISS: Item 17, 5.10, Msg no.4, Msg no.51",
+     "procedure": [
+      "Login as IELP Admin, open a date.",
+      "Send a submit request as IELP Admin."
+     ],
+     "expected": [
+      "Msg no.4 (Info): 'Only the VPLD Planner can create DTP. The data is shown read only.'",
+      "Upload, Manual Entry, Submit disabled.",
+      "Msg no.51 (Warning): 'Only the VPLD Planner can create DTP.'"
+     ]
+    },
+    {
+     "key": "hdr",
+     "case": "DTP Creation header and grid",
+     "ref": "UISS: Item 13-16, 34-46, 121-127",
+     "procedure": [
+      "Login as Planner VPLD.",
+      "Open menu Daily > Planning Order, click date 15-Nov-2026, select the Universal DTP, [Next]."
+     ],
+     "expected": [
+      "Daily Plan Date, DTP Model, Operation Type, Planner; Upload, Manual Entry, IPMS sections; grid with filters, status, paging; Summary / History dialogs."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Manual Entry and Edit",
+   "items": [
+    {
+     "key": "add",
+     "case": "Add to Grid and DB",
+     "ref": "UISS: Item 21-33, 5.5, Msg no.15, Data Map blk 1, Data Map blk 5, Log 4",
+     "procedure": [
+      "Login as Planner VPLD.",
+      "Open menu Daily > Planning Order, click date 15-Nov-2026, select the Universal DTP, [Next].",
+      "Manual Entry: Export, Round Use N, LP DNX, Renban \"STM01\", From D1, To S1, ETD 15-Nov-2026, 40, Agent MAERSK, Container \"MSKU1234565\", Truck Type TRAILER, Shift 1; [+ Add to Grid]."
+     ],
+     "expected": [
+      "Msg no.15 (Info): 'Manual record added (Available).'",
+      "Row status Available; DB (SQL TD-10) ielp.DTP_2_DETAIL row (DTP_DATE, COMPANY_ID, RENBAN, FROM_LOC, TO_LOC, CONTAINER_NO ...); ielp.LOG_ACTIVITY_ORDER row; Log no.4 (Info): 'DTP record id added by planner.'"
+     ]
+    },
+    {
+     "key": "val",
+     "case": "Record validation (all errors at once)",
+     "ref": "UISS: 5.5, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.12, Msg no.13, Msg no.14",
+     "procedure": [
+      "Manual Entry: enter the invalid values of Test Data table A, [+ Add to Grid]."
+     ],
+     "expected": [
+      "Each field shows its message: Msg no.6 (Error): '{Field} is required.', Msg no.7 (Error): '{Field} \"{value}\" is not valid ({options}).'",
+      "Msg no.8 (Error): '{Field} \"{value}\" is not registered in the data mapping.', Msg no.9 (Error): 'TO LOCATION cannot be the same as FROM LOCATION.', Msg no.10 (Error): '{Field} must be letters / numbers only (max 20).', Msg no.11 (Error): '{Field} is not a valid date. / {Field} is not a valid time (HH:MM).'",
+      "Msg no.12 (Error): 'Check digit Container Number tidak valid (seharusnya {CONTAINER_NO}).', Msg no.13 (Error): '{Container|Booking} {no} already exists in the grid (status {status}).', Msg no.14 (Error): '{Container|Booking} {no} has already been submitted (status {status}). It cannot be submitted again.'",
+      "Nothing added."
+     ]
+    },
+    {
+     "key": "edit",
+     "case": "Edit a record",
+     "ref": "UISS: Item 126, Msg no.16, Data Map blk 2",
+     "procedure": [
+      "Options > Edit on a Validation Error row, correct the field, [Save]."
+     ],
+     "expected": [
+      "Msg no.16 (Info): 'Record validated and saved.'",
+      "Status Available; DB: changed columns, VERSION + 1 [DCR]."
+     ]
+    },
+    {
+     "key": "del",
+     "case": "Delete records",
+     "ref": "UISS: Item 37, Msg no.33, Msg no.34, Data Map blk 7",
+     "procedure": [
+      "Select 2 Manual / Excel rows and 1 IPMS row, [Delete], confirm."
+     ],
+     "expected": [
+      "Msg no.33 (Confirmation): 'Delete {n} selected record(s) from the grid? IPMS interface records are kept.'",
+      "Msg no.34 (Info): '2 record(s) deleted.'; IPMS row kept."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Upload and IPMS",
+   "items": [
+    {
+     "key": "upload",
+     "case": "Excel upload from the screen",
+     "ref": "UISS: Item 18-20, 125, 5.4, Msg no.18, Msg no.19, Msg no.20, Msg no.21, Msg no.22, Msg no.23",
+     "procedure": [
+      "Click Download Template.",
+      "Upload wrong.csv; a file with renamed columns; an empty template; a file with 3 row errors; a valid file of 5 rows."
+     ],
+     "expected": [
+      "Msg no.23 (Info): 'Format_DTP_Universal.xlsx downloaded.'",
+      "Msg no.18 (Error): 'Invalid file. Please upload the Excel template (.xlsx / .xls).' / Msg no.19 (Error): 'Invalid Excel format: column(s) {columns} not found. Please use the Download Template format.' / Msg no.20 (Error): 'The Excel file has no data rows.'",
+      "Msg no.21 (Error): '3 row(s) failed validation. No record was added. Please correct the file and upload again. (+ list Row / Column / Error, downloadable)'; Upload error dialog Row / Column / Error.",
+      "Msg no.22 (Info): '5 record(s) uploaded and validated. ({file name})' (backend: ST DTP Excel Upload)."
+     ]
+    },
+    {
+     "key": "ipms",
+     "case": "Load / Refresh from IPMS",
+     "ref": "UISS: Item 34-35, 5.6, Msg no.24, Msg no.25, Msg no.26, Log 1",
+     "procedure": [
+      "Click Load / Refresh from IPMS (stub with 3 new records).",
+      "Click again (no new data).",
+      "Stop the IPMS stub, click again."
+     ],
+     "expected": [
+      "Msg no.24 (Info): '3 record(s) received from IPMS.'",
+      "Msg no.25 (Info): 'No new data from IPMS.'",
+      "Msg no.26 (Error): 'IPMS interface is not responding. No record was received. Please try again later.'; Log no.1 (Error): 'IPMS interface error for plan date {DTP_DATE}: {error}.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Select and Submit",
+   "items": [
+    {
+     "key": "submit",
+     "case": "Submit selected records",
+     "ref": "UISS: Item 36, 39, 124, 5.7, 5.8, Msg no.27, Msg no.28, Msg no.31, Data Map blk 4, Data Map blk 5, Log 2",
+     "procedure": [
+      "[Submit DTP] with nothing selected.",
+      "Select 3 Available rows, [Submit DTP (3)], [Cancel], then again and confirm."
+     ],
+     "expected": [
+      "Msg no.27 (Warning): 'Select at least one eligible record.'",
+      "Msg no.28 (Confirmation): 'Submit 3 delivery record(s) as DTP for {dd-Mon-yyyy}? Submitted records cannot be submitted again.'",
+      "Msg no.31 (Info): '3 record(s) submitted and sent to the processing queue.'",
+      "DB (SQL TD-11): ielp.DTP_2_DETAIL STATUS SUBMITTED, SUBMITTED_BY / SUBMITTED_DT, VERSION + 1 [DCR]; Log no.2 (Info): '{n} DTP record(s) of {DTP_DATE} submitted by {user}: {DTP_DET_ID list}.'"
+     ]
+    },
+    {
+     "key": "subfail",
+     "case": "Submit rejected / server error",
+     "ref": "UISS: Msg no.17, Msg no.29, Msg no.30, Log 3",
+     "procedure": [
+      "Select a row that another user submitted meanwhile; submit.",
+      "Submit a key already submitted on another date.",
+      "Stop the server during submit."
+     ],
+     "expected": [
+      "Msg no.29 (Error): '1 selected record(s) are no longer eligible (already submitted or invalid).'",
+      "Msg no.17 (Error): '{key} has already been submitted (status {status}). It cannot be submitted again.'",
+      "Msg no.30 (Error): 'Submission failed: the server did not respond. No record was submitted; they stay selected so you can submit again.'; Log no.3 (Error): 'DTP submission of {DTP_DATE} failed: {error}. No record changed.'"
+     ]
+    },
+    {
+     "key": "retry",
+     "case": "Retry failed record",
+     "ref": "UISS: Item 40, Msg no.32, Data Map blk 6",
+     "procedure": [
+      "Options > Retry on a Failed record."
+     ],
+     "expected": [
+      "Msg no.32 (Info): 'Record {id} sent to the processing queue again.'",
+      "STATUS QUEUED, FAIL_REASON cleared (refer ST DTP Queue Processing)."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Master KPI and Payment Type",
+   "items": [
+    {
+     "key": "kpi",
+     "case": "DTP Creation vs Master KPI (By Resources / By Trip)",
+     "ref": "UISS: Item 52-72, 5.11, 5.14, Msg no.36, Msg no.52",
+     "procedure": [
+      "Select DTP above the Daily Trip of DNX; select a LP without Order Sharing.",
+      "Set Master KPI By Trip total = 95%."
+     ],
+     "expected": [
+      "Msg no.36 (Warning): 'Master KPI check (not blocking): {LP} {after} / {limit} exceeds by {n} · {LP} has no Master KPI Order Sharing' (not blocking)",
+      "Msg no.52 (Warning): 'Total By Trip is 95.00%; it must be 100.00%. Check Master KPI.'"
+     ]
+    },
+    {
+     "key": "pay",
+     "case": "Payment Type per DTP",
+     "ref": "UISS: Item 47-51, 5.15, Msg no.53, Msg no.54, Msg no.55, Msg no.56, Data Map blk 11",
+     "procedure": [
+      "Submit a record without Payment Type.",
+      "Set Payment Type By Trip for a LP without By Trip in Master KPI.",
+      "Change Payment Type of a submitted record.",
+      "Set Payment Type ▾ = By Resources for 2 selected rows."
+     ],
+     "expected": [
+      "Msg no.53 (Error): 'Select a valid Payment Type (By Resources / By Trip) for 1 record(s) before submitting.'",
+      "Msg no.54 (Error): '{LP} has no By Trip in Master KPI.'",
+      "Msg no.55 (Error): '{Container / Booking}: {status}, Payment Type cannot be changed.'",
+      "Msg no.56 (Info): '2 record(s): Payment Type By Resources.'; DB PAY_TYPE (DCR-17)."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DTP Switching and Maintenance",
+   "items": [
+    {
+     "key": "switch",
+     "case": "DTP Switching (rollback)",
+     "ref": "UISS: Item 73-79, 5.12, Msg no.37, Msg no.38, Msg no.39, Msg no.40, Msg no.41, Data Map blk 8",
+     "procedure": [
+      "Tick DTP Switching on a Processed record, [DTP Switching (1)].",
+      "Confirm Rollback.",
+      "Repeat for a record whose driver has started; for a record changed meanwhile; with the DB stopped."
+     ],
+     "expected": [
+      "Msg no.41 (Confirm): 'Are you sure you want to rollback this DTP submission? The DTP will become available for correction and resubmission.'",
+      "Msg no.37 (Info): 'DTP rollback completed successfully.' (backend: ST DTP Switching).",
+      "Msg no.38 (Error): 'DTP cannot be rolled back because the driver has already started the process.' / Msg no.39 (Error): 'DTP is no longer eligible for rollback. Please refresh the data and try again.' / Msg no.40 (Error): 'DTP rollback failed. No data was changed. Please try again.'"
+     ]
+    },
+    {
+     "key": "maint",
+     "case": "DTP Maintenance: delete / restore / change / save",
+     "ref": "UISS: Item 80-120, 5.13, Msg no.42, Msg no.43, Msg no.44, Msg no.45, Msg no.49, Msg no.50, Data Map blk 9, Data Map blk 10",
+     "procedure": [
+      "Click a calendar entry DTP 2 of 15-Nov-2026 (maintenance).",
+      "[Save] without change.",
+      "Select 2 rows, Delete Selected; Restore 1; change Renban of a row; [Save], confirm.",
+      "Change a cell, click Back."
+     ],
+     "expected": [
+      "Msg no.49 (Info): 'There is no change to save.'",
+      "Msg no.42 (Info): '2 DTP marked for deletion. Click Save to confirm.', Msg no.43 (Info): '1 DTP restored.'",
+      "Msg no.44 (Confirm): 'Save the following change(s) for 15-Nov-2026? The driver status is checked again before saving.'; Msg no.45 (Info): '1 DTP cancelled, 1 DTP updated.'",
+      "Msg no.50 (Confirm): 'There are {n} unsaved change(s) in the DTP n list. Leave without saving?'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "mfail",
+   "case": "Maintenance save rejected",
+   "ref": "UISS: Msg no.46, Msg no.47, Msg no.48",
+   "procedure": [
+    "Driver starts an order after the change; [Save].",
+    "Clear a mandatory cell, [Save].",
+    "Stop DB, [Save]."
+   ],
+   "expected": [
+    "Msg no.46 (Error): '1 DTP row(s) can no longer be changed (driver started / order missing). Nothing was saved.'",
+    "Msg no.47 (Error): '1 DTP row(s) have invalid data. Please correct the highlighted fields.'",
+    "Msg no.48 (Error): 'Save failed. No data was changed. Please try again.'"
+   ]
+  },
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.35",
+   "procedure": [
+    "A and B edit the same record; B saves first, A saves."
+   ],
+   "expected": [
+    "Msg no.35 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Users Planner VPLD, IELP Admin; System Master backdate / advance days set (TB_M_SYSTEM).",
+   "Master: LP DNX, PNJ (Master KPI), locations D1, S1; IPMS stub.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "data": [
+   [
+    "{tc:val}",
+    "A LP / Renban",
+    "blank / \"ST-M01\" (21 chars)",
+    "Msg 6 / Msg 10"
+   ],
+   [
+    "{tc:val}",
+    "A Round Use / Ctr Size",
+    "\"X\" / \"30\"",
+    "Msg 7"
+   ],
+   [
+    "{tc:val}",
+    "A From / To",
+    "unknown \"ZZ\" / To = From",
+    "Msg 8 / Msg 9"
+   ],
+   [
+    "{tc:val}",
+    "A ETD / Arrival time",
+    "\"31-02-2026\" / \"25:00\"",
+    "Msg 11"
+   ],
+   [
+    "{tc:val}",
+    "A Container",
+    "\"MSKU1234560\"",
+    "Msg 12"
+   ],
+   [
+    "{tc:val}",
+    "A Container (dup)",
+    "in grid / submitted",
+    "Msg 13 / Msg 14"
+   ]
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:add}",
+    "title": "DTP record",
+    "sql": "SELECT * FROM ielp.DTP_2_DETAIL WHERE DTP_DATE = '2026-11-15' AND CONTAINER_NO = 'MSKU1234565';\nSELECT * FROM ielp.LOG_ACTIVITY_ORDER WHERE DTP_DET_ID = :id;"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:submit}",
+    "title": "Submitted",
+    "sql": "SELECT DTP_DET_ID, STATUS, SUBMITTED_BY, SUBMITTED_DT, VERSION FROM ielp.DTP_2_DETAIL WHERE DTP_DET_ID IN (:ids);  -- STATUS / VERSION [DCR]"
+   }
+  ]
+ }
+}

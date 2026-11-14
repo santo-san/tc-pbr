@@ -1,0 +1,155 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Route Percentage",
+  "uiss_name": "UISS-Screen Master Route Percentage",
+  "uiss_rev": "0.3",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen",
+     "ref": "UISS: Item 1-28, 5.1, Msg no.15",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open Master > Route Percentage.",
+      "Deactivate all routes (test DB), reopen."
+     ],
+     "expected": [
+      "Route Entry with Location Pick and stops table; list of active routes with total percentage.",
+      "Msg no.15 (Info): 'No active route found.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and no result",
+     "ref": "UISS: Item 16, Msg no.16",
+     "procedure": [
+      "Search \"KRW\".",
+      "Search \"ZZZ\"."
+     ],
+     "expected": [
+      "Matching routes.",
+      "Msg no.16 (Info): 'No route found for the selected criteria.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Add Operation",
+   "items": [
+    {
+     "key": "add",
+     "case": "Create route with stops",
+     "ref": "UISS: Item 3-15, 5.2-5.4, Msg no.11, Log 1, Log 4",
+     "procedure": [
+      "Pick D1, S1, K1E; Percentage = 12.5; [Save]."
+     ],
+     "expected": [
+      "Route Code / Description built from the stops; distance = sum of legs (mileage or straight-line estimate, log no.4).",
+      "Msg no.11 (Info): 'Route D1-S1-K1E has been successfully created.'",
+      "DB: ielp.MS_ROUTE_HEADER (ROUTE_PERCENTAGE_VALUE 12.5, DISTANCE_KM - DCR-21), ielp.MS_ROUTE_DETAIL (ROUTE_CODE, ROUTE_DESCR), MS_ROUTE_STOP rows (DCR-20)."
+     ]
+    },
+    {
+     "key": "val",
+     "case": "Stop and percentage validation",
+     "ref": "UISS: Item 5-8, Item 12, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.6, Msg no.7, Msg no.8, Msg no.9",
+     "procedure": [
+      "Pick inactive X9; pick the last stop again; 11 stops; save with 1 stop; reorder to repeat a stop; existing route code; blank / 0 / 100.5 percentage; total > 100%."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Location X9 is not an active location in Master Location.'",
+      "Msg no.2 (Error): 'Location K1E is already the last stop of the route.'",
+      "Msg no.3 (Error): 'A route can have at most 10 locations.'",
+      "Msg no.4 (Error): 'Route must have at least 2 locations (start and end).'",
+      "Msg no.5 (Error): 'Location S1 cannot follow itself. Please change the order.'",
+      "Msg no.6 (Error): 'Route D1-S1 already exists. Please edit the existing route.'",
+      "Msg no.7 (Error): 'Percentage is required.'",
+      "Msg no.8 (Error): 'Percentage must be a number greater than 0 and at most 100, with max 2 decimals.'",
+      "Msg no.9 (Error): 'Total percentage of active routes would be 101%. The maximum is 100%.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Update Operation",
+   "items": [
+    {
+     "key": "upd",
+     "case": "Edit route / percentage in list",
+     "ref": "UISS: Item 18, 5.5, Msg no.12, Log 2",
+     "procedure": [
+      "Opsi > Edit, move a stop, [Save].",
+      "Change percentage in the list."
+     ],
+     "expected": [
+      "Msg no.12 (Info): 'Route D1-S1-K1E has been successfully updated.'",
+      "MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE updated."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Deactivate Operation",
+   "items": [
+    {
+     "key": "deact",
+     "case": "Deactivate route",
+     "ref": "UISS: Msg no.13, Msg no.14, Log 3",
+     "procedure": [
+      "Opsi > Deactivate, confirm."
+     ],
+     "expected": [
+      "Msg no.13 (Confirmation): 'Deactivate route {Code} ({Description})? Percentage {p}% is released and the route is no longer used in PR creation.'",
+      "Msg no.14 (Info): 'Route D1-S1-K1E has been deactivated and is no longer used in PR creation.'",
+      "IS_DELETE set; percentage released."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.10",
+   "procedure": [
+    "A and B edit the same route."
+   ],
+   "expected": [
+    "Msg no.10 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "dberr",
+   "case": "DB error",
+   "ref": "UISS: Log 5",
+   "procedure": [
+    "Stop DB; save."
+   ],
+   "expected": [
+    "Log no.5 (Error): 'Failed to save route {Code}: {Error}.'"
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Active locations D1, S1, K1E; X9 inactive; mileage D1->S1 known, S1->K1E unknown (estimate).",
+   "DCR-20 / DCR-21 applied."
+  ]
+ }
+}

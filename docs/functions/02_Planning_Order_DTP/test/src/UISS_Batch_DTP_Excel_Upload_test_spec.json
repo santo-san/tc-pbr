@@ -1,0 +1,261 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "DTP Creation - Excel Upload",
+  "uiss_name": "UISS-Batch DTP Excel Upload",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Upload started: log",
+     "ref": "UISS: Func Flow step 1, Log no.1, Data Map blk 1",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check TB_R_DTP_UPLOAD_LOG (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.1 (Info): 'DTP upload id started by planner for plan date 15-Nov-2026, file dtp_ok.xlsx.'",
+      "STATUS PROCESSING, START_DT, CREATED_BY."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026 (Universal DTP).",
+      "Upload Excel: [Choose File] with the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "temp",
+     "case": "Rows to temp and validation",
+     "ref": "UISS: Func Flow step 4-5, 4.1, Data Map blk 2, Data Map blk 3",
+     "procedure": [
+      "Check TB_T_DTP_UPLOAD (SQL TD-11)."
+     ],
+     "expected": [
+      "One row per data row (*_TXT as typed), VALIDATION_STATUS V, ERROR_MSG empty."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026 (Universal DTP).",
+      "Upload Excel: [Choose File] with the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "ins",
+     "case": "Records inserted",
+     "ref": "UISS: Func Flow step 7, 4.2, Data Map blk 4, Data Map blk 5",
+     "procedure": [
+      "Check DTP records and activity log (SQL TD-12)."
+     ],
+     "expected": [
+      "ielp.DTP_2_DETAIL: 5 rows, DTP_DATE, COMPANY_ID, RENBAN, FROM_LOC, TO_LOC, CONTAINER_NO, status Available; ielp.LOG_ACTIVITY_ORDER one row each."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026 (Universal DTP).",
+      "Upload Excel: [Choose File] with the test file (Test Data)."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Upload completed",
+     "ref": "UISS: Func Flow step 8, 4.3, Log no.17, Data Map blk 6, Data Map blk 7",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check log and temp table."
+     ],
+     "expected": [
+      "Log no.17 (Info): '5 record(s) uploaded and validated. (dtp_ok.xlsx)'",
+      "Log STATUS SUCCESS, counts, END_DT; temp rows deleted."
+     ],
+     "execution": [
+      "Login as Planner VPLD, open Planning Order 15-Nov-2026 (Universal DTP).",
+      "Upload Excel: [Choose File] with the test file (Test Data)."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "lock",
+   "case": "Upload while another is running",
+   "ref": "UISS: Log no.2",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Error): 'Upload rejected: upload <UPLOAD_ID_RUNNING> of <USER> is still running.'"
+   ],
+   "execution": [
+    "Start a large upload; upload again with the same user."
+   ]
+  },
+  {
+   "key": "file",
+   "case": "File errors",
+   "ref": "UISS: Func Flow step 3, Log no.3, Log no.4, Log no.5, Log no.6",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.3 (Error): 'Invalid file. Please upload the Excel template (.xlsx / .xls).'",
+    "Log no.4 (Error): 'File <FILE_NAME> exceeds the maximum size <MAX_SIZE> (TBD).'",
+    "Log no.5 (Error): 'Invalid Excel format: column(s) <COLUMNS> not found. Please use the Download Template format.'",
+    "Log no.6 (Error): 'The Excel file has no data rows.'",
+    "Nothing in temp / DTP tables."
+   ],
+   "tbd": "Max size TBD",
+   "execution": [
+    "Upload wrong.csv; a file above the size limit (TBD); a file with renamed columns; an empty template."
+   ]
+  },
+  {
+   "key": "rows",
+   "case": "Row errors: nothing added",
+   "ref": "UISS: 4.1.1-4.1.4, Log no.7, Log no.8, Log no.9, Log no.10, Log no.11, Log no.12, Log no.13, Log no.14, Log no.15",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    },
+    "Check temp rows (SQL TD-11) and DTP table."
+   ],
+   "expected": [
+    "One log per error: Log no.7, Log no.8, Log no.9, Log no.10, Log no.11, Log no.12, Log no.13, Log no.14 (Test Data table A rows 1-8).",
+    "Log no.15 (Error): '8 row(s) failed validation. No record was added. Please correct the file and upload again.'",
+    "Temp rows E with ERROR_MSG; no DTP record added."
+   ],
+   "execution": [
+    "Upload dtp_errors.xlsx (Test Data table A)."
+   ]
+  },
+  {
+   "key": "db",
+   "case": "Insert failed",
+   "ref": "UISS: Log no.16",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.16 (Critical): 'Upload <UPLOAD_ID>: insert into ielp.DTP_2_DETAIL failed (<DB_ERROR>). Transaction rolled back.'",
+    "Rollback; log STATUS ERROR."
+   ],
+   "execution": [
+    "Lock ielp.DTP_2_DETAIL in the test DB; upload dtp_ok.xlsx."
+   ]
+  },
+  {
+   "key": "sys",
+   "case": "Unexpected error",
+   "ref": "UISS: Log no.18",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.18 (Critical): 'Upload <UPLOAD_ID> stopped: <EXCEPTION>.'"
+   ],
+   "execution": [
+    "Stop the DB during validation."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Planner VPLD; LP DNX, PNJ; locations D1, S1; DTP of 15-Nov-2026 open.",
+   "Proposed tables TB_T_DTP_UPLOAD / TB_R_DTP_UPLOAD_LOG (not in ELIPS - DCR) created in the test DB."
+  ],
+  "data": [
+   [
+    "{tc:start}",
+    "dtp_ok.xlsx",
+    "5 valid rows (format_DTP2_1.xlsx)",
+    "5 added"
+   ],
+   [
+    "{tc:rows}",
+    "A row 1-8",
+    "blank LP; Ctr Size 30; unknown From; To = From; Renban 21 chars / bad date; bad check digit; same container twice; container submitted",
+    "Log 7..14"
+   ]
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:end}",
+    "title": "Upload log",
+    "sql": "SELECT * FROM TB_R_DTP_UPLOAD_LOG ORDER BY UPLOAD_ID DESC;"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:temp}, {tc:rows}",
+    "title": "Temp rows",
+    "sql": "SELECT ROW_NO, VALIDATION_STATUS, ERROR_MSG FROM TB_T_DTP_UPLOAD WHERE UPLOAD_ID = :upload_id ORDER BY ROW_NO;"
+   },
+   {
+    "id": "TD-12",
+    "tc": "{tc:ins}",
+    "title": "DTP records",
+    "sql": "SELECT * FROM ielp.DTP_2_DETAIL WHERE DTP_DATE = '2026-11-15' ORDER BY DTP_DET_ID;\nSELECT * FROM ielp.LOG_ACTIVITY_ORDER WHERE DTP_DET_ID IN (:ids);"
+   }
+  ]
+ }
+}

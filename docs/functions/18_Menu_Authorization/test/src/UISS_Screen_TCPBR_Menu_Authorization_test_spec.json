@@ -1,0 +1,172 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "TC-PBR Menu & Authorization",
+  "uiss_name": "UISS-Screen TCPBR Menu Authorization",
+  "uiss_rev": "0.2",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Role Access",
+   "items": [
+    {
+     "key": "r1",
+     "case": "Menu and access: IELP Admin",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as IELP Admin.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Daily Monitoring X, Planning Order V, Truck Assignment V, SA Approval V, SA Monitoring X, Master X, PR Creation V, PR / PO Approval V, Inquiry V (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r2",
+     "case": "Menu and access: Planner VPLD",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as Planner VPLD.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Daily Monitoring X, Planning Order X, Truck Assignment V, SA Approval X, SA Monitoring V, Master X; no Monthly menus (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r3",
+     "case": "Menu and access: LP Admin",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as LP Admin.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Daily Monitoring X, Truck Assignment X, SA Monitoring V, Master X; no Planning Order, SA Approval, Monthly (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r4",
+     "case": "Menu and access: Supplier Viewer",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as Supplier Viewer.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Daily Monitoring V, Truck Assignment V, SA Monitoring V, Master X, PR / PO Approval V, Inquiry V (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r5",
+     "case": "Menu and access: Driver",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as Driver.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Daily Monitoring X, Master X only (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r6",
+     "case": "Menu and access: VPLD Staff / SH",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as VPLD Staff / SH.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Master X, PR Creation X, PR / PO Approval V, Inquiry V (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r7",
+     "case": "Menu and access: Approver (SH / DpH / DH)",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as Approver (SH / DpH / DH).",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Master X, PR Creation V, PR / PO Approval X, Inquiry V (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r8",
+     "case": "Menu and access: GA",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as GA.",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Master X, PR / PO Approval V (PO approve per ST PO Approval), Inquiry V (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    }
+   ]
+  },
+  {
+   "title": "Database",
+   "items": [
+    {
+     "key": "db",
+     "case": "Menus and classes from ELIPS user tables",
+     "ref": "UISS: 5.2, 5.3",
+     "procedure": [
+      "Run SQL TD-10 for each test user.",
+      "Compare with the menus shown."
+     ],
+     "expected": [
+      "Menus = ielp.USERID_MENU_OPTION of the user classes (ielp.USERID_DETAIL); labels from ielp.MASTER_MENU_LANG."
+     ],
+     "tbd": "TC-PBR APP_ID TBD"
+    }
+   ]
+  }
+ ],
+ "abnormal": [],
+ "test_data": {
+  "precondition": [
+   "One test user per role in ielp.USERID / USERID_DETAIL."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:db}",
+    "title": "Menus of a user",
+    "sql": "SELECT m.MENU_ID, m.MENU_ITEM, m.MENU_PARENT FROM ielp.USERID_DETAIL d\nJOIN ielp.USERID_MENU_OPTION o ON o.USERID_CLASS = d.USERID_CLASS AND o.SITE_ID = d.SITE_ID\nJOIN ielp.MASTER_MENU m ON m.MENU_ID = o.MENU_ID WHERE d.USERNAME = :user ORDER BY m.MENU_INDEX;"
+   }
+  ]
+ }
+}

@@ -1,0 +1,131 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "TC-PBR Service Acceptance Monitoring",
+  "uiss_name": "UISS-Screen SA Monitoring",
+  "uiss_rev": "0.6",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen per role",
+     "ref": "UISS: Item 1-19, 5.1, Msg no.1",
+     "procedure": [
+      "Login as IELP Admin, open Service Acceptance > SA Monitoring.",
+      "Login as Driver, open the URL."
+     ],
+     "expected": [
+      "Criteria, status chips, tabs, list of SA details.",
+      "Msg no.1 (Error): 'SA Monitoring is not available for this role.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search, no data, export",
+     "ref": "UISS: Item 2-14, 19, 5.2, Export Excel, Msg no.2, Msg no.3",
+     "procedure": [
+      "SA Date 01-14 Nov 2026, Status, Truck Company DNX, [Search].",
+      "SA Number \"ZZZ\".",
+      "Export Excel with no data."
+     ],
+     "expected": [
+      "Rows of ielp.SA_DETAIL / ielp.SA_HEADER matching all criteria.",
+      "Msg no.2 (Info): 'No Data Found'",
+      "Msg no.3 (Info): 'Tidak ada data untuk diexport'"
+     ]
+    },
+    {
+     "key": "cols",
+     "case": "List, WBS group and detail",
+     "ref": "UISS: Item 20-52, 5.3-5.7",
+     "procedure": [
+      "Check columns; tab WBS group; open Detail and Interface Log."
+     ],
+     "expected": [
+      "ELIPS vs PAS data, WBS columns (ielp.SA_WBS_PERCENTAGE), interface status; detail sections A-G; event table from ielp.LOG_ITGPAS."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Retry Interface",
+   "items": [
+    {
+     "key": "retry",
+     "case": "Retry a failed SA",
+     "ref": "UISS: 5.8, Msg no.4, Data Map blk 1, Data Map blk 2, Data Map blk 3, Log 1",
+     "procedure": [
+      "Options > Retry Interface on a FAILED SA (PAS stub OK)."
+     ],
+     "expected": [
+      "Msg no.4 (Info): 'SA SA-01 sent to PAS'",
+      "DB: PAS_STATUS, INTERFACE_ATTEMPT + 1, CORRELATION_ID; LOG_ITGPAS row; Log no.1 (Info): '{SA_CODE} {event} by {actor}, correlation {id}, {prev} -> {new}.'"
+     ]
+    },
+    {
+     "key": "rerr",
+     "case": "Retry refused",
+     "ref": "UISS: 5.8, Msg no.5, Msg no.6, Msg no.7, Msg no.8, Log 2",
+     "procedure": [
+      "Retry with PAS stub returning TIMEOUT.",
+      "Retry as a user without retry authorization.",
+      "Retry an SA where PAS already returned PR.",
+      "Retry a SENT SA."
+     ],
+     "expected": [
+      "Msg no.5 (Error): '{Error message} (PAS_UNAVAILABLE / TIMEOUT / INVALID_REQUEST / PAS_REJECTED)'; Log no.2 (Error): '{SA_CODE} PAS_REQUEST_FAILED {code}: {message}.'",
+      "Msg no.6 (Error): 'Retry Interface needs the retry authorization'",
+      "Msg no.7 (Warning): 'PAS already returned data; the failed PAS step is handled in PAS (no resend)'",
+      "Msg no.8 (Warning): 'SA {SA Number} is {status}, cannot be sent'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "PAS Feedback",
+   "items": [
+    {
+     "key": "fb",
+     "case": "Feedback shown on the screen",
+     "ref": "UISS: 5.9, Log 3, Log 4, Log 5",
+     "procedure": [
+      "PAS sends PR / PO feedback; an error feedback; a feedback while the DB is locked (ST SA PAS Interface)."
+     ],
+     "expected": [
+      "Log no.3 (Info): '{SA_CODE} {PAS_PR_RECEIVED / PAS_PO_RECEIVED / PAS_PROCESS_COMPLETED}, feedback {id}.'",
+      "Log no.4 (Warning): '{SA_CODE} PAS_FEEDBACK_FAILED {code}: {message}, feedback {id}.'",
+      "Log no.5 (Error): 'Feedback {id} for {SA_CODE} not saved: {error}.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [],
+ "test_data": {
+  "precondition": [
+   "SA of Nov 2026 in statuses SENT, FAILED, PR_RECEIVED, COMPLETED; PAS stub.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:retry}",
+    "title": "Retry",
+    "sql": "SELECT SA_CODE, PAS_STATUS, INTERFACE_ATTEMPT, CORRELATION_ID FROM ielp.SA_HEADER WHERE SA_CODE = 'SA-01';  -- [DCR]\nSELECT * FROM ielp.LOG_ITGPAS ORDER BY CRETED_DATE DESC;"
+   }
+  ]
+ }
+}

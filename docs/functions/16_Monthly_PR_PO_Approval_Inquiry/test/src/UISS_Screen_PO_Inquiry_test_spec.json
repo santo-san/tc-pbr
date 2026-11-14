@@ -1,0 +1,80 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "PO Inquiry",
+  "uiss_name": "UISS-Screen PO Inquiry",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen and access",
+     "ref": "UISS: Item 1-9, 5.1, 5.2.1, Msg no.3, Log no.1",
+     "procedure": [
+      "Login as VPLD Staff, open Monthly > PO Inquiry.",
+      "Login as LP Admin, open a PO of another company (URL)."
+     ],
+     "expected": [
+      "PO of the current production month, read only (no Approve / Reject); no data change, Log no.1 not applicable.",
+      "Msg no.3 (Error): 'You are not authorized to access PO-X.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search, no data, list",
+     "ref": "UISS: Item 1-27, 5.2.2, 5.4, Msg no.1, Msg no.2",
+     "procedure": [
+      "Prod. Month From 2026-12, To 2026-11, [Search].",
+      "PO Number \"ZZZ\", [Search].",
+      "Valid range, Status, [Search]; [Clear]."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Prod. Month From must be earlier than or equal to Prod. Month To.'",
+      "Msg no.2 (Info): 'No Data Found'",
+      "Matching POs with status, order sharing and paging; Clear resets."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Detail and Download",
+   "items": [
+    {
+     "key": "detail",
+     "case": "Detail modal and download",
+     "ref": "UISS: Item 28-38, 5.3",
+     "procedure": [
+      "Click a PO Number; click Download."
+     ],
+     "expected": [
+      "Routes, %, qty, price, footer, approval history; file downloaded."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [],
+ "test_data": {
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:search}",
+    "title": "Documents",
+    "sql": "SELECT * FROM ielp.PO_HEADER WHERE CRITERIA_PERIODE BETWEEN '202611' AND '202612';"
+   }
+  ]
+ }
+}

@@ -1,0 +1,240 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "DTP Creation - Queue Processing",
+  "uiss_name": "UISS-Batch DTP Queue Processing",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Queue started",
+     "ref": "UISS: Func Flow step 1-2, Log no.1, Data Map blk 1, Data Map blk 2",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check the records (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.1 (Info): 'DTP queue processing started (3 record(s) waiting).'",
+      "STATUS QUEUED [DCR]; LOG_ACTIVITY_ORDER rows QUEUED."
+     ],
+     "execution": [
+      "Submit 3 DTP records on Planning Order (Planner VPLD); the queue job runs (scheduler / trigger TBD)."
+     ]
+    },
+    {
+     "key": "proc",
+     "case": "Daily order created",
+     "ref": "UISS: Func Flow step 3-6, 4.1, 4.2, Log no.8, Data Map blk 3, Data Map blk 4, Data Map blk 5, Data Map blk 6, Data Map blk 7, Data Map blk 8",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check ORDER_CYCLE and DTP record (SQL TD-10, TD-11)."
+     ],
+     "expected": [
+      "Log no.8 (Info): 'DTP record <DTP_DET_ID> processed: Daily order <ORDER_NO> (<COMPANY_ID>, <DTP_DATE>).'",
+      "ielp.ORDER_CYCLE: ORDER_NO, cycle 1 DTP Creation Release, PAY_TYPE (DCR-17); ielp.DTP_2_DETAIL: STATUS PROCESSED, ORDER_NO; history PROCESSING / PROCESSED."
+     ],
+     "execution": [
+      "Submit 3 DTP records on Planning Order (Planner VPLD); the queue job runs (scheduler / trigger TBD)."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Queue finished",
+     "ref": "UISS: Log no.9",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.9 (Info): 'DTP queue processing finished: 3 processed, 0 failed.'"
+     ],
+     "execution": [
+      "Submit 3 DTP records on Planning Order (Planner VPLD); the queue job runs (scheduler / trigger TBD)."
+     ]
+    },
+    {
+     "key": "empty",
+     "case": "Nothing waiting",
+     "ref": "UISS: Log no.4",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.4 (Info): 'No DTP record waiting in the queue.'"
+     ],
+     "execution": [
+      "Run the job with no submitted record."
+     ]
+    },
+    {
+     "key": "nodouble",
+     "case": "No double processing",
+     "ref": "UISS: 4.3",
+     "procedure": [
+      "Run two job instances at the same time; check ORDER_CYCLE."
+     ],
+     "expected": [
+      "Each record processed once; one order per record."
+     ],
+     "execution": [
+      "Submit 3 DTP records on Planning Order (Planner VPLD); the queue job runs (scheduler / trigger TBD)."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "db",
+   "case": "DB not reachable / parameter missing",
+   "ref": "UISS: Log no.2, Log no.3",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Critical): 'Database cannot be connected.'",
+    "Log no.3 (Error): 'System Master parameter <PARAM> for DTP queue is not configured.'"
+   ],
+   "execution": [
+    "Stop the DB; run. Then remove the queue parameter in TB_M_SYSTEM; run."
+   ]
+  },
+  {
+   "key": "invalid",
+   "case": "Record no longer valid",
+   "ref": "UISS: 4.4, Log no.5, Data Map blk 9, Data Map blk 10",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    },
+    "Check the record."
+   ],
+   "expected": [
+    "Log no.5 (Error): 'DTP record <DTP_DET_ID>: <COLUMN> <VALUE> is no longer valid. Record set to FAILED.'",
+    "STATUS FAILED, FAIL_REASON; history FAILED."
+   ],
+   "execution": [
+    "Deactivate the LP of a submitted record; run."
+   ]
+  },
+  {
+   "key": "retry",
+   "case": "Order creation fails (retryable)",
+   "ref": "UISS: Log no.6, Log no.7",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.6 (Error): 'DTP record <DTP_DET_ID>: Daily order could not be created (<ERROR>). Record set to FAILED (retryable).'",
+    "Log no.7 (Warning): 'DTP record <DTP_DET_ID> failed <ATTEMPT_CNT> times.' after the attempt limit (TBD)."
+   ],
+   "execution": [
+    "Make the order insert fail (test hook); run several times."
+   ]
+  },
+  {
+   "key": "stop",
+   "case": "Unexpected stop",
+   "ref": "UISS: Log no.10",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.10 (Critical): 'DTP queue processing stopped: <EXCEPTION>.'"
+   ],
+   "execution": [
+    "Kill the DB connection during processing."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "3 records of 15-Nov-2026 submitted; queue parameters in ielp.TB_M_SYSTEM.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:proc}",
+    "title": "Records",
+    "sql": "SELECT DTP_DET_ID, STATUS, ORDER_NO, FAIL_REASON, ATTEMPT_CNT, VERSION FROM ielp.DTP_2_DETAIL WHERE DTP_DET_ID IN (:ids);\nSELECT * FROM ielp.LOG_ACTIVITY_ORDER WHERE DTP_DET_ID IN (:ids) ORDER BY CREATED_DATE;"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:proc}",
+    "title": "Daily order",
+    "sql": "SELECT ORDER_NO, CYCLE_SEQ, STATUS_CODE, DTP_HEADER_ID, PAY_TYPE FROM ielp.ORDER_CYCLE WHERE ORDER_NO IN (:orders);"
+   }
+  ]
+ }
+}

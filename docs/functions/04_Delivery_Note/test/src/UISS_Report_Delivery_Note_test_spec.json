@@ -1,0 +1,146 @@
+{
+ "header": {
+  "doc_type": "report",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Delivery Note (Surat Jalan)",
+  "uiss_name": "UISS-Report Delivery Note",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "pdf",
+     "case": "Delivery Note PDF content",
+     "ref": "UISS: Item 1-22, 1., 2.2, 3., Log no.13",
+     "procedure": [
+      "Open the PDF."
+     ],
+     "expected": [
+      "Header: Printed By / Date, logo, company, title, Nama, No. Telp, No Polisi, Tanggal, SA Number, No Order, No Cycle Order, Cycle.",
+      "Body: NO, LOKASI ASAL, LOKASI TUJUAN, CTR NO, KETERANGAN.",
+      "Footer: officer label, stamp, division, watermark.",
+      "Log no.13 (Info): 'Delivery Note ORD-01-1 generated (1 page(s), size bytes).'"
+     ],
+     "execution": [
+      "Login as IELP Admin, open Daily Monitoring, open order ORD-01, click Surat Jalan ELIPS of cycle 1."
+     ]
+    },
+    {
+     "key": "attach",
+     "case": "PAS GR attachment",
+     "ref": "UISS: 4., Log no.16, Log no.15",
+     "procedure": [
+      "Check the attachment and the log."
+     ],
+     "expected": [
+      "Log no.16 (Info): 'Delivery Note {0} attached to GR (Rev {1}).'",
+      "Second time: Log no.15 (Info): 'Delivery Note {0} is already attached, not duplicated.'"
+     ],
+     "execution": [
+      "Trigger the GR attachment of the delivery (refer ST GR Attachment); run twice."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "svc",
+   "case": "Service / authorization errors",
+   "ref": "UISS: 2.1, Log no.1, Log no.2, Log no.7",
+   "procedure": [
+    "Check the response and log."
+   ],
+   "expected": [
+    "Log no.1 (Critical): 'Delivery Note service is unavailable.'",
+    "Log no.2 (Error): 'Unauthorized request to Delivery Note {0}.'",
+    "Log no.7 (Warning): 'User {0} has no access to delivery {1}.'"
+   ],
+   "execution": [
+    "Stop the service; call without token; LP Admin of PNJ opens a DNX delivery."
+   ]
+  },
+  {
+   "key": "param",
+   "case": "Parameter errors",
+   "ref": "UISS: 2.1, Log no.3, Log no.4, Log no.5, Log no.6",
+   "procedure": [
+    "Check the response."
+   ],
+   "expected": [
+    "Log no.3 (Error): 'Parameter deliveryId is mandatory.'",
+    "Log no.4 (Error): 'Invalid deliveryId format: {0}.'",
+    "Log no.5 (Error): 'Delivery {0} is not found.'",
+    "Log no.6 (Error): 'Delivery ID {0} is not unique.'"
+   ],
+   "execution": [
+    "Call without deliveryId; with \"abc!\"; unknown id; an id matching two deliveries."
+   ]
+  },
+  {
+   "key": "data",
+   "case": "Incomplete data (DN-R01)",
+   "ref": "UISS: 2.3, Log no.8",
+   "procedure": [
+    "Check the response."
+   ],
+   "expected": [
+    "Log no.8 (Error): 'Delivery Note data of {0} is incomplete: {1}.'"
+   ],
+   "execution": [
+    "Delivery without driver phone."
+   ]
+  },
+  {
+   "key": "gen",
+   "case": "Generation errors",
+   "ref": "UISS: 3., Log no.9, Log no.10, Log no.11, Log no.12",
+   "procedure": [
+    "Check the response."
+   ],
+   "expected": [
+    "Log no.9 (Error): 'Delivery Note generation timeout for {0}.'",
+    "Log no.10 (Critical): 'Failed to generate Delivery Note PDF for {0}.'",
+    "Log no.11 (Critical): 'Generated Delivery Note of {0} is invalid ({1}).'",
+    "Log no.12 (Warning): 'Delivery Note {0} is being processed.'"
+   ],
+   "tbd": "SLA TBD",
+   "execution": [
+    "Slow the generator past the timeout (TBD); make the generator fail; return an invalid PDF; request twice in parallel."
+   ]
+  },
+  {
+   "key": "gr",
+   "case": "GR attachment failed",
+   "ref": "UISS: Log no.14",
+   "procedure": [
+    "Check the log."
+   ],
+   "expected": [
+    "Log no.14 (Error): 'PAS GR attachment of {0} failed: {1}.'"
+   ],
+   "execution": [
+    "Stop the PAS FTP stub; trigger the attachment."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Order ORD-01 with 2 cycles, driver, plate, SA number."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:pdf}",
+    "title": "Data printed",
+    "sql": "SELECT c.ORDER_NO, c.CYCLE_SEQ, c.CONTAINER_NO, c.FROM_LOC, c.TO_LOC FROM ielp.ORDER_CYCLE c WHERE c.ORDER_NO = 'ORD-01';\nSELECT * FROM ielp.ORDER_FILES WHERE ORDER_NO = 'ORD-01';"
+   }
+  ]
+ }
+}

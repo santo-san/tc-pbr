@@ -1,0 +1,247 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Master Mileage (Route Mileage)",
+  "uiss_name": "UISS-Screen Master Mileage",
+  "uiss_rev": "0.7",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen: accordions and list",
+     "ref": "UISS: Item 1-31, 5.1, Msg no.11",
+     "procedure": [
+      "Login as IELP Admin (Master screens: every role, decision G-COM-01).",
+      "Open menu Master > Mileage.",
+      "Empty the table (SQL TD-02), reopen."
+     ],
+     "expected": [
+      "Upload Excel accordion open, Manual Entry collapsed; badge 'IELP Admin only'.",
+      "List From Code / From / To Code / To / Mileage / dates, paging.",
+      "Empty: Msg no.11 (Info): 'No mileage data found.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Search and no result",
+     "ref": "UISS: Item 9, Msg no.12",
+     "procedure": [
+      "Search = \"SNT\".",
+      "Search = \"ZZZ\"."
+     ],
+     "expected": [
+      "Matching routes.",
+      "Msg no.12 (Info): 'No mileage data found for the selected criteria.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Manual Entry",
+   "items": [
+    {
+     "key": "add",
+     "case": "Add route mileage and DB",
+     "ref": "UISS: Item 3-7, 5.3, Msg no.9, Data Map blk 1, Log 1",
+     "procedure": [
+      "Open Manual Entry; From = SNT, To = CKR, Mileage = \"42,5\"; [Save]."
+     ],
+     "expected": [
+      "Msg no.9 (Info): 'Mileage data has been successfully created.'",
+      "DB (SQL TD-10) ielp.TB_M_MILEAGE: FROM_CODE = SNT, TO_CODE = CKR, LOC_NAME_FROM / LOC_NAME_TO = location names, MILEAGE = 42.50 (DCR-06), STATUS = Active, VERSION = 1 (DCR-08)."
+     ]
+    },
+    {
+     "key": "val",
+     "case": "Validation errors",
+     "ref": "UISS: 5.3, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.6",
+     "procedure": [
+      "[Save] with blank fields.",
+      "From = To = SNT.",
+      "Mileage = 0 / \"abc\".",
+      "From = inactive location D9."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Location From is required.', Msg no.2 (Error): 'Location To is required.', Msg no.3 (Error): 'Mileage is required.'",
+      "Msg no.4 (Error): 'Location From and Location To cannot be the same.'",
+      "Msg no.5 (Error): 'Mileage must be greater than 0 KM.'",
+      "Msg no.6 (Error): 'Location D9 is not an active location in Master Location.'"
+     ]
+    },
+    {
+     "key": "dup",
+     "case": "Duplicate route",
+     "ref": "UISS: Msg no.7, DCR-07",
+     "procedure": [
+      "From = SNT, To = KRW (existing); [Save]."
+     ],
+     "expected": [
+      "Msg no.7 (Error): 'Mileage between the selected locations already exists. Please edit the existing mileage record.'"
+     ]
+    },
+    {
+     "key": "upd",
+     "case": "Edit mileage",
+     "ref": "UISS: Item 21, 5.4, Msg no.10, Data Map blk 2, Log 2",
+     "procedure": [
+      "Click row SNT -> KRW; Mileage = 66; [Save]."
+     ],
+     "expected": [
+      "From / To locked.",
+      "Msg no.10 (Info): 'Mileage data has been successfully updated.'",
+      "DB (SQL TD-11): MILEAGE = 66.00, VERSION + 1, CHANGED_BY / CHANGED_DT."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Upload Operation",
+   "items": [
+    {
+     "key": "tpl",
+     "case": "Download template",
+     "ref": "UISS: Item 29, Msg no.21",
+     "procedure": [
+      "Click *) Download Template."
+     ],
+     "expected": [
+      "File 'Template_Route_Mileage.xlsx' (Route Mileage, Active Locations, Notes).",
+      "Msg no.21 (Info): 'Template downloaded'"
+     ]
+    },
+    {
+     "key": "upok",
+     "case": "Upload a valid file (saved immediately)",
+     "ref": "UISS: Item 26-32, 5.10, Msg no.20",
+     "procedure": [
+      "Choose File \"mileage_ok.xlsx\" (Test Data)."
+     ],
+     "expected": [
+      "'Validating Excel file...' then Msg no.20 (Info): 'Upload completed: 1 route(s) created, 1 route(s) updated.' + \"1 route(s) unchanged\"; uploaded rows highlighted."
+     ]
+    },
+    {
+     "key": "upbad",
+     "case": "Upload with file / row errors",
+     "ref": "UISS: Item 33-40, Msg no.14, Msg no.15, Msg no.16, Msg no.17, Msg no.18, Msg no.19",
+     "procedure": [
+      "Choose wrong.csv, a file without columns, an empty template, 1,001 rows, mileage_errors.xlsx, a file with only same mileages."
+     ],
+     "expected": [
+      "Modal Upload validation failed with Msg no.14 (Error): 'File format is not valid. Please upload the Excel template (.xlsx / .xls).' / Msg no.15 / Msg no.16 / Msg no.17 respectively.",
+      "mileage_errors.xlsx: Msg no.18 (Error): '4 row(s) have errors. Nothing was saved; correct the file and upload again.'; Row / Column / Error table; Download error list (CSV).",
+      "Msg no.19 (Info): 'All routes in the file already have the same mileage. Nothing to save.'",
+      "Nothing saved."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "List and Download Operation",
+   "items": [
+    {
+     "key": "export",
+     "case": "Table View / Export",
+     "ref": "UISS: Item 10-11, 22-24",
+     "procedure": [
+      "Table View: show Created By; Export .xls."
+     ],
+     "expected": [
+      "Column shown; file of the filtered list."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.8, DCR-08",
+   "procedure": [
+    "A and B edit SNT -> KRW; B saves, A saves."
+   ],
+   "expected": [
+    "Msg no.8 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "cost",
+   "case": "Missing mileage in cost calculation",
+   "ref": "UISS: 5.7, Msg no.13, Log 4",
+   "procedure": [
+    "Calculate variable cost for a delivery D1 -> X7 without Active mileage."
+   ],
+   "expected": [
+    "Msg no.13 (Warning): 'Mileage data is not available for the selected route.'",
+    "Log no.4 (Warning): 'Mileage not available for route {From} -> {To} (delivery {Delivery No}). Variable cost not calculated.'"
+   ]
+  },
+  {
+   "key": "dberr",
+   "case": "DB error on save",
+   "ref": "UISS: Log 3",
+   "procedure": [
+    "Stop DB; save a route."
+   ],
+   "expected": [
+    "Log no.3 (Error): 'Failed to save mileage {From} -> {To}: {Error}.'",
+    "Rolled back."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "IELP Admin; routes SNT->KRW 65, CKR->KRW 28 Active; D9 inactive location.",
+   "DCR-06 (decimal), DCR-07 (PK FROM_CODE + TO_CODE), DCR-08 (STATUS, VERSION) applied."
+  ],
+  "data": [
+   [
+    "{tc:upok}",
+    "mileage_ok.xlsx",
+    "SNT-CKR 42; SNT-KRW 66,5; CKR-KRW 28",
+    "1 new, 1 update, 1 same"
+   ],
+   [
+    "{tc:upbad}",
+    "mileage_errors.xlsx",
+    "SNT-SNT 5; D9-KRW 9; CKR-SNT 0; repeated route",
+    "4 row errors"
+   ]
+  ],
+  "sql_setup": [
+   {
+    "id": "TD-02",
+    "title": "Empty table",
+    "sql": "DELETE FROM ielp.TB_M_MILEAGE;  -- test DB only"
+   }
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:add}",
+    "title": "Inserted route",
+    "sql": "SELECT FROM_CODE, TO_CODE, LOC_NAME_FROM, LOC_NAME_TO, MILEAGE, STATUS, VERSION, CREATED_BY, CREATED_DT FROM ielp.TB_M_MILEAGE WHERE FROM_CODE = 'SNT' AND TO_CODE = 'CKR';"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:upd}",
+    "title": "Updated route",
+    "sql": "SELECT MILEAGE, VERSION, CHANGED_BY, CHANGED_DT FROM ielp.TB_M_MILEAGE WHERE FROM_CODE = 'SNT' AND TO_CODE = 'KRW';"
+   }
+  ]
+ }
+}

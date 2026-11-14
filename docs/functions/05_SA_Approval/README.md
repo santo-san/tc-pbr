@@ -13,7 +13,7 @@ Rules / specification (`uiss/`):
 
 ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):
 
-- (none yet)
+- [ST-ELIPS_TBD_TC_PBR_SA_Approval_Service_Acceptance.xlsx](test/ST-ELIPS_TBD_TC_PBR_SA_Approval_Service_Acceptance.xlsx)
 
 ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): `ielp.CRITERIA_SCORE_HEADER`, `ielp.DTP_2_DETAIL`, `ielp.DTP_HEADER`, `ielp.MS_ROUTE_PRICE`, `ielp.MS_TRUCKING_COMPANY`, `ielp.ORDER_CYCLE`, `ielp.PO_HEADER`, `ielp.SA_DETAIL`, `ielp.SA_HEADER`, `ielp.TB_M_MILEAGE`
 

@@ -1,0 +1,267 @@
+{
+ "header": {
+  "doc_type": "batch",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Driver Order Sync - HiveMQ (TC-PBR to Driver APK)",
+  "uiss_name": "UISS-Batch Driver Order Sync",
+  "uiss_rev": "0.4",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Normal Case",
+   "items": [
+    {
+     "key": "start",
+     "case": "Sync started",
+     "ref": "UISS: Func Flow step 1-2, Log no.1, Data Map blk 1, Data Map blk 9",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check TB_R_DRIVER_SYNC_LOG (SQL TD-10)."
+     ],
+     "expected": [
+      "Log no.1 (Info): 'Driver Order Sync id started. Trigger : EVENT.'",
+      "STATUS PROCESSING; queue row of ORD-01."
+     ],
+     "execution": [
+      "Assign truck B 1234 DN to order ORD-01 on Planning Truck Assignment (writes TB_T_DRIVER_SYNC_QUEUE); the sync job runs (trigger TBD)."
+     ]
+    },
+    {
+     "key": "add",
+     "case": "Driver order added and published",
+     "ref": "UISS: 4.3, 4.5, Log no.13, Data Map blk 2, Data Map blk 5, Data Map blk 6, Data Map blk 7",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      },
+      "Check TB_R_DRIVER_ORDER, outbox, queue (SQL TD-11); MQTT client on the topic."
+     ],
+     "expected": [
+      "Log no.13 (Debug): 'Message <MSG_ID> (<ACTION> <CYCLE_ORDER_NO>) published to <TOPIC>.'",
+      "TB_R_DRIVER_ORDER rows per cycle (plate, driver, route, lat / lng); outbox STATUS PUBLISHED; queue DONE; message received on the topic."
+     ],
+     "execution": [
+      "Assign truck B 1234 DN to order ORD-01 on Planning Truck Assignment (writes TB_T_DRIVER_SYNC_QUEUE); the sync job runs (trigger TBD)."
+     ]
+    },
+    {
+     "key": "upd",
+     "case": "Update / remove on change truck",
+     "ref": "UISS: 4.3, Data Map blk 3, Data Map blk 4",
+     "procedure": [
+      "Check TB_R_DRIVER_ORDER."
+     ],
+     "expected": [
+      "Old plate rows ACTIVE_FLAG N (REMOVE), new plate rows ADD; one message per change."
+     ],
+     "execution": [
+      "Change Truck of ORD-01 to B 5678 DN; run the job."
+     ]
+    },
+    {
+     "key": "end",
+     "case": "Sync finished",
+     "ref": "UISS: Log no.16, Data Map blk 8",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.16 (Info): 'Driver Order Sync <SYNC_ID> finished. Added <n>, updated <n>, removed <n>, skipped <n>, error <n>, published <n>, publish error <n>.'"
+     ],
+     "execution": [
+      "Assign truck B 1234 DN to order ORD-01 on Planning Truck Assignment (writes TB_T_DRIVER_SYNC_QUEUE); the sync job runs (trigger TBD)."
+     ]
+    },
+    {
+     "key": "none",
+     "case": "No event / no assignment",
+     "ref": "UISS: Log no.5, Log no.7",
+     "procedure": [
+      {
+       "text": "Open Log Monitoring screen",
+       "detail": [
+        "Search with the following criteria:",
+        "Process ID: (Process ID of the run)",
+        "Function ID: TBD",
+        "User Name: (All)"
+       ]
+      }
+     ],
+     "expected": [
+      "Log no.5 (Info): 'Driver Order Sync <SYNC_ID>: no event to process.'",
+      "Log no.7 (Info): 'Order <ORDER_NO> has no active truck assignment, not sent to driver.'"
+     ],
+     "execution": [
+      "Run the job with an empty queue; then queue an order without active truck."
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "lock",
+   "case": "Run still processing",
+   "ref": "UISS: Log no.2",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.2 (Warning): 'Driver Order Sync skipped: run <SYNC_ID> still processing.'"
+   ],
+   "execution": [
+    "Start a second run while the first is running."
+   ]
+  },
+  {
+   "key": "cfg",
+   "case": "DB / parameter / broker errors",
+   "ref": "UISS: Log no.3, Log no.4, Log no.11",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.3 (Critical): 'Database cannot be connected.'",
+    "Log no.4 (Critical): 'Sync parameter <PARAM_CD> not found in System Master.'",
+    "Log no.11 (Critical): 'Cannot connect to HiveMQ broker <HOST>:<PORT> (<REASON>).'"
+   ],
+   "execution": [
+    "Stop DB; remove the sync parameter in TB_M_SYSTEM; stop the HiveMQ broker (one per run)."
+   ]
+  },
+  {
+   "key": "data",
+   "case": "Data errors per event",
+   "ref": "UISS: 4.2, Log no.6, Log no.8, Log no.9, Log no.10",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    },
+    "Check queue rows ERROR."
+   ],
+   "expected": [
+    "Log no.6 (Error): 'Order <ORDER_NO> not found for queue <QUEUE_ID>.'",
+    "Log no.8 (Error): 'Truck <PLATE_NO> of order <ORDER_NO> is not active in Truck Master.'",
+    "Log no.9 (Warning): 'No active driver on truck <PLATE_NO> for order <ORDER_NO>.'",
+    "Log no.10 (Error): 'Mandatory field <FIELD> empty on order <ORDER_NO>.'"
+   ],
+   "execution": [
+    "Queue an unknown order; an order with inactive truck; a truck without driver; an order without From location."
+   ]
+  },
+  {
+   "key": "pub",
+   "case": "Publish / save errors and retry limit",
+   "ref": "UISS: Log no.12, Log no.14, Log no.15",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.12 (Error): 'Publish of <MSG_ID> to topic <TOPIC> failed: <REASON>.'",
+    "Log no.14 (Error): 'Failed to save driver order <CYCLE_ORDER_NO>: <DB_ERROR>.'",
+    "Log no.15 (Error): 'Queue <QUEUE_ID> of order <ORDER_NO> failed <ATTEMPT> times.'"
+   ],
+   "execution": [
+    "Deny the topic ACL; lock TB_R_DRIVER_ORDER; repeat failure up to the attempt limit (TBD)."
+   ]
+  },
+  {
+   "key": "stop",
+   "case": "Unexpected stop",
+   "ref": "UISS: Log no.17",
+   "procedure": [
+    {
+     "text": "Open Log Monitoring screen",
+     "detail": [
+      "Search with the following criteria:",
+      "Process ID: (Process ID of the run)",
+      "Function ID: TBD",
+      "User Name: (All)"
+     ]
+    }
+   ],
+   "expected": [
+    "Log no.17 (Critical): 'Driver Order Sync <SYNC_ID> stopped: <ERROR>.'"
+   ],
+   "execution": [
+    "Kill the job during step 7."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Order ORD-01 with 2 cycles; trucks B 1234 DN, B 5678 DN with active drivers; HiveMQ test broker.",
+   "Proposed tables TB_T_DRIVER_SYNC_QUEUE, TB_R_DRIVER_ORDER, TB_R_DRIVER_MQ_OUTBOX, TB_R_DRIVER_SYNC_LOG (not in ELIPS) created."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:start}, {tc:end}",
+    "title": "Sync log",
+    "sql": "SELECT * FROM TB_R_DRIVER_SYNC_LOG ORDER BY START_DT DESC;"
+   },
+   {
+    "id": "TD-11",
+    "tc": "{tc:add}, {tc:upd}",
+    "title": "Driver orders",
+    "sql": "SELECT * FROM TB_R_DRIVER_ORDER WHERE ORDER_NO = 'ORD-01';\nSELECT * FROM TB_R_DRIVER_MQ_OUTBOX WHERE SYNC_ID = :sync_id;\nSELECT * FROM TB_T_DRIVER_SYNC_QUEUE WHERE ORDER_NO = 'ORD-01';"
+   }
+  ]
+ }
+}

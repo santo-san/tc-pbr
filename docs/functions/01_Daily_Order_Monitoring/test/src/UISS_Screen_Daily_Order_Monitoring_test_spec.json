@@ -1,0 +1,254 @@
+{
+ "header": {
+  "doc_type": "screen",
+  "project": "ELIPS Enhancement (TC-PBR)",
+  "function_id": "TBD",
+  "function_name": "Daily Order Monitoring",
+  "uiss_name": "UISS-Screen Daily Order Monitoring",
+  "uiss_rev": "0.5",
+  "sa_name": "Susanto",
+  "tester": "",
+  "programmer": ""
+ },
+ "groups": [
+  {
+   "title": "Initial",
+   "items": [
+    {
+     "key": "open",
+     "case": "Open screen per role and data scope",
+     "ref": "UISS: Item 1-30, 5.1, 5.2.1, Msg no.4",
+     "procedure": [
+      "Login as IELP Admin. Open menu Daily > Daily Monitoring.",
+      "Login as LP Admin of DNX, open the screen; open the URL of an order of PNJ.",
+      "Login as Supplier Viewer of DNX."
+     ],
+     "expected": [
+      "IELP Admin: all orders of today, tabs ALL / DTP 1..4, Last Sync at, paging 10 rows.",
+      "LP Admin: only DNX orders (list, paging total, export); other order: Msg no.4 (Error): 'You are not authorized to access order ORD-PNJ-01.'",
+      "Supplier Viewer: DNX orders, no action buttons."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Search Operation",
+   "items": [
+    {
+     "key": "search",
+     "case": "Find / Clear / keyword / tabs / no data",
+     "ref": "UISS: Item 3-13, 28-30, 5.2.2, Msg no.1, Msg no.2",
+     "procedure": [
+      "Date From = 15-Nov-2026, Date To = 14-Nov-2026, [Find].",
+      "Date From = Date To = 14-Nov-2026, From Loc. = D1, [Find]; click tab DTP 2; Search \"SNT\".",
+      "Date = 01-Jan-2020, [Find].",
+      "[Clear]."
+     ],
+     "expected": [
+      "Msg no.1 (Error): 'Date From must be earlier than or equal to Date To.'",
+      "Orders of the date, From Loc. D1, DTP 2, keyword match; paging updated.",
+      "Msg no.2 (Info): 'No Data Found'",
+      "Criteria reset to today, full list."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Order Detail and Print",
+   "items": [
+    {
+     "key": "detail",
+     "case": "Order detail, cycles, files, status history",
+     "ref": "UISS: Item 31-54, 5.3",
+     "procedure": [
+      "Click an order with 2 cycles."
+     ],
+     "expected": [
+      "Summary (No. Order, Date / Shift, LP, plate, driver, planned / actual cycle, statuses, SA / PO), action buttons by role and status, cycle cards with activity list and files, Status History from ielp.LOG_ACTIVITY_ORDER."
+     ]
+    },
+    {
+     "key": "print",
+     "case": "Print Surat Jalan / PDF with pop-up blocked",
+     "ref": "UISS: Item 52-53, Print / PDF, Msg no.5",
+     "procedure": [
+      "Block pop-ups in the browser; click Surat Jalan ELIPS of cycle 1.",
+      "Allow pop-ups, click again."
+     ],
+     "expected": [
+      "Msg no.5 (Warning): 'Pop-up is blocked by the browser. Please allow pop-up to print Surat Jalan.'",
+      "Delivery Note PDF opens (refer ST Delivery Note)."
+     ]
+    },
+    {
+     "key": "export",
+     "case": "Export with no data",
+     "ref": "UISS: Item 14, Msg no.3",
+     "procedure": [
+      "Filter to a date without orders; [Export] > Excel."
+     ],
+     "expected": [
+      "Msg no.3 (Info): 'There is no data to export.' (refer ST Download Daily Order Monitoring)."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Action Operation (IELP Admin)",
+   "items": [
+    {
+     "key": "assign",
+     "case": "Assign Truck",
+     "ref": "UISS: 5.6.1, Item 55-62, Msg no.10, Msg no.11, Msg no.12, Msg no.13, Data Map blk 1, Data Map blk 10, Log 1",
+     "procedure": [
+      "IELP Admin opens order in Planning Order, action Assign Truck.",
+      "Truck = B 9999 XX (other LP), [Submit]; truck with license expired before order date; truck already used on the same shift / date.",
+      "Truck = B 1234 DN (valid), [Submit]."
+     ],
+     "expected": [
+      "Msg no.11 (Error): 'Truck B 9999 XX is not registered for DNX.' / Msg no.12 (Error): 'License of truck {Truck No} expired on {License Date}, before order date {Order Date}.' / Msg no.13 (Error): 'Truck {Truck No} is already assigned to order {Order No} ({Shift} {Order Date}).'",
+      "Msg no.10 (Info): 'Assign Truck completed. Order Status: Order Release / Cycle Status: DTP Creation Release.'",
+      "DB (SQL TD-10): ielp.DTP_2_DETAIL.LICENSE_PLATE, STATUS_CODE, UPDATED_BY / UPDATED_DATE; ielp.LOG_ACTIVITY_ORDER row with ACT, STS_CODE, REMARK; Log no.1 (Info): '{Action} by {User} ({Role}) on {Order No} cycle {n}: {From Status} -> {To Status}. Reason: {Reason}'"
+     ]
+    },
+    {
+     "key": "sa",
+     "case": "Process to SA and Process to PAS",
+     "ref": "UISS: 5.6.6, Msg no.24, Msg no.25, Msg no.26, Msg no.27, Data Map blk 8, Data Map blk 9, Log 2, Log 3, Log 5",
+     "procedure": [
+      "Order with a cycle not finished: Process to SA.",
+      "Order complete; SA interface returns an error (stub).",
+      "SA OK: Process to SA, then Process to PAS with PO Number \"4512345\" and then \"4500001234\"; PAS stub returns no PO.",
+      "PAS returns PO."
+     ],
+     "expected": [
+      "Msg no.24 (Error): 'All cycles must be Finish Cycle with Container Number before SA process.'",
+      "Msg no.25 (Error): 'SA process failed for order ORD-01: stub error. Status is not changed.'; Log no.2 (Error): 'SA process failed for order {Order No}: {SA Error}.'",
+      "Msg no.27 (Error): 'Invalid format for PO Number. The format must be 45 + 8 digits' / Msg no.26 (Error): 'PAS did not return PO Number for order {Order No}. Status remains SA Approved.'; Log no.3 (Error): 'PAS process failed for order {Order No}: {PAS Error}.'",
+      "SA Approved then PO received: DB (SQL TD-10) STATUS_CODE, PO_NUMBER, UPDATED_BY; Log no.5 (Info): 'PO Number {PO No} received for order {Order No}.'"
+     ],
+     "tbd": "SA / PAS interface TBD"
+    },
+    {
+     "key": "legacy",
+     "case": "Legacy Create DTP dialog",
+     "ref": "UISS: Item 63-72, Legacy Create DTP dialog, Msg no.28, Msg no.29, Msg no.30",
+     "procedure": [
+      "Login as LP Admin; open Create DTP.",
+      "IELP Admin: blank Shift; date yesterday; Loc. To = Loc. From; Renban \"12A\", [Check].",
+      "Valid data, [Submit]."
+     ],
+     "expected": [
+      "Msg no.28 (Error): 'Hanya IELP Admin yang dapat membuat DTP'",
+      "Msg no.29 (Error): '{Field} wajib diisi / Tanggal DTP tidak boleh di masa lalu / DTP Loc. To tidak boleh sama dengan DTP Loc. From / Renban harus 5 digit angka / Planned Cycle harus 1 - 5 / Renban sudah dipakai untuk supplier, tanggal dan shift yang sama' (each variant)",
+      "Msg no.30 (Info): 'DTP {order no} dibuat · Planning Order / DTP Creation Release'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Action Operation (LP Admin)",
+   "items": [
+    {
+     "key": "release",
+     "case": "Order Release with driver",
+     "ref": "UISS: 5.6.2, Msg no.6, Msg no.14, Msg no.15, Msg no.16, Data Map blk 2",
+     "procedure": [
+      "LP Admin opens order in Planning Order, Order Release; [Submit] blank.",
+      "Reason = \"short\"; Driver inactive; driver without truck.",
+      "Reason = \"release to driver A\", Driver = A, [Submit]."
+     ],
+     "expected": [
+      "Msg no.6 (Error): 'Mandatory Field Not Entered'",
+      "Msg no.14 (Error): 'Invalid format for Reason. The format must be minimum 10 characters' / Msg no.15 (Error): 'Driver X is not active or not registered for DNX.' / Msg no.16 (Error): 'Driver Y has no registered truck. Please ask IELP Admin to assign a truck.'",
+      "Order Release; DB (SQL TD-10): DRIVER_ID, LICENSE_PLATE, STATUS_CODE."
+     ]
+    },
+    {
+     "key": "pickup",
+     "case": "Pickup Container and cycles",
+     "ref": "UISS: 5.6.3, 5.5, Msg no.17, Msg no.18, Msg no.19, Msg no.20, Msg no.21, Msg no.22, Data Map blk 3, Data Map blk 4, Data Map blk 5",
+     "procedure": [
+      "Pickup on an order in Planning Order.",
+      "Order Release: Container \"ABC123\"; \"MSKU1234560\" (bad check digit); a number used twice in the order; a number active in another order.",
+      "Valid \"MSKU1234565\", [Submit].",
+      "After Finish Cycle of cycle 5, Pickup again."
+     ],
+     "expected": [
+      "Msg no.21 (Error): 'Please perform Order Release with Driver first.'",
+      "Msg no.17 (Error): 'Invalid format for Container Number. The format must be AAAU9999999' / Msg no.18 (Error): 'Invalid check digit for Container Number MSKU1234560.' / Msg no.19 (Error): 'Duplication found for Container Number MSKU1234565' / Msg no.20 (Error): 'Container Number TCLU7654321 is still active in order ORD-02.'",
+      "Start Daily Order, cycle Pickup Container; DB ielp.ORDER_CYCLE.CONTAINER_NO, STATUS_CODE, PICKUP_DATE; next cycle inserted after Finish Cycle (blk 4).",
+      "Msg no.22 (Error): 'Maximum 5 cycles per order has been reached.'"
+     ],
+     "tbd": "OP-07"
+    },
+    {
+     "key": "finish",
+     "case": "Finish Cycle and Finish Order",
+     "ref": "UISS: 5.6.4, 5.6.5, Msg no.23, Data Map blk 6, Data Map blk 7",
+     "procedure": [
+      "Finish Order while cycle 2 has no Container Number.",
+      "Finish Cycle (reason), then Finish Order."
+     ],
+     "expected": [
+      "Msg no.23 (Error): 'Container Number of Cycle 2 has not been recorded.'",
+      "Cycle Finish Cycle (COMPLETE_DATE), order Finish Daily Order; DB ielp.ORDER_CYCLE / ielp.DTP_2_DETAIL STATUS_CODE, COMPLETE_DATE."
+     ]
+    },
+    {
+     "key": "rules",
+     "case": "Status / role rule check",
+     "ref": "UISS: 5.5, Msg no.7, Msg no.8",
+     "procedure": [
+      "Send Finish Order for an order in Planning Order (request).",
+      "Supplier Viewer sends Order Release (request)."
+     ],
+     "expected": [
+      "Msg no.7 (Error): 'Finish Order can only be performed when status is Start Daily Order.'",
+      "Msg no.8 (Error): 'Supplier Viewer is not allowed to perform Order Release.'"
+     ]
+    }
+   ]
+  }
+ ],
+ "abnormal": [
+  {
+   "key": "version",
+   "case": "Concurrency check",
+   "ref": "UISS: Msg no.9",
+   "procedure": [
+    "Users A and B open the same order; B submits an action first, then A."
+   ],
+   "expected": [
+    "Msg no.9 (Error): 'Error in Update because of concurrency check.'"
+   ]
+  },
+  {
+   "key": "iferr",
+   "case": "SA / PAS interface not reachable",
+   "ref": "UISS: Log 4",
+   "procedure": [
+    "Stop the SA interface stub; Process to SA."
+   ],
+   "expected": [
+    "Log no.4 (Critical): 'Cannot connect to SA interface.'",
+    "Status not changed."
+   ]
+  }
+ ],
+ "test_data": {
+  "precondition": [
+   "Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD.",
+   "Orders of 14-Nov-2026 for DNX (Planning Order, Order Release, Start Daily Order) and PNJ; trucks B 1234 DN (valid), license-expired truck.",
+   "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "sql_verify": [
+   {
+    "id": "TD-10",
+    "tc": "{tc:assign}, {tc:release}, {tc:sa}",
+    "title": "Order and log",
+    "sql": "SELECT ORDER_NO, LICENSE_PLATE, DRIVER_ID, STATUS_CODE, PO_NUMBER, UPDATED_BY, UPDATED_DATE FROM ielp.DTP_2_DETAIL WHERE ORDER_NO = :order_no;\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, STATUS_CODE, PICKUP_DATE, COMPLETE_DATE FROM ielp.ORDER_CYCLE WHERE ORDER_NO = :order_no;\nSELECT * FROM ielp.LOG_ACTIVITY_ORDER WHERE ORDER_NO = :order_no ORDER BY CREATED_DATE;"
+   }
+  ]
+ }
+}
