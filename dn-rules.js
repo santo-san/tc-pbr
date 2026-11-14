@@ -5,7 +5,7 @@
 // Delivery ID = the cycle Order No (No Cycle Order, e.g. 261026C2PBM311).
 // Layout follows the TMMIN "SURAT JALAN" reference. Values not defined by the requirement
 // (endpoint, auth, file name, SLA, size limit, PAS contract, Keterangan source) are mock
-// values marked "TBD" in docs/uiss/04_Delivery_Note/delivery-note-spec.md.
+// values marked "TBD" in docs/functions/04_Delivery_Note/uiss/delivery-note-spec.md.
 (function (root) {
   const ENDPOINT = 'GET /api/delivery-note/{deliveryId}'; // TBD: real endpoint not defined
   const ID_RE = /^\d{6}C\d[A-Z]{2,5}\d{3}$/; // No Cycle Order: <YYMMDD>C<n><supplier code><NNN>

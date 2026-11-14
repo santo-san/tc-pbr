@@ -1,6 +1,6 @@
 # 02 - Existing UISS Inventory
 
-Source (state before the database revision, 14-Nov-26 Phase 2): workbooks and spec JSON, now in `docs/uiss/<NN_Function>/` and `docs/uiss/<NN_Function>/src/`.
+Source (state before the database revision, 14-Nov-26 Phase 2): workbooks and spec JSON, now in `docs/functions/<NN_Function>/uiss/` and `docs/functions/<NN_Function>/uiss/src/`.
 Revisions after the database review: see `08-uiss-status-lists.md`.
 Counts are taken from the source JSON (items = Item Desc rows, messages = Display Message rows, logs = Logging Message rows,
 TBD = occurrences of "TBD" in the spec). "Rules doc" = the `docs/*.md` that the UISS was written from.

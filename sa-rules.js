@@ -1,6 +1,6 @@
 // ELIPS TC-PBR Service Acceptance (SA) Approval rules. Pure logic (no DOM), used by sa.js and tests/sa-approval.test.js.
 // Delivery -> Route -> Total KM -> Applicable PO -> PO Rate -> Delivery Cost -> VPLD approval -> SA Number.
-// Rule IDs (SA-xx) match docs/uiss/05_SA_Approval/sa-approval-spec.md.
+// Rule IDs (SA-xx) match docs/functions/05_SA_Approval/uiss/sa-approval-spec.md.
 (function (root) {
   const ERR = {
     NOT_ELIGIBLE: 'Not Eligible', ALREADY_SA: 'Already SA Approved', LP_CODE_MISSING: 'Trucking Company Code Not Found',

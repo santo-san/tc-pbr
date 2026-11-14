@@ -19,8 +19,8 @@ behaviour). No sample data was available (user confirmation 14-Nov-26), so value
 | - | DB Change Requests (43) to keep the existing logic | [12-db-change-requests.md](12-db-change-requests.md) |
 
 Sources: ELIPS schema [`../db/ELIPS_Schema.sql`](../db/ELIPS_Schema.sql) (+ [`../db/schema-dictionary.md`](../db/schema-dictionary.md), `../db/schema.json`);
-mapping decisions per UISS in [`db-mapping/`](db-mapping/) (`maps_master.py`, `maps_daily.py`, `maps_sa_monthly.py` write the JSON);
-applied with [`../uiss/scripts/db_revision.py`](../uiss/scripts/db_revision.py) ([DB-R1]) and [`../uiss/scripts/db_decision.py`](../uiss/scripts/db_decision.py) ([DB-R2], decisions in `db-mapping/decisions.py`); DCR list by `scripts/make_dcr.py`; matrices regenerated with `scripts/make_matrices.py`.
-UISS are now one folder per function: [`../uiss/README.md`](../uiss/README.md).
+mapping decisions per UISS in [`db-mapping/`](db-mapping) (`maps_master.py`, `maps_daily.py`, `maps_sa_monthly.py` write the JSON);
+applied with [`../uiss/scripts/db_revision.py`](../functions/scripts/db_revision.py) ([DB-R1]) and [`../uiss/scripts/db_decision.py`](../functions/scripts/db_decision.py) ([DB-R2], decisions in `db-mapping/decisions.py`); DCR list by `scripts/make_dcr.py`; matrices regenerated with `scripts/make_matrices.py`.
+UISS are now one folder per function: [`../uiss/README.md`](../functions/README.md).
 
 Evidence classes: **Schema** (DDL), **Code** (mock-up source), **Data** (none provided), **Inferred** (link by name / structure), **TBD**.

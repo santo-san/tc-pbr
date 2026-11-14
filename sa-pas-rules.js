@@ -1,5 +1,5 @@
 // ELIPS TC-PBR SA Monitoring: ELIPS -> PAS interface and PAS feedback rules. Pure logic (no DOM),
-// used by sa-monitoring.js and tests/sa-monitoring.test.js. Rule IDs (SM-xx) match docs/uiss/06_SA_Monitoring/sa-monitoring-spec.md.
+// used by sa-monitoring.js and tests/sa-monitoring.test.js. Rule IDs (SM-xx) match docs/functions/06_SA_Monitoring/uiss/sa-monitoring-spec.md.
 // Only PAS / integration fields are written here; the approved SA snapshot (SA Number, deliveries, route, KM,
 // ELIPS PO, rate, cost, approval) is never changed (SM-10).
 (function (root) {
