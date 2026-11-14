@@ -24,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database review: no ELIPS table holds route priority - priority columns marked TBD - Not confirmed from existing schema/data/code; locations / mileage mapped to ielp.MS_LOCATION / ielp.TB_M_MILEAGE; no sample data"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-11)"
   }
  ],
  "general": {
@@ -1561,7 +1568,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1657,7 +1664,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1666,7 +1673,7 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MPY-01 Route priority storage: UISS / code: Route Priority Master. DB: No table in ELIPS. Recommendation: New table needed (DB change request) or confirm existing storage"
+    "G-MPY-01 Route priority storage: Existing logic kept: route priority per From / To with renumbering (master-priority.js). DCR-11: CREATE ielp.TB_M_ROUTE_PRIORITY (FROM_CODE varchar(10), TO_CODE varchar(10), PRIORITY_NO int, VERSION int, CREATED_BY / CREATED_DT / CHANGED_BY / CHANGED_DT) - PK FROM_CODE + TO_CODE."
    ]
   },
   {

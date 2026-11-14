@@ -5,7 +5,7 @@ Code: location.js, master-location.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_Location](UISS_Screen_Master_Location.xlsx) | screen | 0.2 (14-Nov-26) | [src/UISS_Screen_Master_Location.json](src/UISS_Screen_Master_Location.json) | 6 |
+| [UISS_Screen_Master_Location](UISS_Screen_Master_Location.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_Master_Location.json](src/UISS_Screen_Master_Location.json) | 6 |
 
 Rules / specification:
 

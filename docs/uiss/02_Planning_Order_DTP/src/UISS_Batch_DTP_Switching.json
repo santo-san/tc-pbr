@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised: rollback history -> ielp.ORDER_CYCLE_ROLLBACK_H (inferred), truck history -> ielp.ORDER_TRUCK_H, records -> ielp.DTP_2_DETAIL, orders -> ielp.ORDER_CYCLE; request / switch-audit / driver-sync queue tables stay proposed; no sample data"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-16, DCR-22)"
   }
  ],
  "general": {
@@ -548,15 +555,15 @@
      },
      {
       "dest_field": "CANCEL_BY / CANCEL_DT (proposed)",
-      "description": "Login user / server date-time [Conflict: CANCEL_BY is not a column of ielp.ORDER_CYCLE]"
+      "description": "Login user / server date-time [DCR: CANCEL_BY not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "STATUS",
-      "description": "Not changed (no new status) [Conflict: STATUS is not a column of ielp.ORDER_CYCLE]"
+      "description": "Not changed (no new status) [DCR: STATUS not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 (rows affected must = 1, else rollback) [Conflict: VERSION is not a column of ielp.ORDER_CYCLE]"
+      "description": "VERSION + 1 (rows affected must = 1, else rollback) [DCR: VERSION not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -616,15 +623,15 @@
      },
      {
       "dest_field": "ACTION",
-      "description": "'DTP Switching' [Conflict: ACTION is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "'DTP Switching' [DCR: ACTION not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_ / NEW_ ORDER_STATUS, PLATE",
-      "description": "Before / after (plate released) [Conflict: PREV_ is not a column of ielp.ORDER_TRUCK_H] [Conflict: PLATE is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Before / after (plate released) [DCR: PREV_ not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DT",
-      "description": "Login user / server date-time [Conflict: UPDATED_DT is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Login user / server date-time [DCR: UPDATED_DT not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -692,11 +699,11 @@
      },
      {
       "dest_field": "DTP_DATE",
-      "description": "Not changed [Conflict: DTP_DATE is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: DTP_DATE not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "DTP_MODEL",
-      "description": "Not changed [Conflict: DTP_MODEL is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: DTP_MODEL not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "SERVICE_TYPE",
@@ -704,11 +711,11 @@
      },
      {
       "dest_field": "EXPORTER",
-      "description": "Not changed [Conflict: EXPORTER is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: EXPORTER not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "IMPORTER_CD",
-      "description": "Not changed [Conflict: IMPORTER_CD is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: IMPORTER_CD not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "IS_ROUNDUSE",
@@ -732,7 +739,7 @@
      },
      {
       "dest_field": "DEST_CD",
-      "description": "Not changed [Conflict: DEST_CD is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: DEST_CD not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ETD",
@@ -784,19 +791,19 @@
      },
      {
       "dest_field": "DATA_SOURCE",
-      "description": "Not changed [Conflict: DATA_SOURCE is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: DATA_SOURCE not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PAY_TYPE",
-      "description": "Not changed (planner may change it before re-submission) [Conflict: PAY_TYPE is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed (planner may change it before re-submission) [DCR: PAY_TYPE not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "STATUS",
-      "description": "'Available'; 'Validation Error' when re-validation fails [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'Available'; 'Validation Error' when re-validation fails [DCR: STATUS not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_MSG",
-      "description": "Null, or validation message [Conflict: ERROR_MSG is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Null, or validation message [DCR: ERROR_MSG not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ORDER_NO",
@@ -804,27 +811,27 @@
      },
      {
       "dest_field": "ATTEMPT_CNT",
-      "description": "0 [Conflict: ATTEMPT_CNT is not a column of ielp.DTP_2_DETAIL]"
+      "description": "0 [DCR: ATTEMPT_CNT not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "FAIL_REASON",
-      "description": "Null [Conflict: FAIL_REASON is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Null [DCR: FAIL_REASON not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "SUBMITTED_BY",
-      "description": "Null [Conflict: SUBMITTED_BY is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Null [DCR: SUBMITTED_BY not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "SUBMITTED_DT",
-      "description": "Null [Conflict: SUBMITTED_DT is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Null [DCR: SUBMITTED_DT not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "LAST_UPLOAD_ID",
-      "description": "Not changed [Conflict: LAST_UPLOAD_ID is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Not changed [DCR: LAST_UPLOAD_ID not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY",
@@ -856,7 +863,7 @@
     "mappings": [
      {
       "dest_field": "HIST_ID",
-      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "Sequence [DCR: HIST_ID not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "DTP_DET_ID",
@@ -864,11 +871,11 @@
      },
      {
       "dest_field": "STATUS",
-      "description": "New status [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "New status [DCR: STATUS not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "NOTE",
-      "description": "'DTP Switching by {user}: rollback from {prev}; Daily order {no} ({status}, LP {lp}, truck {plate}) cancelled' [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "'DTP Switching by {user}: rollback from {prev}; Daily order {no} ({status}, LP {lp}, truck {plate}) cancelled' [DCR: NOTE not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY",
@@ -876,7 +883,7 @@
      },
      {
       "dest_field": "CREATED_DATE",
-      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "Server date-time [DCR: CREATED_DATE not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "LOG_ID",
@@ -1355,7 +1362,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1442,7 +1449,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1451,9 +1458,9 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-DTP-01 Record table: UISS / code: TB_R_DTP_RECORD (one table, all models). DB: DTP_HEADER + DTP_1..4_DETAIL per DTP type. Recommendation: Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
-    "G-DTP-02 Order number at creation: UISS / code: ORDER_NO assigned by queue processing. DB: DTP_2_DETAIL.ORDER_NO NOT NULL, PK. Recommendation: Confirm when ORDER_NO is generated in ELIPS",
-    "G-DTS-01 Cancel columns: UISS / code: CANCEL_FLAG / CANCEL_BY proposed. DB: ORDER_CYCLE.CANCEL_DATE, CANCEL_REMARKS (no cancel-by). Recommendation: Use existing columns; IS_DELETE for cancelled orders?"
+    "G-DTP-01 Record table: Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type). No DB change: mapping as stated.",
+    "G-DTP-02 Order number at creation: Existing logic kept: order number is assigned by queue processing, records exist before that. DCR-16: ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID.",
+    "G-DTS-01 Cancel columns: Existing logic kept: switching cancels the daily order with reason and user. DCR-22: ADD ielp.ORDER_CYCLE.CANCEL_BY varchar(500) (CANCEL_DATE, CANCEL_REMARKS existing)."
    ]
   },
   {

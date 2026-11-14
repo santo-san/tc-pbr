@@ -67,8 +67,8 @@
    "rw": "R",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "Nullable, not part of PK."
+   "status": "Revised",
+   "note": "Nullable, not part of PK. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "From name (stored)",
@@ -102,8 +102,8 @@
    "rw": "R/W",
    "mapping": "> 0",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "decimal(18,0): decimals not stored."
+   "status": "Revised",
+   "note": "decimal(18,0): decimals not stored. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Created Date",
@@ -165,8 +165,8 @@
    "rw": "R/W",
    "mapping": "values TBD",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": ""
+   "status": "Revised",
+   "note": "Decision: existing logic kept (DCR)."
   }
  ],
  "conflicts": [
@@ -177,7 +177,10 @@
    "code": "master-mileage.js parseMileage",
    "db": "MILEAGE decimal(18,0) - no decimals",
    "data": "No sample data",
-   "recommendation": "Round to whole KM in the UI or change the column (DB change request)"
+   "recommendation": "Round to whole KM in the UI or change the column (DB change request)",
+   "decision": "Existing logic kept: mileage > 0 with up to 2 decimals (master-mileage.js parseMileage).",
+   "dcr": "ALTER ielp.TB_M_MILEAGE.MILEAGE decimal(18,0) -> decimal(9,2)",
+   "dcr_id": "DCR-06"
   },
   {
    "id": "G-MML-02",
@@ -186,7 +189,10 @@
    "code": "-",
    "db": "PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key",
    "data": "No sample data",
-   "recommendation": "Only one route per From is possible with this PK - confirm the table or change the PK"
+   "recommendation": "Only one route per From is possible with this PK - confirm the table or change the PK",
+   "decision": "Existing logic kept: a route is unique by From + To (directional).",
+   "dcr": "ALTER ielp.TB_M_MILEAGE: TO_CODE NOT NULL; primary key (LOC_NAME_FROM, FROM_CODE) -> (FROM_CODE, TO_CODE)",
+   "dcr_id": "DCR-07"
   },
   {
    "id": "G-MML-03",
@@ -195,7 +201,10 @@
    "code": "-",
    "db": "LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised)",
    "data": "No sample data",
-   "recommendation": "Copy names on insert / update; define refresh when a location is renamed"
+   "recommendation": "Copy names on insert / update; define refresh when a location is renamed",
+   "decision": "Existing logic kept: names shown from Master Location; LOC_NAME_FROM / LOC_NAME_TO filled with a copy of MS_LOCATION.LOCATION_NAME on save.",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-MML-04",
@@ -204,7 +213,10 @@
    "code": "-",
    "db": "Only IS_DELETE varchar(5); no VERSION",
    "data": "No sample data",
-   "recommendation": "Map status to IS_DELETE; concurrency by CHANGED_DT"
+   "recommendation": "Map status to IS_DELETE; concurrency by CHANGED_DT",
+   "decision": "Existing logic kept: Active / Inactive status and VERSION.",
+   "dcr": "ADD ielp.TB_M_MILEAGE.STATUS varchar(8) NOT NULL default 'Active'; ADD VERSION int NOT NULL default 1",
+   "dcr_id": "DCR-08"
   }
  ],
  "tbd": [

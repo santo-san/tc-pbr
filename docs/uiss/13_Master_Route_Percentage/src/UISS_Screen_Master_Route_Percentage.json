@@ -24,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: route header = ielp.MS_ROUTE_HEADER (percentage), route code / description = ielp.MS_ROUTE_DETAIL, history = ielp.MS_ROUTE_PERCENTAGE_HIST; ordered stops and distance have no column (conflicts); no sample data"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-14, DCR-15)"
   }
  ],
  "general": {
@@ -828,7 +835,7 @@
    "required": "N",
    "format": "ZZZ,ZZ9.99",
    "validation": "",
-   "description": "Calculated (5.3). '(incl. estimate)' when a leg is not in Master Mileage; tooltip lists the legs. Not on the reference screen (TBD, OP-01).\nDB: ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE int NULL [Conflict] int in the history table; no distance on MS_ROUTE_HEADER."
+   "description": "Calculated (5.3). '(incl. estimate)' when a leg is not in Master Mileage; tooltip lists the legs. Not on the reference screen (TBD, OP-01).\nDB: ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE int NULL [Revised - existing logic kept, see DCR] int in the history table; no distance on MS_ROUTE_HEADER."
   },
   {
    "name": "Save",
@@ -951,7 +958,7 @@
    "required": "",
    "format": "ZZZ,ZZ9.99",
    "validation": "",
-   "description": "'est.' mark when it includes an estimate.\nDB: ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE int NULL [Conflict] int in the history table; no distance on MS_ROUTE_HEADER."
+   "description": "'est.' mark when it includes an estimate.\nDB: ielp.MS_ROUTE_PERCENTAGE_HIST.DISTANCE int NULL [Revised - existing logic kept, see DCR] int in the history table; no distance on MS_ROUTE_HEADER."
   },
   {
    "name": "Percentage (%)",
@@ -1076,12 +1083,12 @@
      {
       "source_field": "Route Code",
       "dest_field": "ROUTE_CODE",
-      "description": "Stop codes joined by '_' [Conflict: ROUTE_CODE is not a column of ielp.MS_ROUTE_HEADER]"
+      "description": "Stop codes joined by '_' [DCR: ROUTE_CODE not in ielp.MS_ROUTE_HEADER - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Route Description",
       "dest_field": "ROUTE_DESCR",
-      "description": "Names joined by ' - ' [Conflict: ROUTE_DESCR is not a column of ielp.MS_ROUTE_HEADER]"
+      "description": "Names joined by ' - ' [DCR: ROUTE_DESCR not in ielp.MS_ROUTE_HEADER - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Distance (Km)",
@@ -1110,7 +1117,7 @@
       "description": "Login user ID / server date"
      },
      {
-      "dest_field": "VERSION (no column - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "1"
      },
      {
@@ -1164,7 +1171,7 @@
        "value": "Route of the row"
       },
       {
-       "field": "VERSION (no column - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded"
       }
      ]
@@ -1180,7 +1187,7 @@
       "description": "Login user ID / server date"
      },
      {
-      "dest_field": "VERSION (no column - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      }
     ]
@@ -1217,7 +1224,7 @@
        "value": "Route of the row"
       },
       {
-       "field": "VERSION (no column - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded"
       }
      ]
@@ -1233,7 +1240,7 @@
       "description": "Login user ID / server date"
      },
      {
-      "dest_field": "VERSION (no column - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      }
     ]
@@ -1250,7 +1257,7 @@
        "value": "Route of the row"
       },
       {
-       "field": "VERSION (no column - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded"
       }
      ]
@@ -1265,7 +1272,7 @@
       "description": "Login user ID / server date"
      },
      {
-      "dest_field": "VERSION (no column - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      }
     ]
@@ -1475,7 +1482,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1565,7 +1572,7 @@
      "N",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Status (Deactivate)",
@@ -1601,7 +1608,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Sync flag",
@@ -1616,7 +1623,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1625,9 +1632,9 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MRP-01 Route stops: UISS / code: Ordered stops with leg distance. DB: MS_ROUTE_DETAIL has only ROUTE_CODE / ROUTE_DESCR. Recommendation: New table or encode stops in ROUTE_CODE (confirm)",
-    "G-MRP-02 Distance: UISS / code: DISTANCE_KM on the route. DB: Only MS_ROUTE_PERCENTAGE_HIST.DISTANCE int (per period). Recommendation: Confirm source; decimals not stored",
-    "G-MRP-03 Percentage storage: UISS / code: Number 5,2. DB: MS_ROUTE_HEADER float; HIST varchar(4). Recommendation: Confirm which table is maintained by the screen"
+    "G-MRP-01 Route stops: Existing logic kept: route = ordered stops (Location Pick) with leg distance (master-route-percentage.js). DCR-14: CREATE ielp.MS_ROUTE_STOP (ROUTE_HEADER_ID varchar(10), SEQ_NO int, LOCATION_ID varchar(10), STOP_TYPE varchar(10), LEG_KM decimal(9,2), audit) - PK ROUTE_HEADER_ID + SEQ_NO.",
+    "G-MRP-02 Distance: Existing logic kept: route distance (sum of legs, 2 decimals) on the route. DCR-15: ADD ielp.MS_ROUTE_HEADER.DISTANCE_KM decimal(9,2), DISTANCE_EST_FLG varchar(1).",
+    "G-MRP-03 Percentage storage: Existing logic kept: percentage 0 < % <= 100 with 2 decimals; stored in MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE (float). No DB change: mapping as stated."
    ]
   },
   {

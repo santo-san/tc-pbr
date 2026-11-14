@@ -13,13 +13,18 @@ Sections added to existing UISS for incomplete functions: Daily Monitoring "Prin
 
 ## B. Revised UISS (all 28 existing UISS)
 
+> **[DB-R2] 14-Nov-26:** every UISS got a second revision applying the decision "follow the existing application logic": all fields /
+> conflicts formerly *Conflict* are now *Revised (DCR)* with the decision and the DB change request (`12-db-change-requests.md`).
+> New UISS: Menu & Authorization, SA PAS Interface, IPMS DTP Interface -> rev 0.2. Daily Monitoring also documents the legacy Create DTP dialog.
+> The Conflict column below is the [DB-R1] state; after [DB-R2] those fields count as Revised.
+
 Every existing UISS received one revision marked **[DB-R1]**: database mapping revised to the ELIPS schema
 (Item Desc data source / field / type / length from the DDL, Data Map destination columns checked against the
 table with every non-existing column tagged `[Conflict: ...]`, batch table definitions of existing tables taken
 from the DDL, new section **Database Specification (ELIPS AE070_ILS_DB)** with field-level status, conflicts and TBD).
 Functional content (items, modes, operation, messages) was kept because it matches the code.
 
-| UISS | Rev before -> after | Field-level result (Verified / Revised / Conflict / TBD / Missing) |
+| UISS | Rev before -> after | Field-level result at [DB-R1] (Verified / Revised / Conflict / TBD / Missing) |
 |---|---|---|
 | UISS_Screen_Master_Trucking_Company | 0.3 -> 0.4 | 2 / 7 / 5 / 2 / 0 |
 | UISS_Screen_Master_Location | 0.1 -> 0.2 | 0 / 10 / 4 / 3 / 0 |

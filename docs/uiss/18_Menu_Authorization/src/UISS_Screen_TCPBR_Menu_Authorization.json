@@ -15,6 +15,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "Newly created in the UISS review (docs/review 04 M1): menu tree and role access of the existing TC-PBR mock-up; ELIPS tables MASTER_MENU, USERID_*; class names TBD"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Decision 14-Nov-26 (existing logic kept): Master screens open for every role as implemented (G-COM-01)"
   }
  ],
  "general": {
@@ -200,7 +207,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens master.html#.... Access in the mock-up: IELP Admin X, Planner VPLD ?, LP Admin ?, Supplier Viewer ?, VPLD Staff / SH ?, Approver (SH/DpH/DH) ?, GA ?. Evidence: No role check in master.js / master-*.js (TBD)."
+   "description": "Opens master.html#.... Access in the mock-up: IELP Admin X, Planner VPLD ?, LP Admin ?, Supplier Viewer ?, VPLD Staff / SH ?, Approver (SH/DpH/DH) ?, GA ?. Evidence: no role check in master.js / master-*.js - all roles (existing logic kept, decision G-COM-01; the \"IELP Admin only\" badge on Master Mileage is informational)."
   },
   {
    "name": "Monthly > PR Creation",
@@ -292,7 +299,7 @@
   },
   {
    "type": "text",
-   "text": "X = execute, V = view only, ? = no role check in the code (TBD), - = no access. Evidence per row in Item Desc.",
+   "text": "X = execute, V = view only, - = no access. Master screens: no role check in the code - every logged-in role can maintain (existing logic kept, decision G-COM-01). Evidence per row in Item Desc.",
    "level": 0,
    "bold": false
   },
@@ -405,13 +412,13 @@
     [
      "Master (8 screens)",
      "X",
-     "?",
-     "?",
-     "?",
-     "-",
-     "?",
-     "?",
-     "?",
+     "X",
+     "X",
+     "X",
+     "X",
+     "X",
+     "X",
+     "X",
      "-"
     ],
     [
@@ -524,7 +531,6 @@
    "items": [
     "USERID_CLASS values for each mock-up role (IELP Admin, Planner VPLD, LP Admin, Supplier Viewer, Driver, VPLD Staff / SH, Approver (SH/DpH/DH), GA, System) - TBD - Not confirmed from existing schema/data/code",
     "MENU_ID / APP_NAME of the TC-PBR menus",
-    "Role rules for the Master screens (no check in the code; Master Mileage shows an \"IELP Admin only\" badge)",
     "How Driver and LP Admin (supplier users) are linked to MS_DRIVER.USER_NAME / MS_TRUCKING_COMPANY (USERID.COMPANY?)"
    ]
   }

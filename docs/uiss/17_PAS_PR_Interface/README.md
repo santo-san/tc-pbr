@@ -5,8 +5,8 @@ Code: (Talend - existing tJava in this folder)
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Batch_ELIPS_PAS_PR_Interface](UISS_Batch_ELIPS_PAS_PR_Interface.xlsx) | batch | 0.2 (14-Nov-26) | [src/UISS_Batch_ELIPS_PAS_PR_Interface.json](src/UISS_Batch_ELIPS_PAS_PR_Interface.json) | 0 |
-| [UISS_Batch_PAS_ELIPS_PR_PO_Callback](UISS_Batch_PAS_ELIPS_PR_PO_Callback.xlsx) | batch | 0.2 (14-Nov-26) | [src/UISS_Batch_PAS_ELIPS_PR_PO_Callback.json](src/UISS_Batch_PAS_ELIPS_PR_PO_Callback.json) | 0 |
+| [UISS_Batch_ELIPS_PAS_PR_Interface](UISS_Batch_ELIPS_PAS_PR_Interface.xlsx) | batch | 0.3 (14-Nov-26) | [src/UISS_Batch_ELIPS_PAS_PR_Interface.json](src/UISS_Batch_ELIPS_PAS_PR_Interface.json) | 0 |
+| [UISS_Batch_PAS_ELIPS_PR_PO_Callback](UISS_Batch_PAS_ELIPS_PR_PO_Callback.xlsx) | batch | 0.3 (14-Nov-26) | [src/UISS_Batch_PAS_ELIPS_PR_PO_Callback.json](src/UISS_Batch_PAS_ELIPS_PR_PO_Callback.json) | 0 |
 
 Rules / specification:
 

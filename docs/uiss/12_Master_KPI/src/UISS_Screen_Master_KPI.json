@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: KPI items = ielp.MS_KPI, score ranges = ielp.MS_KPI_PERCENTAGE, order sharing = ielp.CRITERIA_LAST_ORDER (per period); company KPI values, payment type and daily trip have no master table (conflicts / TBD); no sample data"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-12, DCR-13)"
   }
  ],
  "general": {
@@ -889,7 +896,7 @@
    "required": "Y",
    "format": "",
    "validation": "By Resources / By Trip",
-   "description": "Before Select Trucking Company; the company list shows only companies not yet registered with that payment type.\nDB: Conflict - No payment type column in ELIPS."
+   "description": "Before Select Trucking Company; the company list shows only companies not yet registered with that payment type.\nDB: Existing logic kept (DCR) - No payment type column in ELIPS."
   },
   {
    "name": "Tabs All / By Resources / By Trip",
@@ -982,7 +989,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "'By Resources' (default for a new company). Other types TBD (OP-05).\nDB: Conflict - No payment type column in ELIPS.",
+   "description": "'By Resources' (default for a new company). Other types TBD (OP-05).\nDB: Existing logic kept (DCR) - No payment type column in ELIPS.",
    "desc": "'By Resources' (yellow) or 'By Trip' (green), chosen with Payment Type when the company is added; part of the row key (KP-01). Not editable in the grid."
   },
   {
@@ -1073,7 +1080,7 @@
    "required": "Y",
    "format": "ZZ9.99%",
    "validation": "0-100, max 2 decimals (both types)",
-   "description": "Both payment types. By Resources: information only (does not change Daily Trip yet). By Trip: drives the Daily Trip; total must be 100% (KP-14).\nDB: ielp.CRITERIA_LAST_ORDER.ORDER_SHARING float NULL [Conflict] float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master)."
+   "description": "Both payment types. By Resources: information only (does not change Daily Trip yet). By Trip: drives the Daily Trip; total must be 100% (KP-14).\nDB: ielp.CRITERIA_LAST_ORDER.ORDER_SHARING float NULL [Revised - existing logic kept, see DCR] float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master)."
   },
   {
    "name": "Daily Trip",
@@ -1088,7 +1095,7 @@
    "required": "Y",
    "format": "Z9",
    "validation": "By Resources: whole number 0-99 (msg 12)",
-   "description": "By Resources: typed trucks per day (daily limit, daily order assignment KP-08, PR daily QTY KP-09). By Trip: calculated, italic, read only = trips per day shared by Order Sharing % (1 per company, rest by %, KP-15); tooltip shows the rule.\nDB: Conflict - No column in ELIPS."
+   "description": "By Resources: typed trucks per day (daily limit, daily order assignment KP-08, PR daily QTY KP-09). By Trip: calculated, italic, read only = trips per day shared by Order Sharing % (1 per company, rest by %, KP-15); tooltip shows the rule.\nDB: Existing logic kept (DCR) - No column in ELIPS."
   },
   {
    "name": "UoM",
@@ -1316,7 +1323,7 @@
    "required": "Y",
    "format": "ZZ9",
    "validation": "Whole number 0-999 (msg 22)",
-   "description": "Recalculates the By Trip Daily Trip column and the Total Daily Trip.\nDB: Conflict - No column in ELIPS."
+   "description": "Recalculates the By Trip Daily Trip column and the Total Daily Trip.\nDB: Existing logic kept (DCR) - No column in ELIPS."
   }
  ],
  "data_map": {
@@ -1888,7 +1895,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1987,7 +1994,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Score",
@@ -2023,7 +2030,7 @@
      "N",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Daily Trip / Trips per day",
@@ -2032,7 +2039,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "UoM",
@@ -2056,7 +2063,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -2065,9 +2072,9 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MKP-01 Per-company KPI master: UISS / code: KPI Master per trucking company (score, values, payment type, order sharing, daily trip). DB: Only MS_KPI (items) and period tables CRITERIA_SCORE_DETAIL / CRITERIA_LAST_ORDER. Recommendation: New master table or confirm the period tables are the source",
-    "G-MKP-02 Payment type / daily trip: UISS / code: By Resources / By Trip, Daily Trip, Trips per day. DB: No columns. Recommendation: DB change request",
-    "G-MKP-03 Grade thresholds: UISS / code: Fixed in code (master-kpi.js). DB: MS_KPI_PERCENTAGE (FROM / TO_PERCENTAGE -> VALUE). Recommendation: Read thresholds from MS_KPI_PERCENTAGE"
+    "G-MKP-01 Per-company KPI master: Existing logic kept: KPI row per trucking company with payment type, score, KPI item values, order sharing % and daily trip (master-kpi.js). DCR-12: CREATE ielp.TB_M_KPI_COMPANY (COMPANY_ID, PAYMENT_TYPE varchar(12), SCORE int, ORDER_SHARING decimal(5,2), DAILY_TRIP int, UOM, VERSION, audit) and ielp.TB_M_KPI_COMPANY_VALUE (COMPANY_ID, KPI_ID, KPI_VALUE int); KPI items stay in MS_KPI.",
+    "G-MKP-02 Payment type / daily trip: Existing logic kept: Payment Type By Resources / By Trip, Daily Trip, Trips per day for By Trip. DCR-13: Columns in TB_M_KPI_COMPANY (DCR of G-MKP-01); Trips per day = row in ielp.TB_M_SYSTEM (SYS_CAT 'TCPBR', SYS_CD 'DAILY_TRIPS' - key TBD).",
+    "G-MKP-03 Grade thresholds: Existing logic kept: grade thresholds fixed in master-kpi.js (MS_KPI_PERCENTAGE not used). No DB change: mapping as stated."
    ]
   },
   {

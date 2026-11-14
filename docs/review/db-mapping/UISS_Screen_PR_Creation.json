@@ -108,8 +108,8 @@
    "rw": "R",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "Component FIX / KM not identifiable."
+   "status": "Revised",
+   "note": "Component FIX / KM not identifiable. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Working Days",
@@ -161,8 +161,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?)."
+   "status": "Revised",
+   "note": "No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "PR per company",
@@ -217,7 +217,10 @@
    "code": "-",
    "db": "CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET)",
    "data": "No sample data",
-   "recommendation": "Use PR_NO_DET per company (confirm)"
+   "recommendation": "Use PR_NO_DET per company (confirm)",
+   "decision": "Existing logic kept: one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-MO-02",
@@ -226,7 +229,10 @@
    "code": "-",
    "db": "CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2)",
    "data": "No sample data",
-   "recommendation": "Level codes TBD"
+   "recommendation": "Level codes TBD",
+   "decision": "Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS.",
+   "dcr": "Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change",
+   "dcr_id": "DCR-34"
   },
   {
    "id": "G-PRC-01",
@@ -235,7 +241,10 @@
    "code": "-",
    "db": "TB_R_PR_DAILY / TB_R_PR_SUMMARY (truck / driver / DOT / HOT model)",
    "data": "No sample data",
-   "recommendation": "Confirm the fixed-cost calculation model against these tables"
+   "recommendation": "Confirm the fixed-cost calculation model against these tables",
+   "decision": "Existing logic kept: Monthly Fixed Cost PR and Route-Based PR as calculated in pr-creation-rules.js; stored in CRITERIA_SCORE_* (type in CRITERIA_SCORE_HEADER.BUSINESS_TYPE).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

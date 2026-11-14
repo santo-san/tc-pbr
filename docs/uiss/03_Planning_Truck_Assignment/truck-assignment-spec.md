@@ -257,13 +257,14 @@ cd /tmp/claude-0/-home-user-tc-pbr/9e412a63-1435-5c0e-b1b1-989da22a9217/scratchp
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Planning_Truck_Assignment** - tables: `ielp.DTP_2_DETAIL`, `ielp.MS_TRUCK_REGISTRATION`, `ielp.ORDER_CYCLE`, `ielp.ORDER_TRUCK_H`
-  - G-TA-01 LP accept / reject: No columns -> Confirm storage (ORDER_REMARK? new columns)
-  - G-TA-02 Assignment table: Plate / driver directly on DTP_n_DETAIL / ORDER_CYCLE, history in ORDER_TRUCK_H -> Use existing columns; ORDER_TRUCK_H as history
+  - G-TA-01 LP accept / reject: Existing logic kept: LP Accept / Reject with reason (workflow.js:194, 202). **DCR-27**: ADD ielp.DTP_2_DETAIL.LP_STATUS varchar(20), LP_REJECT_REASON varchar(500), LP_ACTION_BY varchar(500), LP_ACTION_DATE datetime
+  - G-TA-02 Assignment table: Existing logic kept: one active truck per order, every assign / change kept in an audit trail. **DCR-28**: ADD ielp.ORDER_TRUCK_H.ACTION varchar(30), PREV_LICENSE_PLATE varchar(20), DRIVER_ID varchar(10)
 - **UISS_Batch_Driver_Order_Sync** - tables: `ielp.MS_DRIVER`, `ielp.MS_LOCATION`, `ielp.ORDER_CYCLE`, `ielp.TB_M_DRIVER`
-  - G-DRV-01 Sync mechanism: No sync tables; TB_M_DRIVER has FIREBASE_TOKEN / DEVICE_ID -> Confirm the existing driver app channel before building
+  - G-DRV-01 Sync mechanism: Existing logic kept as specified in the UISS (HiveMQ outbox). **DCR-23**: CREATE TB_T_DRIVER_SYNC_QUEUE, TB_R_DRIVER_ORDER, TB_R_DRIVER_MQ_OUTBOX, TB_R_DRIVER_SYNC_LOG (definitions in the UISS-Batch Appendix)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

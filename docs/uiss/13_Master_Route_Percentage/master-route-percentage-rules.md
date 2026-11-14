@@ -86,12 +86,13 @@ flowchart TD
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_Route_Percentage** - tables: `ielp.MS_LOCATION`, `ielp.MS_ROUTE_DETAIL`, `ielp.MS_ROUTE_HEADER`, `ielp.MS_ROUTE_PERCENTAGE_HIST`
-  - G-MRP-01 Route stops: MS_ROUTE_DETAIL has only ROUTE_CODE / ROUTE_DESCR -> New table or encode stops in ROUTE_CODE (confirm)
-  - G-MRP-02 Distance: Only MS_ROUTE_PERCENTAGE_HIST.DISTANCE int (per period) -> Confirm source; decimals not stored
-  - G-MRP-03 Percentage storage: MS_ROUTE_HEADER float; HIST varchar(4) -> Confirm which table is maintained by the screen
+  - G-MRP-01 Route stops: Existing logic kept: route = ordered stops (Location Pick) with leg distance (master-route-percentage.js). **DCR-14**: CREATE ielp.MS_ROUTE_STOP (ROUTE_HEADER_ID varchar(10), SEQ_NO int, LOCATION_ID varchar(10), STOP_TYPE varchar(10), LEG_KM decimal(9,2), audit) - PK ROUTE_HEADER_ID + SEQ_NO
+  - G-MRP-02 Distance: Existing logic kept: route distance (sum of legs, 2 decimals) on the route. **DCR-15**: ADD ielp.MS_ROUTE_HEADER.DISTANCE_KM decimal(9,2), DISTANCE_EST_FLG varchar(1)
+  - G-MRP-03 Percentage storage: Existing logic kept: percentage 0 < % <= 100 with 2 decimals; stored in MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE (float). (no DB change)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

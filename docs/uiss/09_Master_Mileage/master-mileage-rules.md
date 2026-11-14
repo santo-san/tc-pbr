@@ -118,19 +118,20 @@ flowchart TD
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_Mileage** - tables: `ielp.MS_LOCATION`, `ielp.TB_M_MILEAGE`
-  - G-MML-01 Mileage decimals: MILEAGE decimal(18,0) - no decimals -> Round to whole KM in the UI or change the column (DB change request)
-  - G-MML-02 Route key: PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key -> Only one route per From is possible with this PK - confirm the table or change the PK
-  - G-MML-03 Location names stored: LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised) -> Copy names on insert / update; define refresh when a location is renamed
-  - G-MML-04 Active / Inactive and VERSION: Only IS_DELETE varchar(5); no VERSION -> Map status to IS_DELETE; concurrency by CHANGED_DT
+  - G-MML-01 Mileage decimals: Existing logic kept: mileage > 0 with up to 2 decimals (master-mileage.js parseMileage). **DCR-06**: ALTER ielp.TB_M_MILEAGE.MILEAGE decimal(18,0) -> decimal(9,2)
+  - G-MML-02 Route key: Existing logic kept: a route is unique by From + To (directional). **DCR-07**: ALTER ielp.TB_M_MILEAGE: TO_CODE NOT NULL; primary key (LOC_NAME_FROM, FROM_CODE) -> (FROM_CODE, TO_CODE)
+  - G-MML-03 Location names stored: Existing logic kept: names shown from Master Location; LOC_NAME_FROM / LOC_NAME_TO filled with a copy of MS_LOCATION.LOCATION_NAME on save. (no DB change)
+  - G-MML-04 Active / Inactive and VERSION: Existing logic kept: Active / Inactive status and VERSION. **DCR-08**: ADD ielp.TB_M_MILEAGE.STATUS varchar(8) NOT NULL default 'Active'; ADD VERSION int NOT NULL default 1
 - **UISS_Batch_Master_Mileage_Upload** - tables: `ielp.TB_M_MILEAGE`
-  - G-MML-01 Mileage decimals: MILEAGE decimal(18,0) - no decimals -> Round to whole KM in the UI or change the column (DB change request)
-  - G-MML-02 Route key: PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key -> Only one route per From is possible with this PK - confirm the table or change the PK
-  - G-MML-03 Location names stored: LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised) -> Copy names on insert / update; define refresh when a location is renamed
-  - G-MML-04 Active / Inactive and VERSION: Only IS_DELETE varchar(5); no VERSION -> Map status to IS_DELETE; concurrency by CHANGED_DT
-  - G-MML-05 LAST_UPLOAD_ID: No such column in TB_M_MILEAGE -> Drop or add the column (DB change request)
+  - G-MML-01 Mileage decimals: Existing logic kept: mileage > 0 with up to 2 decimals (master-mileage.js parseMileage). **DCR-06**: ALTER ielp.TB_M_MILEAGE.MILEAGE decimal(18,0) -> decimal(9,2)
+  - G-MML-02 Route key: Existing logic kept: a route is unique by From + To (directional). **DCR-07**: ALTER ielp.TB_M_MILEAGE: TO_CODE NOT NULL; primary key (LOC_NAME_FROM, FROM_CODE) -> (FROM_CODE, TO_CODE)
+  - G-MML-03 Location names stored: Existing logic kept: names shown from Master Location; LOC_NAME_FROM / LOC_NAME_TO filled with a copy of MS_LOCATION.LOCATION_NAME on save. (no DB change)
+  - G-MML-04 Active / Inactive and VERSION: Existing logic kept: Active / Inactive status and VERSION. **DCR-08**: ADD ielp.TB_M_MILEAGE.STATUS varchar(8) NOT NULL default 'Active'; ADD VERSION int NOT NULL default 1
+  - G-MML-05 LAST_UPLOAD_ID: Existing logic kept: upload with temp rows, upload log and mileage history (UISS-Batch Route Mileage Upload). **DCR-09**: ADD ielp.TB_M_MILEAGE.LAST_UPLOAD_ID bigint NULL; CREATE TB_T_MILEAGE_UPLOAD, TB_R_MILEAGE_UPLOAD_LOG, TB_H_MILEAGE (definitions in the UISS-Batch Appendix)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

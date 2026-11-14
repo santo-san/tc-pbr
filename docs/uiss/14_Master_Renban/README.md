@@ -5,7 +5,7 @@ Code: renban.js, master-renban.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_Renban](UISS_Screen_Master_Renban.xlsx) | screen | 0.2 (14-Nov-26) | [src/UISS_Screen_Master_Renban.json](src/UISS_Screen_Master_Renban.json) | 9 |
+| [UISS_Screen_Master_Renban](UISS_Screen_Master_Renban.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_Master_Renban.json](src/UISS_Screen_Master_Renban.json) | 9 |
 
 Rules / specification:
 

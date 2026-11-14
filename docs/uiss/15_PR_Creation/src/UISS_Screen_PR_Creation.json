@@ -31,6 +31,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: PR = CRITERIA_SCORE_HEADER / _DETAIL_FINAL / _DETAIL_ROUTE / _APPROVAL (route-based) and TB_R_PR_DAILY / TB_R_PR_SUMMARY (fixed cost, inferred); prices = MS_ROUTE_PRICE; calendar = TB_M_WORKING_CALENDAR; routes = MS_ROUTE_HEADER / DETAIL; conflicts recorded; no sample data"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-34)"
   }
  ],
  "general": {
@@ -1003,7 +1010,7 @@
    "required": "",
    "format": "ZZZ,ZZZ,ZZ9",
    "validation": "",
-   "description": "Price per KM of LP and period; '-' if not available (tooltip = reason).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Conflict] Component FIX / KM not identifiable."
+   "description": "Price per KM of LP and period; '-' if not available (tooltip = reason).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Revised - existing logic kept, see DCR] Component FIX / KM not identifiable."
   },
   {
    "name": "Fixed Cost (IDR/Month)",
@@ -1018,7 +1025,7 @@
    "required": "",
    "format": "ZZZ,ZZZ,ZZ9",
    "validation": "",
-   "description": "Monthly Price of LP and period.\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Conflict] Component FIX / KM not identifiable."
+   "description": "Monthly Price of LP and period.\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Revised - existing logic kept, see DCR] Component FIX / KM not identifiable."
   },
   {
    "name": "Working Days (Days)",
@@ -1246,7 +1253,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "DB: Conflict - No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?)."
+   "description": "DB: Existing logic kept (DCR) - No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?)."
   },
   {
    "name": "Planned Cost (IDR)",
@@ -1291,7 +1298,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Rows Monthly Cost (amount) and Mileage Cost (rate, reference only).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Conflict] Component FIX / KM not identifiable."
+   "description": "Rows Monthly Cost (amount) and Mileage Cost (rate, reference only).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Revised - existing logic kept, see DCR] Component FIX / KM not identifiable."
   },
   {
    "name": "Total Cost",
@@ -1347,16 +1354,16 @@
      {
       "source_field": "Operational Month",
       "dest_field": "CRITERIA_PERIODE",
-      "description": "YYYY-MM [Conflict: CRITERIA_PERIODE is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+      "description": "YYYY-MM [DCR: CRITERIA_PERIODE not in ielp.CRITERIA_SCORE_DETAIL_FINAL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "PR Sequence",
       "dest_field": "PR_SEQ",
-      "description": "Max sequence of LP + month + 1 [Conflict: PR_SEQ is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+      "description": "Max sequence of LP + month + 1 [DCR: PR_SEQ not in ielp.CRITERIA_SCORE_DETAIL_FINAL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PARENT_PR_NO_DET",
-      "description": "Initial PR (sequence 1) when sequence > 1, else NULL [Conflict: PARENT_PR_NO_DET is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+      "description": "Initial PR (sequence 1) when sequence > 1, else NULL [DCR: PARENT_PR_NO_DET not in ielp.CRITERIA_SCORE_DETAIL_FINAL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "PR Creation Type",
@@ -1388,7 +1395,7 @@
      {
       "source_field": "Fixed Cost / Mileage Cost",
       "dest_field": "FIX_COST / MILEAGE_RATE (TBD)",
-      "description": "E-Catalogue values used [Conflict: FIX_COST is not a column of ielp.CRITERIA_SCORE_DETAIL_FINAL]"
+      "description": "E-Catalogue values used [DCR: FIX_COST not in ielp.CRITERIA_SCORE_DETAIL_FINAL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_DATE",
@@ -1415,7 +1422,7 @@
     "mappings": [
      {
       "dest_field": "PR_NO_DET",
-      "description": "Header PR number [Conflict: PR_NO_DET is not a column of ielp.CRITERIA_SCORE_DETAIL_ROUTE]"
+      "description": "Header PR number [DCR: PR_NO_DET not in ielp.CRITERIA_SCORE_DETAIL_ROUTE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "COMPONENT (TBD)",
@@ -1468,11 +1475,11 @@
     "mappings": [
      {
       "dest_field": "PR_NO_DET",
-      "description": "Header PR number [Conflict: PR_NO_DET is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+      "description": "Header PR number [DCR: PR_NO_DET not in ielp.CRITERIA_SCORE_APPROVAL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "APV_APPROVAL_CLASS",
-      "description": "Each configured level (SH, DpH, DH) [Conflict: APV_APPROVAL_CLASS is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+      "description": "Each configured level (SH, DpH, DH) [DCR: APV_APPROVAL_CLASS not in ielp.CRITERIA_SCORE_APPROVAL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "APV_STATUS (TBD)",
@@ -1480,7 +1487,7 @@
      },
      {
       "dest_field": "APV_BY / APV_DT (TBD)",
-      "description": "Blank (Skip: date = creation date) [Conflict: APV_BY is not a column of ielp.CRITERIA_SCORE_APPROVAL]"
+      "description": "Blank (Skip: date = creation date) [DCR: APV_BY not in ielp.CRITERIA_SCORE_APPROVAL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CRITERIA_APPROVAL_ID, CRITERIA_HEADER_ID, CRITERIA_DETAIL_FINAL_ID, CRITERIA_PERIODE",
@@ -1770,7 +1777,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1842,7 +1849,7 @@
      "N",
      "R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Working Days",
@@ -1878,7 +1885,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "PR per company",
@@ -1920,7 +1927,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1929,9 +1936,9 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MO-01 PR document: UISS / code: PR Header per trucking company with own PR number. DB: CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET). Recommendation: Use PR_NO_DET per company (confirm)",
-    "G-MO-02 Approval levels: UISS / code: SH / DpH / DH per PR. DB: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2). Recommendation: Level codes TBD",
-    "G-PRC-01 Fixed-cost PR: UISS / code: Monthly Fixed Cost PR per LP (pr-creation-rules.js). DB: TB_R_PR_DAILY / TB_R_PR_SUMMARY (truck / driver / DOT / HOT model). Recommendation: Confirm the fixed-cost calculation model against these tables"
+    "G-MO-01 PR document: Existing logic kept: one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER). No DB change: mapping as stated.",
+    "G-MO-02 Approval levels: Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS. DCR-34: Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change.",
+    "G-PRC-01 Fixed-cost PR: Existing logic kept: Monthly Fixed Cost PR and Route-Based PR as calculated in pr-creation-rules.js; stored in CRITERIA_SCORE_* (type in CRITERIA_SCORE_HEADER.BUSINESS_TYPE). No DB change: mapping as stated."
    ]
   },
   {

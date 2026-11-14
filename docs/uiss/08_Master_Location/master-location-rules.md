@@ -102,13 +102,14 @@ Jika lokasi tujuan berstatus **Auto Finish Order = Yes** dan trigger Auto Finish
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_Location** - tables: `ielp.MS_LOCATION`
-  - G-MLC-01 Coordinates type: LOCATION_LATITUDE / LOCATION_LANGITUDE varchar(100) NOT NULL -> Store as text with 7 decimals; validate in the application
-  - G-MLC-02 Radius: RADIUS varchar(5) default '50' -> Max 5 characters
-  - G-MLC-03 Active / Inactive: Only IS_DELETE varchar(100) -> Confirm deactivate = IS_DELETE or add a status column
-  - G-MLC-04 Concurrency: No VERSION column -> Use UPDATED_DATE or add VERSION
+  - G-MLC-01 Coordinates type: Existing logic kept: numeric coordinates with 7 decimals, validated -90..90 / -180..180; stored as text in LOCATION_LATITUDE / LOCATION_LANGITUDE. (no DB change)
+  - G-MLC-02 Radius: Existing logic kept: numeric radius > 0 in metres; stored as text in RADIUS (max 5 digits). (no DB change)
+  - G-MLC-03 Active / Inactive: Existing logic kept: Active / Inactive status separate from delete (master-location.js deactivate / remove). **DCR-04**: ADD ielp.MS_LOCATION.STATUS varchar(8) NOT NULL default 'ACTIVE'
+  - G-MLC-04 Concurrency: Existing logic kept: optimistic lock by VERSION. **DCR-05**: ADD ielp.MS_LOCATION.VERSION int NOT NULL default 1
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

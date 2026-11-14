@@ -184,7 +184,10 @@
    "code": "-",
    "db": "ORDER_CYCLE_ID varchar(20) PK (format unknown)",
    "data": "No sample data",
-   "recommendation": "Confirm the cycle order number field"
+   "recommendation": "Confirm the cycle order number field",
+   "decision": "Existing logic kept: deliveryId = No Cycle Order YYMMDDC2XXX999 (dn-rules.js); stored in ORDER_CYCLE.ORDER_CYCLE_ID varchar(20).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

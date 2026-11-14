@@ -108,12 +108,13 @@ flowchart TD
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_KPI** - tables: `ielp.CRITERIA_LAST_ORDER`, `ielp.CRITERIA_SCORE_DETAIL`, `ielp.MS_KPI`, `ielp.MS_KPI_PERCENTAGE`, `ielp.MS_TRUCKING_COMPANY`
-  - G-MKP-01 Per-company KPI master: Only MS_KPI (items) and period tables CRITERIA_SCORE_DETAIL / CRITERIA_LAST_ORDER -> New master table or confirm the period tables are the source
-  - G-MKP-02 Payment type / daily trip: No columns -> DB change request
-  - G-MKP-03 Grade thresholds: MS_KPI_PERCENTAGE (FROM / TO_PERCENTAGE -> VALUE) -> Read thresholds from MS_KPI_PERCENTAGE
+  - G-MKP-01 Per-company KPI master: Existing logic kept: KPI row per trucking company with payment type, score, KPI item values, order sharing % and daily trip (master-kpi.js). **DCR-12**: CREATE ielp.TB_M_KPI_COMPANY (COMPANY_ID, PAYMENT_TYPE varchar(12), SCORE int, ORDER_SHARING decimal(5,2), DAILY_TRIP int, UOM, VERSION, audit) and ielp.TB_M_KPI_COMPANY_VALUE (COMPANY_ID, KPI_ID, KPI_VALUE int); KPI items stay in MS_KPI
+  - G-MKP-02 Payment type / daily trip: Existing logic kept: Payment Type By Resources / By Trip, Daily Trip, Trips per day for By Trip. **DCR-13**: Columns in TB_M_KPI_COMPANY (DCR of G-MKP-01); Trips per day = row in ielp.TB_M_SYSTEM (SYS_CAT 'TCPBR', SYS_CD 'DAILY_TRIPS' - key TBD)
+  - G-MKP-03 Grade thresholds: Existing logic kept: grade thresholds fixed in master-kpi.js (MS_KPI_PERCENTAGE not used). (no DB change)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

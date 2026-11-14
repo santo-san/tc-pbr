@@ -5,7 +5,7 @@ Code: master.js, master-trucking.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_Trucking_Company](UISS_Screen_Master_Trucking_Company.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_Master_Trucking_Company.json](src/UISS_Screen_Master_Trucking_Company.json) | 14 |
+| [UISS_Screen_Master_Trucking_Company](UISS_Screen_Master_Trucking_Company.xlsx) | screen | 0.5 (14-Nov-26) | [src/UISS_Screen_Master_Trucking_Company.json](src/UISS_Screen_Master_Trucking_Company.json) | 14 |
 
 Rules / specification:
 

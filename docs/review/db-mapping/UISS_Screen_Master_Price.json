@@ -68,8 +68,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
+   "status": "Revised",
+   "note": "No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Price",
@@ -195,7 +195,10 @@
    "code": "-",
    "db": "No component column in MS_ROUTE_PRICE",
    "data": "No sample data",
-   "recommendation": "Confirm component identification (material code?)"
+   "recommendation": "Confirm component identification (material code?)",
+   "decision": "Existing logic kept: price components FIX (per month) and KM (per km) per partner and period (master-price.js).",
+   "dcr": "ADD ielp.MS_ROUTE_PRICE.PRICE_COMPONENT varchar(3) (FIX / KM)",
+   "dcr_id": "DCR-10"
   },
   {
    "id": "G-MPR-02",
@@ -204,7 +207,10 @@
    "code": "-",
    "db": "Only VALID_DT_FROM / VALID_DT_TO",
    "data": "No sample data",
-   "recommendation": "Derive period from validity dates"
+   "recommendation": "Derive period from validity dates",
+   "decision": "Existing logic kept: period YYYYMM derived from the validity dates (master-price.js periodStart / periodEnd).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

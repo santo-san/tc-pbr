@@ -141,7 +141,10 @@
    "code": "-",
    "db": "No plant master with PLANT_CD varchar(10) found (TB_M_LOGISTIC_POINT.PLANT_CD is char(1))",
    "data": "No sample data",
-   "recommendation": "Confirm the plant list source"
+   "recommendation": "Confirm the plant list source",
+   "decision": "Existing logic kept: plant list as coded in master-renban.js (code - description).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

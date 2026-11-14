@@ -91,10 +91,11 @@ flowchart TD
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_Priority** - tables: `ielp.MS_LOCATION`, `ielp.TB_M_MILEAGE`
-  - G-MPY-01 Route priority storage: No table in ELIPS -> New table needed (DB change request) or confirm existing storage
+  - G-MPY-01 Route priority storage: Existing logic kept: route priority per From / To with renumbering (master-priority.js). **DCR-11**: CREATE ielp.TB_M_ROUTE_PRIORITY (FROM_CODE varchar(10), TO_CODE varchar(10), PRIORITY_NO int, VERSION int, CREATED_BY / CREATED_DT / CHANGED_BY / CHANGED_DT) - PK FROM_CODE + TO_CODE
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

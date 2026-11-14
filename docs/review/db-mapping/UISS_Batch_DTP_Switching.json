@@ -98,7 +98,10 @@
    "code": "-",
    "db": "DTP_HEADER + DTP_1..4_DETAIL per DTP type",
    "data": "No sample data",
-   "recommendation": "Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP"
+   "recommendation": "Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
+   "decision": "Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-DTP-02",
@@ -107,7 +110,10 @@
    "code": "-",
    "db": "DTP_2_DETAIL.ORDER_NO NOT NULL, PK",
    "data": "No sample data",
-   "recommendation": "Confirm when ORDER_NO is generated in ELIPS"
+   "recommendation": "Confirm when ORDER_NO is generated in ELIPS",
+   "decision": "Existing logic kept: order number is assigned by queue processing, records exist before that.",
+   "dcr": "ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID",
+   "dcr_id": "DCR-16"
   },
   {
    "id": "G-DTS-01",
@@ -116,7 +122,10 @@
    "code": "-",
    "db": "ORDER_CYCLE.CANCEL_DATE, CANCEL_REMARKS (no cancel-by)",
    "data": "No sample data",
-   "recommendation": "Use existing columns; IS_DELETE for cancelled orders?"
+   "recommendation": "Use existing columns; IS_DELETE for cancelled orders?",
+   "decision": "Existing logic kept: switching cancels the daily order with reason and user.",
+   "dcr": "ADD ielp.ORDER_CYCLE.CANCEL_BY varchar(500) (CANCEL_DATE, CANCEL_REMARKS existing)",
+   "dcr_id": "DCR-22"
   }
  ],
  "tbd": [

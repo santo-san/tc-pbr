@@ -464,16 +464,17 @@ Covered by `tests/sa-monitoring.test.js` and the Playwright run of the mock-up.
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_SA_Monitoring** - tables: `ielp.LOG_ITGPAS`, `ielp.SA_DETAIL`, `ielp.SA_HEADER`, `ielp.SA_WBS_PERCENTAGE`
-  - G-SA-01 SA number length: SA_CODE varchar(16); SA_HEADER_ID varchar(20) -> Shorten the SA number format or widen SA_CODE (DB change request)
-  - G-SA-02 Amounts as text: SA_DETAIL.PRICE, TOTAL_PRICE varchar(100); TOTAL_TRIP varchar(10); SA_HEADER.SA_TOTAL varchar(5) -> Store numbers as text with fixed format or change types
-  - G-SA-03 Total KM / rate per KM: No such columns (ROUTE_PRICE_ID -> MS_ROUTE_PRICE) -> Derive from MS_ROUTE_PRICE / TB_M_MILEAGE
-  - G-SA-04 Status codes: SA_HEADER.STATUS_CODE varchar(1), SA_DETAIL.STATUS_CODE varchar(2), SA_TYPE varchar(1) -> Code values TBD
-  - G-SAM-01 Interface tracking: SA_DETAIL PAS_* per detail; log in LOG_ITGPAS -> Track per SA_DETAIL; attempts / correlation id TBD
-  - G-SAM-02 VISION columns: SA_DETAIL.IS_VISION / VISION_* exist -> Meaning TBD (other interface?)
+  - G-SA-01 SA number length: Existing logic kept: SA number ILS/TR/<LP>/<YYMMDD><NNNN> up to 22 characters (sa-rules.js saNumber). **DCR-29**: ALTER ielp.SA_DETAIL.SA_CODE and ielp.ORDER_CYCLE.SA_CODE varchar(16) -> varchar(25)
+  - G-SA-02 Amounts as text: Existing logic kept: numeric KM / price / cost; stored as plain numbers in the existing varchar columns. (no DB change)
+  - G-SA-03 Total KM / rate per KM: Existing logic kept: Total KM, rate per KM and currency kept on the SA (sa-rules.js calculate). **DCR-30**: ADD ielp.SA_DETAIL.TOTAL_KM decimal(9,2), RATE_PER_KM decimal(15,2), CURRENCY varchar(3)
+  - G-SA-04 Status codes: Existing logic kept: SA statuses and types of sa-rules.js / sa-pas-rules.js. **DCR-31**: Register code values (SA_HEADER.STATUS_CODE, SA_TYPE, SA_DETAIL.STATUS_CODE) - data, no column change
+  - G-SAM-01 Interface tracking: Existing logic kept: interface tracking with correlation id, attempts, error code / message (sa-pas-rules.js). **DCR-33**: ADD ielp.SA_DETAIL.CORRELATION_ID varchar(60), INTERFACE_ATTEMPT int, ERROR_CD varchar(30), ERROR_MSG varchar(500)
+  - G-SAM-02 VISION columns: Existing logic kept: VISION columns are not used by the TC-PBR logic. (no DB change)
 - UISS_Batch_SA_PAS_Interface: created in the review, see the UISS.
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

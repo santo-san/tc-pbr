@@ -3,6 +3,7 @@
 Goal: **existing system + existing database + actual implementation = accurate UISS.** The application was not
 redesigned or changed; differences are documented and resolved by evidence (schema for database facts, code for
 behaviour). No sample data was available (user confirmation 14-Nov-26), so value lists / status codes stay TBD.
+**Decision 14-Nov-26: every conflict follows the existing application logic**; the database changes this needs are DB change requests (DCR, file 12).
 
 | # | Deliverable | File |
 |---|---|---|
@@ -15,10 +16,11 @@ behaviour). No sample data was available (user confirmation 14-Nov-26), so value
 | 8 | Potential Application Bugs (10) | [09-potential-application-bugs.md](09-potential-application-bugs.md) |
 | 9 | TBD / items requiring confirmation | [10-tbd-list.md](10-tbd-list.md) |
 | 10 | Final Traceability Matrix (346 rows) | [11-traceability-matrix.md](11-traceability-matrix.md) |
+| - | DB Change Requests (43) to keep the existing logic | [12-db-change-requests.md](12-db-change-requests.md) |
 
 Sources: ELIPS schema [`../db/ELIPS_Schema.sql`](../db/ELIPS_Schema.sql) (+ [`../db/schema-dictionary.md`](../db/schema-dictionary.md), `../db/schema.json`);
 mapping decisions per UISS in [`db-mapping/`](db-mapping/) (`maps_master.py`, `maps_daily.py`, `maps_sa_monthly.py` write the JSON);
-applied with [`../uiss/scripts/db_revision.py`](../uiss/scripts/db_revision.py); matrices regenerated with `scripts/make_matrices.py`.
+applied with [`../uiss/scripts/db_revision.py`](../uiss/scripts/db_revision.py) ([DB-R1]) and [`../uiss/scripts/db_decision.py`](../uiss/scripts/db_decision.py) ([DB-R2], decisions in `db-mapping/decisions.py`); DCR list by `scripts/make_dcr.py`; matrices regenerated with `scripts/make_matrices.py`.
 UISS are now one folder per function: [`../uiss/README.md`](../uiss/README.md).
 
 Evidence classes: **Schema** (DDL), **Code** (mock-up source), **Data** (none provided), **Inferred** (link by name / structure), **TBD**.

@@ -1,0 +1,461 @@
+{
+ "ielp.DTP_2_DETAIL": {
+  "DTP_DATE": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "DTP_MODEL": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "EXPORTER": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "IMPORTER_CD": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "DEST_CD": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "DATA_SOURCE": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "PAY_TYPE": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching"
+  ],
+  "STATUS": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "ERROR_MSG": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "ATTEMPT_CNT": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "FAIL_REASON": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "SUBMITTED_BY": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "SUBMITTED_DT": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "LAST_UPLOAD_ID": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "VERSION": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "COMPLETE_DATE": [
+   "UISS_Screen_Daily_Order_Monitoring"
+  ]
+ },
+ "ielp.LOG_ACTIVITY_ORDER": {
+  "HIST_ID": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "STATUS": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "NOTE": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation"
+  ],
+  "CREATED_DATE": [
+   "UISS_Batch_DTP_Excel_Upload",
+   "UISS_Batch_DTP_Queue_Processing",
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_DTP_Creation",
+   "UISS_Screen_Daily_Order_Monitoring"
+  ],
+  "CYCLE_SEQ": [
+   "UISS_Screen_Daily_Order_Monitoring"
+  ]
+ },
+ "ielp.ORDER_CYCLE": {
+  "ORDER_DT": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "DTP_TYPE": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "PLANNED_CYCLE": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "ORDER_STATUS": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "TRUCK_NO": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "DRIVER": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "CYCLE_NO": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "CYCLE_STATUS": [
+   "UISS_Batch_DTP_Queue_Processing"
+  ],
+  "CANCEL_BY": [
+   "UISS_Batch_DTP_Switching"
+  ],
+  "STATUS": [
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_Planning_Truck_Assignment",
+   "UISS_Screen_SA_Approval"
+  ],
+  "VERSION": [
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_Planning_Truck_Assignment",
+   "UISS_Screen_SA_Approval"
+  ],
+  "START_DT": [
+   "UISS_Screen_Daily_Order_Monitoring"
+  ],
+  "LP_STATUS": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "LP_ACCEPTED_BY": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "LP_ACCEPTED_DT": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "LP_REJECT_REASON": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "LP_REJECT_BY": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "LP_REJECT_DT": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "ACTIVE_PLATE": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "SA_DT": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "SA_BY": [
+   "UISS_Screen_SA_Approval"
+  ]
+ },
+ "ielp.ORDER_TRUCK_H": {
+  "ACTION": [
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "PREV_": [
+   "UISS_Batch_DTP_Switching"
+  ],
+  "PLATE": [
+   "UISS_Batch_DTP_Switching"
+  ],
+  "UPDATED_DT": [
+   "UISS_Batch_DTP_Switching",
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "HIST_ID": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "PREV_LP_STATUS": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "NEW_LP_STATUS": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "PREV_ORDER_STATUS": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "NEW_ORDER_STATUS": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "PREV_PLATE": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "NEW_PLATE": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ],
+  "REASON": [
+   "UISS_Screen_Planning_Truck_Assignment"
+  ]
+ },
+ "ielp.SA_DETAIL": {
+  "SA_NUMBER": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "PROCESS_ID": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "PR_NO": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface",
+   "UISS_Screen_SA_Approval"
+  ],
+  "INTERFACE_STATUS": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "ERROR_MESSAGE": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "START_DT": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "END_DT": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "RETRY_COUNT": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "CREATED_DT": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "CHANGED_DT": [
+   "UISS_Batch_ELIPS_PAS_PR_Interface"
+  ],
+  "ORDER_NO": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "ORDER_DATE": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "ROUTE_CD": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "TOTAL_KM": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PO_STATUS_AT_APPROVAL": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "RATE_PER_KM": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "CURRENCY": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "COST": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "FORMULA": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "CALC_SNAPSHOT": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "CALC_DT": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "SA_DET_NO": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "DETAIL_KIND": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PROD_MONTH": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "DESCRIPTION": [
+   "UISS_Screen_SA_Approval"
+  ]
+ },
+ "ielp.TB_M_MILEAGE": {
+  "LAST_UPLOAD_ID": [
+   "UISS_Batch_Master_Mileage_Upload"
+  ]
+ },
+ "ielp.MS_ROUTE_HEADER": {
+  "ROUTE_CODE": [
+   "UISS_Screen_Master_Route_Percentage"
+  ],
+  "ROUTE_DESCR": [
+   "UISS_Screen_Master_Route_Percentage"
+  ]
+ },
+ "ielp.CRITERIA_SCORE_APPROVAL": {
+  "APPROVED_BY": [
+   "UISS_Screen_PO_Approval"
+  ],
+  "APPROVED_DT": [
+   "UISS_Screen_PO_Approval"
+  ],
+  "PR_NO_DET": [
+   "UISS_Screen_PR_Creation"
+  ],
+  "APV_APPROVAL_CLASS": [
+   "UISS_Screen_PR_Creation"
+  ],
+  "APV_BY": [
+   "UISS_Screen_PR_Creation"
+  ]
+ },
+ "ielp.PO_HEADER": {
+  "PO_NUMBER": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "PR_NO_DET": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "CRITERIA_PERIODE": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "PR_SEQ": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "COMPANY_ID": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "SHARING_PCT": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "TOTAL_QTY": [
+   "UISS_Screen_PR_Approval"
+  ],
+  "TOTAL_PRICE": [
+   "UISS_Screen_PR_Approval"
+  ]
+ },
+ "ielp.CRITERIA_SCORE_DETAIL_FINAL": {
+  "CRITERIA_PERIODE": [
+   "UISS_Screen_PR_Creation"
+  ],
+  "PR_SEQ": [
+   "UISS_Screen_PR_Creation"
+  ],
+  "PARENT_PR_NO_DET": [
+   "UISS_Screen_PR_Creation"
+  ],
+  "FIX_COST": [
+   "UISS_Screen_PR_Creation"
+  ]
+ },
+ "ielp.CRITERIA_SCORE_DETAIL_ROUTE": {
+  "PR_NO_DET": [
+   "UISS_Screen_PR_Creation"
+  ]
+ },
+ "ielp.SA_HEADER": {
+  "SA_CODE": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "LP_NAME": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PO_VALID_FROM": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PO_VALID_TO": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "CURRENCY": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "DELIVERY_COUNT": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "TOTAL_KM": [
+   "UISS_Screen_SA_Approval",
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "TOTAL_COST": [
+   "UISS_Screen_SA_Approval",
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "SA_STATUS": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "APPROVED_BY": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "APPROVED_DT": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "REQUEST_ID": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "VERSION": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PR_NO": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PROD_MONTH": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "INTERFACE_STS": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "PAS_STATUS": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "INTERFACE_ATTEMPT": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "CORRELATION_ID": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "ERROR_CD": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "ERROR_MSG": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "INTERFACE_DT": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "PAS_UPDATED_DT": [
+   "UISS_Screen_SA_Monitoring"
+  ],
+  "PAS_VERSION": [
+   "UISS_Screen_SA_Monitoring"
+  ]
+ },
+ "ielp.PO_DETAIL": {
+  "SA_CODE": [
+   "UISS_Screen_SA_Approval"
+  ],
+  "SA_DT": [
+   "UISS_Screen_SA_Approval"
+  ]
+ }
+}

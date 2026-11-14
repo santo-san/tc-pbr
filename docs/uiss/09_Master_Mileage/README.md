@@ -5,8 +5,8 @@ Code: mileage.js, master-mileage.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_Mileage](UISS_Screen_Master_Mileage.xlsx) | screen | 0.6 (14-Nov-26) | [src/UISS_Screen_Master_Mileage.json](src/UISS_Screen_Master_Mileage.json) | 13 |
-| [UISS_Batch_Master_Mileage_Upload](UISS_Batch_Master_Mileage_Upload.xlsx) | batch | 0.4 (14-Nov-26) | [src/UISS_Batch_Master_Mileage_Upload.json](src/UISS_Batch_Master_Mileage_Upload.json) | 0 |
+| [UISS_Screen_Master_Mileage](UISS_Screen_Master_Mileage.xlsx) | screen | 0.7 (14-Nov-26) | [src/UISS_Screen_Master_Mileage.json](src/UISS_Screen_Master_Mileage.json) | 13 |
+| [UISS_Batch_Master_Mileage_Upload](UISS_Batch_Master_Mileage_Upload.xlsx) | batch | 0.5 (14-Nov-26) | [src/UISS_Batch_Master_Mileage_Upload.json](src/UISS_Batch_Master_Mileage_Upload.json) | 0 |
 
 Rules / specification:
 

@@ -102,8 +102,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "int in the history table; no distance on MS_ROUTE_HEADER."
+   "status": "Revised",
+   "note": "int in the history table; no distance on MS_ROUTE_HEADER. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Status (Deactivate)",
@@ -150,8 +150,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No stop / sequence table."
+   "status": "Revised",
+   "note": "No stop / sequence table. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Sync flag",
@@ -173,7 +173,10 @@
    "code": "-",
    "db": "MS_ROUTE_DETAIL has only ROUTE_CODE / ROUTE_DESCR",
    "data": "No sample data",
-   "recommendation": "New table or encode stops in ROUTE_CODE (confirm)"
+   "recommendation": "New table or encode stops in ROUTE_CODE (confirm)",
+   "decision": "Existing logic kept: route = ordered stops (Location Pick) with leg distance (master-route-percentage.js).",
+   "dcr": "CREATE ielp.MS_ROUTE_STOP (ROUTE_HEADER_ID varchar(10), SEQ_NO int, LOCATION_ID varchar(10), STOP_TYPE varchar(10), LEG_KM decimal(9,2), audit) - PK ROUTE_HEADER_ID + SEQ_NO",
+   "dcr_id": "DCR-14"
   },
   {
    "id": "G-MRP-02",
@@ -182,7 +185,10 @@
    "code": "-",
    "db": "Only MS_ROUTE_PERCENTAGE_HIST.DISTANCE int (per period)",
    "data": "No sample data",
-   "recommendation": "Confirm source; decimals not stored"
+   "recommendation": "Confirm source; decimals not stored",
+   "decision": "Existing logic kept: route distance (sum of legs, 2 decimals) on the route.",
+   "dcr": "ADD ielp.MS_ROUTE_HEADER.DISTANCE_KM decimal(9,2), DISTANCE_EST_FLG varchar(1)",
+   "dcr_id": "DCR-15"
   },
   {
    "id": "G-MRP-03",
@@ -191,7 +197,10 @@
    "code": "-",
    "db": "MS_ROUTE_HEADER float; HIST varchar(4)",
    "data": "No sample data",
-   "recommendation": "Confirm which table is maintained by the screen"
+   "recommendation": "Confirm which table is maintained by the screen",
+   "decision": "Existing logic kept: percentage 0 < % <= 100 with 2 decimals; stored in MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE (float).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

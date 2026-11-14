@@ -24,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised (ELIPS side): placeholders resolved to ielp.SA_HEADER / SA_DETAIL (status = PAS_* columns), sub items = SA_WBS_PERCENTAGE (inferred), fixed parameters = TB_M_SYSTEM (inferred); PAS tables unchanged (outside ELIPS); no sample data"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; no DB change needed"
   }
  ],
  "general": {
@@ -472,43 +479,43 @@
     "mappings": [
      {
       "dest_field": "SA_NUMBER",
-      "description": "Key; WHERE INTERFACE_STATUS IN ('READY','FAILED') [Conflict: SA_NUMBER is not a column of ielp.SA_DETAIL]"
+      "description": "Key; WHERE INTERFACE_STATUS IN ('READY','FAILED') [DCR: SA_NUMBER not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PROCESS_ID",
-      "description": "Not changed [Conflict: PROCESS_ID is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: PROCESS_ID not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PR_NO",
-      "description": "Not changed [Conflict: PR_NO is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: PR_NO not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "INTERFACE_STATUS",
-      "description": "'PROCESSING' [Conflict: INTERFACE_STATUS is not a column of ielp.SA_DETAIL]"
+      "description": "'PROCESSING' [DCR: INTERFACE_STATUS not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_MESSAGE",
-      "description": "NULL [Conflict: ERROR_MESSAGE is not a column of ielp.SA_DETAIL]"
+      "description": "NULL [DCR: ERROR_MESSAGE not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "START_DT",
-      "description": "Server date-time [Conflict: START_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Server date-time [DCR: START_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "END_DT",
-      "description": "NULL [Conflict: END_DT is not a column of ielp.SA_DETAIL]"
+      "description": "NULL [DCR: END_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "RETRY_COUNT",
-      "description": "Not changed [Conflict: RETRY_COUNT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: RETRY_COUNT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_DT",
-      "description": "Not changed [Conflict: CREATED_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: CREATED_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CHANGED_DT",
-      "description": "Server date-time [Conflict: CHANGED_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Server date-time [DCR: CHANGED_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -1517,43 +1524,43 @@
     "mappings": [
      {
       "dest_field": "SA_NUMBER",
-      "description": "Key [Conflict: SA_NUMBER is not a column of ielp.SA_DETAIL]"
+      "description": "Key [DCR: SA_NUMBER not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PROCESS_ID",
-      "description": "PROCESS_ID of the PR [Conflict: PROCESS_ID is not a column of ielp.SA_DETAIL]"
+      "description": "PROCESS_ID of the PR [DCR: PROCESS_ID not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PR_NO",
-      "description": "PR_NO (new, or found by PR_DESC) [Conflict: PR_NO is not a column of ielp.SA_DETAIL]"
+      "description": "PR_NO (new, or found by PR_DESC) [DCR: PR_NO not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "INTERFACE_STATUS",
-      "description": "'SUCCESS' [Conflict: INTERFACE_STATUS is not a column of ielp.SA_DETAIL]"
+      "description": "'SUCCESS' [DCR: INTERFACE_STATUS not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_MESSAGE",
-      "description": "NULL [Conflict: ERROR_MESSAGE is not a column of ielp.SA_DETAIL]"
+      "description": "NULL [DCR: ERROR_MESSAGE not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "START_DT",
-      "description": "Not changed [Conflict: START_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: START_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "END_DT",
-      "description": "Server date-time [Conflict: END_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Server date-time [DCR: END_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "RETRY_COUNT",
-      "description": "Not changed [Conflict: RETRY_COUNT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: RETRY_COUNT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_DT",
-      "description": "Not changed [Conflict: CREATED_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: CREATED_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CHANGED_DT",
-      "description": "Server date-time [Conflict: CHANGED_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Server date-time [DCR: CHANGED_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -1575,43 +1582,43 @@
     "mappings": [
      {
       "dest_field": "SA_NUMBER",
-      "description": "Key [Conflict: SA_NUMBER is not a column of ielp.SA_DETAIL]"
+      "description": "Key [DCR: SA_NUMBER not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PROCESS_ID",
-      "description": "PROCESS_ID of the attempt (NULL if not reached; rolled back in PAS) [Conflict: PROCESS_ID is not a column of ielp.SA_DETAIL]"
+      "description": "PROCESS_ID of the attempt (NULL if not reached; rolled back in PAS) [DCR: PROCESS_ID not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PR_NO",
-      "description": "Not changed [Conflict: PR_NO is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: PR_NO not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "INTERFACE_STATUS",
-      "description": "'FAILED' [Conflict: INTERFACE_STATUS is not a column of ielp.SA_DETAIL]"
+      "description": "'FAILED' [DCR: INTERFACE_STATUS not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_MESSAGE",
-      "description": "Log message text [Conflict: ERROR_MESSAGE is not a column of ielp.SA_DETAIL]"
+      "description": "Log message text [DCR: ERROR_MESSAGE not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "START_DT",
-      "description": "Not changed [Conflict: START_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: START_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "END_DT",
-      "description": "Server date-time [Conflict: END_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Server date-time [DCR: END_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "RETRY_COUNT",
-      "description": "RETRY_COUNT + 1 [Conflict: RETRY_COUNT is not a column of ielp.SA_DETAIL]"
+      "description": "RETRY_COUNT + 1 [DCR: RETRY_COUNT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_DT",
-      "description": "Not changed [Conflict: CREATED_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Not changed [DCR: CREATED_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CHANGED_DT",
-      "description": "Server date-time [Conflict: CHANGED_DT is not a column of ielp.SA_DETAIL]"
+      "description": "Server date-time [DCR: CHANGED_DT not in ielp.SA_DETAIL - existing logic kept, see DCR list]"
      }
     ]
    }
@@ -4042,7 +4049,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {

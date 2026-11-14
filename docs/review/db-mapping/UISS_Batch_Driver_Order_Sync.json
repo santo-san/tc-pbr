@@ -92,7 +92,10 @@
    "code": "-",
    "db": "No sync tables; TB_M_DRIVER has FIREBASE_TOKEN / DEVICE_ID",
    "data": "No sample data",
-   "recommendation": "Confirm the existing driver app channel before building"
+   "recommendation": "Confirm the existing driver app channel before building",
+   "decision": "Existing logic kept as specified in the UISS (HiveMQ outbox).",
+   "dcr": "CREATE TB_T_DRIVER_SYNC_QUEUE, TB_R_DRIVER_ORDER, TB_R_DRIVER_MQ_OUTBOX, TB_R_DRIVER_SYNC_LOG (definitions in the UISS-Batch Appendix)",
+   "dcr_id": "DCR-23"
   }
  ],
  "tbd": [

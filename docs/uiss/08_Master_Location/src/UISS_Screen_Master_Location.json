@@ -24,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema (ielp.MS_LOCATION): column names / types from the DDL; coordinates and radius are varchar in ELIPS; Active / Inactive and VERSION have no column (conflicts); no sample data"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-04, DCR-05)"
   }
  ],
  "general": {
@@ -1004,7 +1011,7 @@
    "required": "Y",
    "format": "ZZ,ZZ9",
    "validation": "Numeric > 0 (msg 5)",
-   "description": "Geofence radius in meter around the coordinate; drawn as circle on the map.\nDB: ielp.MS_LOCATION.RADIUS varchar(5) NULL default '50' [Conflict] varchar(5) default '50'."
+   "description": "Geofence radius in meter around the coordinate; drawn as circle on the map.\nDB: ielp.MS_LOCATION.RADIUS varchar(5) NULL default '50' [Revised - existing logic kept, see DCR] varchar(5) default '50'."
   },
   {
    "name": "Auto Finish Order",
@@ -1049,7 +1056,7 @@
    "required": "Y",
    "format": "-Z9.9999999",
    "validation": "Mandatory; -90..90 (msg 4)",
-   "description": "Set by map search / click / drag, or typed. Stored with 7 decimals.\nDB: ielp.MS_LOCATION.LOCATION_LATITUDE varchar(100) NOT NULL [Conflict] varchar(100) NOT NULL; UI Number(10,7)."
+   "description": "Set by map search / click / drag, or typed. Stored with 7 decimals.\nDB: ielp.MS_LOCATION.LOCATION_LATITUDE varchar(100) NOT NULL [Revised - existing logic kept, see DCR] varchar(100) NOT NULL; UI Number(10,7)."
   },
   {
    "name": "Longitude",
@@ -1064,7 +1071,7 @@
    "required": "Y",
    "format": "-ZZ9.9999999",
    "validation": "Mandatory; -180..180 (msg 4)",
-   "description": "Same as Latitude.\nDB: ielp.MS_LOCATION.LOCATION_LANGITUDE varchar(100) NOT NULL [Conflict] Column spelled LANGITUDE; varchar(100)."
+   "description": "Same as Latitude.\nDB: ielp.MS_LOCATION.LOCATION_LANGITUDE varchar(100) NOT NULL [Revised - existing logic kept, see DCR] Column spelled LANGITUDE; varchar(100)."
   },
   {
    "name": "Save",
@@ -1355,7 +1362,7 @@
    "required": "",
    "format": "ZZ,ZZ9",
    "validation": "",
-   "description": "DB: ielp.MS_LOCATION.RADIUS varchar(5) NULL default '50' [Conflict] varchar(5) default '50'."
+   "description": "DB: ielp.MS_LOCATION.RADIUS varchar(5) NULL default '50' [Revised - existing logic kept, see DCR] varchar(5) default '50'."
   },
   {
    "name": "G.Map Address",
@@ -1400,7 +1407,7 @@
    "required": "",
    "format": "ACTIVE / INACTIVE",
    "validation": "",
-   "description": "INACTIVE rows shown in grey.\nDB: ielp.MS_LOCATION.IS_DELETE varchar(100) NULL default (0) [Conflict] No separate inactive state."
+   "description": "INACTIVE rows shown in grey.\nDB: ielp.MS_LOCATION.IS_DELETE varchar(100) NULL default (0) [Revised - existing logic kept, see DCR] No separate inactive state."
   },
   {
    "name": "Created By / Created At",
@@ -1587,7 +1594,7 @@
       "description": "Yes -> 'Y', No -> 'N' (TBD)"
      },
      {
-      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "dest_field": "IS_DELETE (+ new STATUS column - DCR, existing logic kept)",
       "description": "'ACTIVE'"
      },
      {
@@ -1607,7 +1614,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "1"
      },
      {
@@ -1628,7 +1635,7 @@
        "value": "Alias of the selected row (original value)"
       },
       {
-       "field": "VERSION (no column in ELIPS - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded into the form"
       }
      ]
@@ -1689,7 +1696,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      }
     ]
@@ -1709,7 +1716,7 @@
     },
     "mappings": [
      {
-      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "dest_field": "IS_DELETE (+ new STATUS column - DCR, existing logic kept)",
       "description": "'INACTIVE'"
      },
      {
@@ -1721,7 +1728,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      }
     ]
@@ -1932,7 +1939,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -2022,7 +2029,7 @@
      "N",
      "R/W",
      "Numeric > 0 stored as text",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Auto Finish Order",
@@ -2058,7 +2065,7 @@
      "Y",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Longitude",
@@ -2067,7 +2074,7 @@
      "Y",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Coordinates (list)",
@@ -2085,7 +2092,7 @@
      "N",
      "R/W",
      "Deactivate / Delete -> IS_DELETE (values TBD)",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Created By / At",
@@ -2127,7 +2134,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -2136,10 +2143,10 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MLC-01 Coordinates type: UISS / code: Number(10,7). DB: LOCATION_LATITUDE / LOCATION_LANGITUDE varchar(100) NOT NULL. Recommendation: Store as text with 7 decimals; validate in the application",
-    "G-MLC-02 Radius: UISS / code: Number. DB: RADIUS varchar(5) default '50'. Recommendation: Max 5 characters",
-    "G-MLC-03 Active / Inactive: UISS / code: STATUS + Deactivate. DB: Only IS_DELETE varchar(100). Recommendation: Confirm deactivate = IS_DELETE or add a status column",
-    "G-MLC-04 Concurrency: UISS / code: VERSION. DB: No VERSION column. Recommendation: Use UPDATED_DATE or add VERSION"
+    "G-MLC-01 Coordinates type: Existing logic kept: numeric coordinates with 7 decimals, validated -90..90 / -180..180; stored as text in LOCATION_LATITUDE / LOCATION_LANGITUDE. No DB change: mapping as stated.",
+    "G-MLC-02 Radius: Existing logic kept: numeric radius > 0 in metres; stored as text in RADIUS (max 5 digits). No DB change: mapping as stated.",
+    "G-MLC-03 Active / Inactive: Existing logic kept: Active / Inactive status separate from delete (master-location.js deactivate / remove). DCR-04: ADD ielp.MS_LOCATION.STATUS varchar(8) NOT NULL default 'ACTIVE'.",
+    "G-MLC-04 Concurrency: Existing logic kept: optimistic lock by VERSION. DCR-05: ADD ielp.MS_LOCATION.VERSION int NOT NULL default 1."
    ]
   },
   {

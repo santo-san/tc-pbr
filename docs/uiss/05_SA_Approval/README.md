@@ -5,7 +5,7 @@ Code: sa.js, sa-rules.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_SA_Approval](UISS_Screen_SA_Approval.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_SA_Approval.json](src/UISS_Screen_SA_Approval.json) | 14 |
+| [UISS_Screen_SA_Approval](UISS_Screen_SA_Approval.xlsx) | screen | 0.5 (14-Nov-26) | [src/UISS_Screen_SA_Approval.json](src/UISS_Screen_SA_Approval.json) | 14 |
 
 Rules / specification:
 

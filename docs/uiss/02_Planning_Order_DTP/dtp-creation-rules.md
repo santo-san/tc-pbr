@@ -217,37 +217,38 @@ Mock-up: the Master KPI rows come from `MasterKpi.SEED`, the same seed as the Ma
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_DTP_Creation** - tables: `ielp.CRITERIA_LAST_ORDER`, `ielp.DTP_2_DETAIL`, `ielp.DTP_FILES`, `ielp.DTP_HEADER`, `ielp.LOG_ACTIVITY_ORDER`, `ielp.ORDER_CYCLE`, `ielp.TB_M_SYSTEM`
-  - G-DTP-01 Record table: DTP_HEADER + DTP_1..4_DETAIL per DTP type -> Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP
-  - G-DTP-02 Order number at creation: DTP_2_DETAIL.ORDER_NO NOT NULL, PK -> Confirm when ORDER_NO is generated in ELIPS
-  - G-DTP-03 Payment type: No column -> DB change request
-  - G-DTP-04 Status values: STATUS_CODE varchar(3) + MS_STATUS -> Map statuses to MS_STATUS codes (data needed)
-  - G-DTP-05 Exporter / Importer / Destination / Data source: No matching columns -> Confirm columns (COUNTRY, SOURCES?)
-  - G-DTP-06 Container size: CTR_SIZE int + CTR_TYPE varchar(10) -> Split size and type
-  - G-DTP-07 Delete: IS_DELETE flag -> Soft delete with IS_DELETE
-  - G-DTP-08 Concurrency: No VERSION column -> Use UPDATED_DATE
+  - G-DTP-01 Record table: Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type). (no DB change)
+  - G-DTP-02 Order number at creation: Existing logic kept: order number is assigned by queue processing, records exist before that. **DCR-16**: ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID
+  - G-DTP-03 Payment type: Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType). **DCR-17**: ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12)
+  - G-DTP-04 Status values: Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S). **DCR-18**: Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change
+  - G-DTP-05 Exporter / Importer / Destination / Data source: Existing logic kept: Exporter, Importer CD, Destination and Data Source (Excel / Manual / IPMS) on the record. **DCR-19**: ADD ielp.DTP_2_DETAIL.EXPORTER varchar(50), IMPORTER_CD varchar(20), DEST_CD varchar(20), DATA_SOURCE varchar(6)
+  - G-DTP-06 Container size: Existing logic kept: one container size value ('20', '40', '40 HC'); stored as CTR_SIZE (20 / 40) + CTR_TYPE ('HC'). (no DB change)
+  - G-DTP-07 Delete: Existing logic kept: Excel / Manual records not yet submitted are deleted physically. (no DB change)
+  - G-DTP-08 Concurrency: Existing logic kept: optimistic lock by VERSION. **DCR-20**: ADD ielp.DTP_2_DETAIL.VERSION int NOT NULL default 1
 - **UISS_Batch_DTP_Excel_Upload** - tables: `ielp.DTP_2_DETAIL`, `ielp.DTP_FILES`, `ielp.LOG_ACTIVITY_ORDER`
-  - G-DTP-01 Record table: DTP_HEADER + DTP_1..4_DETAIL per DTP type -> Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP
-  - G-DTP-02 Order number at creation: DTP_2_DETAIL.ORDER_NO NOT NULL, PK -> Confirm when ORDER_NO is generated in ELIPS
-  - G-DTP-03 Payment type: No column -> DB change request
-  - G-DTP-04 Status values: STATUS_CODE varchar(3) + MS_STATUS -> Map statuses to MS_STATUS codes (data needed)
-  - G-DTP-05 Exporter / Importer / Destination / Data source: No matching columns -> Confirm columns (COUNTRY, SOURCES?)
-  - G-DTP-06 Container size: CTR_SIZE int + CTR_TYPE varchar(10) -> Split size and type
-  - G-DTP-07 Delete: IS_DELETE flag -> Soft delete with IS_DELETE
-  - G-DTP-08 Concurrency: No VERSION column -> Use UPDATED_DATE
+  - G-DTP-01 Record table: Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type). (no DB change)
+  - G-DTP-02 Order number at creation: Existing logic kept: order number is assigned by queue processing, records exist before that. **DCR-16**: ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID
+  - G-DTP-03 Payment type: Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType). **DCR-17**: ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12)
+  - G-DTP-04 Status values: Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S). **DCR-18**: Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change
+  - G-DTP-05 Exporter / Importer / Destination / Data source: Existing logic kept: Exporter, Importer CD, Destination and Data Source (Excel / Manual / IPMS) on the record. **DCR-19**: ADD ielp.DTP_2_DETAIL.EXPORTER varchar(50), IMPORTER_CD varchar(20), DEST_CD varchar(20), DATA_SOURCE varchar(6)
+  - G-DTP-06 Container size: Existing logic kept: one container size value ('20', '40', '40 HC'); stored as CTR_SIZE (20 / 40) + CTR_TYPE ('HC'). (no DB change)
+  - G-DTP-07 Delete: Existing logic kept: Excel / Manual records not yet submitted are deleted physically. (no DB change)
+  - G-DTP-08 Concurrency: Existing logic kept: optimistic lock by VERSION. **DCR-20**: ADD ielp.DTP_2_DETAIL.VERSION int NOT NULL default 1
 - **UISS_Batch_DTP_Queue_Processing** - tables: `ielp.DTP_2_DETAIL`, `ielp.LOG_ACTIVITY_ORDER`, `ielp.ORDER_CYCLE`
-  - G-DTP-01 Record table: DTP_HEADER + DTP_1..4_DETAIL per DTP type -> Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP
-  - G-DTP-02 Order number at creation: DTP_2_DETAIL.ORDER_NO NOT NULL, PK -> Confirm when ORDER_NO is generated in ELIPS
-  - G-DTP-03 Payment type: No column -> DB change request
-  - G-DTP-04 Status values: STATUS_CODE varchar(3) + MS_STATUS -> Map statuses to MS_STATUS codes (data needed)
-  - G-DTQ-01 Retry counters: No columns -> Keep in LOG_ACTIVITY_ORDER or add columns
+  - G-DTP-01 Record table: Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type). (no DB change)
+  - G-DTP-02 Order number at creation: Existing logic kept: order number is assigned by queue processing, records exist before that. **DCR-16**: ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID
+  - G-DTP-03 Payment type: Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType). **DCR-17**: ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12)
+  - G-DTP-04 Status values: Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S). **DCR-18**: Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change
+  - G-DTQ-01 Retry counters: Existing logic kept: retry with attempt count, failure reason, submitted by / at. **DCR-21**: ADD ielp.DTP_2_DETAIL.ATTEMPT_CNT int default 0, FAIL_REASON varchar(500), SUBMITTED_BY varchar(500), SUBMITTED_DT datetime
 - **UISS_Batch_DTP_Switching** - tables: `ielp.DTP_2_DETAIL`, `ielp.ORDER_CYCLE`, `ielp.ORDER_CYCLE_ROLLBACK_H`, `ielp.ORDER_TRUCK_H`
-  - G-DTP-01 Record table: DTP_HEADER + DTP_1..4_DETAIL per DTP type -> Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP
-  - G-DTP-02 Order number at creation: DTP_2_DETAIL.ORDER_NO NOT NULL, PK -> Confirm when ORDER_NO is generated in ELIPS
-  - G-DTS-01 Cancel columns: ORDER_CYCLE.CANCEL_DATE, CANCEL_REMARKS (no cancel-by) -> Use existing columns; IS_DELETE for cancelled orders?
+  - G-DTP-01 Record table: Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type). (no DB change)
+  - G-DTP-02 Order number at creation: Existing logic kept: order number is assigned by queue processing, records exist before that. **DCR-16**: ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID
+  - G-DTS-01 Cancel columns: Existing logic kept: switching cancels the daily order with reason and user. **DCR-22**: ADD ielp.ORDER_CYCLE.CANCEL_BY varchar(500) (CANCEL_DATE, CANCEL_REMARKS existing)
 - UISS_Batch_IPMS_DTP_Interface: created in the review, see the UISS.
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

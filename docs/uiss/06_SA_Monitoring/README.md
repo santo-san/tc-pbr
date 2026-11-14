@@ -5,8 +5,8 @@ Code: sa-monitoring.js, sa-pas-rules.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_SA_Monitoring](UISS_Screen_SA_Monitoring.xlsx) | screen | 0.5 (14-Nov-26) | [src/UISS_Screen_SA_Monitoring.json](src/UISS_Screen_SA_Monitoring.json) | 14 |
-| [UISS_Batch_SA_PAS_Interface](UISS_Batch_SA_PAS_Interface.xlsx) | batch | 0.1 (14-Nov-26) | [src/UISS_Batch_SA_PAS_Interface.json](src/UISS_Batch_SA_PAS_Interface.json) | 0 |
+| [UISS_Screen_SA_Monitoring](UISS_Screen_SA_Monitoring.xlsx) | screen | 0.6 (14-Nov-26) | [src/UISS_Screen_SA_Monitoring.json](src/UISS_Screen_SA_Monitoring.json) | 14 |
+| [UISS_Batch_SA_PAS_Interface](UISS_Batch_SA_PAS_Interface.xlsx) | batch | 0.2 (14-Nov-26) | [src/UISS_Batch_SA_PAS_Interface.json](src/UISS_Batch_SA_PAS_Interface.json) | 0 |
 
 Rules / specification:
 

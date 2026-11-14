@@ -159,8 +159,8 @@
    "rw": "R",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": ""
+   "status": "Revised",
+   "note": "Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Order Sharing",
@@ -216,7 +216,10 @@
    "code": "-",
    "db": "CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2)",
    "data": "No sample data",
-   "recommendation": "Level codes TBD"
+   "recommendation": "Level codes TBD",
+   "decision": "Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS.",
+   "dcr": "Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change",
+   "dcr_id": "DCR-34"
   },
   {
    "id": "G-MO-03",
@@ -225,7 +228,10 @@
    "code": "-",
    "db": "No history table",
    "data": "No sample data",
-   "recommendation": "Show approval rows or add a history table"
+   "recommendation": "Show approval rows or add a history table",
+   "decision": "Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log).",
+   "dcr": "CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT)",
+   "dcr_id": "DCR-35"
   },
   {
    "id": "G-MO-04",
@@ -234,7 +240,10 @@
    "code": "-",
    "db": "COMPANY_ID varchar(10)",
    "data": "No sample data",
-   "recommendation": "Align with Master Trucking Company"
+   "recommendation": "Align with Master Trucking Company",
+   "decision": "Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-PO-01",
@@ -243,7 +252,10 @@
    "code": "-",
    "db": "PO_DETAIL.PO_NUMBER varchar(16); PAS returns PO numbers (SA_DETAIL.PAS_PO_NUMBER)",
    "data": "No sample data",
-   "recommendation": "Confirm whether the monthly PO number is ELIPS or PAS generated"
+   "recommendation": "Confirm whether the monthly PO number is ELIPS or PAS generated",
+   "decision": "Existing logic kept: PO number created by ELIPS when DH approves the PR (monthly-workflow.js createPO); stored in PO_DETAIL.PO_NUMBER.",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

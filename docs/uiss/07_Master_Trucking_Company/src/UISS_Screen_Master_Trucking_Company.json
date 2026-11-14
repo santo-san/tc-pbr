@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema (ielp.MS_TRUCKING_COMPANY): column names, types and lengths from the DDL; Deletion = IS_DELETE; conflicts recorded (UI lengths vs DB, no VERSION / SERVICE_TYPE column); no sample data"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-01, DCR-02, DCR-03)"
   }
  ],
  "general": {
@@ -755,7 +762,7 @@
    "required": "Y",
    "format": "XXX upper",
    "validation": "Mandatory; ^[A-Z0-9]{3}$ (msg 3); unique among active vendors (msg 4)",
-   "description": "Converted to upper case while typing (mbl -> MBL). Read only in Update Mode (MT-12). Same code as Trucking Code in Daily / Monthly (TBD, OP-08).\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
+   "description": "Converted to upper case while typing (mbl -> MBL). Read only in Update Mode (MT-12). Same code as Trucking Code in Daily / Monthly (TBD, OP-08).\nDB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Revised - existing logic kept, see DCR] UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
   },
   {
    "name": "SAP Vendor Code",
@@ -770,7 +777,7 @@
    "required": "Y",
    "format": "9999999999",
    "validation": "Mandatory; 10 digits (msg 5); unique among active vendors (msg 6)",
-   "description": "Vendor number in SAP / PAS (e.g. 4000006763). Numeric keyboard on mobile.\nDB: ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 10 digits vs DB varchar(20)."
+   "description": "Vendor number in SAP / PAS (e.g. 4000006763). Numeric keyboard on mobile.\nDB: ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE varchar(20) NOT NULL [Revised - existing logic kept, see DCR] UI rule 10 digits vs DB varchar(20)."
   },
   {
    "name": "Service Type",
@@ -785,7 +792,7 @@
    "required": "Y",
    "format": "",
    "validation": "In the list (msg 7)",
-   "description": "Options: MRO only (other types TBD, OP-01). Default MRO.\nDB: Conflict - No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
+   "description": "Options: MRO only (other types TBD, OP-01). Default MRO.\nDB: Existing logic kept (DCR) - No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
   },
   {
    "name": "NPWP",
@@ -830,7 +837,7 @@
    "required": "N",
    "format": "Lower case",
    "validation": "If filled: name@domain.xx (msg 10)",
-   "description": "Saved in lower case.\nDB: ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) NULL [Conflict] UI allows 100, DB varchar(50)."
+   "description": "Saved in lower case.\nDB: ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) NULL [Revised - existing logic kept, see DCR] UI allows 100, DB varchar(50)."
   },
   {
    "name": "Phone",
@@ -1043,7 +1050,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "DB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.COMPANY_CODE varchar(20) NOT NULL [Revised - existing logic kept, see DCR] UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
   },
   {
    "name": "SAP Vendor Code",
@@ -1058,7 +1065,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "DB: ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE varchar(20) NOT NULL [Conflict] UI rule 10 digits vs DB varchar(20)."
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.SAP_COMPANY_CODE varchar(20) NOT NULL [Revised - existing logic kept, see DCR] UI rule 10 digits vs DB varchar(20)."
   },
   {
    "name": "Service Type",
@@ -1073,7 +1080,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "DB: Conflict - No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
+   "description": "DB: Existing logic kept (DCR) - No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
   },
   {
    "name": "NPWP",
@@ -1118,7 +1125,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "DB: ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) NULL [Conflict] UI allows 100, DB varchar(50)."
+   "description": "DB: ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) NULL [Revised - existing logic kept, see DCR] UI allows 100, DB varchar(50)."
   },
   {
    "name": "Phone",
@@ -1449,7 +1456,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "1"
      },
      {
@@ -1470,7 +1477,7 @@
        "value": "Row loaded into the form"
       },
       {
-       "field": "VERSION (no column in ELIPS - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded into the form"
       }
      ]
@@ -1535,7 +1542,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      },
      {
@@ -1556,7 +1563,7 @@
        "value": "Row loaded into the form"
       },
       {
-       "field": "VERSION (no column in ELIPS - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded into the form"
       }
      ]
@@ -1575,7 +1582,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      },
      {
@@ -1908,7 +1915,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1962,7 +1969,7 @@
      "Y",
      "R/W",
      "TRIM, UPPER",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "SAP Vendor Code",
@@ -1971,7 +1978,7 @@
      "Y",
      "R/W",
      "TRIM",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Service Type",
@@ -1980,7 +1987,7 @@
      "-",
      "R/W",
      "Fixed list MRO",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "NPWP",
@@ -2007,7 +2014,7 @@
      "N",
      "R/W",
      "TRIM, LOWER",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Phone",
@@ -2088,13 +2095,13 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ]
    ]
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -2103,11 +2110,11 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MTC-01 E-Mail length: UISS / code: Varchar 100. DB: EMAIL varchar(50). Recommendation: Limit UI to 50 or extend the column (DB change request)",
-    "G-MTC-02 Vendor / SAP code format: UISS / code: 3 chars / 10 digits. DB: COMPANY_CODE / SAP_COMPANY_CODE varchar(20). Recommendation: Confirm the rules against existing codes",
-    "G-MTC-03 Concurrency check: UISS / code: VERSION (msg 15). DB: No VERSION column. Recommendation: Use UPDATED_DATE as optimistic lock or add VERSION",
-    "G-MTC-04 Service Type: UISS / code: SERVICE_TYPE MRO. DB: No column (BUSINESS_TYPE int). Recommendation: Confirm whether BUSINESS_TYPE holds the service type",
-    "G-MTC-05 Deletion flag: UISS / code: DELETION_FLAG Y / N. DB: IS_DELETE varchar(1) default 0. Recommendation: Use IS_DELETE (values to confirm)"
+    "G-MTC-01 E-Mail length: Existing logic kept: e-mail up to 100 characters (master-trucking.js). DCR-01: ALTER ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) -> varchar(100).",
+    "G-MTC-02 Vendor / SAP code format: Existing logic kept: Vendor Code 3 letters / numbers, SAP Vendor Code 10 digits (master-trucking.js validate). No DB change: mapping as stated.",
+    "G-MTC-03 Concurrency check: Existing logic kept: optimistic lock by VERSION on Update / Delete (msg 15). DCR-02: ADD ielp.MS_TRUCKING_COMPANY.VERSION int NOT NULL default 1.",
+    "G-MTC-04 Service Type: Existing logic kept: Service Type (MRO) on the vendor. DCR-03: ADD ielp.MS_TRUCKING_COMPANY.SERVICE_TYPE varchar(10) NOT NULL default 'MRO' (BUSINESS_TYPE left unchanged).",
+    "G-MTC-05 Deletion flag: Existing logic kept: logical delete flag; stored in IS_DELETE ('0' active, '1' deleted). No DB change: mapping as stated."
    ]
   },
   {

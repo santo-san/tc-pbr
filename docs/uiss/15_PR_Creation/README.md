@@ -5,7 +5,7 @@ Code: pr-creation.js, pr-creation-rules.js, pr-sources.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_PR_Creation](UISS_Screen_PR_Creation.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_PR_Creation.json](src/UISS_Screen_PR_Creation.json) | 13 |
+| [UISS_Screen_PR_Creation](UISS_Screen_PR_Creation.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_PR_Creation.json](src/UISS_Screen_PR_Creation.json) | 13 |
 
 Rules / specification:
 

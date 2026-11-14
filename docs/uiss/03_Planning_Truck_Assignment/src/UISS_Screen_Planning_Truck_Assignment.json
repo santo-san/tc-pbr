@@ -31,6 +31,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised: orders = ielp.ORDER_CYCLE / DTP_2_DETAIL (LICENSE_PLATE, DRIVER_ID), truck history = ielp.ORDER_TRUCK_H, trucks = MS_TRUCK_REGISTRATION, drivers = MS_DRIVER; LP accept / reject and assignment table have no ELIPS columns (conflicts); no sample data"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-27, DCR-28)"
   }
  ],
  "general": {
@@ -877,7 +884,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "5.3.\nDB: Conflict - No LP status column."
+   "description": "5.3.\nDB: Existing logic kept (DCR) - No LP status column."
   },
   {
    "name": "Order No, From, To, Agent, Vessel, Ctr Book No, Ctr Size",
@@ -1120,7 +1127,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Waiting for Confirmation (amber), Accepted (blue), Rejected (red).\nDB: Conflict - No LP status column."
+   "description": "Waiting for Confirmation (amber), Accepted (blue), Rejected (red).\nDB: Existing logic kept (DCR) - No LP status column."
   },
   {
    "name": "Assignment Status",
@@ -1183,7 +1190,7 @@
    "required": "Y",
    "format": "",
    "validation": "Min 10 characters (msg 6)",
-   "description": "DB: Conflict - ORDER_REMARK (inferred) or no column."
+   "description": "DB: Existing logic kept (DCR) - ORDER_REMARK (inferred) or no column."
   },
   {
    "name": "Truck picker",
@@ -1258,7 +1265,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Newest first (TA-09).\nDB: ielp.ORDER_TRUCK_H.LICENSE_PLATE varchar(20) NULL [Conflict] ORDER_TRUCK_H has ORDER_NO, LICENSE_PLATE, REMARK, UPDATED_BY, CREATED_DATE only (no action / prev status)."
+   "description": "Newest first (TA-09).\nDB: ielp.ORDER_TRUCK_H.LICENSE_PLATE varchar(20) NULL [Revised - existing logic kept, see DCR] ORDER_TRUCK_H has ORDER_NO, LICENSE_PLATE, REMARK, UPDATED_BY, CREATED_DATE only (no action / prev status)."
   },
   {
    "name": "Open Driver app view",
@@ -1298,15 +1305,15 @@
     "mappings": [
      {
       "dest_field": "LP_STATUS",
-      "description": "'ACCEPTED' [Conflict: LP_STATUS is not a column of ielp.ORDER_CYCLE]"
+      "description": "'ACCEPTED' [DCR: LP_STATUS not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "LP_ACCEPTED_BY / LP_ACCEPTED_DT",
-      "description": "Login user / server date-time [Conflict: LP_ACCEPTED_BY is not a column of ielp.ORDER_CYCLE] [Conflict: LP_ACCEPTED_DT is not a column of ielp.ORDER_CYCLE]"
+      "description": "Login user / server date-time [DCR: LP_ACCEPTED_BY not in ielp.ORDER_CYCLE - existing logic kept, see DCR list] [DCR: LP_ACCEPTED_DT not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.ORDER_CYCLE]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -1324,7 +1331,7 @@
     "mappings": [
      {
       "dest_field": "HIST_ID",
-      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Sequence [DCR: HIST_ID not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ORDER_NO",
@@ -1332,23 +1339,23 @@
      },
      {
       "dest_field": "ACTION",
-      "description": "'Accept Order' [Conflict: ACTION is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "'Accept Order' [DCR: ACTION not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
-      "description": "Before / after [Conflict: PREV_LP_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_LP_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Before / after [DCR: PREV_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
-      "description": "Daily status before / after [Conflict: PREV_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Daily status before / after [DCR: PREV_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_PLATE / NEW_PLATE",
-      "description": "Active plate before / after [Conflict: PREV_PLATE is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_PLATE is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Active plate before / after [DCR: PREV_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "REASON",
-      "description": "Reject / change reason [Conflict: REASON is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Reject / change reason [DCR: REASON not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY",
@@ -1356,7 +1363,7 @@
      },
      {
       "dest_field": "UPDATED_DT",
-      "description": "Server date-time [Conflict: UPDATED_DT is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Server date-time [DCR: UPDATED_DT not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -1380,20 +1387,20 @@
     "mappings": [
      {
       "dest_field": "LP_STATUS",
-      "description": "'REJECTED' [Conflict: LP_STATUS is not a column of ielp.ORDER_CYCLE]"
+      "description": "'REJECTED' [DCR: LP_STATUS not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Reject Reason",
       "dest_field": "LP_REJECT_REASON",
-      "description": "Trimmed [Conflict: LP_REJECT_REASON is not a column of ielp.ORDER_CYCLE]"
+      "description": "Trimmed [DCR: LP_REJECT_REASON not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "LP_REJECT_BY / LP_REJECT_DT",
-      "description": "Login user / server date-time [Conflict: LP_REJECT_BY is not a column of ielp.ORDER_CYCLE] [Conflict: LP_REJECT_DT is not a column of ielp.ORDER_CYCLE]"
+      "description": "Login user / server date-time [DCR: LP_REJECT_BY not in ielp.ORDER_CYCLE - existing logic kept, see DCR list] [DCR: LP_REJECT_DT not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.ORDER_CYCLE]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -1411,7 +1418,7 @@
     "mappings": [
      {
       "dest_field": "HIST_ID",
-      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Sequence [DCR: HIST_ID not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ORDER_NO",
@@ -1419,23 +1426,23 @@
      },
      {
       "dest_field": "ACTION",
-      "description": "'Reject by LP' [Conflict: ACTION is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "'Reject by LP' [DCR: ACTION not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
-      "description": "Before / after [Conflict: PREV_LP_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_LP_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Before / after [DCR: PREV_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
-      "description": "Daily status before / after [Conflict: PREV_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Daily status before / after [DCR: PREV_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_PLATE / NEW_PLATE",
-      "description": "Active plate before / after [Conflict: PREV_PLATE is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_PLATE is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Active plate before / after [DCR: PREV_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "REASON",
-      "description": "Reject / change reason [Conflict: REASON is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Reject / change reason [DCR: REASON not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY",
@@ -1443,7 +1450,7 @@
      },
      {
       "dest_field": "UPDATED_DT",
-      "description": "Server date-time [Conflict: UPDATED_DT is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Server date-time [DCR: UPDATED_DT not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -1506,15 +1513,15 @@
     "mappings": [
      {
       "dest_field": "ACTIVE_PLATE / DRIVER_ID",
-      "description": "New plate / driver [Conflict: ACTIVE_PLATE is not a column of ielp.ORDER_CYCLE]"
+      "description": "New plate / driver [DCR: ACTIVE_PLATE not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "STATUS",
-      "description": "'Order Release' [Conflict: STATUS is not a column of ielp.ORDER_CYCLE]"
+      "description": "'Order Release' [DCR: STATUS not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.ORDER_CYCLE]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -1532,7 +1539,7 @@
     "mappings": [
      {
       "dest_field": "HIST_ID",
-      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Sequence [DCR: HIST_ID not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ORDER_NO",
@@ -1540,23 +1547,23 @@
      },
      {
       "dest_field": "ACTION",
-      "description": "'Assign Truck' [Conflict: ACTION is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "'Assign Truck' [DCR: ACTION not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
-      "description": "Before / after [Conflict: PREV_LP_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_LP_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Before / after [DCR: PREV_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
-      "description": "Daily status before / after [Conflict: PREV_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Daily status before / after [DCR: PREV_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_PLATE / NEW_PLATE",
-      "description": "Active plate before / after [Conflict: PREV_PLATE is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_PLATE is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Active plate before / after [DCR: PREV_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "REASON",
-      "description": "Reject / change reason [Conflict: REASON is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Reject / change reason [DCR: REASON not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY",
@@ -1564,7 +1571,7 @@
      },
      {
       "dest_field": "UPDATED_DT",
-      "description": "Server date-time [Conflict: UPDATED_DT is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Server date-time [DCR: UPDATED_DT not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -1631,11 +1638,11 @@
     "mappings": [
      {
       "dest_field": "ACTIVE_PLATE / DRIVER_ID",
-      "description": "Replacement plate / driver [Conflict: ACTIVE_PLATE is not a column of ielp.ORDER_CYCLE]"
+      "description": "Replacement plate / driver [DCR: ACTIVE_PLATE not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.ORDER_CYCLE]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -1653,7 +1660,7 @@
     "mappings": [
      {
       "dest_field": "HIST_ID",
-      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Sequence [DCR: HIST_ID not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ORDER_NO",
@@ -1661,23 +1668,23 @@
      },
      {
       "dest_field": "ACTION",
-      "description": "'Change Truck' [Conflict: ACTION is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "'Change Truck' [DCR: ACTION not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_LP_STATUS / NEW_LP_STATUS",
-      "description": "Before / after [Conflict: PREV_LP_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_LP_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Before / after [DCR: PREV_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_LP_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_ORDER_STATUS / NEW_ORDER_STATUS",
-      "description": "Daily status before / after [Conflict: PREV_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_ORDER_STATUS is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Daily status before / after [DCR: PREV_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_ORDER_STATUS not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PREV_PLATE / NEW_PLATE",
-      "description": "Active plate before / after [Conflict: PREV_PLATE is not a column of ielp.ORDER_TRUCK_H] [Conflict: NEW_PLATE is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Active plate before / after [DCR: PREV_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list] [DCR: NEW_PLATE not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "REASON",
-      "description": "Reject / change reason [Conflict: REASON is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Reject / change reason [DCR: REASON not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY",
@@ -1685,7 +1692,7 @@
      },
      {
       "dest_field": "UPDATED_DT",
-      "description": "Server date-time [Conflict: UPDATED_DT is not a column of ielp.ORDER_TRUCK_H]"
+      "description": "Server date-time [DCR: UPDATED_DT not in ielp.ORDER_TRUCK_H - existing logic kept, see DCR list]"
      }
     ]
    }
@@ -2012,7 +2019,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -2129,7 +2136,7 @@
      "N",
      "W/R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "LP status (accept / reject)",
@@ -2138,7 +2145,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Reject Reason",
@@ -2147,7 +2154,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Seal No",
@@ -2162,7 +2169,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -2171,8 +2178,8 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-TA-01 LP accept / reject: UISS / code: LP_STATUS, LP_REJECT_REASON. DB: No columns. Recommendation: Confirm storage (ORDER_REMARK? new columns)",
-    "G-TA-02 Assignment table: UISS / code: TB_R_ORDER_TRUCK_ASSIGN with active flag. DB: Plate / driver directly on DTP_n_DETAIL / ORDER_CYCLE, history in ORDER_TRUCK_H. Recommendation: Use existing columns; ORDER_TRUCK_H as history"
+    "G-TA-01 LP accept / reject: Existing logic kept: LP Accept / Reject with reason (workflow.js:194, 202). DCR-27: ADD ielp.DTP_2_DETAIL.LP_STATUS varchar(20), LP_REJECT_REASON varchar(500), LP_ACTION_BY varchar(500), LP_ACTION_DATE datetime.",
+    "G-TA-02 Assignment table: Existing logic kept: one active truck per order, every assign / change kept in an audit trail. DCR-28: ADD ielp.ORDER_TRUCK_H.ACTION varchar(30), PREV_LICENSE_PLATE varchar(20), DRIVER_ID varchar(10)."
    ]
   },
   {

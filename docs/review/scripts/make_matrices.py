@@ -66,13 +66,15 @@ open(os.path.join(R, 'docs/review/06-database-mapping-matrix.md'), 'w').write('\
 L = ['# 07 - UISS vs Code vs Database Gap Analysis', '',
      'Every discrepancy found when the UISS were revised against the ELIPS schema (from `db-mapping/*.json`) plus the review findings',
      'of `04` that are not database related. "Existing Data Indicates" is always *No sample data* - no data was provided.',
-     'Decision rule: the application was **not** changed. Database facts follow the schema; behaviour follows the code; where both cannot hold, the item stays a Conflict for a decision (DB change request or rule change).', '',
-     '| ID | Module/Screen | UISS Says | Code Says | Database Says | Existing Data Indicates | Recommended Revision |', '|---|---|---|---|---|---|---|']
+     'Decision 14-Nov-26 (user): for every conflict the **existing application logic is kept**; where the existing table cannot hold it, a DB change request (DCR, see `12-db-change-requests.md`) is raised. The application was not changed.', '',
+     '| ID | Module/Screen | UISS Says | Code Says | Database Says | Existing Data Indicates | Recommended Revision (decision) | DCR |', '|---|---|---|---|---|---|---|---|']
+DEC = json.load(open(os.path.join(R, 'docs/review/db-mapping/decisions.json')))
+dcr = lambda i: f"{DEC[i]['dcr_id']}" if DEC.get(i, {}).get('dcr_id') else 'none'
 n07 = 0
 for name, m in MAPS.items():
     mod, scr, *_ = META[name]
     for c in m.get('conflicts', []):
-        L.append(f"| {c['id']} | {mod} / {scr} - {esc(c['topic'])} | {esc(c.get('uiss', '-'))} | {esc(c.get('code', '-'))} | {esc(c['db'])} | No sample data | {esc(c['recommendation'])} |"); n07 += 1
+        L.append(f"| {c['id']} | {mod} / {scr} - {esc(c['topic'])} | {esc(c.get('uiss', '-'))} | {esc(c.get('code', '-'))} | {esc(c['db'])} | No sample data | {esc(DEC[c['id']]['decision'])} | {dcr(c['id'])} |"); n07 += 1
 EXTRA = [('G-GEN-01', 'All UISS', 'Proposed / logical table names (TB_R_DTP_RECORD, Trucking Company Master (TBD) ...)', 'In-memory arrays (no DB access)', 'ELIPS tables DTP_HEADER / DTP_n_DETAIL, ORDER_CYCLE, MS_*, SA_*, CRITERIA_*, PO_*', 'Revised in rev [DB-R1] of every UISS'),
  ('G-GEN-02', 'All UISS', 'Audit CREATED_DT / CHANGED_BY / CHANGED_DT', '-', 'Most ELIPS tables: CREATED_DATE / UPDATED_BY / UPDATED_DATE; TB_M_* and MS_RENBAN_TCPBR: *_DT / CHANGED_*', 'Per-table names applied'),
  ('G-GEN-03', 'All UISS', 'MSG ID TBD', '-', 'dbo.TB_M_MESSAGE exists', 'Assign IDs when TB_M_MESSAGE data is available'),
@@ -81,7 +83,7 @@ EXTRA = [('G-GEN-01', 'All UISS', 'Proposed / logical table names (TB_R_DTP_RECO
  ('G-DM-05', 'Daily / Daily Monitoring', 'DTP creation only in Planning Order by Planner VPLD (U04)', 'Legacy "+ Create DTP" dialog for IELP Admin still in Daily Monitoring (app.js:558, workflow.js:84-97)', '-', 'Potential application issue BUG-01; decide remove or document'),
  ('G-COM-01', 'Master (all)', 'Role access not specified (Master Mileage shows "IELP Admin only")', 'No role check in master.js / master-*.js', 'USERID_MENU_OPTION decides menu access', 'Specify in UISS Menu & Authorization; BUG-02')]
 for g in EXTRA:
-    L.append(f"| {g[0]} | {g[1]} | {esc(g[2])} | {esc(g[3])} | {esc(g[4])} | No sample data | {esc(g[5])} |"); n07 += 1
+    L.append(f"| {g[0]} | {g[1]} | {esc(g[2])} | {esc(g[3])} | {esc(g[4])} | No sample data | {esc(DEC[g[0]]['decision'] if g[0] in DEC else g[5])} | {dcr(g[0])} |"); n07 += 1
 open(os.path.join(R, 'docs/review/07-gap-analysis.md'), 'w').write('\n'.join(L) + f'\n\nTotal discrepancies: {n07}.\n')
 
 # 10 TBD list
@@ -98,7 +100,7 @@ open(os.path.join(R, 'docs/review/10-tbd-list.md'), 'w').write('\n'.join(L) + f'
 
 # 11 traceability
 L = ['# 11 - Final Traceability Matrix', '', 'Database -> Backend / Logic -> Function -> UI -> UISS. One row per mapped UI element (from the revised UISS).',
-     'Status: **Verified** (UISS already matched the schema) · **Revised** (UISS changed to the schema) · **Conflict** (code / UISS rule not supported by the table) · **TBD** (not confirmed) · **Missing** (no table / no UISS before).', '',
+     'Status: **Verified** (UISS already matched the schema) · **Revised** (UISS changed to the schema; former conflicts: existing logic kept + DB change request, decision 14-Nov-26) · **TBD** (not confirmed) · **Missing** (no table / no UISS before). No item is left in status Conflict.', '',
      '| ID | Module | Screen | Function | UI Field/Component | Code Reference | API/Logic | DB Table.Column | UISS Reference | Status |', '|---|---|---|---|---|---|---|---|---|---|']
 k = 0; cnt = {}
 for name, m in MAPS.items():

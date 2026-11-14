@@ -10,9 +10,9 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Daily | Planning Order (upload) | From / To Location | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | FROM_LOC | varchar(10) | N | Schema; Code; varchar(10); TO_LOC same. | Revised |
 | Daily | Planning Order (upload) | ETD | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | ETD | date | N | Schema; Code | Revised |
 | Daily | Planning Order (upload) | Container No | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | CONTAINER_NO | varchar(11) | N | Schema; Code; varchar(11). | Verified |
-| Daily | Planning Order (upload) | Record status | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | STATUS_CODE | varchar(3) | N | Schema; Code; varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS). | Conflict |
-| Daily | Planning Order (upload) | Order No | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | ORDER_NO | varchar(20) | Y | Schema; Code; varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing. | Conflict |
-| Daily | Planning Order (upload) | Payment Type | R/W - | dtp-rules.js readSheet / validate | TBD | TBD | - | - | Schema (no table / column found); No payment type column. | Conflict |
+| Daily | Planning Order (upload) | Record status | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | STATUS_CODE | varchar(3) | N | Schema; Code; varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS). Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Order (upload) | Order No | R/W - | dtp-rules.js readSheet / validate | ielp.DTP_2_DETAIL | ORDER_NO | varchar(20) | Y | Schema; Code; varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing. Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Order (upload) | Payment Type | R/W - | dtp-rules.js readSheet / validate | TBD | TBD | - | - | Schema (no table / column found); No payment type column. Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order (upload) | History | W/R - | dtp-rules.js readSheet / validate | ielp.LOG_ACTIVITY_ORDER | ACT | varchar(100) | N | Schema; Code; LOG_ACTIVITY_ORDER (ACT, STS_CODE, STS_MESSAGE, DTP_DET_ID, CRETED_DATE) inferred as status history. | TBD |
 | Daily | Planning Order (upload) | Uploaded file | W - | dtp-rules.js readSheet / validate | ielp.DTP_FILES | FILE_NAME | varchar(500) | N | Schema; Code; DTP_FILES (DTP_HEADER_ID, FILE_NAME, FILE_NEW_NAME) inferred for the uploaded Excel. | TBD |
 | Daily | Planning Order (queue) | Order No | W - | dtp-rules.js step / orderPayload | ielp.ORDER_CYCLE | ORDER_NO | varchar(20) | Y | Schema; Code | Revised |
@@ -20,8 +20,8 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Daily | Planning Order (queue) | DTP header | W - | dtp-rules.js step / orderPayload | ielp.ORDER_CYCLE | DTP_HEADER_ID | varchar(10) | Y | Schema; Code; NOT NULL. | Revised |
 | Daily | Planning Order (queue) | DTP detail | W - | dtp-rules.js step / orderPayload | ielp.ORDER_CYCLE | DTP_DET_ID | varchar(20) | N | Schema; Code | Revised |
 | Daily | Planning Order (queue) | Cycle status | W - | dtp-rules.js step / orderPayload | ielp.ORDER_CYCLE | STATUS_CODE | varchar(3) | Y | Schema; Code; Codes TBD. | TBD |
-| Daily | Planning Order (queue) | Record status | W - | dtp-rules.js step / orderPayload | ielp.DTP_2_DETAIL | STATUS_CODE | varchar(3) | N | Schema; Code | Conflict |
-| Daily | Planning Order (queue) | Attempt count / fail reason | R/W - | dtp-rules.js step / orderPayload | TBD | TBD | - | - | Schema (no table / column found); No ATTEMPT_CNT / FAIL_REASON columns. | Conflict |
+| Daily | Planning Order (queue) | Record status | W - | dtp-rules.js step / orderPayload | ielp.DTP_2_DETAIL | STATUS_CODE | varchar(3) | N | Schema; Code; Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Order (queue) | Attempt count / fail reason | R/W - | dtp-rules.js step / orderPayload | TBD | TBD | - | - | Schema (no table / column found); No ATTEMPT_CNT / FAIL_REASON columns. Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order (queue) | Activity log | W - | dtp-rules.js step / orderPayload | ielp.LOG_ACTIVITY_ORDER | STS_CODE | varchar(10) | N | Schema; Code | TBD |
 | Daily | Planning Order (switching) | Rollback history | W - | dtp-rules.js switchCheck / switchBack | ielp.ORDER_CYCLE_ROLLBACK_H | ROLLBACK_REMARKS | varchar(max) | N | Schema; Code; ROLLBACK_ID, ORDER_CYCLE_ID, CURR_STATUS_CODE, ROLLBACK_BY / DATE. | TBD |
 | Daily | Planning Order (switching) | Truck history | W - | dtp-rules.js switchCheck / switchBack | ielp.ORDER_TRUCK_H | LICENSE_PLATE | varchar(20) | N | Schema; Code | Revised |
@@ -46,8 +46,8 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Interface | ELIPS -> PAS PR | Interface log | W - | current-tjava-json-to-pas.java | ielp.LOG_ITGPAS | STS_CODE | varchar(10) | N | Schema; Code | TBD |
 | Interface | ELIPS -> PAS PR | PAS tables (TB_R_PR_H ...) | R/W - | current-tjava-json-to-pas.java | TBD | TBD | - | - | Schema (no table / column found); Outside ELIPS - not verifiable with this schema. | TBD |
 | Master | Mileage (upload) | FROM CODE (file) | W - | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | FROM_CODE | varchar(100) | Y | Schema; Code | Revised |
-| Master | Mileage (upload) | TO CODE (file) | W - | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | TO_CODE | varchar(100) | N | Schema; Code; Not in PK. | Conflict |
-| Master | Mileage (upload) | MILEAGE (KM) (file) | W - | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | MILEAGE | decimal(18, 0) | N | Schema; Code; decimal(18,0). | Conflict |
+| Master | Mileage (upload) | TO CODE (file) | W - | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | TO_CODE | varchar(100) | N | Schema; Code; Not in PK. Decision: existing logic kept (DCR). | Revised |
+| Master | Mileage (upload) | MILEAGE (KM) (file) | W - | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | MILEAGE | decimal(18, 0) | N | Schema; Code; decimal(18,0). Decision: existing logic kept (DCR). | Revised |
 | Master | Mileage (upload) | From / To names | W Copy of location names (NOT NULL) | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | LOC_NAME_FROM | varchar(100) | Y | Schema; Code | Revised |
 | Master | Mileage (upload) | Audit | W - | master-mileage.js readSheet / checkUpload / applyUpload | ielp.TB_M_MILEAGE | CREATED_BY | varchar(20) | Y | Schema; Code | Revised |
 | Master | Mileage (upload) | Temp / log / history (TB_T_MILEAGE_UPLOAD, TB_R_MILEAGE_UPLOAD_LOG, TB_H_MILEAGE) | R/W - | master-mileage.js readSheet / checkUpload / applyUpload | TBD | TBD | - | - | Schema (no table / column found); Proposed tables, not in ELIPS. | Missing |
@@ -88,17 +88,17 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Daily | Planning Order | DTP Model / type | R/W - | dtp-rules.js | ielp.DTP_HEADER | DTP_TYPE | varchar(1) | N | Schema; Code; varchar(1); DTP 1-4 meaning TBD. | TBD |
 | Daily | Planning Order | DTP header status | W - | dtp-rules.js | ielp.DTP_HEADER | DTP_STATUS | varchar(100) | Y | Schema; Code; varchar(100) NOT NULL; values TBD. | TBD |
 | Daily | Planning Order | Import / Export (Service Type) | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | SERVICE_TYPE | varchar(5) | N | Schema; Code; varchar(5); UISS IO_TYPE. | Revised |
-| Daily | Planning Order | Exporter / Importer CD | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No exporter / importer column in DTP_2_DETAIL (SOURCES varchar(10)? TBD). | Conflict |
+| Daily | Planning Order | Exporter / Importer CD | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No exporter / importer column in DTP_2_DETAIL (SOURCES varchar(10)? TBD). Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order | Round Use | R/W Y/N -> '1'/'0' (values TBD, default '0') | dtp-rules.js | ielp.DTP_2_DETAIL | IS_ROUNDUSE | varchar(1) | N | Schema; Code | Revised |
 | Daily | Planning Order | LP (Trucking Company) | R/W MS_TRUCKING_COMPANY.COMPANY_ID (inferred) | dtp-rules.js | ielp.DTP_2_DETAIL | COMPANY_ID | varchar(10) | N | Schema; Code | Revised |
 | Daily | Planning Order | Renban | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | RENBAN | varchar(500) | N | Schema; Code; varchar(500). | Revised |
-| Daily | Planning Order | Destination | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No destination column in DTP_2_DETAIL (COUNTRY varchar(100)? TBD). | Conflict |
+| Daily | Planning Order | Destination | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No destination column in DTP_2_DETAIL (COUNTRY varchar(100)? TBD). Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order | From / To Location | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | FROM_LOC | varchar(10) | N | Schema; Code; varchar(10); TO_LOC same. | Revised |
 | Daily | Planning Order | To | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | TO_LOC | varchar(10) | N | Schema; Code | Revised |
 | Daily | Planning Order | ETD | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | ETD | date | N | Schema; Code | Revised |
 | Daily | Planning Order | Arrival Date | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | ARRIVAL_DATE | date | N | Schema; Code | Revised |
 | Daily | Planning Order | Arrival Time | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | ARRIVAL_TIME | varchar(10) | N | Schema; Code; varchar(10). | Revised |
-| Daily | Planning Order | Container Size | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | CTR_SIZE | int | N | Schema; Code; int; UI values like '40 HC' (HC -> CTR_TYPE varchar(10), inferred). | Conflict |
+| Daily | Planning Order | Container Size | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | CTR_SIZE | int | N | Schema; Code; int; UI values like '40 HC' (HC -> CTR_TYPE varchar(10), inferred). Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order | Ctr Type | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | CTR_TYPE | varchar(10) | N | Schema; Code | Revised |
 | Daily | Planning Order | Shipping Agent | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | SHIPPING_AGENT | varchar(500) | N | Schema; Code | Revised |
 | Daily | Planning Order | Ctr Booking No | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | CTR_BOOKING_NO | varchar(50) | N | Schema; Code; varchar(50). | Revised |
@@ -108,16 +108,16 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Daily | Planning Order | Container No | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | CONTAINER_NO | varchar(11) | N | Schema; Code; varchar(11). | Verified |
 | Daily | Planning Order | Shift | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | SHIFT | varchar(100) | N | Schema; Code | Revised |
 | Daily | Planning Order | Ctr DG flag | R/W DG -> '1' (default '0') | dtp-rules.js | ielp.DTP_2_DETAIL | IS_DG | varchar(1) | N | Schema; Code | Revised |
-| Daily | Planning Order | Record status | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | STATUS_CODE | varchar(3) | N | Schema; Code; varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS). | Conflict |
-| Daily | Planning Order | Order No | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | ORDER_NO | varchar(20) | Y | Schema; Code; varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing. | Conflict |
+| Daily | Planning Order | Record status | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | STATUS_CODE | varchar(3) | N | Schema; Code; varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS). Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Order | Order No | R/W - | dtp-rules.js | ielp.DTP_2_DETAIL | ORDER_NO | varchar(20) | Y | Schema; Code; varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing. Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order | Data Source (Excel / Manual / IPMS) | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No data-source column (SOURCES varchar(10)? TBD). | TBD |
-| Daily | Planning Order | Payment Type | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No payment type column. | Conflict |
+| Daily | Planning Order | Payment Type | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No payment type column. Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order | Delete | W '1' on delete (default '0'; values TBD) | dtp-rules.js | ielp.DTP_2_DETAIL | IS_DELETE | varchar(1) | N | Schema; Code; UISS physical delete vs ELIPS IS_DELETE flag. | Revised |
 | Daily | Planning Order | History | W/R - | dtp-rules.js | ielp.LOG_ACTIVITY_ORDER | ACT | varchar(100) | N | Schema; Code; LOG_ACTIVITY_ORDER (ACT, STS_CODE, STS_MESSAGE, DTP_DET_ID, CRETED_DATE) inferred as status history. | TBD |
 | Daily | Planning Order | System parameters | R - | dtp-rules.js | ielp.TB_M_SYSTEM | SYS_VALUE | varchar(2000) | Y | Schema; Code; SYS_CAT / SYS_SUB_CAT / SYS_CD for back-date / advance days TBD. | TBD |
 | Daily | Planning Order | Daily order / cycle | R - | dtp-rules.js | ielp.ORDER_CYCLE | ORDER_NO | varchar(20) | Y | Schema; Code; ORDER_CYCLE: one row per cycle (CYCLE_SEQ), STATUS_CODE, START_DATE. | Revised |
-| Daily | Planning Order | Order Sharing % (KPI) | R - | dtp-rules.js | ielp.CRITERIA_LAST_ORDER | ORDER_SHARING | float | N | Schema; Code; Per period, not a master value. | Conflict |
-| Daily | Planning Order | Daily Trip (KPI) | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No column. | Conflict |
+| Daily | Planning Order | Order Sharing % (KPI) | R - | dtp-rules.js | ielp.CRITERIA_LAST_ORDER | ORDER_SHARING | float | N | Schema; Code; Per period, not a master value. Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Order | Daily Trip (KPI) | R/W - | dtp-rules.js | TBD | TBD | - | - | Schema (no table / column found); No column. Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Order | Uploaded file | W - | dtp-rules.js | ielp.DTP_FILES | FILE_NAME | varchar(500) | N | Schema; Code; DTP_FILES (DTP_HEADER_ID, FILE_NAME, FILE_NEW_NAME) inferred for the uploaded Excel. | TBD |
 | Daily | Daily Monitoring | Date | R - | workflow.js | ielp.ORDER_CYCLE | ORDER_DATE | date | N | Schema; Code; date; DTP_HEADER.DTP_DATE for the plan date. | Revised |
 | Daily | Daily Monitoring | No. Order | R - | workflow.js | ielp.ORDER_CYCLE | ORDER_NO | varchar(20) | Y | Schema; Code | Revised |
@@ -149,12 +149,12 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Master | KPI | KPI weight | - - | master-kpi.js | ielp.MS_KPI | WEIGHT | numeric(38, 0) | N | Schema; Code; Exists in ELIPS, not used by the mock-up. | TBD |
 | Master | KPI | Select Trucking Company | R Active companies (IS_DELETE) | master-kpi.js | ielp.MS_TRUCKING_COMPANY | COMPANY_CODE | varchar(20) | Y | Schema; Code | Revised |
 | Master | KPI | Trucking Company (row) | R/W - | master-kpi.js | ielp.MS_TRUCKING_COMPANY | COMPANY_ID | varchar(10) | Y | Schema; Code; Key of the per-company KPI row (table TBD). | TBD |
-| Master | KPI | Payment Type | R/W - | master-kpi.js | TBD | TBD | - | - | Schema (no table / column found); No payment type column in ELIPS. | Conflict |
+| Master | KPI | Payment Type | R/W - | master-kpi.js | TBD | TBD | - | - | Schema (no table / column found); No payment type column in ELIPS. Decision: existing logic kept (DCR). | Revised |
 | Master | KPI | Score | R - | master-kpi.js | ielp.CRITERIA_SCORE_DETAIL | SCORE | float | N | Schema; Code; Period score per company / route; master score per company not in ELIPS. | TBD |
 | Master | KPI | KPI item columns (values) | R/W - | master-kpi.js | ielp.CRITERIA_SCORE_DETAIL | CRITERIA_VALUE | varchar(100) | N | Schema; Code; Period data, not master. | TBD |
 | Master | KPI | Score grade ranges | R FROM_PERCENTAGE..TO_PERCENTAGE -> VALUE | master-kpi.js | ielp.MS_KPI_PERCENTAGE | VALUE | int | Y | Schema; Code; Mock-up grade thresholds (master-kpi.js grade) vs MS_KPI_PERCENTAGE. | TBD |
-| Master | KPI | Order Sharing % | R/W - | master-kpi.js | ielp.CRITERIA_LAST_ORDER | ORDER_SHARING | float | N | Schema; Code; float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master). | Conflict |
-| Master | KPI | Daily Trip / Trips per day | R/W - | master-kpi.js | TBD | TBD | - | - | Schema (no table / column found); No column in ELIPS. | Conflict |
+| Master | KPI | Order Sharing % | R/W - | master-kpi.js | ielp.CRITERIA_LAST_ORDER | ORDER_SHARING | float | N | Schema; Code; float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master). Decision: existing logic kept (DCR). | Revised |
+| Master | KPI | Daily Trip / Trips per day | R/W - | master-kpi.js | TBD | TBD | - | - | Schema (no table / column found); No column in ELIPS. Decision: existing logic kept (DCR). | Revised |
 | Master | KPI | UoM | R/W - | master-kpi.js | TBD | TBD | - | - | Schema (no table / column found); TBD - Not confirmed from existing schema/data/code | TBD |
 | Master | KPI | Created / Changed (KPI item) | W - | master-kpi.js | ielp.MS_KPI | CREATED_BY | varchar(500) | N | Schema; Code; MS_KPI uses CREATED_DATE / UPDATED_DATE / UPDATED_BY. | Revised |
 | Master | Location Code | Location Name | R/W TRIM, UPPER | master-location.js | ielp.MS_LOCATION | LOCATION_NAME | varchar(5000) | Y | Schema; Code; UI max 100 < DB 5000. | Revised |
@@ -162,14 +162,14 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Master | Location Code | Location Address Google Map | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_ADDRESS_ORI | varchar(5000) | N | Schema; Code; Link by name (inferred). | Revised |
 | Master | Location Code | Physical Location Address | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_ADRESS | varchar(5000) | N | Schema; Code; Column spelled LOCATION_ADRESS. | Revised |
 | Master | Location Code | Location Sub Area | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_SUB | varchar(10) | N | Schema; Code; LOCATION_SUB / LOCATION_AREA varchar(10); list source TBD. | TBD |
-| Master | Location Code | Radius (m) | R/W Numeric > 0 stored as text | master-location.js | ielp.MS_LOCATION | RADIUS | varchar(5) | N | Schema; Code; varchar(5) default '50'. | Conflict |
+| Master | Location Code | Radius (m) | R/W Numeric > 0 stored as text | master-location.js | ielp.MS_LOCATION | RADIUS | varchar(5) | N | Schema; Code; varchar(5) default '50'. Decision: existing logic kept (DCR). | Revised |
 | Master | Location Code | Auto Finish Order | R/W Yes / No -> values TBD (default 0) | master-location.js | ielp.MS_LOCATION | AUTO_FINISH | varchar(1) | N | Schema; Code | Revised |
 | Master | Location Code | Auto Generate Cycle | R/W Yes / No -> values TBD (default 0) | master-location.js | ielp.MS_LOCATION | AUTO_CYCLE | varchar(1) | N | Schema; Code | Revised |
 | Master | Location Code | Cycle To Area | R/W - | master-location.js | ielp.MS_LOCATION | CYCLE_LOC_TO | varchar(10) | N | Schema; Code | Revised |
-| Master | Location Code | Latitude | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_LATITUDE | varchar(100) | Y | Schema; Code; varchar(100) NOT NULL; UI Number(10,7). | Conflict |
-| Master | Location Code | Longitude | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_LANGITUDE | varchar(100) | Y | Schema; Code; Column spelled LANGITUDE; varchar(100). | Conflict |
+| Master | Location Code | Latitude | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_LATITUDE | varchar(100) | Y | Schema; Code; varchar(100) NOT NULL; UI Number(10,7). Decision: existing logic kept (DCR). | Revised |
+| Master | Location Code | Longitude | R/W - | master-location.js | ielp.MS_LOCATION | LOCATION_LANGITUDE | varchar(100) | Y | Schema; Code; Column spelled LANGITUDE; varchar(100). Decision: existing logic kept (DCR). | Revised |
 | Master | Location Code | Coordinates (list) | R - | master-location.js | ielp.MS_LOCATION | LOCATION_LATITUDE | varchar(100) | Y | Schema; Code | Revised |
-| Master | Location Code | Status Active / Inactive | R/W Deactivate / Delete -> IS_DELETE (values TBD) | master-location.js | ielp.MS_LOCATION | IS_DELETE | varchar(100) | N | Schema; Code; No separate inactive state. | Conflict |
+| Master | Location Code | Status Active / Inactive | R/W Deactivate / Delete -> IS_DELETE (values TBD) | master-location.js | ielp.MS_LOCATION | IS_DELETE | varchar(100) | N | Schema; Code; No separate inactive state. Decision: existing logic kept (DCR). | Revised |
 | Master | Location Code | Created By / At | W (insert) - | master-location.js | ielp.MS_LOCATION | CREATED_BY | varchar(500) | Y | Schema; Code | Revised |
 | Master | Location Code | Updated By / At | W (update) - | master-location.js | ielp.MS_LOCATION | UPDATED_BY | varchar(5000) | N | Schema; Code | Revised |
 | Master | Location Code | (key) Location ID | W (insert) Generated - rule TBD | master-location.js | ielp.MS_LOCATION | LOCATION_ID | varchar(10) | Y | Schema; Code | TBD |
@@ -177,19 +177,19 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Master | Mileage | From | R (list) / W FROM_CODE Active locations; saved in TB_M_MILEAGE.FROM_CODE | master-mileage.js | ielp.MS_LOCATION | LOCATION_ALIAS | varchar(100) | Y | Schema; Code; List source MS_LOCATION; which key (LOCATION_ID / ALIAS) is TBD. | Revised |
 | Master | Mileage | To | R (list) / W TO_CODE Saved in TB_M_MILEAGE.TO_CODE | master-mileage.js | ielp.MS_LOCATION | LOCATION_ALIAS | varchar(100) | Y | Schema; Code | Revised |
 | Master | Mileage | From Code (list) | R - | master-mileage.js | ielp.TB_M_MILEAGE | FROM_CODE | varchar(100) | Y | Schema; Code | Revised |
-| Master | Mileage | To Code (list) | R - | master-mileage.js | ielp.TB_M_MILEAGE | TO_CODE | varchar(100) | N | Schema; Code; Nullable, not part of PK. | Conflict |
+| Master | Mileage | To Code (list) | R - | master-mileage.js | ielp.TB_M_MILEAGE | TO_CODE | varchar(100) | N | Schema; Code; Nullable, not part of PK. Decision: existing logic kept (DCR). | Revised |
 | Master | Mileage | From name (stored) | W Copy of MS_LOCATION.LOCATION_NAME | master-mileage.js | ielp.TB_M_MILEAGE | LOC_NAME_FROM | varchar(100) | Y | Schema; Code; PK column, NOT NULL. | Revised |
 | Master | Mileage | To name (stored) | W Copy of MS_LOCATION.LOCATION_NAME | master-mileage.js | ielp.TB_M_MILEAGE | LOC_NAME_TO | varchar(100) | Y | Schema; Code; NOT NULL. | Revised |
-| Master | Mileage | Mileage (Km) | R/W > 0 | master-mileage.js | ielp.TB_M_MILEAGE | MILEAGE | decimal(18, 0) | N | Schema; Code; decimal(18,0): decimals not stored. | Conflict |
+| Master | Mileage | Mileage (Km) | R/W > 0 | master-mileage.js | ielp.TB_M_MILEAGE | MILEAGE | decimal(18, 0) | N | Schema; Code; decimal(18,0): decimals not stored. Decision: existing logic kept (DCR). | Revised |
 | Master | Mileage | Created Date | W (insert) - | master-mileage.js | ielp.TB_M_MILEAGE | CREATED_DT | datetime | Y | Schema; Code | Revised |
 | Master | Mileage | Created By | W (insert) - | master-mileage.js | ielp.TB_M_MILEAGE | CREATED_BY | varchar(20) | Y | Schema; Code; varchar(20). | Revised |
 | Master | Mileage | Change Date | W (update) - | master-mileage.js | ielp.TB_M_MILEAGE | CHANGED_DT | datetime | N | Schema; Code | Revised |
 | Master | Mileage | Changed By | W (update) - | master-mileage.js | ielp.TB_M_MILEAGE | CHANGED_BY | varchar(20) | N | Schema; Code | Revised |
-| Master | Mileage | Status / delete | R/W values TBD | master-mileage.js | ielp.TB_M_MILEAGE | IS_DELETE | varchar(5) | N | Schema; Code | Conflict |
+| Master | Mileage | Status / delete | R/W values TBD | master-mileage.js | ielp.TB_M_MILEAGE | IS_DELETE | varchar(5) | N | Schema; Code; Decision: existing logic kept (DCR). | Revised |
 | Master | Price | Periode | R YYYYMM of VALID_DT_FROM (inferred) | master-price.js | ielp.MS_ROUTE_PRICE | VALID_DT_FROM | datetime | N | Schema; Code | TBD |
 | Master | Price | Trucking Company | R = MS_TRUCKING_COMPANY.COMPANY_CODE (inferred) | master-price.js | ielp.MS_ROUTE_PRICE | COMPANY_CODE | varchar(20) | N | Schema; Code | Revised |
 | Master | Price | Vehicle Type | R - | master-price.js | ielp.MS_ROUTE_PRICE | ROUTE_PRICE_SIZE | varchar(2) | N | Schema; Code; varchar(2) - container size? inferred. | TBD |
-| Master | Price | Component (FIX / KM) | R/W - | master-price.js | TBD | TBD | - | - | Schema (no table / column found); No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE. | Conflict |
+| Master | Price | Component (FIX / KM) | R/W - | master-price.js | TBD | TBD | - | - | Schema (no table / column found); No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE. Decision: existing logic kept (DCR). | Revised |
 | Master | Price | Price | R - | master-price.js | ielp.MS_ROUTE_PRICE | ROUTE_PRICE_VALUE | float | N | Schema; Code; float (UISS Number 15). | Revised |
 | Master | Price | Effective Start | R - | master-price.js | ielp.MS_ROUTE_PRICE | VALID_DT_FROM | datetime | N | Schema; Code | Revised |
 | Master | Price | Effective End | R - | master-price.js | ielp.MS_ROUTE_PRICE | VALID_DT_TO | datetime | N | Schema; Code | Revised |
@@ -219,19 +219,19 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Master | Route Percentage | Percentage | R/W 0 < % <= 100 | master-route-percentage.js | ielp.MS_ROUTE_HEADER | ROUTE_PERCENTAGE_VALUE | float | Y | Schema; Code; float NOT NULL (UISS Number 5,2). | Revised |
 | Master | Route Percentage | Location Pick / stop | R - | master-route-percentage.js | ielp.MS_LOCATION | LOCATION_ALIAS | varchar(100) | Y | Schema; Code | Revised |
 | Master | Route Percentage | Location Name | R - | master-route-percentage.js | ielp.MS_LOCATION | LOCATION_NAME | varchar(5000) | Y | Schema; Code | Revised |
-| Master | Route Percentage | Distance (Km) | R/W - | master-route-percentage.js | ielp.MS_ROUTE_PERCENTAGE_HIST | DISTANCE | int | N | Schema; Code; int in the history table; no distance on MS_ROUTE_HEADER. | Conflict |
+| Master | Route Percentage | Distance (Km) | R/W - | master-route-percentage.js | ielp.MS_ROUTE_PERCENTAGE_HIST | DISTANCE | int | N | Schema; Code; int in the history table; no distance on MS_ROUTE_HEADER. Decision: existing logic kept (DCR). | Revised |
 | Master | Route Percentage | Status (Deactivate) | R/W Deactivate -> IS_DELETE (values TBD) | master-route-percentage.js | ielp.MS_ROUTE_HEADER | IS_DELETE | varchar(1) | Y | Schema; Code | Revised |
 | Master | Route Percentage | Created By | W - | master-route-percentage.js | ielp.MS_ROUTE_HEADER | CREATED_BY | varchar(500) | Y | Schema; Code | Revised |
 | Master | Route Percentage | Changed Dt | W - | master-route-percentage.js | ielp.MS_ROUTE_HEADER | UPDATED_DATE | datetime | N | Schema; Code | Revised |
-| Master | Route Percentage | Ordered stops (sequence, leg km) | R/W - | master-route-percentage.js | TBD | TBD | - | - | Schema (no table / column found); No stop / sequence table. | Conflict |
+| Master | Route Percentage | Ordered stops (sequence, leg km) | R/W - | master-route-percentage.js | TBD | TBD | - | - | Schema (no table / column found); No stop / sequence table. Decision: existing logic kept (DCR). | Revised |
 | Master | Route Percentage | Sync flag | - - | master-route-percentage.js | ielp.MS_ROUTE_HEADER | IS_SYNC | varchar(1) | N | Schema; Code; Exists in ELIPS (sync to another system?), not used by the mock-up. | TBD |
 | Master | Trucking Company | Vendor Name | R/W TRIM, single spaces, UPPER | master-trucking.js | ielp.MS_TRUCKING_COMPANY | COMPANY_NAME | varchar(500) | Y | Schema; Code; UI max 100 < DB 500. | Revised |
-| Master | Trucking Company | Vendor Code | R/W TRIM, UPPER | master-trucking.js | ielp.MS_TRUCKING_COMPANY | COMPANY_CODE | varchar(20) | Y | Schema; Code; UI rule 3 chars (master-trucking.js) vs DB varchar(20). | Conflict |
-| Master | Trucking Company | SAP Vendor Code | R/W TRIM | master-trucking.js | ielp.MS_TRUCKING_COMPANY | SAP_COMPANY_CODE | varchar(20) | Y | Schema; Code; UI rule 10 digits vs DB varchar(20). | Conflict |
-| Master | Trucking Company | Service Type | R/W Fixed list MRO | master-trucking.js | TBD | TBD | - | - | Schema (no table / column found); No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD). | Conflict |
+| Master | Trucking Company | Vendor Code | R/W TRIM, UPPER | master-trucking.js | ielp.MS_TRUCKING_COMPANY | COMPANY_CODE | varchar(20) | Y | Schema; Code; UI rule 3 chars (master-trucking.js) vs DB varchar(20). Decision: existing logic kept (DCR). | Revised |
+| Master | Trucking Company | SAP Vendor Code | R/W TRIM | master-trucking.js | ielp.MS_TRUCKING_COMPANY | SAP_COMPANY_CODE | varchar(20) | Y | Schema; Code; UI rule 10 digits vs DB varchar(20). Decision: existing logic kept (DCR). | Revised |
+| Master | Trucking Company | Service Type | R/W Fixed list MRO | master-trucking.js | TBD | TBD | - | - | Schema (no table / column found); No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD). Decision: existing logic kept (DCR). | Revised |
 | Master | Trucking Company | NPWP | R/W Digits -> 999.999.999.9-999.999 | master-trucking.js | ielp.MS_TRUCKING_COMPANY | NPWP | varchar(100) | Y | Schema; Code | Revised |
 | Master | Trucking Company | Contact Name | R/W TRIM | master-trucking.js | ielp.MS_TRUCKING_COMPANY | CONTACT_NAME | varchar(200) | N | Schema; Code; UI max 100 < DB 200. | Revised |
-| Master | Trucking Company | E-Mail | R/W TRIM, LOWER | master-trucking.js | ielp.MS_TRUCKING_COMPANY | EMAIL | varchar(50) | N | Schema; Code; UI allows 100, DB varchar(50). | Conflict |
+| Master | Trucking Company | E-Mail | R/W TRIM, LOWER | master-trucking.js | ielp.MS_TRUCKING_COMPANY | EMAIL | varchar(50) | N | Schema; Code; UI allows 100, DB varchar(50). Decision: existing logic kept (DCR). | Revised |
 | Master | Trucking Company | Phone | R/W TRIM | master-trucking.js | ielp.MS_TRUCKING_COMPANY | PHONE | varchar(20) | N | Schema; Code | Verified |
 | Master | Trucking Company | Mobile Phone | R/W TRIM | master-trucking.js | ielp.MS_TRUCKING_COMPANY | MOBILE_PHONE | varchar(20) | N | Schema; Code | Verified |
 | Master | Trucking Company | Address | R/W TRIM | master-trucking.js | ielp.MS_TRUCKING_COMPANY | COMPANY_ADDRESS | varchar(500) | N | Schema; Code; UI max 300 < DB 500. | Revised |
@@ -240,7 +240,7 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Master | Trucking Company | Updated By / Updated Date | W (update) Login user; UPDATED_DATE = server date | master-trucking.js | ielp.MS_TRUCKING_COMPANY | UPDATED_BY | varchar(100) | N | Schema; Code | Revised |
 | Master | Trucking Company | (key) Company ID | W (insert) Generated - rule TBD | master-trucking.js | ielp.MS_TRUCKING_COMPANY | COMPANY_ID | varchar(10) | Y | Schema; Code | TBD |
 | Master | Trucking Company | (system) App ID | W (insert) Default 'ENVITRUCK' | master-trucking.js | ielp.MS_TRUCKING_COMPANY | APP_ID | varchar(20) | N | Schema; Code | TBD |
-| Master | Trucking Company | (concurrency) Version | R/W - | master-trucking.js | TBD | TBD | - | - | Schema (no table / column found); Optimistic lock by VERSION (master-trucking.js update) has no column. | Conflict |
+| Master | Trucking Company | (concurrency) Version | R/W - | master-trucking.js | TBD | TBD | - | - | Schema (no table / column found); Optimistic lock by VERSION (master-trucking.js update) has no column. Decision: existing logic kept (DCR). | Revised |
 | Monthly | PO Approval | PO Number | R - | monthly-workflow.js | ielp.PO_DETAIL | PO_NUMBER | varchar(16) | N | Schema; Code; varchar(16) per COMPANY_ID (+ ROUTE, PO_TYPE). | Revised |
 | Monthly | PO Approval | Production Month | R - | monthly-workflow.js | ielp.PO_HEADER | PO_PERIODE | varchar(7) | N | Schema; Code; varchar(7); PO_SEQ. | Revised |
 | Monthly | PO Approval | PR Number | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | PR_NO_DET | varchar(11) | N | Schema; Code | Revised |
@@ -248,7 +248,7 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Monthly | PO Approval | Auto Approve At | R - | monthly-workflow.js | ielp.PO_APPROVAL_EST | APPROVAL_LIMIT | datetime | N | Schema; Code; Per PO_PERIODE + APPROVAL_CLASS (inferred). | TBD |
 | Monthly | PO Approval | Approved By | R/W - | monthly-workflow.js | ielp.PO_APPROVAL | APPROVAL_BY | varchar(100) | N | Schema; Code; APPROVAL_DATE, APPROVAL_REMARK, APPROVAL_CLASS. | Revised |
 | Monthly | PO Approval | PO date | R - | monthly-workflow.js | ielp.PO_HEADER | CREATED_DATE | datetime | N | Schema; Code | Revised |
-| Monthly | PO Approval | Trucking Code / Name | R - | monthly-workflow.js | ielp.PO_DETAIL | COMPANY_ID | varchar(10) | N | Schema; Code | Conflict |
+| Monthly | PO Approval | Trucking Code / Name | R - | monthly-workflow.js | ielp.PO_DETAIL | COMPANY_ID | varchar(10) | N | Schema; Code; Decision: existing logic kept (DCR). | Revised |
 | Monthly | PO Approval | Order Sharing | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_ORDER_SHARING | float | N | Schema; Code | Revised |
 | Monthly | PO Approval | Route lines | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE | ROUTE_HEADER_ID | varchar(10) | Y | Schema; Code | Revised |
 | Monthly | PO Approval | Approval History | R/W - | monthly-workflow.js | TBD | TBD | - | - | Schema (no table / column found); Approvals in PO_APPROVAL rows. | TBD |
@@ -259,13 +259,13 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Monthly | PO Inquiry | Auto Approve At | R - | monthly-workflow.js | ielp.PO_APPROVAL_EST | APPROVAL_LIMIT | datetime | N | Schema; Code; Per PO_PERIODE + APPROVAL_CLASS (inferred). | TBD |
 | Monthly | PO Inquiry | Approved By | R/W - | monthly-workflow.js | ielp.PO_APPROVAL | APPROVAL_BY | varchar(100) | N | Schema; Code; APPROVAL_DATE, APPROVAL_REMARK, APPROVAL_CLASS. | Revised |
 | Monthly | PO Inquiry | PO date | R - | monthly-workflow.js | ielp.PO_HEADER | CREATED_DATE | datetime | N | Schema; Code | Revised |
-| Monthly | PO Inquiry | Trucking Code / Name | R - | monthly-workflow.js | ielp.PO_DETAIL | COMPANY_ID | varchar(10) | N | Schema; Code | Conflict |
+| Monthly | PO Inquiry | Trucking Code / Name | R - | monthly-workflow.js | ielp.PO_DETAIL | COMPANY_ID | varchar(10) | N | Schema; Code; Decision: existing logic kept (DCR). | Revised |
 | Monthly | PO Inquiry | Order Sharing | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_ORDER_SHARING | float | N | Schema; Code | Revised |
 | Monthly | PO Inquiry | Route lines | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE | ROUTE_HEADER_ID | varchar(10) | Y | Schema; Code | Revised |
 | Monthly | PO Inquiry | Approval History | R/W - | monthly-workflow.js | TBD | TBD | - | - | Schema (no table / column found); Approvals in PO_APPROVAL rows. | TBD |
 | Monthly | PR Approval | Production Month / PR seq | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_HEADER | CRITERIA_PERIODE | varchar(7) | Y | Schema; Code; varchar(7); PR_SEQ int default 1. | Revised |
 | Monthly | PR Approval | PR Number (per trucking company) | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | PR_NO_DET | varchar(11) | N | Schema; Code; varchar(11); period PR_NO on CRITERIA_SCORE_HEADER. | Revised |
-| Monthly | PR Approval | Trucking Code / Name | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | COMPANY_ID | varchar(10) | N | Schema; Code; UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20). | Conflict |
+| Monthly | PR Approval | Trucking Code / Name | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | COMPANY_ID | varchar(10) | N | Schema; Code; UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20). Decision: existing logic kept (DCR). | Revised |
 | Monthly | PR Approval | Order Sharing % | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_ORDER_SHARING | float | N | Schema; Code; float. | Revised |
 | Monthly | PR Approval | Order Sharing Qty | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_TRIP | int | N | Schema; Code | Revised |
 | Monthly | PR Approval | Order Sharing Total Price | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_PRICE | float | N | Schema; Code; float. | Revised |
@@ -281,18 +281,18 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Monthly | PR Creation | PR Creation Type | W - | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_HEADER | BUSINESS_TYPE | varchar(1) | N | Schema; Code; varchar(1) (inferred). | TBD |
 | Monthly | PR Creation | Operational Month | R/W - | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_HEADER | CRITERIA_PERIODE | varchar(7) | Y | Schema; Code; varchar(7); PERIODE_FR / PERIODE_TO date. | Revised |
 | Monthly | PR Creation | Trucking Company | R - | pr-creation-rules.js, pr-sources.js | ielp.MS_TRUCKING_COMPANY | COMPANY_CODE | varchar(20) | Y | Schema; Code | Revised |
-| Monthly | PR Creation | Mileage / Fixed cost price | R - | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_PRICE | ROUTE_PRICE_VALUE | float | N | Schema; Code; Component FIX / KM not identifiable. | Conflict |
+| Monthly | PR Creation | Mileage / Fixed cost price | R - | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_PRICE | ROUTE_PRICE_VALUE | float | N | Schema; Code; Component FIX / KM not identifiable. Decision: existing logic kept (DCR). | Revised |
 | Monthly | PR Creation | Working Days | R COUNT(WORKING_DATE) WHERE WORKING_FLAG = 1 in the month (inferred) | pr-creation-rules.js, pr-sources.js | ielp.TB_M_WORKING_CALENDAR | WORKING_FLAG | bit | Y | Schema; Code | Revised |
 | Monthly | PR Creation | Route | R - | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_DETAIL | ROUTE_CODE | varchar(100) | Y | Schema; Code | Revised |
 | Monthly | PR Creation | Route Percentage | R - | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_HEADER | ROUTE_PERCENTAGE_VALUE | float | Y | Schema; Code | Revised |
-| Monthly | PR Creation | Distance (Km) | R/W - | pr-creation-rules.js, pr-sources.js | TBD | TBD | - | - | Schema (no table / column found); No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?). | Conflict |
+| Monthly | PR Creation | Distance (Km) | R/W - | pr-creation-rules.js, pr-sources.js | TBD | TBD | - | - | Schema (no table / column found); No route distance column (MS_ROUTE_PERCENTAGE_HIST.DISTANCE int?). Decision: existing logic kept (DCR). | Revised |
 | Monthly | PR Creation | PR per company | W - | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | PR_NO_DET | varchar(11) | N | Schema; Code; TOTAL_TRIP, TOTAL_ORDER_SHARING, TOTAL_PRICE. | Revised |
 | Monthly | PR Creation | PR route lines | W - | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE | TOTAL_PRICE_ALL | float | N | Schema; Code | Revised |
 | Monthly | PR Creation | PR approval levels | W - | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_APPROVAL | APPROVAL_CLASS | varchar(100) | N | Schema; Code | Revised |
 | Monthly | PR Creation | Fixed cost (by resource) lines | W - | pr-creation-rules.js, pr-sources.js | ielp.TB_R_PR_DAILY | TOTAL_PRICE | decimal(18, 2) | N | Schema; Code; TB_R_PR_DAILY / _DETAIL / TB_R_PR_SUMMARY (truck, driver, DOT / HOT) inferred for the fixed-cost PR. | TBD |
 | Monthly | PR Inquiry | Production Month / PR seq | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_HEADER | CRITERIA_PERIODE | varchar(7) | Y | Schema; Code; varchar(7); PR_SEQ int default 1. | Revised |
 | Monthly | PR Inquiry | PR Number (per trucking company) | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | PR_NO_DET | varchar(11) | N | Schema; Code; varchar(11); period PR_NO on CRITERIA_SCORE_HEADER. | Revised |
-| Monthly | PR Inquiry | Trucking Code / Name | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | COMPANY_ID | varchar(10) | N | Schema; Code; UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20). | Conflict |
+| Monthly | PR Inquiry | Trucking Code / Name | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | COMPANY_ID | varchar(10) | N | Schema; Code; UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20). Decision: existing logic kept (DCR). | Revised |
 | Monthly | PR Inquiry | Order Sharing % | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_ORDER_SHARING | float | N | Schema; Code; float. | Revised |
 | Monthly | PR Inquiry | Order Sharing Qty | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_TRIP | int | N | Schema; Code | Revised |
 | Monthly | PR Inquiry | Order Sharing Total Price | R - | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL | TOTAL_PRICE | float | N | Schema; Code; float. | Revised |
@@ -311,9 +311,9 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | Daily | Planning Truck Assignment | Truck picker | R - | workflow.js | ielp.MS_TRUCK_REGISTRATION | LICENSE_PLATE | varchar(20) | Y | Schema; Code; TRUCK_TYPE, STNK_EXPIRED, DRIVER_ID. | Revised |
 | Daily | Planning Truck Assignment | Assigned plate | W - | workflow.js | ielp.DTP_2_DETAIL | LICENSE_PLATE | varchar(20) | N | Schema; Code; Also ORDER_CYCLE.LICENSE_PLATE. | Revised |
 | Daily | Planning Truck Assignment | Assigned driver | W - | workflow.js | ielp.DTP_2_DETAIL | DRIVER_ID | varchar(10) | N | Schema; Code | Revised |
-| Daily | Planning Truck Assignment | Audit trail | W/R - | workflow.js | ielp.ORDER_TRUCK_H | LICENSE_PLATE | varchar(20) | N | Schema; Code; ORDER_TRUCK_H has ORDER_NO, LICENSE_PLATE, REMARK, UPDATED_BY, CREATED_DATE only (no action / prev status). | Conflict |
-| Daily | Planning Truck Assignment | LP status (accept / reject) | R/W - | workflow.js | TBD | TBD | - | - | Schema (no table / column found); No LP status column. | Conflict |
-| Daily | Planning Truck Assignment | Reject Reason | R/W - | workflow.js | TBD | TBD | - | - | Schema (no table / column found); ORDER_REMARK (inferred) or no column. | Conflict |
+| Daily | Planning Truck Assignment | Audit trail | W/R - | workflow.js | ielp.ORDER_TRUCK_H | LICENSE_PLATE | varchar(20) | N | Schema; Code; ORDER_TRUCK_H has ORDER_NO, LICENSE_PLATE, REMARK, UPDATED_BY, CREATED_DATE only (no action / prev status). Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Truck Assignment | LP status (accept / reject) | R/W - | workflow.js | TBD | TBD | - | - | Schema (no table / column found); No LP status column. Decision: existing logic kept (DCR). | Revised |
+| Daily | Planning Truck Assignment | Reject Reason | R/W - | workflow.js | TBD | TBD | - | - | Schema (no table / column found); ORDER_REMARK (inferred) or no column. Decision: existing logic kept (DCR). | Revised |
 | Daily | Planning Truck Assignment | Seal No | R/W - | workflow.js | TBD | TBD | - | - | Schema (no table / column found); SEAL_NO exists in ORDER_CYCLE / DTP_2_DETAIL. | TBD |
 | SA | SA Approval | Order Number / Date | R - | sa-rules.js | ielp.ORDER_CYCLE | ORDER_NO | varchar(20) | Y | Schema; Code | Revised |
 | SA | SA Approval | DTP Type | R - | sa-rules.js | ielp.DTP_HEADER | DTP_TYPE | varchar(1) | N | Schema; Code | TBD |
@@ -321,12 +321,12 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | SA | SA Approval | PO Number | R/W - | sa-rules.js | ielp.SA_DETAIL | PO_NUMBER | varchar(100) | N | Schema; Code; varchar(100); PO_DETAIL.PO_NUMBER varchar(16). | Revised |
 | SA | SA Approval | PO Validity / Currency | R/W - | sa-rules.js | TBD | TBD | - | - | Schema (no table / column found); No validity / currency on SA; MS_ROUTE_PRICE.VALID_DT_FROM / TO, ROUTE_PRICE_CURRENCY (inferred). | TBD |
 | SA | SA Approval | CTR Size | W - | sa-rules.js | ielp.SA_DETAIL | CTR_SIZE | varchar(2) | N | Schema; Code; varchar(2). | Revised |
-| SA | SA Approval | Total KM | R - | sa-rules.js | ielp.TB_M_MILEAGE | MILEAGE | decimal(18, 0) | N | Schema; Code; Sum of route mileage; no column on SA. | Conflict |
+| SA | SA Approval | Total KM | R - | sa-rules.js | ielp.TB_M_MILEAGE | MILEAGE | decimal(18, 0) | N | Schema; Code; Sum of route mileage; no column on SA. Decision: existing logic kept (DCR). | Revised |
 | SA | SA Approval | Rate / KM | R - | sa-rules.js | ielp.MS_ROUTE_PRICE | ROUTE_PRICE_VALUE | float | N | Schema; Code | TBD |
-| SA | SA Approval | Price (cost) | W - | sa-rules.js | ielp.SA_DETAIL | TOTAL_PRICE | varchar(100) | N | Schema; Code; varchar(100). | Conflict |
+| SA | SA Approval | Price (cost) | W - | sa-rules.js | ielp.SA_DETAIL | TOTAL_PRICE | varchar(100) | N | Schema; Code; varchar(100). Decision: existing logic kept (DCR). | Revised |
 | SA | SA Approval | Order Route | W - | sa-rules.js | ielp.SA_DETAIL | ORDER_ROUTE | varchar(100) | N | Schema; Code; varchar(100). | Revised |
 | SA | SA Approval | Cycle route | R - | sa-rules.js | ielp.ORDER_CYCLE | FROM_LOC | varchar(10) | N | Schema; Code | Revised |
-| SA | SA Approval | SA number | W - | sa-rules.js | ielp.SA_DETAIL | SA_CODE | varchar(16) | N | Schema; Code; varchar(16) vs 22-char SA number. | Conflict |
+| SA | SA Approval | SA number | W - | sa-rules.js | ielp.SA_DETAIL | SA_CODE | varchar(16) | N | Schema; Code; varchar(16) vs 22-char SA number. Decision: existing logic kept (DCR). | Revised |
 | SA | SA Approval | SA header | W - | sa-rules.js | ielp.SA_HEADER | SA_HEADER_ID | varchar(20) | N | Schema; Code; + SA_PERIODE, COMPANY_ID, PO_NUMBER, SA_TYPE, STATUS_CODE. | Revised |
 | SA | SA Approval | Approved by / date | W - | sa-rules.js | ielp.SA_DETAIL | APPROVED_BY | varchar(100) | N | Schema; Code | Revised |
 | SA | SA Approval | Order flag | W SA number written to the cycle | sa-rules.js | ielp.ORDER_CYCLE | SA_CODE | varchar(16) | N | Schema; Code | Revised |
@@ -334,7 +334,7 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | SA | SA Approval | Production Month (monthly) | R - | sa-rules.js | ielp.CRITERIA_SCORE_HEADER | CRITERIA_PERIODE | varchar(7) | Y | Schema; Code; varchar(7). | Revised |
 | SA | SA Approval | PO status (monthly) | R - | sa-rules.js | ielp.PO_HEADER | APPROVAL_STS | varchar(1) | N | Schema; Code | TBD |
 | SA | SA Approval | SA type | W - | sa-rules.js | ielp.SA_HEADER | SA_TYPE | varchar(1) | N | Schema; Code; varchar(1): daily / monthly values TBD. | TBD |
-| SA | SA Monitoring | SA No | R - | sa-pas-rules.js | ielp.SA_DETAIL | SA_CODE | varchar(16) | N | Schema; Code; varchar(16) vs Char 22. | Conflict |
+| SA | SA Monitoring | SA No | R - | sa-pas-rules.js | ielp.SA_DETAIL | SA_CODE | varchar(16) | N | Schema; Code; varchar(16) vs Char 22. Decision: existing logic kept (DCR). | Revised |
 | SA | SA Monitoring | SA Type | R - | sa-pas-rules.js | ielp.SA_HEADER | SA_TYPE | varchar(1) | N | Schema; Code | TBD |
 | SA | SA Monitoring | SA Det No | R - | sa-pas-rules.js | ielp.SA_DETAIL | SA_DETAIL_ID | varchar(10) | N | Schema; Code | Revised |
 | SA | SA Monitoring | Delivery No / Date | R - | sa-pas-rules.js | ielp.SA_DETAIL | DTP_DET_ID | varchar(100) | N | Schema; Code; Order via DTP_DET_ID / ORDER_CYCLE (inferred). | Revised |
@@ -343,8 +343,8 @@ Evidence: **Schema** = column exists with this type; **Code** = rule module name
 | SA | SA Monitoring | Interface Status | R/W - | sa-pas-rules.js | ielp.SA_DETAIL | PAS_STATUS | varchar(100) | N | Schema; Code; IS_PAS, PAS_CREATED_DATE, IS_PAS_CALLBACK, PAS_CALLBACK_STATUS, PAS_CALLBACK_DATE. | TBD |
 | SA | SA Monitoring | Route Code | R - | sa-pas-rules.js | ielp.SA_DETAIL | ROUTE_HEADER_ID | varchar(100) | N | Schema; Code; Route via MS_ROUTE_HEADER (inferred). | Revised |
 | SA | SA Monitoring | Ctr Size | R - | sa-pas-rules.js | ielp.SA_DETAIL | CTR_SIZE | varchar(2) | N | Schema; Code | Revised |
-| SA | SA Monitoring | Total KM / Rate / Currency | R/W - | sa-pas-rules.js | TBD | TBD | - | - | Schema (no table / column found); No KM / rate / currency columns on SA. | Conflict |
-| SA | SA Monitoring | Price | R - | sa-pas-rules.js | ielp.SA_DETAIL | TOTAL_PRICE | varchar(100) | N | Schema; Code; varchar(100). | Conflict |
+| SA | SA Monitoring | Total KM / Rate / Currency | R/W - | sa-pas-rules.js | TBD | TBD | - | - | Schema (no table / column found); No KM / rate / currency columns on SA. Decision: existing logic kept (DCR). | Revised |
+| SA | SA Monitoring | Price | R - | sa-pas-rules.js | ielp.SA_DETAIL | TOTAL_PRICE | varchar(100) | N | Schema; Code; varchar(100). Decision: existing logic kept (DCR). | Revised |
 | SA | SA Monitoring | WBS % | R - | sa-pas-rules.js | ielp.SA_WBS_PERCENTAGE | WBS_PERCENTAGE | varchar(20) | N | Schema; Code; varchar(20); WBS_COST varchar(100). | Revised |
 | SA | SA Monitoring | Approval Date | R - | sa-pas-rules.js | ielp.SA_DETAIL | APPROVED_DATE | datetime | N | Schema; Code | Revised |
 | SA | SA Monitoring | Integration log | R/W - | sa-pas-rules.js | ielp.LOG_ITGPAS | STS_CODE | varchar(10) | N | Schema; Code; LOG_ITGPAS: ACT, PARAM_REQ / RES, STS_CODE, STS_MESSAGE; SA_DETAIL.LOG_ITG_SEND_ID / LOG_ITG_CALLBACK_ID. | TBD |

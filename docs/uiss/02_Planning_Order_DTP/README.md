@@ -5,11 +5,11 @@ Code: dtp.js, dtp-rules.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_DTP_Creation](UISS_Screen_DTP_Creation.xlsx) | screen | 0.8 (14-Nov-26) | [src/UISS_Screen_DTP_Creation.json](src/UISS_Screen_DTP_Creation.json) | 34 |
-| [UISS_Batch_DTP_Excel_Upload](UISS_Batch_DTP_Excel_Upload.xlsx) | batch | 0.4 (14-Nov-26) | [src/UISS_Batch_DTP_Excel_Upload.json](src/UISS_Batch_DTP_Excel_Upload.json) | 0 |
-| [UISS_Batch_DTP_Queue_Processing](UISS_Batch_DTP_Queue_Processing.xlsx) | batch | 0.3 (14-Nov-26) | [src/UISS_Batch_DTP_Queue_Processing.json](src/UISS_Batch_DTP_Queue_Processing.json) | 0 |
-| [UISS_Batch_DTP_Switching](UISS_Batch_DTP_Switching.xlsx) | batch | 0.4 (14-Nov-26) | [src/UISS_Batch_DTP_Switching.json](src/UISS_Batch_DTP_Switching.json) | 0 |
-| [UISS_Batch_IPMS_DTP_Interface](UISS_Batch_IPMS_DTP_Interface.xlsx) | batch | 0.1 (14-Nov-26) | [src/UISS_Batch_IPMS_DTP_Interface.json](src/UISS_Batch_IPMS_DTP_Interface.json) | 0 |
+| [UISS_Screen_DTP_Creation](UISS_Screen_DTP_Creation.xlsx) | screen | 0.9 (14-Nov-26) | [src/UISS_Screen_DTP_Creation.json](src/UISS_Screen_DTP_Creation.json) | 34 |
+| [UISS_Batch_DTP_Excel_Upload](UISS_Batch_DTP_Excel_Upload.xlsx) | batch | 0.5 (14-Nov-26) | [src/UISS_Batch_DTP_Excel_Upload.json](src/UISS_Batch_DTP_Excel_Upload.json) | 0 |
+| [UISS_Batch_DTP_Queue_Processing](UISS_Batch_DTP_Queue_Processing.xlsx) | batch | 0.4 (14-Nov-26) | [src/UISS_Batch_DTP_Queue_Processing.json](src/UISS_Batch_DTP_Queue_Processing.json) | 0 |
+| [UISS_Batch_DTP_Switching](UISS_Batch_DTP_Switching.xlsx) | batch | 0.5 (14-Nov-26) | [src/UISS_Batch_DTP_Switching.json](src/UISS_Batch_DTP_Switching.json) | 0 |
+| [UISS_Batch_IPMS_DTP_Interface](UISS_Batch_IPMS_DTP_Interface.xlsx) | batch | 0.2 (14-Nov-26) | [src/UISS_Batch_IPMS_DTP_Interface.json](src/UISS_Batch_IPMS_DTP_Interface.json) | 0 |
 
 Rules / specification:
 

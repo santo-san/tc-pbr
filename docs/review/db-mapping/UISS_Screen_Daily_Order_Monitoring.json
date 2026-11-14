@@ -378,7 +378,10 @@
    "code": "-",
    "db": "ORDER_CYCLE (one row per cycle) + DTP_n_DETAIL (order)",
    "data": "No sample data",
-   "recommendation": "Order-level status = latest cycle / DTP_n_DETAIL.STATUS_CODE (confirm)"
+   "recommendation": "Order-level status = latest cycle / DTP_n_DETAIL.STATUS_CODE (confirm)",
+   "decision": "Existing logic kept: order header with up to 5 cycles; order = DTP_2_DETAIL row, cycle = ORDER_CYCLE row (CYCLE_SEQ).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-DM-02",
@@ -387,7 +390,10 @@
    "code": "-",
    "db": "STATUS_CODE varchar(3), MS_STATUS",
    "data": "No sample data",
-   "recommendation": "Map with MS_STATUS data"
+   "recommendation": "Map with MS_STATUS data",
+   "decision": "Existing logic kept: order / cycle statuses of workflow.js (ORDER, CYCLE).",
+   "dcr": "Register the statuses in ielp.MS_STATUS - data, no column change",
+   "dcr_id": "DCR-24"
   },
   {
    "id": "G-DM-03",
@@ -396,7 +402,10 @@
    "code": "-",
    "db": "LOG_ACTIVITY_ORDER has ACT, STS_CODE, REMARK only",
    "data": "No sample data",
-   "recommendation": "Confirm the history table"
+   "recommendation": "Confirm the history table",
+   "decision": "Existing logic kept: status history with from / to status, role, reason, note (workflow.js log).",
+   "dcr": "ADD ielp.LOG_ACTIVITY_ORDER.FROM_STS_CODE varchar(3), ROLE varchar(50)",
+   "dcr_id": "DCR-25"
   },
   {
    "id": "G-DM-04",
@@ -405,7 +414,10 @@
    "code": "-",
    "db": "No columns",
    "data": "No sample data",
-   "recommendation": "Confirm source"
+   "recommendation": "Confirm source",
+   "decision": "Existing logic kept: FA flag, planned cycles and PO received date on the order.",
+   "dcr": "ADD ielp.DTP_2_DETAIL.FA_FLAG varchar(1), PLANNED_CYCLE int; ADD ielp.ORDER_CYCLE.PO_RECEIVED_DATE datetime",
+   "dcr_id": "DCR-26"
   }
  ],
  "tbd": [

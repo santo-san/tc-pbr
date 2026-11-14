@@ -45,8 +45,8 @@
    "rw": "R/W",
    "mapping": "TRIM, UPPER",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "UI rule 3 chars (master-trucking.js) vs DB varchar(20)."
+   "status": "Revised",
+   "note": "UI rule 3 chars (master-trucking.js) vs DB varchar(20). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "SAP Vendor Code",
@@ -58,8 +58,8 @@
    "rw": "R/W",
    "mapping": "TRIM",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "UI rule 10 digits vs DB varchar(20)."
+   "status": "Revised",
+   "note": "UI rule 10 digits vs DB varchar(20). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Service Type",
@@ -71,8 +71,8 @@
    "rw": "R/W",
    "mapping": "Fixed list MRO",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD)."
+   "status": "Revised",
+   "note": "No SERVICE_TYPE column in MS_TRUCKING_COMPANY; BUSINESS_TYPE int exists (meaning TBD). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "NPWP",
@@ -110,8 +110,8 @@
    "rw": "R/W",
    "mapping": "TRIM, LOWER",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "UI allows 100, DB varchar(50)."
+   "status": "Revised",
+   "note": "UI allows 100, DB varchar(50). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Phone",
@@ -221,8 +221,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "Optimistic lock by VERSION (master-trucking.js update) has no column."
+   "status": "Revised",
+   "note": "Optimistic lock by VERSION (master-trucking.js update) has no column. Decision: existing logic kept (DCR)."
   }
  ],
  "conflicts": [
@@ -233,7 +233,10 @@
    "code": "master-trucking.js",
    "db": "EMAIL varchar(50)",
    "data": "No sample data",
-   "recommendation": "Limit UI to 50 or extend the column (DB change request)"
+   "recommendation": "Limit UI to 50 or extend the column (DB change request)",
+   "decision": "Existing logic kept: e-mail up to 100 characters (master-trucking.js).",
+   "dcr": "ALTER ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) -> varchar(100)",
+   "dcr_id": "DCR-01"
   },
   {
    "id": "G-MTC-02",
@@ -242,7 +245,10 @@
    "code": "-",
    "db": "COMPANY_CODE / SAP_COMPANY_CODE varchar(20)",
    "data": "No sample data",
-   "recommendation": "Confirm the rules against existing codes"
+   "recommendation": "Confirm the rules against existing codes",
+   "decision": "Existing logic kept: Vendor Code 3 letters / numbers, SAP Vendor Code 10 digits (master-trucking.js validate).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-MTC-03",
@@ -251,7 +257,10 @@
    "code": "-",
    "db": "No VERSION column",
    "data": "No sample data",
-   "recommendation": "Use UPDATED_DATE as optimistic lock or add VERSION"
+   "recommendation": "Use UPDATED_DATE as optimistic lock or add VERSION",
+   "decision": "Existing logic kept: optimistic lock by VERSION on Update / Delete (msg 15).",
+   "dcr": "ADD ielp.MS_TRUCKING_COMPANY.VERSION int NOT NULL default 1",
+   "dcr_id": "DCR-02"
   },
   {
    "id": "G-MTC-04",
@@ -260,7 +269,10 @@
    "code": "-",
    "db": "No column (BUSINESS_TYPE int)",
    "data": "No sample data",
-   "recommendation": "Confirm whether BUSINESS_TYPE holds the service type"
+   "recommendation": "Confirm whether BUSINESS_TYPE holds the service type",
+   "decision": "Existing logic kept: Service Type (MRO) on the vendor.",
+   "dcr": "ADD ielp.MS_TRUCKING_COMPANY.SERVICE_TYPE varchar(10) NOT NULL default 'MRO' (BUSINESS_TYPE left unchanged)",
+   "dcr_id": "DCR-03"
   },
   {
    "id": "G-MTC-05",
@@ -269,7 +281,10 @@
    "code": "-",
    "db": "IS_DELETE varchar(1) default 0",
    "data": "No sample data",
-   "recommendation": "Use IS_DELETE (values to confirm)"
+   "recommendation": "Use IS_DELETE (values to confirm)",
+   "decision": "Existing logic kept: logical delete flag; stored in IS_DELETE ('0' active, '1' deleted).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

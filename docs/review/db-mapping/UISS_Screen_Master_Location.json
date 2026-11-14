@@ -107,8 +107,8 @@
    "rw": "R/W",
    "mapping": "Numeric > 0 stored as text",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "varchar(5) default '50'."
+   "status": "Revised",
+   "note": "varchar(5) default '50'. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Auto Finish Order",
@@ -161,8 +161,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "varchar(100) NOT NULL; UI Number(10,7)."
+   "status": "Revised",
+   "note": "varchar(100) NOT NULL; UI Number(10,7). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Longitude",
@@ -174,8 +174,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "Column spelled LANGITUDE; varchar(100)."
+   "status": "Revised",
+   "note": "Column spelled LANGITUDE; varchar(100). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Coordinates (list)",
@@ -200,8 +200,8 @@
    "rw": "R/W",
    "mapping": "Deactivate / Delete -> IS_DELETE (values TBD)",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "No separate inactive state."
+   "status": "Revised",
+   "note": "No separate inactive state. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Created By / At",
@@ -260,7 +260,10 @@
    "code": "-",
    "db": "LOCATION_LATITUDE / LOCATION_LANGITUDE varchar(100) NOT NULL",
    "data": "No sample data",
-   "recommendation": "Store as text with 7 decimals; validate in the application"
+   "recommendation": "Store as text with 7 decimals; validate in the application",
+   "decision": "Existing logic kept: numeric coordinates with 7 decimals, validated -90..90 / -180..180; stored as text in LOCATION_LATITUDE / LOCATION_LANGITUDE.",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-MLC-02",
@@ -269,7 +272,10 @@
    "code": "-",
    "db": "RADIUS varchar(5) default '50'",
    "data": "No sample data",
-   "recommendation": "Max 5 characters"
+   "recommendation": "Max 5 characters",
+   "decision": "Existing logic kept: numeric radius > 0 in metres; stored as text in RADIUS (max 5 digits).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-MLC-03",
@@ -278,7 +284,10 @@
    "code": "master-location.js deactivate",
    "db": "Only IS_DELETE varchar(100)",
    "data": "No sample data",
-   "recommendation": "Confirm deactivate = IS_DELETE or add a status column"
+   "recommendation": "Confirm deactivate = IS_DELETE or add a status column",
+   "decision": "Existing logic kept: Active / Inactive status separate from delete (master-location.js deactivate / remove).",
+   "dcr": "ADD ielp.MS_LOCATION.STATUS varchar(8) NOT NULL default 'ACTIVE'",
+   "dcr_id": "DCR-04"
   },
   {
    "id": "G-MLC-04",
@@ -287,7 +296,10 @@
    "code": "-",
    "db": "No VERSION column",
    "data": "No sample data",
-   "recommendation": "Use UPDATED_DATE or add VERSION"
+   "recommendation": "Use UPDATED_DATE or add VERSION",
+   "decision": "Existing logic kept: optimistic lock by VERSION.",
+   "dcr": "ADD ielp.MS_LOCATION.VERSION int NOT NULL default 1",
+   "dcr_id": "DCR-05"
   }
  ],
  "tbd": [

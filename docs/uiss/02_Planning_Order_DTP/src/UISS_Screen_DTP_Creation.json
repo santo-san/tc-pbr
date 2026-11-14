@@ -1214,7 +1214,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Count of DTP records of the date not yet processed.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3) NULL [Conflict] varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
+   "description": "Count of DTP records of the date not yet processed.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3) NULL [Revised - existing logic kept, see DCR] varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
   },
   {
    "name": "Legend",
@@ -1436,7 +1436,7 @@
    "required": "N",
    "format": "",
    "validation": "Importer CD format (msg 10)",
-   "description": "DB: Conflict - No exporter / importer column in DTP_2_DETAIL (SOURCES varchar(10)? TBD)."
+   "description": "DB: Existing logic kept (DCR) - No exporter / importer column in DTP_2_DETAIL (SOURCES varchar(10)? TBD)."
   },
   {
    "name": "Round Use",
@@ -1526,7 +1526,7 @@
    "required": "Y",
    "format": "20 / 40 / 40 HC / 45",
    "validation": "msg 7",
-   "description": "DB: ielp.DTP_2_DETAIL.CTR_SIZE int NULL [Conflict] int; UI values like '40 HC' (HC -> CTR_TYPE varchar(10), inferred)."
+   "description": "DB: ielp.DTP_2_DETAIL.CTR_SIZE int NULL [Revised - existing logic kept, see DCR] int; UI values like '40 HC' (HC -> CTR_TYPE varchar(10), inferred)."
   },
   {
    "name": "Shipping Agent / Ctr Booking No / Vessel Name / Description",
@@ -1757,7 +1757,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "5.3; tooltip = errors / fail reason / last note.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3) NULL [Conflict] varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
+   "description": "5.3; tooltip = errors / fail reason / last note.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3) NULL [Revised - existing logic kept, see DCR] varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
   },
   {
    "name": "LP / Order No",
@@ -1772,7 +1772,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Order No opens the Daily order detail.\nDB: ielp.DTP_2_DETAIL.ORDER_NO varchar(20) NOT NULL PK [Conflict] varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing."
+   "description": "Order No opens the Daily order detail.\nDB: ielp.DTP_2_DETAIL.ORDER_NO varchar(20) NOT NULL PK [Revised - existing logic kept, see DCR] varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing."
   },
   {
    "name": "Other template columns",
@@ -1810,7 +1810,7 @@
   {
    "name": "Payment Type (grid column)",
    "source": "ielp.DTP_2_DETAIL",
-   "field": "PAY_TYPE (proposed, no column in ELIPS - Conflict)",
+   "field": "PAY_TYPE (new column - DCR-17, existing logic kept)",
    "type": "Char",
    "len": 12,
    "io": "I/O",
@@ -1820,7 +1820,7 @@
    "required": "Y (company with Master KPI)",
    "format": "",
    "validation": "Type of the company in Master KPI (msg 54); not submitted records only (msg 55)",
-   "description": "Yellow By Resources / green By Trip; options = payment types of the LP (By Trip only with Order Sharing > 0); red '- Select -' when empty.\nDB: Conflict - No payment type column."
+   "description": "Yellow By Resources / green By Trip; options = payment types of the LP (By Trip only with Order Sharing > 0); red '- Select -' when empty.\nDB: Existing logic kept (DCR) - No payment type column."
   },
   {
    "name": "Payment Type ▾ (Set for selected)",
@@ -1840,7 +1840,7 @@
   {
    "name": "Payment Type (Manual Entry / Edit)",
    "source": "ielp.DTP_2_DETAIL",
-   "field": "PAY_TYPE (proposed, no column in ELIPS - Conflict)",
+   "field": "PAY_TYPE (new column - DCR-17, existing logic kept)",
    "type": "Char",
    "len": 12,
    "io": "I",
@@ -1850,7 +1850,7 @@
    "required": "N",
    "format": "",
    "validation": "Type of the LP (msg 54)",
-   "description": "Blank: default By Resources while a slot is free, else By Trip (KM-14).\nDB: Conflict - No payment type column."
+   "description": "Blank: default By Resources while a slot is free, else By Trip (KM-14).\nDB: Existing logic kept (DCR) - No payment type column."
   },
   {
    "name": "Payment Type (DTP Maintenance)",
@@ -1865,7 +1865,7 @@
    "required": "Y",
    "format": "",
    "validation": "Type of the LP, driver not started (MT-01)",
-   "description": "Changed with Save of the maintenance list; the Daily order keeps the Payment Type.\nDB: Conflict - No payment type column."
+   "description": "Changed with Save of the maintenance list; the Daily order keeps the Payment Type.\nDB: Existing logic kept (DCR) - No payment type column."
   },
   {
    "name": "Submit confirmation - Payment Type",
@@ -1928,12 +1928,12 @@
    "required": "N",
    "format": "ZZ9.99%",
    "validation": "",
-   "description": "Information only (does not change the Daily Trip yet).\nDB: ielp.CRITERIA_LAST_ORDER.ORDER_SHARING float NULL [Conflict] Per period, not a master value."
+   "description": "Information only (does not change the Daily Trip yet).\nDB: ielp.CRITERIA_LAST_ORDER.ORDER_SHARING float NULL [Revised - existing logic kept, see DCR] Per period, not a master value."
   },
   {
    "name": "Daily Trip (By Resources)",
    "source": "Master KPI (ielp.MS_KPI, TBD)",
-   "field": "DAILY_TRIP (no column - Conflict)",
+   "field": "DAILY_TRIP (new column - DCR, existing logic kept)",
    "type": "Numeric",
    "len": 2,
    "io": "O",
@@ -1943,7 +1943,7 @@
    "required": "N",
    "format": "Z9",
    "validation": "",
-   "description": "Typed Daily Trip of the applicable By Resources Master KPI row = limit per day (KM-02); '-' if none.\nDB: Conflict - No column."
+   "description": "Typed Daily Trip of the applicable By Resources Master KPI row = limit per day (KM-02); '-' if none.\nDB: Existing logic kept (DCR) - No column."
   },
   {
    "name": "Assigned DTP",
@@ -2003,7 +2003,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Available / Near Limit / Full / Over Allocation +n / No Master KPI / Not By Resources. 'Full → By Trip' when further trips go by trip; 'By Trip only' is listed in the By Trip table.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3) NULL [Conflict] varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
+   "description": "Available / Near Limit / Full / Over Allocation +n / No Master KPI / Not By Resources. 'Full → By Trip' when further trips go by trip; 'By Trip only' is listed in the By Trip table.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3) NULL [Revised - existing logic kept, see DCR] varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
   },
   {
    "name": "Selected / After Submit",
@@ -2056,7 +2056,7 @@
   {
    "name": "Sub title By Trip",
    "source": "Master KPI",
-   "field": "DAILY_TRIPS (no column - Conflict)",
+   "field": "DAILY_TRIPS (new column - DCR, existing logic kept)",
    "type": "",
    "len": "",
    "io": "O",
@@ -2066,7 +2066,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "'By Trip · trips per day 20 shared by Order Sharing % (1 trip per company first, the rest by %)'.\nDB: Conflict - No column."
+   "description": "'By Trip · trips per day 20 shared by Order Sharing % (1 trip per company first, the rest by %)'.\nDB: Existing logic kept (DCR) - No column."
   },
   {
    "name": "Total % warning",
@@ -2111,7 +2111,7 @@
    "required": "N",
    "format": "ZZ9.99%",
    "validation": "",
-   "description": "DB: ielp.CRITERIA_LAST_ORDER.ORDER_SHARING float NULL [Conflict] Per period, not a master value."
+   "description": "DB: ielp.CRITERIA_LAST_ORDER.ORDER_SHARING float NULL [Revised - existing logic kept, see DCR] Per period, not a master value."
   },
   {
    "name": "Daily Trip (By Trip)",
@@ -2588,7 +2588,7 @@
    "required": "Y",
    "format": "Upper case",
    "validation": "Refer 5.13",
-   "description": "DB: Conflict - No destination column in DTP_2_DETAIL (COUNTRY varchar(100)? TBD)."
+   "description": "DB: Existing logic kept (DCR) - No destination column in DTP_2_DETAIL (COUNTRY varchar(100)? TBD)."
   },
   {
    "name": "ETD",
@@ -2618,7 +2618,7 @@
    "required": "Y",
    "format": "",
    "validation": "Refer 5.13",
-   "description": "20 / 40 / 45\nDB: ielp.DTP_2_DETAIL.CTR_SIZE int NULL [Conflict] int; UI values like '40 HC' (HC -> CTR_TYPE varchar(10), inferred)."
+   "description": "20 / 40 / 45\nDB: ielp.DTP_2_DETAIL.CTR_SIZE int NULL [Revised - existing logic kept, see DCR] int; UI values like '40 HC' (HC -> CTR_TYPE varchar(10), inferred)."
   },
   {
    "name": "Agent",
@@ -2813,7 +2813,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Hidden by Kolom if not needed.\nDB: ielp.DTP_2_DETAIL.ORDER_NO varchar(20) NOT NULL PK [Conflict] varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing."
+   "description": "Hidden by Kolom if not needed.\nDB: ielp.DTP_2_DETAIL.ORDER_NO varchar(20) NOT NULL PK [Revised - existing logic kept, see DCR] varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing."
   },
   {
    "name": "Driver Status",
@@ -3064,11 +3064,11 @@
      },
      {
       "dest_field": "DTP_DATE",
-      "description": "Selected Daily Plan Date [Conflict: DTP_DATE is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Selected Daily Plan Date [DCR: DTP_DATE not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "DTP_MODEL",
-      "description": "'UNIVERSAL' [Conflict: DTP_MODEL is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'UNIVERSAL' [DCR: DTP_MODEL not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Import/Export",
@@ -3078,12 +3078,12 @@
      {
       "source_field": "Exporter",
       "dest_field": "EXPORTER",
-      "description": "Upper case [Conflict: EXPORTER is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Upper case [DCR: EXPORTER not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Importer CD",
       "dest_field": "IMPORTER_CD",
-      "description": "Upper case [Conflict: IMPORTER_CD is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Upper case [DCR: IMPORTER_CD not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Rounduse",
@@ -3113,7 +3113,7 @@
      {
       "source_field": "Destination",
       "dest_field": "DEST_CD",
-      "description": "Upper case, trimmed [Conflict: DEST_CD is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Upper case, trimmed [DCR: DEST_CD not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Etd",
@@ -3177,23 +3177,23 @@
      },
      {
       "dest_field": "DATA_SOURCE",
-      "description": "'MANUAL' [Conflict: DATA_SOURCE is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'MANUAL' [DCR: DATA_SOURCE not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "STATUS",
-      "description": "'AVAILABLE' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'AVAILABLE' [DCR: STATUS not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_MSG / ORDER_NO / FAIL_REASON / SUBMITTED_BY / SUBMITTED_DT / LAST_UPLOAD_ID",
-      "description": "NULL [Conflict: ERROR_MSG is not a column of ielp.DTP_2_DETAIL] [Conflict: FAIL_REASON is not a column of ielp.DTP_2_DETAIL] [Conflict: SUBMITTED_BY is not a column of ielp.DTP_2_DETAIL] [Conflict: SUBMITTED_DT is not a column of ielp.DTP_2_DETAIL] [Conflict: LAST_UPLOAD_ID is not a column of ielp.DTP_2_DETAIL]"
+      "description": "NULL [DCR: ERROR_MSG not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list] [DCR: FAIL_REASON not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list] [DCR: SUBMITTED_BY not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list] [DCR: SUBMITTED_DT not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list] [DCR: LAST_UPLOAD_ID not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ATTEMPT_CNT",
-      "description": "0 [Conflict: ATTEMPT_CNT is not a column of ielp.DTP_2_DETAIL]"
+      "description": "0 [DCR: ATTEMPT_CNT not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+      "description": "1 [DCR: VERSION not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY / UPDATED_BY",
@@ -3235,12 +3235,12 @@
      {
       "source_field": "Exporter",
       "dest_field": "EXPORTER",
-      "description": "Upper case [Conflict: EXPORTER is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Upper case [DCR: EXPORTER not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Importer CD",
       "dest_field": "IMPORTER_CD",
-      "description": "Upper case [Conflict: IMPORTER_CD is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Upper case [DCR: IMPORTER_CD not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Rounduse",
@@ -3270,7 +3270,7 @@
      {
       "source_field": "Destination",
       "dest_field": "DEST_CD",
-      "description": "Upper case, trimmed [Conflict: DEST_CD is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Upper case, trimmed [DCR: DEST_CD not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "source_field": "Etd",
@@ -3334,15 +3334,15 @@
      },
      {
       "dest_field": "STATUS",
-      "description": "'AVAILABLE' (re-validated) [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'AVAILABLE' (re-validated) [DCR: STATUS not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_MSG",
-      "description": "NULL [Conflict: ERROR_MSG is not a column of ielp.DTP_2_DETAIL]"
+      "description": "NULL [DCR: ERROR_MSG not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -3370,7 +3370,7 @@
     "mappings": [
      {
       "dest_field": "STATUS",
-      "description": "'READY' when selected, 'AVAILABLE' when unselected [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'READY' when selected, 'AVAILABLE' when unselected [DCR: STATUS not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -3398,15 +3398,15 @@
     "mappings": [
      {
       "dest_field": "STATUS",
-      "description": "'SUBMITTED' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'SUBMITTED' [DCR: STATUS not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "SUBMITTED_BY / SUBMITTED_DT",
-      "description": "Login user / server date-time [Conflict: SUBMITTED_BY is not a column of ielp.DTP_2_DETAIL] [Conflict: SUBMITTED_DT is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Login user / server date-time [DCR: SUBMITTED_BY not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list] [DCR: SUBMITTED_DT not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "VERSION",
-      "description": "VERSION + 1 [Conflict: VERSION is not a column of ielp.DTP_2_DETAIL]"
+      "description": "VERSION + 1 [DCR: VERSION not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -3425,7 +3425,7 @@
     "mappings": [
      {
       "dest_field": "HIST_ID",
-      "description": "Sequence [Conflict: HIST_ID is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "Sequence [DCR: HIST_ID not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "DTP_DET_ID",
@@ -3433,11 +3433,11 @@
      },
      {
       "dest_field": "STATUS",
-      "description": "New status [Conflict: STATUS is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "New status [DCR: STATUS not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "NOTE",
-      "description": "'Submitted by {user}', 'Edited by {user}', 'Retry by planner', ... [Conflict: NOTE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "'Submitted by {user}', 'Edited by {user}', 'Retry by planner', ... [DCR: NOTE not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY",
@@ -3445,7 +3445,7 @@
      },
      {
       "dest_field": "CREATED_DATE",
-      "description": "Server date-time [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "Server date-time [DCR: CREATED_DATE not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "LOG_ID",
@@ -3477,11 +3477,11 @@
     "mappings": [
      {
       "dest_field": "STATUS",
-      "description": "'QUEUED' [Conflict: STATUS is not a column of ielp.DTP_2_DETAIL]"
+      "description": "'QUEUED' [DCR: STATUS not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "FAIL_REASON",
-      "description": "Kept until the next result [Conflict: FAIL_REASON is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Kept until the next result [DCR: FAIL_REASON not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY / UPDATED_DATE",
@@ -3618,7 +3618,7 @@
     "mappings": [
      {
       "source_field": "Payment Type",
-      "dest_field": "PAY_TYPE (proposed, no column in ELIPS - Conflict)",
+      "dest_field": "PAY_TYPE (new column - DCR-17, existing logic kept)",
       "description": "'By Resources' / 'By Trip' (type of the LP in Master KPI)"
      },
      {
@@ -4075,7 +4075,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -4156,7 +4156,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Round Use",
@@ -4192,7 +4192,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "From / To Location",
@@ -4246,7 +4246,7 @@
      "N",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Ctr Type",
@@ -4336,7 +4336,7 @@
      "N",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Order No",
@@ -4345,7 +4345,7 @@
      "Y",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Data Source (Excel / Manual / IPMS)",
@@ -4363,7 +4363,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Delete",
@@ -4408,7 +4408,7 @@
      "N",
      "R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Daily Trip (KPI)",
@@ -4417,7 +4417,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Uploaded file",
@@ -4432,7 +4432,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -4441,14 +4441,14 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-DTP-01 Record table: UISS / code: TB_R_DTP_RECORD (one table, all models). DB: DTP_HEADER + DTP_1..4_DETAIL per DTP type. Recommendation: Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
-    "G-DTP-02 Order number at creation: UISS / code: ORDER_NO assigned by queue processing. DB: DTP_2_DETAIL.ORDER_NO NOT NULL, PK. Recommendation: Confirm when ORDER_NO is generated in ELIPS",
-    "G-DTP-03 Payment type: UISS / code: PAY_TYPE per record (dtp-rules.js setPayType). DB: No column. Recommendation: DB change request",
-    "G-DTP-04 Status values: UISS / code: Text statuses. DB: STATUS_CODE varchar(3) + MS_STATUS. Recommendation: Map statuses to MS_STATUS codes (data needed)",
-    "G-DTP-05 Exporter / Importer / Destination / Data source: UISS / code: Fields on the record. DB: No matching columns. Recommendation: Confirm columns (COUNTRY, SOURCES?)",
-    "G-DTP-06 Container size: UISS / code: '40 HC' text. DB: CTR_SIZE int + CTR_TYPE varchar(10). Recommendation: Split size and type",
-    "G-DTP-07 Delete: UISS / code: Physical delete. DB: IS_DELETE flag. Recommendation: Soft delete with IS_DELETE",
-    "G-DTP-08 Concurrency: UISS / code: VERSION. DB: No VERSION column. Recommendation: Use UPDATED_DATE"
+    "G-DTP-01 Record table: Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type). No DB change: mapping as stated.",
+    "G-DTP-02 Order number at creation: Existing logic kept: order number is assigned by queue processing, records exist before that. DCR-16: ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID.",
+    "G-DTP-03 Payment type: Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType). DCR-17: ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12).",
+    "G-DTP-04 Status values: Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S). DCR-18: Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change.",
+    "G-DTP-05 Exporter / Importer / Destination / Data source: Existing logic kept: Exporter, Importer CD, Destination and Data Source (Excel / Manual / IPMS) on the record. DCR-19: ADD ielp.DTP_2_DETAIL.EXPORTER varchar(50), IMPORTER_CD varchar(20), DEST_CD varchar(20), DATA_SOURCE varchar(6).",
+    "G-DTP-06 Container size: Existing logic kept: one container size value ('20', '40', '40 HC'); stored as CTR_SIZE (20 / 40) + CTR_TYPE ('HC'). No DB change: mapping as stated.",
+    "G-DTP-07 Delete: Existing logic kept: Excel / Manual records not yet submitted are deleted physically. No DB change: mapping as stated.",
+    "G-DTP-08 Concurrency: Existing logic kept: optimistic lock by VERSION. DCR-20: ADD ielp.DTP_2_DETAIL.VERSION int NOT NULL default 1."
    ]
   },
   {
@@ -5041,6 +5041,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: DTP_HEADER + DTP_n_DETAIL (Universal DTP = DTP_2_DETAIL, inferred), ORDER_CYCLE, LOG_ACTIVITY_ORDER, TB_M_SYSTEM, DTP_FILES; proposed tables replaced; conflicts recorded (payment type, order no., status codes, KPI); no sample data"
+  },
+  {
+   "revision": "0.9",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-16, DCR-17, DCR-18, DCR-19, DCR-20)"
   }
  ]
 }

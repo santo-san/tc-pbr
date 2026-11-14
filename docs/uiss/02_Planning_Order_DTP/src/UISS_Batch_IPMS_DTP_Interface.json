@@ -15,6 +15,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "Newly created in the UISS review (docs/review 04 M3) from the simulated IPMS load in dtp.js (pullIpms / loadIpms); IPMS source tables TBD - Not confirmed from existing schema/data/code"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Decision 14-Nov-26 (existing logic kept): exporter / importer / destination / data source / payment type via DB change requests (G-DTP-03, G-DTP-05)"
   }
  ],
  "general": {
@@ -231,7 +238,7 @@
      },
      {
       "source_field": "exporter / importerCd / dest",
-      "dest_field": "(no column - Conflict G-DTP-05)"
+      "dest_field": "(new columns - DCR G-DTP-05, existing logic kept)"
      },
      {
       "dest_field": "DTP_DET_ID, ORDER_NO, DTP_HEADER_ID, CREATED_DATE, UPDATED_DATE",
@@ -243,7 +250,7 @@
      },
      {
       "dest_field": "data source / payment type",
-      "description": "No column (Conflict G-DTP-03 / G-DTP-05)"
+      "description": "New columns (DCR G-DTP-03 / G-DTP-05, existing logic kept)"
      }
     ]
    }

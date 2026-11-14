@@ -5,10 +5,10 @@ Code: monthly.js, monthly-workflow.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_PR_Inquiry](UISS_Screen_PR_Inquiry.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_PR_Inquiry.json](src/UISS_Screen_PR_Inquiry.json) | 5 |
-| [UISS_Screen_PR_Approval](UISS_Screen_PR_Approval.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_PR_Approval.json](src/UISS_Screen_PR_Approval.json) | 6 |
-| [UISS_Screen_PO_Approval](UISS_Screen_PO_Approval.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_PO_Approval.json](src/UISS_Screen_PO_Approval.json) | 4 |
-| [UISS_Screen_PO_Inquiry](UISS_Screen_PO_Inquiry.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_PO_Inquiry.json](src/UISS_Screen_PO_Inquiry.json) | 3 |
+| [UISS_Screen_PR_Inquiry](UISS_Screen_PR_Inquiry.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_PR_Inquiry.json](src/UISS_Screen_PR_Inquiry.json) | 5 |
+| [UISS_Screen_PR_Approval](UISS_Screen_PR_Approval.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_PR_Approval.json](src/UISS_Screen_PR_Approval.json) | 6 |
+| [UISS_Screen_PO_Approval](UISS_Screen_PO_Approval.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_PO_Approval.json](src/UISS_Screen_PO_Approval.json) | 4 |
+| [UISS_Screen_PO_Inquiry](UISS_Screen_PO_Inquiry.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_PO_Inquiry.json](src/UISS_Screen_PO_Inquiry.json) | 3 |
 
 Rules / specification:
 

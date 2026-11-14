@@ -1,0 +1,297 @@
+{
+ "G-MTC-01": {
+  "decision": "Existing logic kept: e-mail up to 100 characters (master-trucking.js).",
+  "dcr": "ALTER ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) -> varchar(100)",
+  "dcr_id": "DCR-01"
+ },
+ "G-MTC-02": {
+  "decision": "Existing logic kept: Vendor Code 3 letters / numbers, SAP Vendor Code 10 digits (master-trucking.js validate).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MTC-03": {
+  "decision": "Existing logic kept: optimistic lock by VERSION on Update / Delete (msg 15).",
+  "dcr": "ADD ielp.MS_TRUCKING_COMPANY.VERSION int NOT NULL default 1",
+  "dcr_id": "DCR-02"
+ },
+ "G-MTC-04": {
+  "decision": "Existing logic kept: Service Type (MRO) on the vendor.",
+  "dcr": "ADD ielp.MS_TRUCKING_COMPANY.SERVICE_TYPE varchar(10) NOT NULL default 'MRO' (BUSINESS_TYPE left unchanged)",
+  "dcr_id": "DCR-03"
+ },
+ "G-MTC-05": {
+  "decision": "Existing logic kept: logical delete flag; stored in IS_DELETE ('0' active, '1' deleted).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MLC-01": {
+  "decision": "Existing logic kept: numeric coordinates with 7 decimals, validated -90..90 / -180..180; stored as text in LOCATION_LATITUDE / LOCATION_LANGITUDE.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MLC-02": {
+  "decision": "Existing logic kept: numeric radius > 0 in metres; stored as text in RADIUS (max 5 digits).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MLC-03": {
+  "decision": "Existing logic kept: Active / Inactive status separate from delete (master-location.js deactivate / remove).",
+  "dcr": "ADD ielp.MS_LOCATION.STATUS varchar(8) NOT NULL default 'ACTIVE'",
+  "dcr_id": "DCR-04"
+ },
+ "G-MLC-04": {
+  "decision": "Existing logic kept: optimistic lock by VERSION.",
+  "dcr": "ADD ielp.MS_LOCATION.VERSION int NOT NULL default 1",
+  "dcr_id": "DCR-05"
+ },
+ "G-MML-01": {
+  "decision": "Existing logic kept: mileage > 0 with up to 2 decimals (master-mileage.js parseMileage).",
+  "dcr": "ALTER ielp.TB_M_MILEAGE.MILEAGE decimal(18,0) -> decimal(9,2)",
+  "dcr_id": "DCR-06"
+ },
+ "G-MML-02": {
+  "decision": "Existing logic kept: a route is unique by From + To (directional).",
+  "dcr": "ALTER ielp.TB_M_MILEAGE: TO_CODE NOT NULL; primary key (LOC_NAME_FROM, FROM_CODE) -> (FROM_CODE, TO_CODE)",
+  "dcr_id": "DCR-07"
+ },
+ "G-MML-03": {
+  "decision": "Existing logic kept: names shown from Master Location; LOC_NAME_FROM / LOC_NAME_TO filled with a copy of MS_LOCATION.LOCATION_NAME on save.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MML-04": {
+  "decision": "Existing logic kept: Active / Inactive status and VERSION.",
+  "dcr": "ADD ielp.TB_M_MILEAGE.STATUS varchar(8) NOT NULL default 'Active'; ADD VERSION int NOT NULL default 1",
+  "dcr_id": "DCR-08"
+ },
+ "G-MML-05": {
+  "decision": "Existing logic kept: upload with temp rows, upload log and mileage history (UISS-Batch Route Mileage Upload).",
+  "dcr": "ADD ielp.TB_M_MILEAGE.LAST_UPLOAD_ID bigint NULL; CREATE TB_T_MILEAGE_UPLOAD, TB_R_MILEAGE_UPLOAD_LOG, TB_H_MILEAGE (definitions in the UISS-Batch Appendix)",
+  "dcr_id": "DCR-09"
+ },
+ "G-MPR-01": {
+  "decision": "Existing logic kept: price components FIX (per month) and KM (per km) per partner and period (master-price.js).",
+  "dcr": "ADD ielp.MS_ROUTE_PRICE.PRICE_COMPONENT varchar(3) (FIX / KM)",
+  "dcr_id": "DCR-10"
+ },
+ "G-MPR-02": {
+  "decision": "Existing logic kept: period YYYYMM derived from the validity dates (master-price.js periodStart / periodEnd).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MPY-01": {
+  "decision": "Existing logic kept: route priority per From / To with renumbering (master-priority.js).",
+  "dcr": "CREATE ielp.TB_M_ROUTE_PRIORITY (FROM_CODE varchar(10), TO_CODE varchar(10), PRIORITY_NO int, VERSION int, CREATED_BY / CREATED_DT / CHANGED_BY / CHANGED_DT) - PK FROM_CODE + TO_CODE",
+  "dcr_id": "DCR-11"
+ },
+ "G-MKP-01": {
+  "decision": "Existing logic kept: KPI row per trucking company with payment type, score, KPI item values, order sharing % and daily trip (master-kpi.js).",
+  "dcr": "CREATE ielp.TB_M_KPI_COMPANY (COMPANY_ID, PAYMENT_TYPE varchar(12), SCORE int, ORDER_SHARING decimal(5,2), DAILY_TRIP int, UOM, VERSION, audit) and ielp.TB_M_KPI_COMPANY_VALUE (COMPANY_ID, KPI_ID, KPI_VALUE int); KPI items stay in MS_KPI",
+  "dcr_id": "DCR-12"
+ },
+ "G-MKP-02": {
+  "decision": "Existing logic kept: Payment Type By Resources / By Trip, Daily Trip, Trips per day for By Trip.",
+  "dcr": "Columns in TB_M_KPI_COMPANY (DCR of G-MKP-01); Trips per day = row in ielp.TB_M_SYSTEM (SYS_CAT 'TCPBR', SYS_CD 'DAILY_TRIPS' - key TBD)",
+  "dcr_id": "DCR-13"
+ },
+ "G-MKP-03": {
+  "decision": "Existing logic kept: grade thresholds fixed in master-kpi.js (MS_KPI_PERCENTAGE not used).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MRP-01": {
+  "decision": "Existing logic kept: route = ordered stops (Location Pick) with leg distance (master-route-percentage.js).",
+  "dcr": "CREATE ielp.MS_ROUTE_STOP (ROUTE_HEADER_ID varchar(10), SEQ_NO int, LOCATION_ID varchar(10), STOP_TYPE varchar(10), LEG_KM decimal(9,2), audit) - PK ROUTE_HEADER_ID + SEQ_NO",
+  "dcr_id": "DCR-14"
+ },
+ "G-MRP-02": {
+  "decision": "Existing logic kept: route distance (sum of legs, 2 decimals) on the route.",
+  "dcr": "ADD ielp.MS_ROUTE_HEADER.DISTANCE_KM decimal(9,2), DISTANCE_EST_FLG varchar(1)",
+  "dcr_id": "DCR-15"
+ },
+ "G-MRP-03": {
+  "decision": "Existing logic kept: percentage 0 < % <= 100 with 2 decimals; stored in MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE (float).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MRB-01": {
+  "decision": "Existing logic kept: plant list as coded in master-renban.js (code - description).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-DTP-01": {
+  "decision": "Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-DTP-02": {
+  "decision": "Existing logic kept: order number is assigned by queue processing, records exist before that.",
+  "dcr": "ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID",
+  "dcr_id": "DCR-16"
+ },
+ "G-DTP-03": {
+  "decision": "Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType).",
+  "dcr": "ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12)",
+  "dcr_id": "DCR-17"
+ },
+ "G-DTP-04": {
+  "decision": "Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S).",
+  "dcr": "Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change",
+  "dcr_id": "DCR-18"
+ },
+ "G-DTP-05": {
+  "decision": "Existing logic kept: Exporter, Importer CD, Destination and Data Source (Excel / Manual / IPMS) on the record.",
+  "dcr": "ADD ielp.DTP_2_DETAIL.EXPORTER varchar(50), IMPORTER_CD varchar(20), DEST_CD varchar(20), DATA_SOURCE varchar(6)",
+  "dcr_id": "DCR-19"
+ },
+ "G-DTP-06": {
+  "decision": "Existing logic kept: one container size value ('20', '40', '40 HC'); stored as CTR_SIZE (20 / 40) + CTR_TYPE ('HC').",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-DTP-07": {
+  "decision": "Existing logic kept: Excel / Manual records not yet submitted are deleted physically.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-DTP-08": {
+  "decision": "Existing logic kept: optimistic lock by VERSION.",
+  "dcr": "ADD ielp.DTP_2_DETAIL.VERSION int NOT NULL default 1",
+  "dcr_id": "DCR-20"
+ },
+ "G-DTQ-01": {
+  "decision": "Existing logic kept: retry with attempt count, failure reason, submitted by / at.",
+  "dcr": "ADD ielp.DTP_2_DETAIL.ATTEMPT_CNT int default 0, FAIL_REASON varchar(500), SUBMITTED_BY varchar(500), SUBMITTED_DT datetime",
+  "dcr_id": "DCR-21"
+ },
+ "G-DTS-01": {
+  "decision": "Existing logic kept: switching cancels the daily order with reason and user.",
+  "dcr": "ADD ielp.ORDER_CYCLE.CANCEL_BY varchar(500) (CANCEL_DATE, CANCEL_REMARKS existing)",
+  "dcr_id": "DCR-22"
+ },
+ "G-DRV-01": {
+  "decision": "Existing logic kept as specified in the UISS (HiveMQ outbox).",
+  "dcr": "CREATE TB_T_DRIVER_SYNC_QUEUE, TB_R_DRIVER_ORDER, TB_R_DRIVER_MQ_OUTBOX, TB_R_DRIVER_SYNC_LOG (definitions in the UISS-Batch Appendix)",
+  "dcr_id": "DCR-23"
+ },
+ "G-DM-01": {
+  "decision": "Existing logic kept: order header with up to 5 cycles; order = DTP_2_DETAIL row, cycle = ORDER_CYCLE row (CYCLE_SEQ).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-DM-02": {
+  "decision": "Existing logic kept: order / cycle statuses of workflow.js (ORDER, CYCLE).",
+  "dcr": "Register the statuses in ielp.MS_STATUS - data, no column change",
+  "dcr_id": "DCR-24"
+ },
+ "G-DM-03": {
+  "decision": "Existing logic kept: status history with from / to status, role, reason, note (workflow.js log).",
+  "dcr": "ADD ielp.LOG_ACTIVITY_ORDER.FROM_STS_CODE varchar(3), ROLE varchar(50)",
+  "dcr_id": "DCR-25"
+ },
+ "G-DM-04": {
+  "decision": "Existing logic kept: FA flag, planned cycles and PO received date on the order.",
+  "dcr": "ADD ielp.DTP_2_DETAIL.FA_FLAG varchar(1), PLANNED_CYCLE int; ADD ielp.ORDER_CYCLE.PO_RECEIVED_DATE datetime",
+  "dcr_id": "DCR-26"
+ },
+ "G-DN-01": {
+  "decision": "Existing logic kept: deliveryId = No Cycle Order YYMMDDC2XXX999 (dn-rules.js); stored in ORDER_CYCLE.ORDER_CYCLE_ID varchar(20).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-TA-01": {
+  "decision": "Existing logic kept: LP Accept / Reject with reason (workflow.js:194, 202).",
+  "dcr": "ADD ielp.DTP_2_DETAIL.LP_STATUS varchar(20), LP_REJECT_REASON varchar(500), LP_ACTION_BY varchar(500), LP_ACTION_DATE datetime",
+  "dcr_id": "DCR-27"
+ },
+ "G-TA-02": {
+  "decision": "Existing logic kept: one active truck per order, every assign / change kept in an audit trail.",
+  "dcr": "ADD ielp.ORDER_TRUCK_H.ACTION varchar(30), PREV_LICENSE_PLATE varchar(20), DRIVER_ID varchar(10)",
+  "dcr_id": "DCR-28"
+ },
+ "G-SA-01": {
+  "decision": "Existing logic kept: SA number ILS/TR/<LP>/<YYMMDD><NNNN> up to 22 characters (sa-rules.js saNumber).",
+  "dcr": "ALTER ielp.SA_DETAIL.SA_CODE and ielp.ORDER_CYCLE.SA_CODE varchar(16) -> varchar(25)",
+  "dcr_id": "DCR-29"
+ },
+ "G-SA-02": {
+  "decision": "Existing logic kept: numeric KM / price / cost; stored as plain numbers in the existing varchar columns.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-SA-03": {
+  "decision": "Existing logic kept: Total KM, rate per KM and currency kept on the SA (sa-rules.js calculate).",
+  "dcr": "ADD ielp.SA_DETAIL.TOTAL_KM decimal(9,2), RATE_PER_KM decimal(15,2), CURRENCY varchar(3)",
+  "dcr_id": "DCR-30"
+ },
+ "G-SA-04": {
+  "decision": "Existing logic kept: SA statuses and types of sa-rules.js / sa-pas-rules.js.",
+  "dcr": "Register code values (SA_HEADER.STATUS_CODE, SA_TYPE, SA_DETAIL.STATUS_CODE) - data, no column change",
+  "dcr_id": "DCR-31"
+ },
+ "G-SA-05": {
+  "decision": "Existing logic kept: approval request (idempotent), SA sequence per scope and SA history.",
+  "dcr": "CREATE TB_R_SA_APPROVAL_REQUEST, TB_M_SA_SEQUENCE, TB_H_SA (as specified in the UISS)",
+  "dcr_id": "DCR-32"
+ },
+ "G-SAM-01": {
+  "decision": "Existing logic kept: interface tracking with correlation id, attempts, error code / message (sa-pas-rules.js).",
+  "dcr": "ADD ielp.SA_DETAIL.CORRELATION_ID varchar(60), INTERFACE_ATTEMPT int, ERROR_CD varchar(30), ERROR_MSG varchar(500)",
+  "dcr_id": "DCR-33"
+ },
+ "G-SAM-02": {
+  "decision": "Existing logic kept: VISION columns are not used by the TC-PBR logic.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MO-01": {
+  "decision": "Existing logic kept: one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-MO-02": {
+  "decision": "Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS.",
+  "dcr": "Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change",
+  "dcr_id": "DCR-34"
+ },
+ "G-MO-03": {
+  "decision": "Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log).",
+  "dcr": "CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT)",
+  "dcr_id": "DCR-35"
+ },
+ "G-MO-04": {
+  "decision": "Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-PO-01": {
+  "decision": "Existing logic kept: PO number created by ELIPS when DH approves the PR (monthly-workflow.js createPO); stored in PO_DETAIL.PO_NUMBER.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-PRC-01": {
+  "decision": "Existing logic kept: Monthly Fixed Cost PR and Route-Based PR as calculated in pr-creation-rules.js; stored in CRITERIA_SCORE_* (type in CRITERIA_SCORE_HEADER.BUSINESS_TYPE).",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-GEN-04": {
+  "decision": "Existing logic kept: optimistic lock by VERSION in every rule module.",
+  "dcr": "VERSION columns as listed per table (DCR of G-MTC-03, G-MLC-04, G-MML-04, G-DTP-08)",
+  "dcr_id": "DCR-36"
+ },
+ "G-MLC-05": {
+  "decision": "Existing logic kept: the UISS already states that the mock-up map (Leaflet / OpenStreetMap, location.js) is a stand-in for the existing ELIPS Google Maps - no change.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-DM-05": {
+  "decision": "Existing logic kept: legacy \"+ Create DTP\" dialog for IELP Admin stays in Daily Monitoring and is documented in its UISS.",
+  "dcr": null,
+  "dcr_id": null
+ },
+ "G-COM-01": {
+  "decision": "Existing logic kept: Master screens have no role restriction (any logged-in role); the \"IELP Admin only\" badge is informational.",
+  "dcr": null,
+  "dcr_id": null
+ }
+}

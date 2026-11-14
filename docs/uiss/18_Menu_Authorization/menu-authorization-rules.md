@@ -26,7 +26,7 @@ see [../../review/04-missing-and-questionable-uiss.md](../../review/04-missing-a
 | AU-07 | SA Monitoring: view = Planner, IELP Admin, Supplier (own company); Retry Interface = IELP Admin | `sa-monitoring.js:15-17` |
 | AU-08 | PR Creation = VPLD Staff and VPLD Section Head | `pr-creation-rules.js canCreate`, `pr-sources.js PR_CREATORS` |
 | AU-09 | PR / PO Approval = approver of the current level (SH / DpH / DH); auto approve = System; Supplier sees own documents | `monthly-workflow.js canView, needsMe, runAutoApprove` |
-| AU-10 | Master screens: **no role check** in the code (TBD); Master Mileage shows the badge "IELP Admin only" | `master.js`, `master-*.js` (no role test) - potential bug BUG-02 |
+| AU-10 | Master screens: **no role check** in the code - every logged-in role can maintain master data (existing logic kept, decision 14-Nov-26 G-COM-01); the "IELP Admin only" badge on Master Mileage is informational | `master.js`, `master-*.js` (no role test) |
 
 ## 3. ELIPS tables (schema)
 
@@ -38,5 +38,4 @@ see [../../review/04-missing-and-questionable-uiss.md](../../review/04-missing-a
 
 1. USERID_CLASS value of every role (IELP Admin, Planner VPLD, LP Admin, Supplier Viewer, Driver, VPLD Staff / SH, approvers, GA).
 2. MENU_ID / APP_NAME of the TC-PBR menus.
-3. Which roles maintain each Master screen.
-4. Link of supplier / driver users to `MS_TRUCKING_COMPANY` / `MS_DRIVER.USER_NAME`.
+3. Link of supplier / driver users to `MS_TRUCKING_COMPANY` / `MS_DRIVER.USER_NAME`.

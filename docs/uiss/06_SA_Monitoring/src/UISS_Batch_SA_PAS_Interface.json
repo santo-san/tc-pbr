@@ -15,6 +15,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "Newly created in the UISS review (docs/review 04 M2) from the implemented rules sa-pas-rules.js (SM-04..SM-14) and the SA Monitoring screen; ELIPS columns SA_DETAIL.PAS_* and LOG_ITGPAS (inferred)"
+  },
+  {
+   "revision": "0.2",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Decision 14-Nov-26 (existing logic kept): SA number / interface tracking columns via DB change requests (G-SA-01, G-SAM-01)"
   }
  ],
  "general": {
@@ -147,7 +154,7 @@
    }
   ],
   "constraints": [
-   "SA number format ^ILS/TR/[A-Z0-9]{2,5}/\\d{6}\\d{4}$ (sa-pas-rules.js SA_RE) is longer than SA_CODE varchar(16) - conflict G-SA-01.",
+   "SA number format ^ILS/TR/[A-Z0-9]{2,5}/\\d{6}\\d{4}$ (sa-pas-rules.js SA_RE) is longer than SA_CODE varchar(16) - G-SA-01 (DCR: SA_CODE widened, existing logic kept).",
    "Status code values stored in SA_DETAIL.PAS_STATUS varchar(100): TBD - Not confirmed from existing schema/data/code"
   ]
  },

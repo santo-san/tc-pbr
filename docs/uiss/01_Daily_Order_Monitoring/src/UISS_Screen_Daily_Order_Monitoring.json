@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: orders / cycles = ielp.ORDER_CYCLE (+ DTP_HEADER / DTP_n_DETAIL), history = LOG_ACTIVITY_ORDER (inferred), files = ORDER_FILES, truck history = ORDER_TRUCK_H, masters MS_TRUCK_REGISTRATION / MS_DRIVER / MS_LOCATION; conflicts recorded; no sample data; added Print / PDF section (DM-05)"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-24, DCR-25, DCR-26); legacy [+ Create DTP] dialog (IELP Admin) documented as existing logic (G-DM-05)"
   }
  ],
  "general": {
@@ -2196,6 +2203,159 @@
    "format": "",
    "validation": "",
    "description": ""
+  },
+  {
+   "group": "<Create DTP Dialog (legacy, IELP Admin)>"
+  },
+  {
+   "name": "Date",
+   "source": "Key-in",
+   "field": "DTP_DATE",
+   "type": "Date",
+   "len": "10",
+   "io": "I",
+   "control": "Date picker",
+   "justified": "Left",
+   "initial": "Today",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory ('Date wajib diisi'); not in the past ('Tanggal DTP tidak boleh di masa lalu')",
+   "description": "app.js:558 openCreateDTP; workflow.js:84 checkDTP. DB: ielp.DTP_HEADER.DTP_DATE (inferred)."
+  },
+  {
+   "name": "Type",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "4",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "-",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory; DTP1 / DTP2 / DTP3 / DTP4",
+   "description": "DB: ielp.DTP_HEADER.DTP_TYPE varchar(1) (inferred, values TBD)."
+  },
+  {
+   "name": "Trucking Comp.",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory",
+   "description": "DB: ielp.DTP_2_DETAIL.COMPANY_ID."
+  },
+  {
+   "name": "Shift",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "5",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory; DAY / NIGHT",
+   "description": "DB: ielp.DTP_2_DETAIL.SHIFT."
+  },
+  {
+   "name": "DTP Loc. From / To",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "10",
+   "io": "I",
+   "control": "Combo Box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory; To <> From ('DTP Loc. To tidak boleh sama dengan DTP Loc. From')",
+   "description": "DB: ielp.DTP_2_DETAIL.FROM_LOC / TO_LOC."
+  },
+  {
+   "name": "Renban",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "5",
+   "io": "I",
+   "control": "Text box",
+   "justified": "Left",
+   "initial": "Blank",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory; 5 digits ('Renban harus 5 digit angka'); unique per supplier + date + shift ('Renban sudah dipakai untuk supplier, tanggal dan shift yang sama')",
+   "description": "DB: ielp.DTP_2_DETAIL.RENBAN varchar(500)."
+  },
+  {
+   "name": "Planned Cycle",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Number",
+   "len": "1",
+   "io": "I",
+   "control": "Number",
+   "justified": "Left",
+   "initial": "1",
+   "required": "Y",
+   "format": "-",
+   "validation": "Mandatory; 1 - 5",
+   "description": "DB: DTP_2_DETAIL.PLANNED_CYCLE (new column - DCR, decision G-DM-04)."
+  },
+  {
+   "name": "FA",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Char",
+   "len": "1",
+   "io": "I",
+   "control": "Check box",
+   "justified": "Left",
+   "initial": "Off",
+   "required": "N",
+   "format": "-",
+   "validation": "-",
+   "description": "Y when checked. DB: DTP_2_DETAIL.FA_FLAG (new column - DCR, decision G-DM-04)."
+  },
+  {
+   "name": "Check",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "-",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "-",
+   "description": "Validates (workflow.js checkDTP); valid: 'Data valid, siap di-submit.'"
+  },
+  {
+   "name": "Submit",
+   "source": "Key-in",
+   "field": "-",
+   "type": "Varchar",
+   "len": "-",
+   "io": "I",
+   "control": "Button",
+   "justified": "Left",
+   "initial": "-",
+   "required": "N",
+   "format": "-",
+   "validation": "-",
+   "description": "Creates the order (workflow.js createDTP, order no. genOrderNo): status Planning Order / DTP Creation Release; list filtered on the new order; toast 'DTP <no> dibuat'. Only role IELP Admin ('Hanya IELP Admin yang dapat membuat DTP')."
   }
  ],
  "data_map": {
@@ -2344,7 +2504,7 @@
      },
      {
       "dest_field": "START_DT, PICKUP_DATE",
-      "description": "Server system date [Conflict: START_DT is not a column of ielp.ORDER_CYCLE]"
+      "description": "Server system date [DCR: START_DT not in ielp.ORDER_CYCLE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY",
@@ -2444,7 +2604,7 @@
      },
      {
       "dest_field": "COMPLETE_DATE",
-      "description": "Server system date [Conflict: COMPLETE_DATE is not a column of ielp.DTP_2_DETAIL]"
+      "description": "Server system date [DCR: COMPLETE_DATE not in ielp.DTP_2_DETAIL - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "UPDATED_BY",
@@ -2539,7 +2699,7 @@
      },
      {
       "dest_field": "CYCLE_SEQ",
-      "description": "Latest cycle no [Conflict: CYCLE_SEQ is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "Latest cycle no [DCR: CYCLE_SEQ not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ACT",
@@ -2572,7 +2732,7 @@
      },
      {
       "dest_field": "CREATED_DATE",
-      "description": "Server system date [Conflict: CREATED_DATE is not a column of ielp.LOG_ACTIVITY_ORDER]"
+      "description": "Server system date [DCR: CREATED_DATE not in ielp.LOG_ACTIVITY_ORDER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "LOG_ID",
@@ -3060,7 +3220,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "Planning Order screen - DTP Check & Submit: Date, Type, Trucking Comp., Shift, From/To Loc., Renban (5 digits, unique per supplier + date + shift), Planned Cycle (1-5) mandatory; date not in the past; From <> To. Creates order Planning Order / DTP Creation Release.",
+   "text": "Daily Monitoring [+ Create DTP] dialog (IELP Admin, legacy - kept, decision G-DM-05) - DTP Check & Submit: Date, Type, Trucking Comp., Shift, From/To Loc., Renban (5 digits, unique per supplier + date + shift), Planned Cycle (1-5) mandatory; date not in the past; From <> To. Creates order Planning Order / DTP Creation Release.",
    "level": 2
   },
   {
@@ -3084,7 +3244,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -3342,7 +3502,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -3351,10 +3511,10 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-DM-01 Order vs cycle: UISS / code: Daily Order + Daily Order Cycle tables. DB: ORDER_CYCLE (one row per cycle) + DTP_n_DETAIL (order). Recommendation: Order-level status = latest cycle / DTP_n_DETAIL.STATUS_CODE (confirm)",
-    "G-DM-02 Status codes: UISS / code: Text statuses (Planning Order, Order Release, ...). DB: STATUS_CODE varchar(3), MS_STATUS. Recommendation: Map with MS_STATUS data",
-    "G-DM-03 Status history columns: UISS / code: FROM_STATUS, ROLE, REASON. DB: LOG_ACTIVITY_ORDER has ACT, STS_CODE, REMARK only. Recommendation: Confirm the history table",
-    "G-DM-04 FA / planned cycle / PO received date: UISS / code: Columns on the order. DB: No columns. Recommendation: Confirm source"
+    "G-DM-01 Order vs cycle: Existing logic kept: order header with up to 5 cycles; order = DTP_2_DETAIL row, cycle = ORDER_CYCLE row (CYCLE_SEQ). No DB change: mapping as stated.",
+    "G-DM-02 Status codes: Existing logic kept: order / cycle statuses of workflow.js (ORDER, CYCLE). DCR-24: Register the statuses in ielp.MS_STATUS - data, no column change.",
+    "G-DM-03 Status history columns: Existing logic kept: status history with from / to status, role, reason, note (workflow.js log). DCR-25: ADD ielp.LOG_ACTIVITY_ORDER.FROM_STS_CODE varchar(3), ROLE varchar(50).",
+    "G-DM-04 FA / planned cycle / PO received date: Existing logic kept: FA flag, planned cycles and PO received date on the order. DCR-26: ADD ielp.DTP_2_DETAIL.FA_FLAG varchar(1), PLANNED_CYCLE int; ADD ielp.ORDER_CYCLE.PO_RECEIVED_DATE datetime."
    ]
   },
   {
@@ -3387,6 +3547,28 @@
    "type": "item",
    "marker": "b.",
    "text": "Paper size, header / footer and page breaks follow the browser print settings - TBD - Not confirmed from existing schema/data/code.",
+   "level": 2
+  },
+  {
+   "type": "heading",
+   "text": "Legacy Create DTP dialog (IELP Admin) - existing logic kept (decision G-DM-05)"
+  },
+  {
+   "type": "item",
+   "marker": "a.",
+   "text": "The [+ Create DTP] button of Daily Monitoring (shown for IELP Admin, app.js:230) opens the dialog Date, Type, Trucking Comp., Shift, DTP Loc. From / To, Renban, Planned Cycle, FA (app.js:558).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b.",
+   "text": "[Check] validates with workflow.js checkDTP (rules in Item Desc); [Submit] creates one order with the first cycle in status Planning Order / DTP Creation Release and a history entry \"DTP Check & Submit\".",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "c.",
+   "text": "This path exists besides Planning Order (Planner VPLD, UISS DTP Creation); both are kept as implemented. It does not use KPI, Payment Type or the DTP queue (see docs/review/09 BUG-01, decision G-DM-05).",
    "level": 2
   }
  ],
@@ -3630,6 +3812,33 @@
    "msg_id": "MSTD0050AERR",
    "message": "Invalid format for PO Number. The format must be 45 + 8 digits",
    "action": "Check PAS response"
+  },
+  {
+   "group": "Create DTP (legacy)"
+  },
+  {
+   "event": "Click [Check] / [Submit]",
+   "cause": "Not IELP Admin",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Hanya IELP Admin yang dapat membuat DTP",
+   "action": "Login as IELP Admin"
+  },
+  {
+   "event": "Click [Check] / [Submit]",
+   "cause": "Mandatory blank / past date / From = To / renban format / planned cycle / duplicate renban",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "{Field} wajib diisi / Tanggal DTP tidak boleh di masa lalu / DTP Loc. To tidak boleh sama dengan DTP Loc. From / Renban harus 5 digit angka / Planned Cycle harus 1 - 5 / Renban sudah dipakai untuk supplier, tanggal dan shift yang sama",
+   "action": "Correct the field"
+  },
+  {
+   "event": "Click [Submit]",
+   "cause": "Created",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "DTP {order no} dibuat · Planning Order / DTP Creation Release",
+   "action": "-"
   }
  ],
  "logging_messages": [

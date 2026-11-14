@@ -5,8 +5,8 @@ Code: delivery-note.js, dn-rules.js, dn-pdf.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Report_Delivery_Note](UISS_Report_Delivery_Note.xlsx) | report | 0.3 (14-Nov-26) | [src/UISS_Report_Delivery_Note.json](src/UISS_Report_Delivery_Note.json) | 1 |
-| [UISS_Batch_ELIPS_PAS_GR_Attachment](UISS_Batch_ELIPS_PAS_GR_Attachment.xlsx) | batch | 0.2 (14-Nov-26) | [src/UISS_Batch_ELIPS_PAS_GR_Attachment.json](src/UISS_Batch_ELIPS_PAS_GR_Attachment.json) | 0 |
+| [UISS_Report_Delivery_Note](UISS_Report_Delivery_Note.xlsx) | report | 0.4 (14-Nov-26) | [src/UISS_Report_Delivery_Note.json](src/UISS_Report_Delivery_Note.json) | 1 |
+| [UISS_Batch_ELIPS_PAS_GR_Attachment](UISS_Batch_ELIPS_PAS_GR_Attachment.xlsx) | batch | 0.3 (14-Nov-26) | [src/UISS_Batch_ELIPS_PAS_GR_Attachment.json](src/UISS_Batch_ELIPS_PAS_GR_Attachment.json) | 0 |
 
 Rules / specification:
 

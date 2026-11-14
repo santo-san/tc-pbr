@@ -80,14 +80,15 @@ flowchart TD
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_Trucking_Company** - tables: `ielp.MS_TRUCKING_COMPANY`
-  - G-MTC-01 E-Mail length: EMAIL varchar(50) -> Limit UI to 50 or extend the column (DB change request)
-  - G-MTC-02 Vendor / SAP code format: COMPANY_CODE / SAP_COMPANY_CODE varchar(20) -> Confirm the rules against existing codes
-  - G-MTC-03 Concurrency check: No VERSION column -> Use UPDATED_DATE as optimistic lock or add VERSION
-  - G-MTC-04 Service Type: No column (BUSINESS_TYPE int) -> Confirm whether BUSINESS_TYPE holds the service type
-  - G-MTC-05 Deletion flag: IS_DELETE varchar(1) default 0 -> Use IS_DELETE (values to confirm)
+  - G-MTC-01 E-Mail length: Existing logic kept: e-mail up to 100 characters (master-trucking.js). **DCR-01**: ALTER ielp.MS_TRUCKING_COMPANY.EMAIL varchar(50) -> varchar(100)
+  - G-MTC-02 Vendor / SAP code format: Existing logic kept: Vendor Code 3 letters / numbers, SAP Vendor Code 10 digits (master-trucking.js validate). (no DB change)
+  - G-MTC-03 Concurrency check: Existing logic kept: optimistic lock by VERSION on Update / Delete (msg 15). **DCR-02**: ADD ielp.MS_TRUCKING_COMPANY.VERSION int NOT NULL default 1
+  - G-MTC-04 Service Type: Existing logic kept: Service Type (MRO) on the vendor. **DCR-03**: ADD ielp.MS_TRUCKING_COMPANY.SERVICE_TYPE varchar(10) NOT NULL default 'MRO' (BUSINESS_TYPE left unchanged)
+  - G-MTC-05 Deletion flag: Existing logic kept: logical delete flag; stored in IS_DELETE ('0' active, '1' deleted). (no DB change)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

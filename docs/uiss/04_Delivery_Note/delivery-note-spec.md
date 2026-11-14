@@ -122,11 +122,12 @@ The checks run in this order:
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Report_Delivery_Note** - tables: `ielp.MS_DRIVER`, `ielp.MS_LOCATION`, `ielp.ORDER_CYCLE`, `ielp.ORDER_FILES`
-  - G-DN-01 deliveryId: ORDER_CYCLE_ID varchar(20) PK (format unknown) -> Confirm the cycle order number field
+  - G-DN-01 deliveryId: Existing logic kept: deliveryId = No Cycle Order YYMMDDC2XXX999 (dn-rules.js); stored in ORDER_CYCLE.ORDER_CYCLE_ID varchar(20). (no DB change)
 - **UISS_Batch_ELIPS_PAS_GR_Attachment** - tables: `ielp.LOG_ITGPAS`, `ielp.ORDER_CYCLE`, `ielp.SA_DETAIL`
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

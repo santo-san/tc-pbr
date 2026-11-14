@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised: target master = ielp.TB_M_MILEAGE (definition from the ELIPS DDL); temp / log / history tables stay proposed (not in ELIPS); conflicts recorded; no sample data"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-06, DCR-07, DCR-08, DCR-09)"
   }
  ],
  "general": {
@@ -636,12 +643,12 @@
       "description": "MILEAGE_TXT as number (comma = decimal sign), rounded to 2 decimals"
      },
      {
-      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "dest_field": "IS_DELETE (+ new STATUS column - DCR, existing logic kept)",
       "description": "'Active'"
      },
      {
       "dest_field": "LAST_UPLOAD_ID",
-      "description": "UPLOAD_ID [Conflict: LAST_UPLOAD_ID is not a column of ielp.TB_M_MILEAGE]"
+      "description": "UPLOAD_ID [DCR: LAST_UPLOAD_ID not in ielp.TB_M_MILEAGE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY",
@@ -660,7 +667,7 @@
       "description": "Server date-time"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "1"
      },
      {
@@ -708,12 +715,12 @@
       "description": "New mileage of the row"
      },
      {
-      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "dest_field": "IS_DELETE (+ new STATUS column - DCR, existing logic kept)",
       "description": "Not changed (Active)"
      },
      {
       "dest_field": "LAST_UPLOAD_ID",
-      "description": "UPLOAD_ID [Conflict: LAST_UPLOAD_ID is not a column of ielp.TB_M_MILEAGE]"
+      "description": "UPLOAD_ID [DCR: LAST_UPLOAD_ID not in ielp.TB_M_MILEAGE - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CREATED_BY",
@@ -732,7 +739,7 @@
       "description": "Server date-time"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      }
     ]
@@ -1551,7 +1558,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1605,7 +1612,7 @@
      "N",
      "W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "MILEAGE (KM) (file)",
@@ -1614,7 +1621,7 @@
      "N",
      "W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "From / To names",
@@ -1647,7 +1654,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1656,11 +1663,11 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MML-01 Mileage decimals: UISS / code: Number 7,2 (max 2 decimals). DB: MILEAGE decimal(18,0) - no decimals. Recommendation: Round to whole KM in the UI or change the column (DB change request)",
-    "G-MML-02 Route key: UISS / code: From + To unique. DB: PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key. Recommendation: Only one route per From is possible with this PK - confirm the table or change the PK",
-    "G-MML-03 Location names stored: UISS / code: Names read from Master Location. DB: LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised). Recommendation: Copy names on insert / update; define refresh when a location is renamed",
-    "G-MML-04 Active / Inactive and VERSION: UISS / code: STATUS, VERSION. DB: Only IS_DELETE varchar(5); no VERSION. Recommendation: Map status to IS_DELETE; concurrency by CHANGED_DT",
-    "G-MML-05 LAST_UPLOAD_ID: UISS / code: Column on the route master. DB: No such column in TB_M_MILEAGE. Recommendation: Drop or add the column (DB change request)"
+    "G-MML-01 Mileage decimals: Existing logic kept: mileage > 0 with up to 2 decimals (master-mileage.js parseMileage). DCR-06: ALTER ielp.TB_M_MILEAGE.MILEAGE decimal(18,0) -> decimal(9,2).",
+    "G-MML-02 Route key: Existing logic kept: a route is unique by From + To (directional). DCR-07: ALTER ielp.TB_M_MILEAGE: TO_CODE NOT NULL; primary key (LOC_NAME_FROM, FROM_CODE) -> (FROM_CODE, TO_CODE).",
+    "G-MML-03 Location names stored: Existing logic kept: names shown from Master Location; LOC_NAME_FROM / LOC_NAME_TO filled with a copy of MS_LOCATION.LOCATION_NAME on save. No DB change: mapping as stated.",
+    "G-MML-04 Active / Inactive and VERSION: Existing logic kept: Active / Inactive status and VERSION. DCR-08: ADD ielp.TB_M_MILEAGE.STATUS varchar(8) NOT NULL default 'Active'; ADD VERSION int NOT NULL default 1.",
+    "G-MML-05 LAST_UPLOAD_ID: Existing logic kept: upload with temp rows, upload log and mileage history (UISS-Batch Route Mileage Upload). DCR-09: ADD ielp.TB_M_MILEAGE.LAST_UPLOAD_ID bigint NULL; CREATE TB_T_MILEAGE_UPLOAD, TB_R_MILEAGE_UPLOAD_LOG, TB_H_MILEAGE (definitions in the UISS-Batch Appendix)."
    ]
   },
   {

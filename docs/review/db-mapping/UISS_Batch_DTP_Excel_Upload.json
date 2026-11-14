@@ -113,8 +113,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS)."
+   "status": "Revised",
+   "note": "varchar(3); UISS STATUS text values (Ready to Submit, Queued, Processed, Failed ...) - codes TBD (MS_STATUS). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Order No",
@@ -127,8 +127,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing."
+   "status": "Revised",
+   "note": "varchar(20) NOT NULL and PK of DTP_2_DETAIL, while the UISS assigns it only at queue processing. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Payment Type",
@@ -142,8 +142,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No payment type column."
+   "status": "Revised",
+   "note": "No payment type column. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "History",
@@ -178,7 +178,10 @@
    "code": "-",
    "db": "DTP_HEADER + DTP_1..4_DETAIL per DTP type",
    "data": "No sample data",
-   "recommendation": "Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP"
+   "recommendation": "Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
+   "decision": "Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-DTP-02",
@@ -187,7 +190,10 @@
    "code": "-",
    "db": "DTP_2_DETAIL.ORDER_NO NOT NULL, PK",
    "data": "No sample data",
-   "recommendation": "Confirm when ORDER_NO is generated in ELIPS"
+   "recommendation": "Confirm when ORDER_NO is generated in ELIPS",
+   "decision": "Existing logic kept: order number is assigned by queue processing, records exist before that.",
+   "dcr": "ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID",
+   "dcr_id": "DCR-16"
   },
   {
    "id": "G-DTP-03",
@@ -196,7 +202,10 @@
    "code": "-",
    "db": "No column",
    "data": "No sample data",
-   "recommendation": "DB change request"
+   "recommendation": "DB change request",
+   "decision": "Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType).",
+   "dcr": "ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12)",
+   "dcr_id": "DCR-17"
   },
   {
    "id": "G-DTP-04",
@@ -205,7 +214,10 @@
    "code": "-",
    "db": "STATUS_CODE varchar(3) + MS_STATUS",
    "data": "No sample data",
-   "recommendation": "Map statuses to MS_STATUS codes (data needed)"
+   "recommendation": "Map statuses to MS_STATUS codes (data needed)",
+   "decision": "Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S).",
+   "dcr": "Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change",
+   "dcr_id": "DCR-18"
   },
   {
    "id": "G-DTP-05",
@@ -214,7 +226,10 @@
    "code": "-",
    "db": "No matching columns",
    "data": "No sample data",
-   "recommendation": "Confirm columns (COUNTRY, SOURCES?)"
+   "recommendation": "Confirm columns (COUNTRY, SOURCES?)",
+   "decision": "Existing logic kept: Exporter, Importer CD, Destination and Data Source (Excel / Manual / IPMS) on the record.",
+   "dcr": "ADD ielp.DTP_2_DETAIL.EXPORTER varchar(50), IMPORTER_CD varchar(20), DEST_CD varchar(20), DATA_SOURCE varchar(6)",
+   "dcr_id": "DCR-19"
   },
   {
    "id": "G-DTP-06",
@@ -223,7 +238,10 @@
    "code": "-",
    "db": "CTR_SIZE int + CTR_TYPE varchar(10)",
    "data": "No sample data",
-   "recommendation": "Split size and type"
+   "recommendation": "Split size and type",
+   "decision": "Existing logic kept: one container size value ('20', '40', '40 HC'); stored as CTR_SIZE (20 / 40) + CTR_TYPE ('HC').",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-DTP-07",
@@ -232,7 +250,10 @@
    "code": "-",
    "db": "IS_DELETE flag",
    "data": "No sample data",
-   "recommendation": "Soft delete with IS_DELETE"
+   "recommendation": "Soft delete with IS_DELETE",
+   "decision": "Existing logic kept: Excel / Manual records not yet submitted are deleted physically.",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-DTP-08",
@@ -241,7 +262,10 @@
    "code": "-",
    "db": "No VERSION column",
    "data": "No sample data",
-   "recommendation": "Use UPDATED_DATE"
+   "recommendation": "Use UPDATED_DATE",
+   "decision": "Existing logic kept: optimistic lock by VERSION.",
+   "dcr": "ADD ielp.DTP_2_DETAIL.VERSION int NOT NULL default 1",
+   "dcr_id": "DCR-20"
   }
  ],
  "tbd": [

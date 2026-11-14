@@ -43,11 +43,12 @@ Mock-up: `master.html#price` (Master > Price, title "Pricing Data", following th
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Master_Price** - tables: `ielp.ITG_ECAT`, `ielp.MS_ROUTE_PRICE`
-  - G-MPR-01 Price component: No component column in MS_ROUTE_PRICE -> Confirm component identification (material code?)
-  - G-MPR-02 Period: Only VALID_DT_FROM / VALID_DT_TO -> Derive period from validity dates
+  - G-MPR-01 Price component: Existing logic kept: price components FIX (per month) and KM (per km) per partner and period (master-price.js). **DCR-10**: ADD ielp.MS_ROUTE_PRICE.PRICE_COMPONENT varchar(3) (FIX / KM)
+  - G-MPR-02 Period: Existing logic kept: period YYYYMM derived from the validity dates (master-price.js periodStart / periodEnd). (no DB change)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

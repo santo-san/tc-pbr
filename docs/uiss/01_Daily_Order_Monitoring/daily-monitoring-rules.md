@@ -320,14 +320,15 @@ Asumsi berikut dipakai di mock-up karena belum dijelaskan di kebutuhan:
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_Daily_Order_Monitoring** - tables: `ielp.DTP_HEADER`, `ielp.LOG_ACTIVITY_ORDER`, `ielp.MS_DRIVER`, `ielp.MS_TRUCK_REGISTRATION`, `ielp.ORDER_CYCLE`, `ielp.ORDER_FILES`, `ielp.ORDER_TRUCK_H`, `ielp.SA_DETAIL`
-  - G-DM-01 Order vs cycle: ORDER_CYCLE (one row per cycle) + DTP_n_DETAIL (order) -> Order-level status = latest cycle / DTP_n_DETAIL.STATUS_CODE (confirm)
-  - G-DM-02 Status codes: STATUS_CODE varchar(3), MS_STATUS -> Map with MS_STATUS data
-  - G-DM-03 Status history columns: LOG_ACTIVITY_ORDER has ACT, STS_CODE, REMARK only -> Confirm the history table
-  - G-DM-04 FA / planned cycle / PO received date: No columns -> Confirm source
+  - G-DM-01 Order vs cycle: Existing logic kept: order header with up to 5 cycles; order = DTP_2_DETAIL row, cycle = ORDER_CYCLE row (CYCLE_SEQ). (no DB change)
+  - G-DM-02 Status codes: Existing logic kept: order / cycle statuses of workflow.js (ORDER, CYCLE). **DCR-24**: Register the statuses in ielp.MS_STATUS - data, no column change
+  - G-DM-03 Status history columns: Existing logic kept: status history with from / to status, role, reason, note (workflow.js log). **DCR-25**: ADD ielp.LOG_ACTIVITY_ORDER.FROM_STS_CODE varchar(3), ROLE varchar(50)
+  - G-DM-04 FA / planned cycle / PO received date: Existing logic kept: FA flag, planned cycles and PO received date on the order. **DCR-26**: ADD ielp.DTP_2_DETAIL.FA_FLAG varchar(1), PLANNED_CYCLE int; ADD ielp.ORDER_CYCLE.PO_RECEIVED_DATE datetime
 - **UISS_Report_Download_Daily_Order_Monitoring** - tables: `ielp.DTP_HEADER`, `ielp.MS_DRIVER`, `ielp.MS_LOCATION`, `ielp.MS_TRUCKING_COMPANY`, `ielp.ORDER_CYCLE`, `ielp.SA_DETAIL`
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

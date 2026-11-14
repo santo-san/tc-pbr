@@ -181,28 +181,29 @@ stateDiagram-v2
 
 ## Database mapping (ELIPS schema, review 14-Nov-2026)
 
-The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` (revision marked [DB-R1]); see the section
-"Database Specification (ELIPS AE070_ILS_DB)" in each UISS. No sample data was available, so value lists / status codes stay TBD.
+The UISS of this function were revised against `docs/db/ELIPS_Schema.sql` ([DB-R1]) and the conflicts were resolved by the decision of
+14-Nov-2026 ([DB-R2]): **the existing application logic is kept**; where the existing table cannot hold it a DB change request (DCR) is raised
+([../../review/12-db-change-requests.md](../../review/12-db-change-requests.md)). No sample data was available: value lists / status codes stay TBD.
 
 - **UISS_Screen_PR_Inquiry** - tables: `ielp.CRITERIA_SCORE_APPROVAL`, `ielp.CRITERIA_SCORE_DETAIL_FINAL`, `ielp.CRITERIA_SCORE_DETAIL_ROUTE`, `ielp.CRITERIA_SCORE_HEADER`
-  - G-MO-01 PR document: CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET) -> Use PR_NO_DET per company (confirm)
-  - G-MO-02 Approval levels: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2) -> Level codes TBD
-  - G-MO-03 Approval history: No history table -> Show approval rows or add a history table
-  - G-MO-04 Trucking code: COMPANY_ID varchar(10) -> Align with Master Trucking Company
+  - G-MO-01 PR document: Existing logic kept: one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER). (no DB change)
+  - G-MO-02 Approval levels: Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS. **DCR-34**: Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change
+  - G-MO-03 Approval history: Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log). **DCR-35**: CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT)
+  - G-MO-04 Trucking code: Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID). (no DB change)
 - **UISS_Screen_PR_Approval** - tables: `ielp.CRITERIA_SCORE_APPROVAL`, `ielp.CRITERIA_SCORE_DETAIL_FINAL`, `ielp.CRITERIA_SCORE_DETAIL_ROUTE`, `ielp.CRITERIA_SCORE_HEADER`
-  - G-MO-01 PR document: CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET) -> Use PR_NO_DET per company (confirm)
-  - G-MO-02 Approval levels: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2) -> Level codes TBD
-  - G-MO-03 Approval history: No history table -> Show approval rows or add a history table
-  - G-MO-04 Trucking code: COMPANY_ID varchar(10) -> Align with Master Trucking Company
+  - G-MO-01 PR document: Existing logic kept: one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER). (no DB change)
+  - G-MO-02 Approval levels: Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS. **DCR-34**: Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change
+  - G-MO-03 Approval history: Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log). **DCR-35**: CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT)
+  - G-MO-04 Trucking code: Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID). (no DB change)
 - **UISS_Screen_PO_Approval** - tables: `ielp.CRITERIA_SCORE_DETAIL_FINAL`, `ielp.CRITERIA_SCORE_DETAIL_ROUTE`, `ielp.PO_APPROVAL`, `ielp.PO_APPROVAL_EST`, `ielp.PO_DETAIL`, `ielp.PO_HEADER`
-  - G-MO-02 Approval levels: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2) -> Level codes TBD
-  - G-MO-03 Approval history: No history table -> Show approval rows or add a history table
-  - G-MO-04 Trucking code: COMPANY_ID varchar(10) -> Align with Master Trucking Company
-  - G-PO-01 PO number source: PO_DETAIL.PO_NUMBER varchar(16); PAS returns PO numbers (SA_DETAIL.PAS_PO_NUMBER) -> Confirm whether the monthly PO number is ELIPS or PAS generated
+  - G-MO-02 Approval levels: Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS. **DCR-34**: Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change
+  - G-MO-03 Approval history: Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log). **DCR-35**: CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT)
+  - G-MO-04 Trucking code: Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID). (no DB change)
+  - G-PO-01 PO number source: Existing logic kept: PO number created by ELIPS when DH approves the PR (monthly-workflow.js createPO); stored in PO_DETAIL.PO_NUMBER. (no DB change)
 - **UISS_Screen_PO_Inquiry** - tables: `ielp.CRITERIA_SCORE_DETAIL_FINAL`, `ielp.CRITERIA_SCORE_DETAIL_ROUTE`, `ielp.PO_APPROVAL`, `ielp.PO_APPROVAL_EST`, `ielp.PO_DETAIL`, `ielp.PO_HEADER`
-  - G-MO-02 Approval levels: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2) -> Level codes TBD
-  - G-MO-03 Approval history: No history table -> Show approval rows or add a history table
-  - G-MO-04 Trucking code: COMPANY_ID varchar(10) -> Align with Master Trucking Company
-  - G-PO-01 PO number source: PO_DETAIL.PO_NUMBER varchar(16); PAS returns PO numbers (SA_DETAIL.PAS_PO_NUMBER) -> Confirm whether the monthly PO number is ELIPS or PAS generated
+  - G-MO-02 Approval levels: Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS. **DCR-34**: Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change
+  - G-MO-03 Approval history: Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log). **DCR-35**: CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT)
+  - G-MO-04 Trucking code: Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID). (no DB change)
+  - G-PO-01 PO number source: Existing logic kept: PO number created by ELIPS when DH approves the PR (monthly-workflow.js createPO); stored in PO_DETAIL.PO_NUMBER. (no DB change)
 
-Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md) (conflicts), [../../review/10-tbd-list.md](../../review/10-tbd-list.md) (TBD), [../../review/09-potential-application-bugs.md](../../review/09-potential-application-bugs.md).
+Full lists: [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), [../../review/12-db-change-requests.md](../../review/12-db-change-requests.md), [../../review/10-tbd-list.md](../../review/10-tbd-list.md).

@@ -5,7 +5,7 @@ Code: priority.js, master-priority.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_Priority](UISS_Screen_Master_Priority.xlsx) | screen | 0.2 (14-Nov-26) | [src/UISS_Screen_Master_Priority.json](src/UISS_Screen_Master_Priority.json) | 12 |
+| [UISS_Screen_Master_Priority](UISS_Screen_Master_Priority.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_Master_Priority.json](src/UISS_Screen_Master_Priority.json) | 12 |
 
 Rules / specification:
 

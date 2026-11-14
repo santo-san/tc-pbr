@@ -98,8 +98,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No payment type column in ELIPS."
+   "status": "Revised",
+   "note": "No payment type column in ELIPS. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Score",
@@ -148,8 +148,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master)."
+   "status": "Revised",
+   "note": "float per COMPANY_ID + ROUTE + CRITERIA_PERIODE (period, not master). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Daily Trip / Trips per day",
@@ -162,8 +162,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No column in ELIPS."
+   "status": "Revised",
+   "note": "No column in ELIPS. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "UoM",
@@ -203,7 +203,10 @@
    "code": "-",
    "db": "Only MS_KPI (items) and period tables CRITERIA_SCORE_DETAIL / CRITERIA_LAST_ORDER",
    "data": "No sample data",
-   "recommendation": "New master table or confirm the period tables are the source"
+   "recommendation": "New master table or confirm the period tables are the source",
+   "decision": "Existing logic kept: KPI row per trucking company with payment type, score, KPI item values, order sharing % and daily trip (master-kpi.js).",
+   "dcr": "CREATE ielp.TB_M_KPI_COMPANY (COMPANY_ID, PAYMENT_TYPE varchar(12), SCORE int, ORDER_SHARING decimal(5,2), DAILY_TRIP int, UOM, VERSION, audit) and ielp.TB_M_KPI_COMPANY_VALUE (COMPANY_ID, KPI_ID, KPI_VALUE int); KPI items stay in MS_KPI",
+   "dcr_id": "DCR-12"
   },
   {
    "id": "G-MKP-02",
@@ -212,7 +215,10 @@
    "code": "-",
    "db": "No columns",
    "data": "No sample data",
-   "recommendation": "DB change request"
+   "recommendation": "DB change request",
+   "decision": "Existing logic kept: Payment Type By Resources / By Trip, Daily Trip, Trips per day for By Trip.",
+   "dcr": "Columns in TB_M_KPI_COMPANY (DCR of G-MKP-01); Trips per day = row in ielp.TB_M_SYSTEM (SYS_CAT 'TCPBR', SYS_CD 'DAILY_TRIPS' - key TBD)",
+   "dcr_id": "DCR-13"
   },
   {
    "id": "G-MKP-03",
@@ -221,7 +227,10 @@
    "code": "-",
    "db": "MS_KPI_PERCENTAGE (FROM / TO_PERCENTAGE -> VALUE)",
    "data": "No sample data",
-   "recommendation": "Read thresholds from MS_KPI_PERCENTAGE"
+   "recommendation": "Read thresholds from MS_KPI_PERCENTAGE",
+   "decision": "Existing logic kept: grade thresholds fixed in master-kpi.js (MS_KPI_PERCENTAGE not used).",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

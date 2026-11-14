@@ -31,6 +31,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: PR = ielp.CRITERIA_SCORE_HEADER / CRITERIA_SCORE_DETAIL_FINAL (PR_NO_DET per company), routes = CRITERIA_SCORE_DETAIL_ROUTE, approvals = CRITERIA_SCORE_APPROVAL; conflicts recorded; no sample data"
+  },
+  {
+   "revision": "0.4",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-34, DCR-35)"
   }
  ],
  "general": {
@@ -617,7 +624,7 @@
    "required": "",
    "format": "XXX",
    "validation": "",
-   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID varchar(10) NULL [Conflict] UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20)."
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID varchar(10) NULL [Revised - existing logic kept, see DCR] UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20)."
   },
   {
    "name": "Trucking Name",
@@ -632,7 +639,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID varchar(10) NULL [Conflict] UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20)."
+   "description": "DB: ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID varchar(10) NULL [Revised - existing logic kept, see DCR] UISS Trucking Code Varchar 3 vs COMPANY_ID varchar(10) / COMPANY_CODE varchar(20)."
   },
   {
    "name": "Order Sharing - Percentage",
@@ -1113,7 +1120,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1176,7 +1183,7 @@
      "N",
      "R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Order Sharing %",
@@ -1272,7 +1279,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1281,10 +1288,10 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MO-01 PR document: UISS / code: PR Header per trucking company with own PR number. DB: CRITERIA_SCORE_HEADER (period, PR_NO) + CRITERIA_SCORE_DETAIL_FINAL (company, PR_NO_DET). Recommendation: Use PR_NO_DET per company (confirm)",
-    "G-MO-02 Approval levels: UISS / code: SH / DpH / DH per PR. DB: CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS + APPROVAL_STS varchar(2). Recommendation: Level codes TBD",
-    "G-MO-03 Approval history: UISS / code: History grid with from / to status, role. DB: No history table. Recommendation: Show approval rows or add a history table",
-    "G-MO-04 Trucking code: UISS / code: Varchar 3. DB: COMPANY_ID varchar(10). Recommendation: Align with Master Trucking Company"
+    "G-MO-01 PR document: Existing logic kept: one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER). No DB change: mapping as stated.",
+    "G-MO-02 Approval levels: Existing logic kept: approval levels SH / DpH / DH; stored as APPROVAL_CLASS values with APPROVAL_STS. DCR-34: Register APPROVAL_CLASS / APPROVAL_STS values - data, no column change.",
+    "G-MO-03 Approval history: Existing logic kept: approval history with from / to status, role, reason (monthly-workflow.js log). DCR-35: CREATE ielp.TB_H_PR_PO_APPROVAL (DOC_TYPE, DOC_NO, ACTION, FROM_STATUS, TO_STATUS, ROLE, REASON, NOTE, CREATED_BY, CREATED_DT).",
+    "G-MO-04 Trucking code: Existing logic kept: 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID). No DB change: mapping as stated."
    ]
   },
   {

@@ -100,7 +100,10 @@
    "code": "-",
    "db": "No table in ELIPS",
    "data": "No sample data",
-   "recommendation": "New table needed (DB change request) or confirm existing storage"
+   "recommendation": "New table needed (DB change request) or confirm existing storage",
+   "decision": "Existing logic kept: route priority per From / To with renumbering (master-priority.js).",
+   "dcr": "CREATE ielp.TB_M_ROUTE_PRIORITY (FROM_CODE varchar(10), TO_CODE varchar(10), PRIORITY_NO int, VERSION int, CREATED_BY / CREATED_DT / CHANGED_BY / CHANGED_DT) - PK FROM_CODE + TO_CODE",
+   "dcr_id": "DCR-11"
   }
  ],
  "tbd": [

@@ -24,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: price data = ielp.MS_ROUTE_PRICE (eCatalogue interface staging ielp.ITG_ECAT / ITG_LOG); component and vehicle type mapping TBD; read-only screen; no sample data"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-10)"
   }
  ],
  "general": {
@@ -665,7 +672,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Options: 'Fix Cost (Monthly Price)' = FIX, 'Mileage (Price per KM)' = KM. Blank = all.\nDB: Conflict - No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
+   "description": "Options: 'Fix Cost (Monthly Price)' = FIX, 'Mileage (Price per KM)' = KM. Blank = all.\nDB: Existing logic kept (DCR) - No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
   },
   {
    "name": "Status",
@@ -818,7 +825,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "FIX -> 'Fix Cost' badge with sub text 'Monthly Price'; KM -> 'Mileage' badge with sub text 'Price per KM'.\nDB: Conflict - No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
+   "description": "FIX -> 'Fix Cost' badge with sub text 'Monthly Price'; KM -> 'Mileage' badge with sub text 'Price per KM'.\nDB: Existing logic kept (DCR) - No component column; maybe ROUTE_PRICE_MAT_CODE / ROUTE_PRICE_MAT_FEATURE."
   },
   {
    "name": "Price",
@@ -1307,7 +1314,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1379,7 +1386,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Price",
@@ -1466,7 +1473,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1475,8 +1482,8 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MPR-01 Price component: UISS / code: FIX / KM components. DB: No component column in MS_ROUTE_PRICE. Recommendation: Confirm component identification (material code?)",
-    "G-MPR-02 Period: UISS / code: Periode YYYYMM column. DB: Only VALID_DT_FROM / VALID_DT_TO. Recommendation: Derive period from validity dates"
+    "G-MPR-01 Price component: Existing logic kept: price components FIX (per month) and KM (per km) per partner and period (master-price.js). DCR-10: ADD ielp.MS_ROUTE_PRICE.PRICE_COMPONENT varchar(3) (FIX / KM).",
+    "G-MPR-02 Period: Existing logic kept: period YYYYMM derived from the validity dates (master-price.js periodStart / periodEnd). No DB change: mapping as stated."
    ]
   },
   {

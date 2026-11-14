@@ -3,6 +3,23 @@
 The mock-up behaviour was **not** changed in this review. Items below are behaviours that are inconsistent inside
 the application, or that will fail / lose data once the screens are connected to the existing ELIPS tables.
 
+**Decision 14-Nov-26 (user): follow the existing application logic for every conflict.** Resolution per item:
+
+| ID | Resolution |
+|---|---|
+| BUG-01 | Kept: legacy Create DTP dialog (IELP Admin) stays and is documented in UISS Daily Order Monitoring (G-DM-05) |
+| BUG-02 | Kept: Master screens open for every role; documented in UISS Menu & Authorization (G-COM-01) |
+| BUG-03 | Kept 100 characters - DCR-01 (EMAIL varchar(100)) |
+| BUG-04 | Kept 2 decimals - DCR-06 (MILEAGE decimal(9,2)) |
+| BUG-05 | Kept From + To key - DCR-07 (PK FROM_CODE + TO_CODE) |
+| BUG-06 | Kept SA number format - DCR-29 (SA_CODE varchar(25)) |
+| BUG-07 | Kept VERSION lock - DCR-02 / DCR-05 / DCR-08 / DCR-20 (VERSION columns) |
+| BUG-08 | Kept order number at queue processing - DCR-16 (ORDER_NO nullable) |
+| BUG-09 | Kept: UISS already marks the mock-up map as stand-in for Google Maps (G-MLC-05) |
+| BUG-10 | Kept Active / Inactive - DCR-04 (MS_LOCATION.STATUS) |
+
+Original findings:
+
 | ID | Severity | Where (code) | Finding | Evidence | Impact | Recommendation |
 |---|---|---|---|---|---|---|
 | BUG-01 | Medium | `index.html` (+ Create DTP), `app.js:558 openCreateDTP`, `workflow.js:84 checkDTP`, `:97 createDTP` | Two ways to create a DTP with different roles: legacy dialog in Daily Monitoring for **IELP Admin**, Planning Order for **Planner VPLD** only | `workflow.js:86` "Hanya IELP Admin yang dapat membuat DTP" vs `dtp-rules.js canCreate` (PLANNER) | Users / testers may create orders outside the DTP rules (no KPI, payment type, queue) | Remove the legacy dialog or align roles (decision needed) |

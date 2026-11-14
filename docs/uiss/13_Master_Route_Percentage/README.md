@@ -5,7 +5,7 @@ Code: route-percentage.js, master-route-percentage.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_Route_Percentage](UISS_Screen_Master_Route_Percentage.xlsx) | screen | 0.2 (14-Nov-26) | [src/UISS_Screen_Master_Route_Percentage.json](src/UISS_Screen_Master_Route_Percentage.json) | 13 |
+| [UISS_Screen_Master_Route_Percentage](UISS_Screen_Master_Route_Percentage.xlsx) | screen | 0.3 (14-Nov-26) | [src/UISS_Screen_Master_Route_Percentage.json](src/UISS_Screen_Master_Route_Percentage.json) | 13 |
 
 Rules / specification:
 

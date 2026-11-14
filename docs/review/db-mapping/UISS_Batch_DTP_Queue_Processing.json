@@ -95,8 +95,8 @@
    "rw": "W",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": ""
+   "status": "Revised",
+   "note": "Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Attempt count / fail reason",
@@ -106,8 +106,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No ATTEMPT_CNT / FAIL_REASON columns."
+   "status": "Revised",
+   "note": "No ATTEMPT_CNT / FAIL_REASON columns. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Activity log",
@@ -129,7 +129,10 @@
    "code": "-",
    "db": "DTP_HEADER + DTP_1..4_DETAIL per DTP type",
    "data": "No sample data",
-   "recommendation": "Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP"
+   "recommendation": "Re-base on DTP_HEADER / DTP_n_DETAIL; confirm the DTP type of the Universal DTP",
+   "decision": "Existing logic kept: one record list per plan date for the Universal DTP model; stored as DTP_HEADER (date) + DTP_2_DETAIL rows (inferred DTP type).",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-DTP-02",
@@ -138,7 +141,10 @@
    "code": "-",
    "db": "DTP_2_DETAIL.ORDER_NO NOT NULL, PK",
    "data": "No sample data",
-   "recommendation": "Confirm when ORDER_NO is generated in ELIPS"
+   "recommendation": "Confirm when ORDER_NO is generated in ELIPS",
+   "decision": "Existing logic kept: order number is assigned by queue processing, records exist before that.",
+   "dcr": "ALTER ielp.DTP_2_DETAIL: ORDER_NO NULL; primary key ORDER_NO -> DTP_DET_ID",
+   "dcr_id": "DCR-16"
   },
   {
    "id": "G-DTP-03",
@@ -147,7 +153,10 @@
    "code": "-",
    "db": "No column",
    "data": "No sample data",
-   "recommendation": "DB change request"
+   "recommendation": "DB change request",
+   "decision": "Existing logic kept: Payment Type per record chosen by the planner (dtp-rules.js setPayType).",
+   "dcr": "ADD ielp.DTP_2_DETAIL.PAY_TYPE varchar(12)",
+   "dcr_id": "DCR-17"
   },
   {
    "id": "G-DTP-04",
@@ -156,7 +165,10 @@
    "code": "-",
    "db": "STATUS_CODE varchar(3) + MS_STATUS",
    "data": "No sample data",
-   "recommendation": "Map statuses to MS_STATUS codes (data needed)"
+   "recommendation": "Map statuses to MS_STATUS codes (data needed)",
+   "decision": "Existing logic kept: record statuses Ready to Submit / Error / Queued / Processing / Processed / Failed / Rejected (dtp-rules.js S).",
+   "dcr": "Register the statuses in ielp.MS_STATUS (STATUS_TYPE for DTP records, STATUS_CODE varchar(3)) - data, no column change",
+   "dcr_id": "DCR-18"
   },
   {
    "id": "G-DTQ-01",
@@ -165,7 +177,10 @@
    "code": "-",
    "db": "No columns",
    "data": "No sample data",
-   "recommendation": "Keep in LOG_ACTIVITY_ORDER or add columns"
+   "recommendation": "Keep in LOG_ACTIVITY_ORDER or add columns",
+   "decision": "Existing logic kept: retry with attempt count, failure reason, submitted by / at.",
+   "dcr": "ADD ielp.DTP_2_DETAIL.ATTEMPT_CNT int default 0, FAIL_REASON varchar(500), SUBMITTED_BY varchar(500), SUBMITTED_DT datetime",
+   "dcr_id": "DCR-21"
   }
  ],
  "tbd": [

@@ -46,8 +46,8 @@
    "rw": "R",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "varchar(16) vs Char 22."
+   "status": "Revised",
+   "note": "varchar(16) vs Char 22. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "SA Type",
@@ -171,8 +171,8 @@
    "rw": "R/W",
    "mapping": "-",
    "evidence": "Schema (no table / column found)",
-   "status": "Conflict",
-   "note": "No KM / rate / currency columns on SA."
+   "status": "Revised",
+   "note": "No KM / rate / currency columns on SA. Decision: existing logic kept (DCR)."
   },
   {
    "ui": "Price",
@@ -184,8 +184,8 @@
    "rw": "R",
    "mapping": "-",
    "evidence": "Schema; Code",
-   "status": "Conflict",
-   "note": "varchar(100)."
+   "status": "Revised",
+   "note": "varchar(100). Decision: existing logic kept (DCR)."
   },
   {
    "ui": "WBS %",
@@ -237,7 +237,10 @@
    "code": "-",
    "db": "SA_CODE varchar(16); SA_HEADER_ID varchar(20)",
    "data": "No sample data",
-   "recommendation": "Shorten the SA number format or widen SA_CODE (DB change request)"
+   "recommendation": "Shorten the SA number format or widen SA_CODE (DB change request)",
+   "decision": "Existing logic kept: SA number ILS/TR/<LP>/<YYMMDD><NNNN> up to 22 characters (sa-rules.js saNumber).",
+   "dcr": "ALTER ielp.SA_DETAIL.SA_CODE and ielp.ORDER_CYCLE.SA_CODE varchar(16) -> varchar(25)",
+   "dcr_id": "DCR-29"
   },
   {
    "id": "G-SA-02",
@@ -246,7 +249,10 @@
    "code": "-",
    "db": "SA_DETAIL.PRICE, TOTAL_PRICE varchar(100); TOTAL_TRIP varchar(10); SA_HEADER.SA_TOTAL varchar(5)",
    "data": "No sample data",
-   "recommendation": "Store numbers as text with fixed format or change types"
+   "recommendation": "Store numbers as text with fixed format or change types",
+   "decision": "Existing logic kept: numeric KM / price / cost; stored as plain numbers in the existing varchar columns.",
+   "dcr": null,
+   "dcr_id": null
   },
   {
    "id": "G-SA-03",
@@ -255,7 +261,10 @@
    "code": "-",
    "db": "No such columns (ROUTE_PRICE_ID -> MS_ROUTE_PRICE)",
    "data": "No sample data",
-   "recommendation": "Derive from MS_ROUTE_PRICE / TB_M_MILEAGE"
+   "recommendation": "Derive from MS_ROUTE_PRICE / TB_M_MILEAGE",
+   "decision": "Existing logic kept: Total KM, rate per KM and currency kept on the SA (sa-rules.js calculate).",
+   "dcr": "ADD ielp.SA_DETAIL.TOTAL_KM decimal(9,2), RATE_PER_KM decimal(15,2), CURRENCY varchar(3)",
+   "dcr_id": "DCR-30"
   },
   {
    "id": "G-SA-04",
@@ -264,7 +273,10 @@
    "code": "-",
    "db": "SA_HEADER.STATUS_CODE varchar(1), SA_DETAIL.STATUS_CODE varchar(2), SA_TYPE varchar(1)",
    "data": "No sample data",
-   "recommendation": "Code values TBD"
+   "recommendation": "Code values TBD",
+   "decision": "Existing logic kept: SA statuses and types of sa-rules.js / sa-pas-rules.js.",
+   "dcr": "Register code values (SA_HEADER.STATUS_CODE, SA_TYPE, SA_DETAIL.STATUS_CODE) - data, no column change",
+   "dcr_id": "DCR-31"
   },
   {
    "id": "G-SAM-01",
@@ -273,7 +285,10 @@
    "code": "-",
    "db": "SA_DETAIL PAS_* per detail; log in LOG_ITGPAS",
    "data": "No sample data",
-   "recommendation": "Track per SA_DETAIL; attempts / correlation id TBD"
+   "recommendation": "Track per SA_DETAIL; attempts / correlation id TBD",
+   "decision": "Existing logic kept: interface tracking with correlation id, attempts, error code / message (sa-pas-rules.js).",
+   "dcr": "ADD ielp.SA_DETAIL.CORRELATION_ID varchar(60), INTERFACE_ATTEMPT int, ERROR_CD varchar(30), ERROR_MSG varchar(500)",
+   "dcr_id": "DCR-33"
   },
   {
    "id": "G-SAM-02",
@@ -282,7 +297,10 @@
    "code": "-",
    "db": "SA_DETAIL.IS_VISION / VISION_* exist",
    "data": "No sample data",
-   "recommendation": "Meaning TBD (other interface?)"
+   "recommendation": "Meaning TBD (other interface?)",
+   "decision": "Existing logic kept: VISION columns are not used by the TC-PBR logic.",
+   "dcr": null,
+   "dcr_id": null
   }
  ],
  "tbd": [

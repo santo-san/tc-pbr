@@ -24,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema (ielp.MS_RENBAN_TCPBR): key PLANT_CD + DEST_CD + RENBAN_CD, SOURCE_LOCATION_ID, VERSION and audit columns confirmed by the DDL; plant name source TBD; no sample data"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; no DB change needed"
   }
  ],
  "general": {
@@ -1517,7 +1524,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1640,7 +1647,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1649,7 +1656,7 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MRB-01 Plant name: UISS / code: PLANT_CD + PLANT_NAME from Plant Master. DB: No plant master with PLANT_CD varchar(10) found (TB_M_LOGISTIC_POINT.PLANT_CD is char(1)). Recommendation: Confirm the plant list source"
+    "G-MRB-01 Plant name: Existing logic kept: plant list as coded in master-renban.js (code - description). No DB change: mapping as stated."
    ]
   },
   {

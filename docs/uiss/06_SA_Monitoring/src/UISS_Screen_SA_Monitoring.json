@@ -45,6 +45,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema: SA = ielp.SA_HEADER / SA_DETAIL, PAS status = SA_DETAIL.PAS_* columns, interface log = LOG_ITGPAS (inferred), WBS = SA_WBS_PERCENTAGE / MS_WBS; proposed outbox / history tables flagged; no sample data; added Export Excel section (SA-07)"
+  },
+  {
+   "revision": "0.6",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-29, DCR-30, DCR-31, DCR-33)"
   }
  ],
  "general": {
@@ -634,7 +641,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "ELIPS (SA Approval).\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Conflict] varchar(16) vs Char 22."
+   "description": "ELIPS (SA Approval).\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Revised - existing logic kept, see DCR] varchar(16) vs Char 22."
   },
   {
    "name": "SA Type",
@@ -784,7 +791,7 @@
    "required": "N",
    "format": "Z,ZZ9.99",
    "validation": "",
-   "description": "ELIPS snapshot.\nDB: Conflict - No KM / rate / currency columns on SA."
+   "description": "ELIPS snapshot.\nDB: Existing logic kept (DCR) - No KM / rate / currency columns on SA."
   },
   {
    "name": "ELIPS PO No / Rate / KM / Currency",
@@ -799,7 +806,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Cost reference PO (not the PAS PO, SM-04). Hidden by default.\nDB: Conflict - No KM / rate / currency columns on SA."
+   "description": "Cost reference PO (not the PAS PO, SM-04). Hidden by default.\nDB: Existing logic kept (DCR) - No KM / rate / currency columns on SA."
   },
   {
    "name": "Price",
@@ -814,7 +821,7 @@
    "required": "N",
    "format": "ZZZ,ZZZ,ZZ9",
    "validation": "",
-   "description": "Approved cost (snapshot). Green column.\nDB: ielp.SA_DETAIL.TOTAL_PRICE varchar(100) NULL [Conflict] varchar(100)."
+   "description": "Approved cost (snapshot). Green column.\nDB: ielp.SA_DETAIL.TOTAL_PRICE varchar(100) NULL [Revised - existing logic kept, see DCR] varchar(100)."
   },
   {
    "name": "WBS Consumption Master (Percentage) CS..CI",
@@ -907,7 +914,7 @@
    "required": "N",
    "format": "DD/MM/YYYY HH:MI",
    "validation": "",
-   "description": "'legacy' label for SA before TC-PBR SA Approval.\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Conflict] varchar(16) vs Char 22."
+   "description": "'legacy' label for SA before TC-PBR SA Approval.\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Revised - existing logic kept, see DCR] varchar(16) vs Char 22."
   },
   {
    "name": "Truck Company / Delivery Count / Total KM / Total Cost / Currency",
@@ -985,7 +992,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Source: ELIPS (SA Approval).\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Conflict] varchar(16) vs Char 22."
+   "description": "Source: ELIPS (SA Approval).\nDB: ielp.SA_DETAIL.SA_CODE varchar(16) NULL [Revised - existing logic kept, see DCR] varchar(16) vs Char 22."
   },
   {
    "name": "B. Trucking Information",
@@ -1045,7 +1052,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Source: ELIPS snapshot, not changed by PAS.\nDB: Conflict - No KM / rate / currency columns on SA."
+   "description": "Source: ELIPS snapshot, not changed by PAS.\nDB: Existing logic kept (DCR) - No KM / rate / currency columns on SA."
   },
   {
    "name": "E. PAS Information",
@@ -1137,35 +1144,35 @@
     "mappings": [
      {
       "dest_field": "PAS_STATUS",
-      "description": "'PROCESSING', then 'SENT' / 'FAILED' (batch result) [Conflict: PAS_STATUS is not a column of ielp.SA_HEADER]"
+      "description": "'PROCESSING', then 'SENT' / 'FAILED' (batch result) [DCR: PAS_STATUS not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "INTERFACE_ATTEMPT",
-      "description": "+ 1 [Conflict: INTERFACE_ATTEMPT is not a column of ielp.SA_HEADER]"
+      "description": "+ 1 [DCR: INTERFACE_ATTEMPT not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "CORRELATION_ID",
-      "description": "Not changed (stable) [Conflict: CORRELATION_ID is not a column of ielp.SA_HEADER]"
+      "description": "Not changed (stable) [DCR: CORRELATION_ID not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "ERROR_CD / ERROR_MSG",
-      "description": "Cleared on success, else error [Conflict: ERROR_CD is not a column of ielp.SA_HEADER] [Conflict: ERROR_MSG is not a column of ielp.SA_HEADER]"
+      "description": "Cleared on success, else error [DCR: ERROR_CD not in ielp.SA_HEADER - existing logic kept, see DCR list] [DCR: ERROR_MSG not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "INTERFACE_DT",
-      "description": "Server date-time on success [Conflict: INTERFACE_DT is not a column of ielp.SA_HEADER]"
+      "description": "Server date-time on success [DCR: INTERFACE_DT not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PAS_UPDATED_DT",
-      "description": "Server date-time [Conflict: PAS_UPDATED_DT is not a column of ielp.SA_HEADER]"
+      "description": "Server date-time [DCR: PAS_UPDATED_DT not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "PAS_VERSION",
-      "description": "+ 1 [Conflict: PAS_VERSION is not a column of ielp.SA_HEADER]"
+      "description": "+ 1 [DCR: PAS_VERSION not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      },
      {
       "dest_field": "Snapshot columns (SA_CODE, LP, PO_NUMBER, TOTAL_KM, TOTAL_COST, ...)",
-      "description": "Not changed [Conflict: TOTAL_KM is not a column of ielp.SA_HEADER] [Conflict: TOTAL_COST is not a column of ielp.SA_HEADER]"
+      "description": "Not changed [DCR: TOTAL_KM not in ielp.SA_HEADER - existing logic kept, see DCR list] [DCR: TOTAL_COST not in ielp.SA_HEADER - existing logic kept, see DCR list]"
      }
     ]
    },
@@ -1546,7 +1553,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -1591,7 +1598,7 @@
      "N",
      "R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "SA Type",
@@ -1672,7 +1679,7 @@
      "-",
      "R/W",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Price",
@@ -1681,7 +1688,7 @@
      "N",
      "R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "WBS %",
@@ -1714,7 +1721,7 @@
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -1723,12 +1730,12 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-SA-01 SA number length: UISS / code: SA_NO Char 22 (sa-rules.js saNumber). DB: SA_CODE varchar(16); SA_HEADER_ID varchar(20). Recommendation: Shorten the SA number format or widen SA_CODE (DB change request)",
-    "G-SA-02 Amounts as text: UISS / code: Numeric KM / price / cost. DB: SA_DETAIL.PRICE, TOTAL_PRICE varchar(100); TOTAL_TRIP varchar(10); SA_HEADER.SA_TOTAL varchar(5). Recommendation: Store numbers as text with fixed format or change types",
-    "G-SA-03 Total KM / rate per KM: UISS / code: TOTAL_KM, RATE_PER_KM, CURRENCY on SA. DB: No such columns (ROUTE_PRICE_ID -> MS_ROUTE_PRICE). Recommendation: Derive from MS_ROUTE_PRICE / TB_M_MILEAGE",
-    "G-SA-04 Status codes: UISS / code: Text statuses. DB: SA_HEADER.STATUS_CODE varchar(1), SA_DETAIL.STATUS_CODE varchar(2), SA_TYPE varchar(1). Recommendation: Code values TBD",
-    "G-SAM-01 Interface tracking: UISS / code: CORRELATION_ID, INTERFACE_ATTEMPT, FEEDBACK_STS, ERROR_CD on SA header. DB: SA_DETAIL PAS_* per detail; log in LOG_ITGPAS. Recommendation: Track per SA_DETAIL; attempts / correlation id TBD",
-    "G-SAM-02 VISION columns: UISS / code: -. DB: SA_DETAIL.IS_VISION / VISION_* exist. Recommendation: Meaning TBD (other interface?)"
+    "G-SA-01 SA number length: Existing logic kept: SA number ILS/TR/<LP>/<YYMMDD><NNNN> up to 22 characters (sa-rules.js saNumber). DCR-29: ALTER ielp.SA_DETAIL.SA_CODE and ielp.ORDER_CYCLE.SA_CODE varchar(16) -> varchar(25).",
+    "G-SA-02 Amounts as text: Existing logic kept: numeric KM / price / cost; stored as plain numbers in the existing varchar columns. No DB change: mapping as stated.",
+    "G-SA-03 Total KM / rate per KM: Existing logic kept: Total KM, rate per KM and currency kept on the SA (sa-rules.js calculate). DCR-30: ADD ielp.SA_DETAIL.TOTAL_KM decimal(9,2), RATE_PER_KM decimal(15,2), CURRENCY varchar(3).",
+    "G-SA-04 Status codes: Existing logic kept: SA statuses and types of sa-rules.js / sa-pas-rules.js. DCR-31: Register code values (SA_HEADER.STATUS_CODE, SA_TYPE, SA_DETAIL.STATUS_CODE) - data, no column change.",
+    "G-SAM-01 Interface tracking: Existing logic kept: interface tracking with correlation id, attempts, error code / message (sa-pas-rules.js). DCR-33: ADD ielp.SA_DETAIL.CORRELATION_ID varchar(60), INTERFACE_ATTEMPT int, ERROR_CD varchar(30), ERROR_MSG varchar(500).",
+    "G-SAM-02 VISION columns: Existing logic kept: VISION columns are not used by the TC-PBR logic. No DB change: mapping as stated."
    ]
   },
   {

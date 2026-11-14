@@ -5,7 +5,7 @@ Code: kpi.js, master-kpi.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Master_KPI](UISS_Screen_Master_KPI.xlsx) | screen | 0.4 (14-Nov-26) | [src/UISS_Screen_Master_KPI.json](src/UISS_Screen_Master_KPI.json) | 17 |
+| [UISS_Screen_Master_KPI](UISS_Screen_Master_KPI.xlsx) | screen | 0.5 (14-Nov-26) | [src/UISS_Screen_Master_KPI.json](src/UISS_Screen_Master_KPI.json) | 17 |
 
 Rules / specification:
 

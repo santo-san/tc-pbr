@@ -1,0 +1,76 @@
+{
+ "DCR-37": {
+  "table": "ielp.CRITERIA_SCORE_DETAIL_FINAL",
+  "columns": [
+   "FIX_COST",
+   "PARENT_PR_NO_DET"
+  ]
+ },
+ "DCR-38": {
+  "table": "ielp.LOG_ACTIVITY_ORDER",
+  "columns": [
+   "HIST_ID"
+  ]
+ },
+ "DCR-39": {
+  "table": "ielp.ORDER_CYCLE",
+  "columns": [
+   "LP_ACCEPTED_BY",
+   "LP_ACCEPTED_DT",
+   "LP_REJECT_BY",
+   "LP_REJECT_DT",
+   "SA_BY",
+   "SA_DT"
+  ]
+ },
+ "DCR-40": {
+  "table": "ielp.ORDER_TRUCK_H",
+  "columns": [
+   "HIST_ID",
+   "NEW_LP_STATUS",
+   "NEW_ORDER_STATUS",
+   "NEW_PLATE",
+   "PREV_LP_STATUS",
+   "PREV_ORDER_STATUS",
+   "PREV_PLATE"
+  ]
+ },
+ "DCR-41": {
+  "table": "ielp.PO_DETAIL",
+  "columns": [
+   "SA_DT"
+  ]
+ },
+ "DCR-42": {
+  "table": "ielp.SA_DETAIL",
+  "columns": [
+   "CALC_DT",
+   "CALC_SNAPSHOT",
+   "DESCRIPTION",
+   "DETAIL_KIND",
+   "END_DT",
+   "FORMULA",
+   "ORDER_DATE",
+   "PO_STATUS_AT_APPROVAL",
+   "PROD_MONTH",
+   "PR_NO",
+   "RETRY_COUNT"
+  ]
+ },
+ "DCR-43": {
+  "table": "ielp.SA_HEADER",
+  "columns": [
+   "DELIVERY_COUNT",
+   "INTERFACE_DT",
+   "PAS_STATUS",
+   "PAS_UPDATED_DT",
+   "PAS_VERSION",
+   "PO_VALID_FROM",
+   "PO_VALID_TO",
+   "PROD_MONTH",
+   "PR_NO",
+   "REQUEST_ID",
+   "TOTAL_COST"
+  ]
+ }
+}

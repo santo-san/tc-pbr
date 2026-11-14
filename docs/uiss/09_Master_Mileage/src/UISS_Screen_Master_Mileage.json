@@ -52,6 +52,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R1] Database mapping revised to the ELIPS schema (ielp.TB_M_MILEAGE, ielp.MS_LOCATION): columns / types from the DDL; conflicts recorded (no decimals, PK without TO_CODE, no status / VERSION); no sample data"
+  },
+  {
+   "revision": "0.7",
+   "author": "Susanto",
+   "date": "14-Nov-26",
+   "reviewed_by": "",
+   "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-06, DCR-07, DCR-08)"
   }
  ],
  "general": {
@@ -1026,7 +1033,7 @@
    "required": "Y",
    "format": "ZZZ,ZZ9.99",
    "validation": "Mandatory (msg 3); numeric > 0, max 2 decimals (msg 5)",
-   "description": "Distance in kilometre. Comma accepted as decimal separator.\nDB: ielp.TB_M_MILEAGE.MILEAGE decimal(18, 0) NULL [Conflict] decimal(18,0): decimals not stored."
+   "description": "Distance in kilometre. Comma accepted as decimal separator.\nDB: ielp.TB_M_MILEAGE.MILEAGE decimal(18, 0) NULL [Revised - existing logic kept, see DCR] decimal(18,0): decimals not stored."
   },
   {
    "name": "Save",
@@ -1164,7 +1171,7 @@
    "required": "",
    "format": "X..TBD..X",
    "validation": "",
-   "description": "DB: ielp.TB_M_MILEAGE.TO_CODE varchar(100) NULL [Conflict] Nullable, not part of PK."
+   "description": "DB: ielp.TB_M_MILEAGE.TO_CODE varchar(100) NULL [Revised - existing logic kept, see DCR] Nullable, not part of PK."
   },
   {
    "name": "To",
@@ -1194,7 +1201,7 @@
    "required": "",
    "format": "ZZZ,ZZ9.99",
    "validation": "",
-   "description": "Decimals shown only when present (e.g. 16, 7.5).\nDB: ielp.TB_M_MILEAGE.MILEAGE decimal(18, 0) NULL [Conflict] decimal(18,0): decimals not stored."
+   "description": "Decimals shown only when present (e.g. 16, 7.5).\nDB: ielp.TB_M_MILEAGE.MILEAGE decimal(18, 0) NULL [Revised - existing logic kept, see DCR] decimal(18,0): decimals not stored."
   },
   {
    "name": "Created Date",
@@ -1599,7 +1606,7 @@
       "description": "Rounded to 2 decimals"
      },
      {
-      "dest_field": "IS_DELETE (Active / Inactive: no column - Conflict)",
+      "dest_field": "IS_DELETE (+ new STATUS column - DCR, existing logic kept)",
       "description": "'A' (Active) (TBD)"
      },
      {
@@ -1619,7 +1626,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "1"
      },
      {
@@ -1644,7 +1651,7 @@
        "value": "To Code of the selected row"
       },
       {
-       "field": "VERSION (no column in ELIPS - Conflict)",
+       "field": "VERSION (new column - DCR, existing logic kept)",
        "value": "Version loaded into the form"
       }
      ]
@@ -1664,7 +1671,7 @@
       "description": "Server system date"
      },
      {
-      "dest_field": "VERSION (no column in ELIPS - Conflict)",
+      "dest_field": "VERSION (new column - DCR, existing logic kept)",
       "description": "VERSION + 1"
      },
      {
@@ -1973,7 +1980,7 @@
   },
   {
    "type": "text",
-   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Conflict = code / UISS rule not supported by the table; TBD = not confirmed.",
+   "text": "Source of truth for tables / columns / types: docs/db/ELIPS_Schema.sql. No sample data was available: value lists and status codes are TBD. Status: Verified = UISS already matched the schema; Revised = changed to the schema in this revision; Revised (DCR) = existing application logic kept, the table needs the DB change request listed below; TBD = not confirmed.",
    "level": 0
   },
   {
@@ -2045,7 +2052,7 @@
      "N",
      "R",
      "-",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "From name (stored)",
@@ -2072,7 +2079,7 @@
      "N",
      "R/W",
      "> 0",
-     "Conflict"
+     "Revised (DCR)"
     ],
     [
      "Created Date",
@@ -2117,13 +2124,13 @@
      "N",
      "R/W",
      "values TBD",
-     "Conflict"
+     "Revised (DCR)"
     ]
    ]
   },
   {
    "type": "text",
-   "text": "Conflicts (UISS / code vs ELIPS schema) - application not changed",
+   "text": "Conflicts resolved (decision 14-Nov-26): existing application logic kept; DB change requests (DCR) where the table cannot hold it",
    "bold": true,
    "level": 0
   },
@@ -2132,10 +2139,10 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "G-MML-01 Mileage decimals: UISS / code: Number 7,2 (max 2 decimals). DB: MILEAGE decimal(18,0) - no decimals. Recommendation: Round to whole KM in the UI or change the column (DB change request)",
-    "G-MML-02 Route key: UISS / code: From + To unique. DB: PK = LOC_NAME_FROM + FROM_CODE; TO_CODE nullable, not in key. Recommendation: Only one route per From is possible with this PK - confirm the table or change the PK",
-    "G-MML-03 Location names stored: UISS / code: Names read from Master Location. DB: LOC_NAME_FROM / LOC_NAME_TO NOT NULL in TB_M_MILEAGE (denormalised). Recommendation: Copy names on insert / update; define refresh when a location is renamed",
-    "G-MML-04 Active / Inactive and VERSION: UISS / code: STATUS, VERSION. DB: Only IS_DELETE varchar(5); no VERSION. Recommendation: Map status to IS_DELETE; concurrency by CHANGED_DT"
+    "G-MML-01 Mileage decimals: Existing logic kept: mileage > 0 with up to 2 decimals (master-mileage.js parseMileage). DCR-06: ALTER ielp.TB_M_MILEAGE.MILEAGE decimal(18,0) -> decimal(9,2).",
+    "G-MML-02 Route key: Existing logic kept: a route is unique by From + To (directional). DCR-07: ALTER ielp.TB_M_MILEAGE: TO_CODE NOT NULL; primary key (LOC_NAME_FROM, FROM_CODE) -> (FROM_CODE, TO_CODE).",
+    "G-MML-03 Location names stored: Existing logic kept: names shown from Master Location; LOC_NAME_FROM / LOC_NAME_TO filled with a copy of MS_LOCATION.LOCATION_NAME on save. No DB change: mapping as stated.",
+    "G-MML-04 Active / Inactive and VERSION: Existing logic kept: Active / Inactive status and VERSION. DCR-08: ADD ielp.TB_M_MILEAGE.STATUS varchar(8) NOT NULL default 'Active'; ADD VERSION int NOT NULL default 1."
    ]
   },
   {
