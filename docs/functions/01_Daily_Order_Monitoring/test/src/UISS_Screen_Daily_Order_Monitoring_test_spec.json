@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "Daily Order Monitoring",
   "uiss_name": "UISS-Screen Daily Order Monitoring",
-  "uiss_rev": "0.5",
+  "uiss_rev": "0.6",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -185,14 +185,14 @@
     {
      "key": "finish",
      "case": "Finish Cycle and Finish Order",
-     "ref": "UISS: 5.6.4, 5.6.5, Msg no.23, Data Map blk 6, Data Map blk 7",
+     "ref": "UISS: 5.6.4, 5.6.5, Msg no.23, Data Map blk 6, Data Map blk 7, Data Map blk 11",
      "procedure": [
       "Finish Order while cycle 2 has no Container Number.",
       "Finish Cycle (reason), then Finish Order."
      ],
      "expected": [
       "Msg no.23 (Error): 'Container Number of Cycle 2 has not been recorded.'",
-      "Cycle Finish Cycle (COMPLETE_DATE), order Finish Daily Order; DB ielp.ORDER_CYCLE / ielp.DTP_2_DETAIL STATUS_CODE, COMPLETE_DATE."
+      "[CR] Cycle Finish Cycle (COMPLETE_DATE); Order Status Waiting TM Acceptance (not Finish Daily Order); DB ielp.DTP_2_DETAIL.STATUS_CODE = Waiting TM Acceptance code, ielp.ORDER_CYCLE.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP (Data Map blk 11)."
      ]
     },
     {
@@ -206,6 +206,59 @@
      "expected": [
       "Msg no.7 (Error): 'Finish Order can only be performed when status is Start Daily Order.'",
       "Msg no.8 (Error): 'Supplier Viewer is not allowed to perform Order Release.'"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "[CR] Accept Finish Order (VPLD TM)",
+   "items": [
+    {
+     "key": "tmlist",
+     "case": "Waiting TM Acceptance: filter, counter, highlight, columns",
+     "ref": "UISS: Item 73-82, 5.2.2 h-i, 5.4, Gen Desc mode VPLD TM",
+     "procedure": [
+      "Login as VPLD TM. Open menu Daily > Daily Monitoring.",
+      "Check the counter [Waiting TM Acceptance (n)]; click it; click it again.",
+      "Order Status = Waiting TM Acceptance, [Find]; then [Clear].",
+      "Login as Planner VPLD and as LP Admin DNX."
+     ],
+     "expected": [
+      "Counter = number of orders Waiting TM Acceptance in the scope (SQL TD-20). Click: only Waiting TM Acceptance rows (light orange), chip highlighted; second click: all.",
+      "Columns Finish Scan (date-time + user), Accepted By, Accepted Date (\"-\" when not accepted); Order Status sub text \"Finish scan <date-time>\".",
+      "VPLD TM: check box and [Accept] only on rows Waiting TM Acceptance; [Accept Finish Order (0)] disabled.",
+      "Planner VPLD / LP Admin: same rows and columns, no check box / Accept buttons (view only)."
+     ]
+    },
+    {
+     "key": "tmone",
+     "case": "Accept one order (row and Order Detail)",
+     "ref": "UISS: Item 83-96, 5.6.7, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6",
+     "procedure": [
+      "VPLD TM: click [Accept] of order ORD-W1; check the confirmation; click [Cancel].",
+      "Click [Accept] again, [Confirm Accept].",
+      "Open Order Detail of ORD-W2, click [Accept Finish Order], [Confirm Accept]."
+     ],
+     "expected": [
+      "Msg no.31 (Confirmation): 'Accept Finish Order of 1 order(s)? Accepted orders become Finish Daily Order and are sent to SA Approval.'; list No. Order, Trucking Comp., License Plate / Driver, Finish Scan, Finished By (Driver scan / LP Admin (manual)), Cycle (Act / Plan), Container No., Last Destination (read only). Cancel: no change.",
+      "Msg no.32 (Info): '1 order(s) accepted. Order Status: Finish Daily Order.'; list and counter refreshed; Order Status Finish Daily Order, sub text \"TM accepted <date-time>\".",
+      "DB (SQL TD-20): ielp.DTP_2_DETAIL.STATUS_CODE = Finish Daily Order, TM_ACCEPT_BY = login user, TM_ACCEPT_DATE = now (DCR-44), VERSION + 1; ielp.LOG_ACTIVITY_ORDER row ACT Accept Finish Order; Log no.6 (Info): 'Accept Finish Order by tm1 (VPLD TM) on ORD-W1: Waiting TM Acceptance -> Finish Daily Order.'",
+      "Order Detail: Finish Scan and TM Accepted shown; the order is now listed in SA Approval (ST SA Approval)."
+     ]
+    },
+    {
+     "key": "tmbulk",
+     "case": "Bulk accept with selection",
+     "ref": "UISS: Item 74-76, 5.6.7, Msg no.37, Msg no.31, Msg no.32",
+     "procedure": [
+      "VPLD TM: click [Accept Finish Order (n)] with nothing selected (request / button state).",
+      "Tick 3 rows (two on page 1, one on page 2), click [Accept Finish Order (3)], [Confirm Accept].",
+      "Tick the header check box."
+     ],
+     "expected": [
+      "Msg no.37 (Warning): 'Please select at least one order with status Waiting TM Acceptance.'",
+      "Msg no.31 (Confirmation): 'Accept Finish Order of 3 order(s)? Accepted orders become Finish Daily Order and are sent to SA Approval.' then Msg no.32 (Info): '3 order(s) accepted. Order Status: Finish Daily Order.'; selection cleared.",
+      "Header check box selects all Waiting TM Acceptance rows of the filtered list."
      ]
     }
    ]
@@ -224,6 +277,30 @@
    ]
   },
   {
+   "key": "tmfail",
+   "case": "[CR] Accept refused: status changed / version / all-or-nothing",
+   "ref": "UISS: 5.6.7, Msg no.33, Msg no.34, Msg no.36, Log 7",
+   "procedure": [
+    "VPLD TM A and B select ORD-W3 and ORD-W4; B accepts ORD-W4; A clicks [Confirm Accept].",
+    "A selects ORD-W5; another user changes ORD-W5 (e.g. history entry); A confirms."
+   ],
+   "expected": [
+    "Msg no.33 (Error): '1 of 2 order(s) cannot be accepted. Nothing was accepted. (+ list \"<No. Order>: <reason>\")' with \"ORD-W4: Order {Order No} is no longer Waiting TM Acceptance (current status: {Status}). Please refresh the data.\"; ORD-W3 not accepted either (all-or-nothing); modal stays open; failed row unselected.",
+    "Msg no.36 (Error): 'Order ORD-W5 was changed by another user. Please refresh the data.' in the list; Log no.7 (Warning): 'Accept Finish Order by {User} refused: {x} of {n} order(s) failed ({Order No}: {reason}).'"
+   ]
+  },
+  {
+   "key": "tmrole",
+   "case": "[CR] Accept request by another role",
+   "ref": "UISS: 5.1, Msg no.35",
+   "procedure": [
+    "Send the accept request as Planner VPLD and as IELP Admin (browser tools)."
+   ],
+   "expected": [
+    "Msg no.35 (Error): 'Only VPLD Transportation Management can accept Finish Order.'; status unchanged."
+   ]
+  },
+  {
    "key": "iferr",
    "case": "SA / PAS interface not reachable",
    "ref": "UISS: Log 4",
@@ -238,7 +315,8 @@
  ],
  "test_data": {
   "precondition": [
-   "Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD.",
+   "Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD, [CR] VPLD TM (tm1).",
+   "[CR] Orders ORD-W1..ORD-W5 in Waiting TM Acceptance (finished by driver scan; ORD-W2 by LP Admin), DCR-44 applied, MS_STATUS code of Waiting TM Acceptance defined.",
    "Orders of 14-Nov-2026 for DNX (Planning Order, Order Release, Start Daily Order) and PNJ; trucks B 1234 DN (valid), license-expired truck.",
    "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
   ],
@@ -248,6 +326,12 @@
     "tc": "{tc:assign}, {tc:release}, {tc:sa}",
     "title": "Order and log",
     "sql": "SELECT ORDER_NO, LICENSE_PLATE, DRIVER_ID, STATUS_CODE, PO_NUMBER, UPDATED_BY, UPDATED_DATE FROM ielp.DTP_2_DETAIL WHERE ORDER_NO = :order_no;\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, STATUS_CODE, PICKUP_DATE, COMPLETE_DATE FROM ielp.ORDER_CYCLE WHERE ORDER_NO = :order_no;\nSELECT * FROM ielp.LOG_ACTIVITY_ORDER WHERE ORDER_NO = :order_no ORDER BY CREATED_DATE;"
+   },
+   {
+    "id": "TD-20",
+    "tc": "{tc:tmlist}, {tc:tmone}",
+    "title": "[CR] TM acceptance",
+    "sql": "SELECT COUNT(*) FROM ielp.DTP_2_DETAIL WHERE STATUS_CODE = :wait_tm_code;  -- counter\nSELECT ORDER_NO, STATUS_CODE, TM_ACCEPT_BY, TM_ACCEPT_DATE, UPDATED_BY, VERSION FROM ielp.DTP_2_DETAIL WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');  -- DCR-44 / DCR-36\nSELECT ORDER_NO, CYCLE_SEQ, FINISH_ORDER_DATE, FINISH_ORDER_BY, FINISH_BY_LP FROM ielp.ORDER_CYCLE WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');"
    }
   ]
  }

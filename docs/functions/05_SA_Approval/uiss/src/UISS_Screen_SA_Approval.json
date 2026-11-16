@@ -7,7 +7,7 @@
   "function_name": "TBD TC-PBR SA Approval (Service Acceptance)",
   "created_date": "04-Nov-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "16-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -45,6 +45,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-29, DCR-30, DCR-31, DCR-32)"
+  },
+  {
+   "revision": "0.6",
+   "author": "Susanto",
+   "date": "16-Nov-26",
+   "reviewed_by": "",
+   "description": "CR: Finish Order acceptance by VPLD Transportation Management. Eligibility clarified: Daily status Finish Daily Order is set only by the VPLD TM acceptance (orders Waiting TM Acceptance are not listed); TM Accepted column in the list and Finish Scan / TM Accepted By / Date in the Calculation Detail (DCR-44); SA-V01 text. Changed parts marked [CR]."
   }
  ],
  "general": {
@@ -52,7 +59,8 @@
    "To let VPLD perform Service Acceptance (GR) for deliveries finished by the LP, supporting the 3-way matching PR -> PO -> GR/SA.",
    "To validate each delivery against the applicable TC-PBR PO: route, Total KM, PO, rate and calculated cost, before approval.",
    "To generate the SA Number (ILS/TR/{code}/{YYMMDD}{NNNN}), save the SA with a calculation snapshot and update Daily Monitoring, without duplicate SA.",
-   "To let VPLD also perform SA for the monthly truck cost (Fixed Cost PR / PO, truck + driver rental per month) once the monthly PO is released."
+   "To let VPLD also perform SA for the monthly truck cost (Fixed Cost PR / PO, truck + driver rental per month) once the monthly PO is released.",
+   "[CR] Only deliveries whose Finish Order was accepted by VPLD Transportation Management on Daily Order Monitoring (Daily status Finish Daily Order) are listed; deliveries Waiting TM Acceptance are not."
   ],
   "display_order": [
    {
@@ -327,6 +335,14 @@
   {
    "caption": "14. Result - one SA per monthly PO",
    "image": "img/UISS_Screen_SA_Approval/m04_result.png"
+  },
+  {
+   "caption": "[CR] Order List with column TM Accepted (only deliveries accepted by VPLD TM are listed)",
+   "image": "img/UISS_Screen_SA_Approval/20_cr_sa_tm_column.png"
+  },
+  {
+   "caption": "[CR] Calculation Detail with Finish Scan and TM Accepted By / Date",
+   "image": "img/UISS_Screen_SA_Approval/21_cr_sa_calc_tm.png"
   }
  ],
  "items": [
@@ -1085,6 +1101,57 @@
    "format": "",
    "validation": "",
    "description": "Success: SA Number, trucking, PO, deliveries, total cost + 'Open SA Monitoring'. Failure: HTTP status, message, list per delivery."
+  },
+  {
+   "group": "<[CR] Order List Grid - addition>"
+  },
+  {
+   "name": "[CR] TM Accepted",
+   "source": "ielp.DTP_2_DETAIL",
+   "field": "TM_ACCEPT_BY / TM_ACCEPT_DATE",
+   "type": "Varchar / Datetime",
+   "len": "500 / -",
+   "io": "O",
+   "control": "Grid",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "X..X / YYYY-MM-DD HH:MI",
+   "validation": "",
+   "description": "VPLD TM user and below it the acceptance date-time (column after Order Date; Kolom can hide it). \"-\" for orders finished before go-live (OP-CR-06).\nDB: new columns, DCR-44."
+  },
+  {
+   "group": "<[CR] Calculation Detail Popup - addition>"
+  },
+  {
+   "name": "[CR] Finish Scan",
+   "source": "ielp.ORDER_CYCLE",
+   "field": "FINISH_ORDER_DATE / FINISH_ORDER_BY",
+   "type": "Datetime / Varchar",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "YYYY-MM-DD HH:MI · X..X",
+   "validation": "",
+   "description": "Delivery info: \"<date-time> · <user>\" of the Finish Order."
+  },
+  {
+   "name": "[CR] TM Accepted By / Date",
+   "source": "ielp.DTP_2_DETAIL",
+   "field": "TM_ACCEPT_BY / TM_ACCEPT_DATE",
+   "type": "Varchar / Datetime",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "X..X · YYYY-MM-DD HH:MI",
+   "validation": "",
+   "description": "Delivery info: \"<user> · <date-time>\" (DCR-44)."
   }
  ],
  "data_map": {
@@ -1467,7 +1534,13 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "Delivery is listed when Daily status = 'Finish Daily Order' (finished by LP) and SA_CODE is empty, and Order Date is within the criteria (SA-01). Delivery with an SA Number never appears again.",
+   "text": "Delivery is listed when Daily status = 'Finish Daily Order' and SA_CODE is empty, and Order Date is within the criteria (SA-01). Delivery with an SA Number never appears again. [CR] Since CR 16-Nov-26, 'Finish Daily Order' is set only by the VPLD TM acceptance on Daily Order Monitoring (Accept Finish Order); deliveries finished by the driver / LP Admin wait in 'Waiting TM Acceptance' and are not listed (no delivery reaches SA Approval without TM acceptance, except orders already Finish Daily Order before go-live - OP-CR-06 of Daily Order Monitoring).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "a2.",
+   "text": "[CR] The list shows TM Accepted (user / date) and the Calculation Detail shows Finish Scan and TM Accepted By / Date for information; they do not change the calculation or validation.",
    "level": 2
   },
   {
@@ -1568,7 +1641,7 @@
     [
      "SA-V01",
      "Not Eligible",
-     "Daily status is not Finish Daily Order"
+     "Daily status is not Finish Daily Order ([CR] includes Waiting TM Acceptance)"
     ],
     [
      "SA-V02",

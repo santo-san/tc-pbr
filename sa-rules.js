@@ -16,7 +16,8 @@
   const yymmdd = d => `${String(d.getFullYear()).slice(2)}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
   const e = (code, msg) => ({ code, label: ERR[code], msg });
 
-  // SA-01 eligibility: finished by LP (Daily status Finish Daily Order) and no SA Number yet
+  // SA-01 eligibility: Daily status Finish Daily Order and no SA Number yet. [CR] Finish Daily Order is set only by the VPLD TM
+  // acceptance (workflow.js tmAccept); orders Waiting TM Acceptance are therefore never eligible.
   const eligible = (o, finStatus) => o.status === finStatus && !o.saNo;
 
   // SA-04 route of the delivery = location codes of the finished cycles (Cycle n: From -> To)

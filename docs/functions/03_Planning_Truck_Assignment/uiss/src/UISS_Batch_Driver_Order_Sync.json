@@ -7,7 +7,7 @@
   "function_name": "TBD Driver Order Sync - HiveMQ (TC-PBR to Driver APK)",
   "created_date": "03-Nov-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "16-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-23)"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "16-Nov-26",
+   "reviewed_by": "",
+   "description": "CR: Finish Order acceptance by VPLD Transportation Management. Order status Waiting TM Acceptance (after Finish Order scan, before VPLD TM acceptance) handled as finished: HISTORY. Changed parts marked [CR]."
   }
  ],
  "general": {
@@ -1651,7 +1658,7 @@
      "Card refreshed"
     ],
     [
-     "Cycle Finish Cycle, or order Finish Daily Order / SA",
+     "Cycle Finish Cycle, or order [CR] Waiting TM Acceptance / Finish Daily Order / SA",
      "HISTORY",
      "Card moves to Riwayat"
     ],
@@ -1672,6 +1679,11 @@
     ]
    ],
    "row_lines": "all"
+  },
+  {
+   "type": "text",
+   "text": "[CR] After the driver scans Finish Order the order is Waiting TM Acceptance (VPLD TM acceptance on Daily Order Monitoring). For the APK this is a finished order: the card moves to history (HISTORY); the later TM acceptance (Finish Daily Order) needs no new card.",
+   "level": 1
   },
   {
    "type": "text",

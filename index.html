@@ -64,6 +64,7 @@
           <select id="roleSel">
             <option value="ip">IELP Admin - Admin IELP</option>
             <option value="planner">Planner VPLD - planner1</option>
+            <option value="tm">VPLD TM - tm1 (Transportation Management)</option>
             <option value="sup:PBM:view">Supplier - PT. Pusaka Bahari Mandiri (Viewer)</option>
             <option value="sup:PBM:lp">Supplier - PT. Pusaka Bahari Mandiri (LP Admin)</option>
             <option value="sup:SRL:lp">Supplier - PT. Serasi Logistics (LP Admin)</option>
@@ -87,6 +88,7 @@
       <div><label for="dateTo">Date To</label><input type="date" id="dateTo"></div>
       <div><label for="fromLoc">From Loc.</label><select id="fromLoc"><option value="">Select an option</option></select></div>
       <div><label for="toLoc">To Loc.</label><select id="toLoc"><option value="">Select an option</option></select></div>
+      <div><label for="stsFilter">Order Status</label><select id="stsFilter"><option value="">All</option></select></div>
       <div class="filter-btns">
         <button class="btn-dark" id="btnFind">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Find
@@ -114,6 +116,8 @@
           REFRESH
         </button>
         <button class="btn-blue" id="btnCreateDTP">+ Create DTP</button>
+        <button class="chip-tm" id="chipTm" title="Show the orders waiting for VPLD TM acceptance">Waiting TM Acceptance <b id="tmCount">0</b></button>
+        <button class="btn-blue" id="btnTmAccept" disabled>Accept Finish Order (<span id="tmSel">0</span>)</button>
         <span class="spacer"></span>
         <div class="search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
@@ -142,6 +146,7 @@
         <table>
           <thead>
             <tr>
+              <th rowspan="2" data-col="sel" title="Select orders Waiting TM Acceptance"><input type="checkbox" id="tmAll"></th>
               <th rowspan="2" class="sortable" data-col="action" data-sort="orderNo">Action<span class="arrow">▲</span></th>
               <th rowspan="2" class="sortable" data-col="date" data-sort="date">Date</th>
               <th rowspan="2" class="sortable" data-col="orderNo" data-sort="orderNo" style="min-width:110px">No. Order</th>
@@ -159,6 +164,9 @@
               <th data-col="c4">CYCLE 4</th>
               <th data-col="c5">CYCLE 5</th>
               <th rowspan="2" class="sortable" data-col="status" data-sort="status">Order Status</th>
+              <th rowspan="2" class="sortable" data-col="finishScan" data-sort="finishScanAt" style="min-width:120px">Finish Scan</th>
+              <th rowspan="2" data-col="tmBy" style="min-width:90px">Accepted By</th>
+              <th rowspan="2" class="sortable" data-col="tmAt" data-sort="tmAcceptedAt" style="min-width:120px">Accepted Date</th>
             </tr>
             <tr>
               <th data-col="c1">Container No.</th>
@@ -227,11 +235,11 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="workflow.js?v=20261111a"></script>
+<script src="workflow.js?v=20261116a"></script>
 <script src="vendor/xlsx/xlsx.full.min.js"></script>
 <script src="master-kpi.js?v=20261113b"></script>
 <script src="dtp-rules.js?v=20261113c"></script>
-<script src="app.js?v=20261104a"></script>
+<script src="app.js?v=20261116a"></script>
 <script src="dtp.js?v=20261113c"></script>
 <script src="truck-assign.js?v=20261102a"></script>
 <script src="vendor/jspdf/jspdf.umd.min.js"></script>
@@ -240,7 +248,7 @@
 <script src="delivery-note.js?v=20261103b"></script>
 <script src="sa-rules.js?v=20261104c"></script>
 <script src="sa-pas-rules.js?v=20261104a"></script>
-<script src="sa.js?v=20261104c"></script>
+<script src="sa.js?v=20261116a"></script>
 <script src="sa-monitoring.js?v=20261104b"></script>
 </body>
 </html>

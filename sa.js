@@ -7,6 +7,7 @@
   const lpCodeOf = name => (SUPPLIERS.find(s => s[0] === name) || [])[1] || '';
   const monthStart = ym => `${ym.slice(0, 4)}-${ym.slice(4, 6)}-01`;
   const monthEnd = ym => { const d = new Date(+ym.slice(0, 4), +ym.slice(4, 6), 0); return SA.ymd(d); };
+  const fmtAt = d => { const t = new Date(d); return isNaN(t) ? '-' : `${W.ymd(t)} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`; }; // [CR] TM acceptance info
   const isVPLD = () => state.actor.role === 'PLANNER';
   const canSeeApproval = () => ['PLANNER', 'IELP_ADMIN'].includes(state.actor.role);
 
@@ -90,7 +91,7 @@
   const today = SA.ymd(new Date());
   const lastMonth = (() => { const d = new Date(); d.setMonth(d.getMonth() - 1, 1); return SA.ymd(d); })();
   const sa = { from: lastMonth, to: today, q: '', tab: 'regular', sel: new Set(), page: 1, size: 10, sim: '', hidden: new Set(['service']), calc: {}, mcalc: {} };
-  const COLS = [['valid', 'Validation'], ['dtp', 'DTP Type'], ['orderNo', 'Order Number'], ['date', 'Order Date'], ['lp', 'Truck Company'], ['po', 'PO Number'], ['poValid', 'PO Validity'],
+  const COLS = [['valid', 'Validation'], ['dtp', 'DTP Type'], ['orderNo', 'Order Number'], ['date', 'Order Date'], ['tm', 'TM Accepted'], ['lp', 'Truck Company'], ['po', 'PO Number'], ['poValid', 'PO Validity'],
     ['ctr', 'CTR Size'], ['km', 'Total KM'], ['rate', 'Rate / KM'], ['cost', 'Price'], ['cur', 'Currency'], ['route', 'Order Route'], ['service', 'Service (cycle)'], ['cycles', 'Cycle 1 - 5']];
   function rows() {
     const q = sa.q.trim().toLowerCase(), c = ctx();
@@ -163,7 +164,7 @@
         </div>
         ${sa.tab === 'inter' ? '<p class="q-note sa-empty">Inter Plant Trip: selection rule not defined yet (TBD, see open questions).</p>' : ''}
         ${mon ? monthlyTable(all.map(x => x.r), view.map(x => x.r), vp) : `<div class="table-wrap"><table class="sa-tbl"><thead>
-          <tr><th rowspan="2"></th><th rowspan="2">Actions</th>${COLS.slice(0, 13).map(([k, l]) => `<th rowspan="2"${hid(k)}>${l}</th>`).join('')}
+          <tr><th rowspan="2"></th><th rowspan="2">Actions</th>${COLS.slice(0, 14).map(([k, l]) => `<th rowspan="2"${hid(k)}>${l}</th>`).join('')}
             ${[1, 2, 3, 4, 5].map(n => `<th colspan="${sa.hidden.has('service') ? 1 : 2}"${hid('cycles')}>Cycle ${n}</th>`).join('')}</tr>
           <tr>${[1, 2, 3, 4, 5].map(() => `<th${hid('service')}${sa.hidden.has('cycles') ? ' style="display:none"' : ''}>Service</th><th${hid('cycles')}>Order Cycle</th>`).join('')}</tr></thead>
           <tbody>${view.map(({ o, r }) => `<tr class="${r.valid ? '' : 'sa-bad'}">
@@ -171,6 +172,7 @@
             <td><div class="ta-act"><button class="act" data-sadet="${o.orderNo}" title="Calculation detail">&#9776;</button><button class="act" data-saod="${o.orderNo}" title="Order Detail (Daily Monitoring)">&#128196;</button></div></td>
             <td${hid('valid')}>${r.valid ? '<span class="st av">Ready</span>' : r.errors.map(x => `<span class="st fl" title="${esc(x.msg)}">${x.label}</span>`).join(' ')}</td>
             <td${hid('dtp')}>${o.type.replace('DTP', 'DTP-')}</td><td${hid('orderNo')}>${o.orderNo}</td><td${hid('date')}>${o.date}</td>
+            <td${hid('tm')}>${o.tmAccepted ? `${esc(o.tmAccepted.by)}<br><small>${fmtAt(o.tmAccepted.at)}</small>` : '-'}</td>
             <td class="left"${hid('lp')}>${r.lpCode || '?'} - ${esc(o.supplier)}</td><td${hid('po')}>${r.poNo || '-'}</td>
             <td${hid('poValid')}>${r.poFrom ? `${r.poFrom} - ${r.poTo}` : '-'}</td><td${hid('ctr')}>${o.dtp?.ctrSize || '-'}</td>
             <td class="num"${hid('km')}>${kmFmt(r.totalKm)}</td><td class="num"${hid('rate')}>${money(r.rate)}</td>
@@ -184,7 +186,8 @@
 
   function detailHtml(d, o) {
     return `<div class="ta-info">
-        <div><b>Order Number</b>${d.orderNo}</div><div><b>Order Date</b>${d.date}</div><div><b>Trucking Company</b>${d.lpCode || '?'} - ${esc(d.lpName)}</div><div><b>License Plate / Driver</b>${o ? `${o.truck || '-'} / ${esc(o.driver || '-')}` : '-'}</div></div>
+        <div><b>Order Number</b>${d.orderNo}</div><div><b>Order Date</b>${d.date}</div><div><b>Trucking Company</b>${d.lpCode || '?'} - ${esc(d.lpName)}</div><div><b>License Plate / Driver</b>${o ? `${o.truck || '-'} / ${esc(o.driver || '-')}` : '-'}</div>
+        <div><b>Finish Scan</b>${o?.finishScan ? `${fmtAt(o.finishScan.at)} · ${esc(o.finishScan.by)}` : '-'}</div><div><b>TM Accepted By / Date</b>${o?.tmAccepted ? `${esc(o.tmAccepted.by)} · ${fmtAt(o.tmAccepted.at)}` : '-'}</div></div>
       <h4 class="sa-h4">Route &amp; Total KM</h4>
       <table class="sa-mini"><tr><th>Cycle</th><th>From</th><th>To</th><th>Container</th><th>KM (Master Mileage)</th></tr>
         ${d.legs.map(l => `<tr><td>${l.cycle}</td><td>${l.from || '?'} - ${esc(l.fromName)}</td><td>${l.to || '?'} - ${esc(l.toName)}</td><td>${l.container || '-'}</td><td class="num">${kmFmt(l.km)}</td></tr>`).join('')}

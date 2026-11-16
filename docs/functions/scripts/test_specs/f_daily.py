@@ -3,6 +3,7 @@ Planning Truck Assignment (+ driver sync), Delivery Note (+ GR attachment). Data
 from common import C, LOGCHK
 
 D2, OC, LAO = 'ielp.DTP_2_DETAIL', 'ielp.ORDER_CYCLE', 'ielp.LOG_ACTIVITY_ORDER'
+WTM = 'Waiting TM Acceptance'  # [CR] 16-Nov-26
 DCRN = 'Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept).'
 
 
@@ -50,23 +51,44 @@ def daily_monitoring(u):
         ['Pickup on an order in Planning Order.', 'Order Release: Container "ABC123"; "MSKU1234560" (bad check digit); a number used twice in the order; a number active in another order.', 'Valid "MSKU1234565", [Submit].', 'After Finish Cycle of cycle 5, Pickup again.'],
         [M(21), M(17) + ' / ' + M(18, {'Container No': 'MSKU1234560'}) + ' / ' + M(19, {'Container No': 'MSKU1234565'}) + ' / ' + M(20, {'Container No': 'TCLU7654321', 'Order No': 'ORD-02'}),
          f'Start Daily Order, cycle Pickup Container; DB {OC}.CONTAINER_NO, STATUS_CODE, PICKUP_DATE; next cycle inserted after Finish Cycle (blk 4).', M(22)], tbd='OP-07'),
-      C('finish', 'Finish Cycle and Finish Order', 'UISS: 5.6.4, 5.6.5, Msg no.23, Data Map blk 6, Data Map blk 7',
-        ['Finish Order while cycle 2 has no Container Number.', 'Finish Cycle (reason), then Finish Order.'], [M(23, {'n': '2'}), f'Cycle Finish Cycle (COMPLETE_DATE), order Finish Daily Order; DB {OC} / {D2} STATUS_CODE, COMPLETE_DATE.']),
+      C('finish', 'Finish Cycle and Finish Order', 'UISS: 5.6.4, 5.6.5, Msg no.23, Data Map blk 6, Data Map blk 7, Data Map blk 11',
+        ['Finish Order while cycle 2 has no Container Number.', 'Finish Cycle (reason), then Finish Order.'],
+        [M(23, {'n': '2'}), f'[CR] Cycle Finish Cycle (COMPLETE_DATE); Order Status {WTM} (not Finish Daily Order); DB {D2}.STATUS_CODE = {WTM} code, {OC}.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP (Data Map blk 11).']),
       C('rules', 'Status / role rule check', 'UISS: 5.5, Msg no.7, Msg no.8', ['Send Finish Order for an order in Planning Order (request).', 'Supplier Viewer sends Order Release (request).'],
-        [M(7, {'Action': 'Finish Order', 'Allowed Status': 'Start Daily Order'}), M(8, {'Role': 'Supplier Viewer', 'Action': 'Order Release'})])]}]
+        [M(7, {'Action': 'Finish Order', 'Allowed Status': 'Start Daily Order'}), M(8, {'Role': 'Supplier Viewer', 'Action': 'Order Release'})])]},
+     {'title': '[CR] Accept Finish Order (VPLD TM)', 'items': [
+      C('tmlist', 'Waiting TM Acceptance: filter, counter, highlight, columns', 'UISS: Item 73-82, 5.2.2 h-i, 5.4, Gen Desc mode VPLD TM',
+        ['Login as VPLD TM. ' + OPEN, 'Check the counter [Waiting TM Acceptance (n)]; click it; click it again.', f'Order Status = {WTM}, [Find]; then [Clear].', 'Login as Planner VPLD and as LP Admin DNX.'],
+        [f'Counter = number of orders {WTM} in the scope (SQL TD-20). Click: only {WTM} rows (light orange), chip highlighted; second click: all.', 'Columns Finish Scan (date-time + user), Accepted By, Accepted Date ("-" when not accepted); Order Status sub text "Finish scan <date-time>".',
+         'VPLD TM: check box and [Accept] only on rows ' + WTM + '; [Accept Finish Order (0)] disabled.', 'Planner VPLD / LP Admin: same rows and columns, no check box / Accept buttons (view only).']),
+      C('tmone', 'Accept one order (row and Order Detail)', 'UISS: Item 83-96, 5.6.7, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6',
+        ['VPLD TM: click [Accept] of order ORD-W1; check the confirmation; click [Cancel].', 'Click [Accept] again, [Confirm Accept].', 'Open Order Detail of ORD-W2, click [Accept Finish Order], [Confirm Accept].'],
+        [M(31, {'n': '1'}) + '; list No. Order, Trucking Comp., License Plate / Driver, Finish Scan, Finished By (Driver scan / LP Admin (manual)), Cycle (Act / Plan), Container No., Last Destination (read only). Cancel: no change.',
+         M(32, {'n': '1'}) + '; list and counter refreshed; Order Status Finish Daily Order, sub text "TM accepted <date-time>".',
+         f'DB (SQL TD-20): {D2}.STATUS_CODE = Finish Daily Order, TM_ACCEPT_BY = login user, TM_ACCEPT_DATE = now (DCR-44), VERSION + 1; {LAO} row ACT Accept Finish Order; ' + L(6, {'User': 'tm1', 'Order No': 'ORD-W1'}),
+         'Order Detail: Finish Scan and TM Accepted shown; the order is now listed in SA Approval (ST SA Approval).']),
+      C('tmbulk', 'Bulk accept with selection', 'UISS: Item 74-76, 5.6.7, Msg no.37, Msg no.31, Msg no.32',
+        ['VPLD TM: click [Accept Finish Order (n)] with nothing selected (request / button state).', 'Tick 3 rows (two on page 1, one on page 2), click [Accept Finish Order (3)], [Confirm Accept].', 'Tick the header check box.'],
+        [M(37), M(31, {'n': '3'}) + ' then ' + M(32, {'n': '3'}) + '; selection cleared.', 'Header check box selects all ' + WTM + ' rows of the filtered list.'])]}]
     ab = [C('version', 'Concurrency check', 'UISS: Msg no.9', ['Users A and B open the same order; B submits an action first, then A.'], [M(9)]),
+          C('tmfail', '[CR] Accept refused: status changed / version / all-or-nothing', 'UISS: 5.6.7, Msg no.33, Msg no.34, Msg no.36, Log 7',
+            ['VPLD TM A and B select ORD-W3 and ORD-W4; B accepts ORD-W4; A clicks [Confirm Accept].', 'A selects ORD-W5; another user changes ORD-W5 (e.g. history entry); A confirms.'],
+            [M(33, {'x': '1', 'n': '2'}) + ' with "ORD-W4: ' + M(34).split(": '", 1)[1].rstrip("'") + '"; ORD-W3 not accepted either (all-or-nothing); modal stays open; failed row unselected.',
+             M(36, {'Order No': 'ORD-W5'}) + ' in the list; ' + L(7)]),
+          C('tmrole', '[CR] Accept request by another role', 'UISS: 5.1, Msg no.35', ['Send the accept request as Planner VPLD and as IELP Admin (browser tools).'], [M(35) + '; status unchanged.']),
           C('iferr', 'SA / PAS interface not reachable', 'UISS: Log 4', ['Stop the SA interface stub; Process to SA.'], [L(4, {'SA/PAS': 'SA'}), 'Status not changed.'])]
-    td = {'precondition': ['Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD.', 'Orders of 14-Nov-2026 for DNX (Planning Order, Order Release, Start Daily Order) and PNJ; trucks B 1234 DN (valid), license-expired truck.', DCRN],
-          'sql_verify': [{'id': 'TD-10', 'tc': '{tc:assign}, {tc:release}, {tc:sa}', 'title': 'Order and log', 'sql': f"SELECT ORDER_NO, LICENSE_PLATE, DRIVER_ID, STATUS_CODE, PO_NUMBER, UPDATED_BY, UPDATED_DATE FROM {D2} WHERE ORDER_NO = :order_no;\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, STATUS_CODE, PICKUP_DATE, COMPLETE_DATE FROM {OC} WHERE ORDER_NO = :order_no;\nSELECT * FROM {LAO} WHERE ORDER_NO = :order_no ORDER BY CREATED_DATE;"}]}
+    td = {'precondition': ['Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD, [CR] VPLD TM (tm1).', f'[CR] Orders ORD-W1..ORD-W5 in {WTM} (finished by driver scan; ORD-W2 by LP Admin), DCR-44 applied, MS_STATUS code of {WTM} defined.', 'Orders of 14-Nov-2026 for DNX (Planning Order, Order Release, Start Daily Order) and PNJ; trucks B 1234 DN (valid), license-expired truck.', DCRN],
+          'sql_verify': [{'id': 'TD-10', 'tc': '{tc:assign}, {tc:release}, {tc:sa}', 'title': 'Order and log', 'sql': f"SELECT ORDER_NO, LICENSE_PLATE, DRIVER_ID, STATUS_CODE, PO_NUMBER, UPDATED_BY, UPDATED_DATE FROM {D2} WHERE ORDER_NO = :order_no;\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, STATUS_CODE, PICKUP_DATE, COMPLETE_DATE FROM {OC} WHERE ORDER_NO = :order_no;\nSELECT * FROM {LAO} WHERE ORDER_NO = :order_no ORDER BY CREATED_DATE;"},
+                         {'id': 'TD-20', 'tc': '{tc:tmlist}, {tc:tmone}', 'title': '[CR] TM acceptance', 'sql': f"SELECT COUNT(*) FROM {D2} WHERE STATUS_CODE = :wait_tm_code;  -- counter\nSELECT ORDER_NO, STATUS_CODE, TM_ACCEPT_BY, TM_ACCEPT_DATE, UPDATED_BY, VERSION FROM {D2} WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');  -- DCR-44 / DCR-36\nSELECT ORDER_NO, CYCLE_SEQ, FINISH_ORDER_DATE, FINISH_ORDER_BY, FINISH_BY_LP FROM {OC} WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');"}]}
     return {'header': u.header(), 'groups': g, 'abnormal': ab, 'test_data': td}
 
 
 def download_dom(u):
     L = u.L
     E = ['Login as IELP Admin, open Daily > Daily Monitoring, set the criteria of the case, click [Export] > [Export ke Excel (.xlsx)].']
-    n = [C('file', 'Export file: header, criteria, body, footer', 'UISS: Item 1-28, 1., 2.3, 3., 4., Log no.6',
-           ['Open the downloaded file.'], ['Header Report Title, Printed By, Printed Date; Print Criteria = screen criteria.', 'One row per order (all pages, grid sort), cycles 1..5 Time / Status / Container, Order Status, SA Approved At, PO Number; Total row.', L(6, {'0': 'n'})], execution=E),
-         C('scope', 'Data scope by role and filters', 'UISS: 2.3 a-e', ['Export as LP Admin of DNX with tab DTP 2 and keyword "SNT".'], ['Only DNX DTP 2 orders containing "SNT"; same rows as the grid.'],
+    n = [C('file', 'Export file: header, criteria, body, footer', 'UISS: Item 1-29, 1., 2.3, 3., 4., Log no.6',
+           ['Open the downloaded file.'], ['Header Report Title, Printed By, Printed Date; Print Criteria = screen criteria ([CR] incl. Order Status, "All" when not selected).', 'One row per order (all pages, grid sort), cycles 1..5 Time / Status / Container, Order Status, SA Approved At, PO Number; Total row.', L(6, {'0': 'n'})], execution=E),
+         C('scope', 'Data scope by role and filters', 'UISS: 2.3 a-e, 2.3 b2', ['Export as LP Admin of DNX with tab DTP 2 and keyword "SNT".', f'[CR] Export with Order Status = {WTM} (or after clicking the counter).'], ['Only DNX DTP 2 orders containing "SNT"; same rows as the grid.', f'Only {WTM} orders; Print Criteria "Order Status : {WTM}"; no Finish Scan / Accepted columns in the file.'],
            execution=['Login as LP Admin DNX, open Daily Monitoring, click tab DTP 2, Search "SNT", Export.'])]
     ab = [C('nodata', 'No data', 'UISS: 2.3 f, Log no.3', ['Check the screen and the download folder.'], [L(3), 'No file.'], execution=['Export with a date without orders.']),
           C('max', 'Over the maximum rows', 'UISS: Log no.4', ['Check the screen.'], [L(4, {'0': 'max (TBD)'})], execution=['Export a range above the maximum rows (TBD).'], tbd='Max rows TBD'),

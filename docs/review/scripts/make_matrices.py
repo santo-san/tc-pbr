@@ -2,7 +2,7 @@
   06-database-mapping-matrix.md, 07-gap-analysis.md, 10-tbd-list.md, 11-traceability-matrix.md
 Usage: python3 make_matrices.py <repo root>"""
 import json, glob, os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'uiss', 'scripts'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'functions', 'scripts'))
 from uiss_paths import locate
 R = sys.argv[1] if len(sys.argv) > 1 else '.'
 S = json.load(open(os.path.join(R, 'docs/db/schema.json')))
@@ -81,6 +81,7 @@ EXTRA = [('G-GEN-01', 'All UISS', 'Proposed / logical table names (TB_R_DTP_RECO
  ('G-GEN-04', 'All UISS', 'Concurrency by VERSION (msg "changed by another user")', 'version compared in every rule module', 'Only MS_RENBAN_TCPBR has VERSION', 'Use UPDATED_DATE as optimistic lock or add VERSION columns'),
  ('G-MLC-05', 'Master / Location Code', 'Map = Google Maps (existing)', 'Leaflet + OpenStreetMap Nominatim (location.js:99, :117)', '-', 'Keep UISS (Google Maps = ELIPS); the mock-up uses OSM as a stand-in - note in UISS'),
  ('G-DM-05', 'Daily / Daily Monitoring', 'DTP creation only in Planning Order by Planner VPLD (U04)', 'Legacy "+ Create DTP" dialog for IELP Admin still in Daily Monitoring (app.js:558, workflow.js:84-97)', '-', 'Potential application issue BUG-01; decide remove or document'),
+ ('G-DM-06', 'Daily / Daily Monitoring, SA Approval (CR 16-Nov-26)', 'Finish Order accepted by VPLD TM: status Waiting TM Acceptance, accepted by / date', 'workflow.js ORDER.WAIT_TM, ACTIONS.tmAccept, tmAcceptMany', 'No TM acceptance columns; status code via MS_STATUS (no sample data)', 'Add acceptance columns and the status code'),
  ('G-COM-01', 'Master (all)', 'Role access not specified (Master Mileage shows "IELP Admin only")', 'No role check in master.js / master-*.js', 'USERID_MENU_OPTION decides menu access', 'Specify in UISS Menu & Authorization; BUG-02')]
 for g in EXTRA:
     L.append(f"| {g[0]} | {g[1]} | {esc(g[2])} | {esc(g[3])} | {esc(g[4])} | No sample data | {esc(DEC[g[0]]['decision'] if g[0] in DEC else g[5])} | {dcr(g[0])} |"); n07 += 1

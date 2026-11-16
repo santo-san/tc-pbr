@@ -5,11 +5,12 @@
     PLAN: 'Planning Order',
     REL: 'Order Release',
     START: 'Start Daily Order',
+    WAIT_TM: 'Waiting TM Acceptance', // [CR] driver / LP finished, waiting for VPLD Transportation Management acceptance
     FIN: 'Finish Daily Order',
     SA: 'SA Approved',
     PO: 'SA Approved with PO Number',
   };
-  const ORDER_SEQ = [ORDER.PLAN, ORDER.REL, ORDER.START, ORDER.FIN, ORDER.SA, ORDER.PO];
+  const ORDER_SEQ = [ORDER.PLAN, ORDER.REL, ORDER.START, ORDER.WAIT_TM, ORDER.FIN, ORDER.SA, ORDER.PO];
   const CYCLE = {
     DTP: 'DTP Creation Release',
     START: 'Start Cycle',
@@ -25,6 +26,7 @@
   const cur = o => o.cycles[o.cycles.length - 1];
   const roleLabel = a => a.role === 'IELP_ADMIN' ? 'IELP Admin'
     : a.role === 'PLANNER' ? 'Planner VPLD'
+    : a.role === 'VPLD_TM' ? 'VPLD TM'
     : a.role === 'DRIVER' ? 'Driver'
     : a.role === 'SYSTEM' ? 'System'
     : a.lpAdmin ? 'Supplier (LP Admin)' : 'Supplier';
@@ -55,7 +57,7 @@
 
   // ---------- Visibility ----------
   function canView(actor, o) {
-    if (actor.role === 'IELP_ADMIN' || actor.role === 'PLANNER' || actor.role === 'SYSTEM') return true;
+    if (['IELP_ADMIN', 'PLANNER', 'VPLD_TM', 'SYSTEM'].includes(actor.role)) return true;
     if (actor.role === 'SUPPLIER') return o.supplier === actor.supplier;
     if (actor.role === 'DRIVER') return o.supplier === actor.supplier && !!o.truck && o.truck === actor.truck;
     return false;
@@ -291,10 +293,20 @@
         if (miss >= 0) e._ = `Container Number Cycle ${miss + 1} belum tercatat`;
         return e;
       },
-      apply(o) {
-        o.status = ORDER.FIN;
-        return o.cycles.length < o.planned ? `Aktual ${o.cycles.length} dari rencana ${o.planned} cycle` : '';
+      // [CR] Finish Order no longer finishes the order: it waits for the VPLD TM acceptance (tmAccept)
+      apply(o, p, a, at) {
+        o.status = ORDER.WAIT_TM;
+        o.finishScan = { at, by: a.name, byLp: isLp(a) };
+        const note = o.cycles.length < o.planned ? `Aktual ${o.cycles.length} dari rencana ${o.planned} cycle` : '';
+        return [note, 'Menunggu acceptance VPLD TM'].filter(Boolean).join(' · ');
       },
+    },
+    // [CR] VPLD Transportation Management accepts the finish order; only then the order is Finish Daily Order (-> SA Approval)
+    tmAccept: {
+      label: 'Accept Finish Order', allow: a => a.role === 'VPLD_TM',
+      fields: () => [],
+      guard: o => o.status !== ORDER.WAIT_TM && `Order ${o.orderNo} is no longer ${ORDER.WAIT_TM} (current status: ${o.status}). Please refresh the data.`,
+      apply(o, p, a, at) { o.status = ORDER.FIN; o.tmAccepted = { by: a.name, at }; return 'Finish Order accepted by VPLD TM'; },
     },
     // SA is approved by VPLD on the SA Approval screen (sa.js / sa-rules.js). processSA is kept for the legacy seed data only (SYSTEM).
     saApprove: {
@@ -370,9 +382,37 @@
     return { ok: true };
   }
 
+  // ---------- [CR] Finish Order acceptance by VPLD TM (bulk, all-or-nothing) ----------
+  // items: [{ orderNo, version }] where version = number of history rows when the row was displayed (stands for VERSION)
+  const TM_MSG = {
+    none: 'Please select at least one order with status Waiting TM Acceptance.',
+    noAuth: 'Only VPLD Transportation Management can accept Finish Order.',
+    version: no => `Order ${no} was changed by another user. Please refresh the data.`,
+    failed: (x, n) => `${x} of ${n} order(s) cannot be accepted. Nothing was accepted.`,
+    ok: n => `${n} order(s) accepted. Order Status: ${ORDER.FIN}.`,
+  };
+  const rowVersion = o => o.history.length;
+  function tmAcceptMany(items, actor, at, ctx) {
+    if (actor.role !== 'VPLD_TM') return { ok: false, code: 'FORBIDDEN', message: TM_MSG.noAuth, failed: [] };
+    if (!items || !items.length) return { ok: false, code: 'EMPTY', message: TM_MSG.none, failed: [] };
+    const failed = [], list = [];
+    items.forEach(it => {
+      const o = ctx.orders.find(x => x.orderNo === it.orderNo);
+      if (!o) return failed.push({ orderNo: it.orderNo, msg: 'Order not found' });
+      if (it.version != null && it.version !== rowVersion(o)) return failed.push({ orderNo: o.orderNo, msg: TM_MSG.version(o.orderNo) });
+      const block = blockReason(o, 'tmAccept', actor, ctx);
+      if (block) return failed.push({ orderNo: o.orderNo, msg: block });
+      list.push(o);
+    });
+    if (failed.length) return { ok: false, code: 'REVALIDATION', message: TM_MSG.failed(failed.length, items.length), failed };
+    list.forEach(o => perform(o, 'tmAccept', {}, actor, at, ctx));
+    return { ok: true, message: TM_MSG.ok(list.length), accepted: list.map(o => o.orderNo) };
+  }
+
   const api = {
     ORDER, ORDER_SEQ, CYCLE, MAX_CYCLES, REASON_MIN, ACTIONS,
     LP_STATUS, ASSIGN_STATUS, lpStatus, assignStatus, needsAccept, truckState,
+    TM_MSG, rowVersion, tmAcceptMany,
     canView, login, checkDTP, createDTP, newOrder, perform, available, blockReason, roleLabel,
     containerCheckDigit, containerError, normContainer, current: cur, ymd, log,
   };

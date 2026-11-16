@@ -17,9 +17,10 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | 1 | **Planning Order** | DTP dibuat lewat Check & Submit |
 | 2 | **Order Release** | IELP Admin meng-assign order ke truck number (atau LP Admin melakukan Order Release) |
 | 3 | **Start Daily Order** | Driver memulai order |
-| 4 | **Finish Daily Order** | Driver (atau LP Admin) menyelesaikan order |
-| 5 | **SA Approved** | Order di-approve VPLD di menu **SA Approval** (TC-PBR); SA Number `ILS/TR/{kode trucking}/{YYMMDD}{NNNN}` dan timestamp SA disimpan. Lihat [sa-approval-spec.md](../../05_SA_Approval/uiss/sa-approval-spec.md) |
-| 6 | **SA Approved with PO Number** | PAS mengirim feedback PO untuk SA order ini (SA Monitoring); PO Number = PAS PO Number. Lihat [sa-monitoring-spec.md](../../06_SA_Monitoring/uiss/sa-monitoring-spec.md) |
+| 4 | **Waiting TM Acceptance** *(CR 16-Nov-26)* | Driver scan Finish Order (atau LP Admin Finish Order manual); menunggu acceptance VPLD Transportation Management (VPLD TM). Belum masuk SA Approval |
+| 5 | **Finish Daily Order** | *(CR)* VPLD TM melakukan **Accept Finish Order** (VR-90). Hanya status ini yang masuk SA Approval |
+| 6 | **SA Approved** | Order di-approve VPLD di menu **SA Approval** (TC-PBR); SA Number `ILS/TR/{kode trucking}/{YYMMDD}{NNNN}` dan timestamp SA disimpan. Lihat [sa-approval-spec.md](../../05_SA_Approval/uiss/sa-approval-spec.md) |
+| 7 | **SA Approved with PO Number** | PAS mengirim feedback PO untuk SA order ini (SA Monitoring); PO Number = PAS PO Number. Lihat [sa-monitoring-spec.md](../../06_SA_Monitoring/uiss/sa-monitoring-spec.md) |
 
 ### Cycle Status (per cycle, maksimal 5 cycle per order)
 
@@ -40,6 +41,7 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | **Driver** | Hanya order yang di-assign ke truck yang dipakai saat login | Start Order, Pickup Container, Finish Cycle, Start Next Cycle, Finish Order |
 | **Supplier (Viewer)** | Hanya order milik supplier sendiri | Tidak ada (hanya lihat) |
 | **Supplier (LP Admin)** | Hanya order milik supplier sendiri | Order Release, Pickup Container, Finish Cycle, Finish Order (selalu dengan Reason) |
+| **VPLD TM (Transportation Management)** *(CR)* | Semua order (lihat) | **Accept Finish Order** untuk order Waiting TM Acceptance (per baris, dari Order Detail, atau bulk) |
 | **VPLD (Planner)** | Semua order | **SA Approval** di menu Service Acceptance (bukan dari Order Detail) |
 | **System (Batch SA/PAS)** | Semua order | Proses ke PAS otomatis saat feedback PO dari PAS diterima (SA Monitoring); Proses ke SA hanya untuk data seed lama (legacy) |
 
@@ -55,7 +57,8 @@ Semua aturan di dokumen ini sudah diterapkan di mock-up (`index.html`). Logikany
 | Pickup Container (LP Admin) | Order Release, atau Start Daily Order + cycle terakhir `Finish Cycle` | | | ✔ | **Reason, Container Number** |
 | Finish Cycle | Start Daily Order + Cycle `Pickup Container` | | ✔ | ✔ | (+ **Reason** untuk LP Admin) |
 | Start Next Cycle | Start Daily Order + cycle terakhir `Finish Cycle` | | ✔ | | - |
-| Finish Order | Start Daily Order + cycle terakhir `Finish Cycle` | | ✔ | ✔ | (+ **Reason** untuk LP Admin) |
+| Finish Order | Start Daily Order + cycle terakhir `Finish Cycle` | | ✔ | ✔ | (+ **Reason** untuk LP Admin) → *(CR)* Waiting TM Acceptance |
+| Accept Finish Order *(CR, VPLD TM)* | Waiting TM Acceptance | | | | Konfirmasi (data scan finish, driver, truck, container, tujuan) |
 | SA Approval (menu Service Acceptance, VPLD) | Finish Daily Order, belum ada SA Number | | | | Validasi PO, route, Total KM, biaya |
 | Proses ke PAS (System, dari feedback PAS) | SA Approved | | | | PAS PO Number |
 
@@ -162,6 +165,7 @@ stateDiagram-v2
   state "Planning Order" as PLAN
   state "Order Release" as REL
   state "Start Daily Order" as START
+  state "Waiting TM Acceptance" as WTM
   state "Finish Daily Order" as FIN
   state "SA Approved" as SA
   state "SA Approved with PO Number" as PO
@@ -173,7 +177,8 @@ stateDiagram-v2
   REL --> START : Start Order (Driver)
   REL --> START : Pickup Container + Reason (LP Admin, auto Start Cycle)
   START --> START : Pickup / Finish Cycle / Next Cycle
-  START --> FIN : Finish Order (Driver / LP Admin + Reason)
+  START --> WTM : Finish Order (Driver scan / LP Admin + Reason)
+  WTM --> FIN : Accept Finish Order (VPLD TM)
   FIN --> FIN : Proses SA gagal (log)
   FIN --> SA : Proses ke SA berhasil (simpan timestamp)
   SA --> SA : Proses PAS gagal (log)
@@ -213,7 +218,8 @@ stateDiagram-v2
 | T07 | Start Daily Order / Pickup Container | Finish Cycle | Driver, LP Admin | Container tercatat (+VR-60) | Start Daily Order / Finish Cycle |
 | T08 | Start Daily Order / Finish Cycle | Start Next Cycle | Driver | VR-50 | Start Daily Order / Start Cycle (cycle baru) |
 | T09 | Start Daily Order / Finish Cycle | Pickup Container | LP Admin | VR-50, VR-40..43, VR-60 | Start Daily Order / Pickup Container (cycle baru) |
-| T10 | Start Daily Order / Finish Cycle | Finish Order | Driver, LP Admin | VR-51 (+VR-60) | Finish Daily Order / Finish Cycle |
+| T10 | Start Daily Order / Finish Cycle | Finish Order | Driver, LP Admin | VR-51 (+VR-60) | *(CR)* Waiting TM Acceptance / Finish Cycle |
+| T10a | Waiting TM Acceptance | Accept Finish Order *(CR)* | VPLD TM | VR-90..94 | Finish Daily Order (+ accepted by / date) |
 | T11 | Finish Daily Order | Proses ke SA | System, IELP Admin | VR-70, SA sukses | SA Approved (+ timestamp) |
 | T12 | SA Approved | Proses ke PAS (feedback PO dari PAS) | System | VR-71, PAS sukses | SA Approved with PO Number |
 
@@ -293,6 +299,23 @@ Tombol **Check** hanya menjalankan validasi. Tombol **Submit** menjalankan valid
 | VR-70 | Proses ke SA hanya untuk order Finish Daily Order dengan semua cycle Finish Cycle dan Container Number lengkap. Jika berhasil, status menjadi SA Approved dan **timestamp SA disimpan** | Semua cycle harus Finish Cycle dan punya Container Number |
 | VR-71 | Proses ke PAS hanya untuk order SA Approved. PO Number wajib ada (10 digit diawali 45). Jika berhasil, status menjadi SA Approved with PO Number dan PO Number + timestamp disimpan | PO Number harus 10 digit diawali 45 |
 | VR-72 | Jika SA/PAS gagal, status **tidak berubah**, kegagalan dicatat di Riwayat Status, dan proses bisa diulang | SA menolak data ... / PAS tidak mengembalikan PO Number ... |
+
+### 6.7a Accept Finish Order oleh VPLD TM (CR 16-Nov-26)
+
+| ID | Aturan | Pesan |
+|---|---|---|
+| VR-90 | Finish Order (driver scan atau LP Admin) mengubah status menjadi **Waiting TM Acceptance**, bukan Finish Daily Order. Waktu / user scan disimpan (ORDER_CYCLE.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP) | - |
+| VR-91 | Hanya role **VPLD TM** yang boleh Accept Finish Order; role lain hanya lihat | Only VPLD Transportation Management can accept Finish Order. |
+| VR-92 | Accept hanya untuk order yang masih Waiting TM Acceptance | Order <No> is no longer Waiting TM Acceptance (current status: <status>). Please refresh the data. |
+| VR-93 | Concurrency: versi baris saat ditampilkan harus sama | Order <No> was changed by another user. Please refresh the data. |
+| VR-94 | Bulk bersifat all-or-nothing: jika ada satu order gagal, tidak ada yang di-accept; minimal satu order dipilih | <x> of <n> order(s) cannot be accepted. Nothing was accepted. / Please select at least one order with status Waiting TM Acceptance. |
+| VR-95 | Setelah accept: status Finish Daily Order, accepted by / date disimpan (DCR-44), riwayat status "Accept Finish Order"; order baru eligible di SA Approval | <n> order(s) accepted. Order Status: Finish Daily Order. |
+
+Layar: filter **Order Status**, chip **Waiting TM Acceptance (n)**, baris di-highlight, checkbox + **Accept Finish Order (n)** (VPLD TM), tombol **Accept** per baris dan di Order Detail, popup konfirmasi, kolom Finish Scan / Accepted By / Accepted Date.
+
+Open points CR (asumsi default, lihat UISS Daily Order Monitoring 5.6.8): OP-CR-01 tidak ada reject / return oleh TM; OP-CR-02 TM tidak finish manual (tetap LP Admin);
+OP-CR-03 tidak ada koreksi data sebelum accept; OP-CR-04 per baris dan bulk; OP-CR-05 tanpa batas waktu / reminder / auto-accept;
+OP-CR-06 order yang sudah Finish sebelum go-live langsung ke SA Approval; OP-CR-07 tanpa notifikasi (hanya counter di layar).
 
 ### 6.8 Akses data
 

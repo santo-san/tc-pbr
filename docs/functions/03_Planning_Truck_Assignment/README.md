@@ -6,7 +6,7 @@ Code: truck-assign.js, workflow.js
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
 | [UISS_Screen_Planning_Truck_Assignment](uiss/UISS_Screen_Planning_Truck_Assignment.xlsx) | screen | 0.4 (14-Nov-26) | [uiss/src/UISS_Screen_Planning_Truck_Assignment.json](uiss/src/UISS_Screen_Planning_Truck_Assignment.json) | 12 |
-| [UISS_Batch_Driver_Order_Sync](uiss/UISS_Batch_Driver_Order_Sync.xlsx) | batch | 0.4 (14-Nov-26) | [uiss/src/UISS_Batch_Driver_Order_Sync.json](uiss/src/UISS_Batch_Driver_Order_Sync.json) | 0 |
+| [UISS_Batch_Driver_Order_Sync](uiss/UISS_Batch_Driver_Order_Sync.xlsx) | batch | 0.5 (16-Nov-26) | [uiss/src/UISS_Batch_Driver_Order_Sync.json](uiss/src/UISS_Batch_Driver_Order_Sync.json) | 0 |
 
 Rules / specification (`uiss/`):
 

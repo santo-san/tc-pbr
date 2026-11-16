@@ -51,6 +51,7 @@ const DATA = [];
 const CTX = { orders: DATA, master: MASTER };
 const IP = { role: 'IELP_ADMIN', name: 'Admin IELP' };
 const SYS = { role: 'SYSTEM', name: 'Batch SA/PAS' };
+const TM = { role: 'VPLD_TM', userId: 'tm1', name: 'TM VPLD (tm1)' }; // [CR] VPLD Transportation Management
 const lpActor = sup => ({ role: 'SUPPLIER', lpAdmin: true, supplier: sup, name: `LP Admin ${SUPPLIERS.find(s => s[0] === sup)[1]}` });
 const driverActor = d => ({ role: 'DRIVER', userId: d.userId, name: d.name, supplier: d.supplier, truck: d.truck });
 
@@ -101,8 +102,9 @@ function seed(spec) {
     if (!step('finishCycle', actor, reason, 20 + Math.floor(rand() * 60))) return;
   }
   if (target < 3 || !step('finishOrder', actor, reason, 5)) return;
-  if (target < 4 || !step('processSA', SYS, {}, 60 + Math.floor(rand() * 120))) return;
-  if (target < 5) return;
+  if (target < 4 || !step('tmAccept', TM, {}, 20 + Math.floor(rand() * 90))) return; // [CR] VPLD TM acceptance
+  if (target < 5 || !step('processSA', SYS, {}, 60 + Math.floor(rand() * 120))) return;
+  if (target < 6) return;
   step('processPAS', SYS, { poNo: '45' + pad(Math.floor(rand() * 1e8), 8) }, 180);
 }
 
@@ -117,7 +119,7 @@ seed({
   orderNo: '261027C20000020431', date: '2026-10-27', type: 'DTP2', supplier: SUPPLIERS[0][0], from: 'Depo Cakung Marunda',
   to: '(Empty) CY TMMIN Karawang', renban: '70333', shift: 'DAY', planned: 2, target: ORDER.REL, truck: DEMO_TRUCK,
 });
-const TARGETS = [[ORDER.PLAN, .1], [ORDER.REL, .12], [ORDER.START, .3], [ORDER.FIN, .25], [ORDER.SA, .13], [ORDER.PO, .1]];
+const TARGETS = [[ORDER.PLAN, .1], [ORDER.REL, .12], [ORDER.START, .27], [ORDER.WAIT_TM, .12], [ORDER.FIN, .16], [ORDER.SA, .13], [ORDER.PO, .1]];
 const SPECS = [];
 for (let i = 0; i < 75; i++) {
   const date = i < 30 ? DATES[2] : pick(DATES);
@@ -134,11 +136,11 @@ for (let i = 0; i < 75; i++) {
 SPECS.sort((a, b) => W.ORDER_SEQ.indexOf(b.target) - W.ORDER_SEQ.indexOf(a.target)).forEach(seed);
 
 // ---------- State ----------
-const state = { dtp: '', search: '', dateFrom: '2026-10-27', dateTo: '', from: '', to: '', sortKey: 'orderNo', sortDir: 1, page: 1, size: 10, hidden: new Set(), actor: IP };
+const state = { status: '', tmSel: new Map(), dtp: '', search: '', dateFrom: '2026-10-27', dateTo: '', from: '', to: '', sortKey: 'orderNo', sortDir: 1, page: 1, size: 10, hidden: new Set(), actor: IP };
 state.search = $('search').value;
 
 // ---------- Badges & cells ----------
-const ORDER_CLS = { [ORDER.PLAN]: 'wait', [ORDER.REL]: 'rel', [ORDER.START]: 'prog', [ORDER.FIN]: '', [ORDER.SA]: 'sa', [ORDER.PO]: 'po' };
+const ORDER_CLS = { [ORDER.PLAN]: 'wait', [ORDER.REL]: 'rel', [ORDER.START]: 'prog', [ORDER.WAIT_TM]: 'tm', [ORDER.FIN]: '', [ORDER.SA]: 'sa', [ORDER.PO]: 'po' };
 const CYCLE_CLS = { [CYCLE.DTP]: 'wait', [CYCLE.START]: 'rel', [CYCLE.PICK]: 'prog', [CYCLE.FIN]: '' };
 const orderBadge = s => `<span class="badge ${ORDER_CLS[s]}">${s}</span>`;
 const cycleBadge = s => `<span class="badge ${CYCLE_CLS[s]}">${s}</span>`;
@@ -152,6 +154,8 @@ function cycleCell(o, i) {
 }
 function statusCell(o) {
   let sub = '';
+  if (o.status === ORDER.WAIT_TM && o.finishScan) sub = `Finish scan ${fmtTS(o.finishScan.at)}`;
+  if (o.status === ORDER.FIN && o.tmAccepted) sub = `TM accepted ${fmtTS(o.tmAccepted.at)}`;
   if (o.status === ORDER.SA) sub = `${o.saNo || 'SA'} · ${fmtTS(o.saAt)}`;
   if (o.status === ORDER.PO) sub = `PO ${o.poNo} · ${fmtTS(o.poAt)}`;
   return orderBadge(o.status) + (sub ? `<span class="sub-info">${sub}</span>` : '');
@@ -163,6 +167,7 @@ function filtered() {
   const rows = DATA.filter(o =>
     W.canView(state.actor, o) &&
     (!state.dtp || o.type === state.dtp) &&
+    (!state.status || o.status === state.status) &&
     (!state.dateFrom || o.date >= state.dateFrom) &&
     (!state.dateTo || o.date <= state.dateTo) &&
     (!state.from || o.from === state.from) &&
@@ -171,7 +176,7 @@ function filtered() {
       ...o.cycles.flatMap(c => [c.container, c.status])].join(' ').toLowerCase().includes(q))
   );
   const k = state.sortKey;
-  const val = o => k === 'status' ? W.ORDER_SEQ.indexOf(o.status) : o[k];
+  const val = o => k === 'status' ? W.ORDER_SEQ.indexOf(o.status) : k === 'finishScanAt' ? +(o.finishScan?.at || 0) : k === 'tmAcceptedAt' ? +(o.tmAccepted?.at || 0) : o[k];
   rows.sort((a, b) => val(a) < val(b) ? -state.sortDir : val(a) > val(b) ? state.sortDir : 0);
   return rows;
 }
@@ -185,11 +190,13 @@ function render() {
   const start = (state.page - 1) * state.size;
   const view = rows.slice(start, start + state.size);
 
+  const tm = isTM(), waitTm = o => o.status === ORDER.WAIT_TM;
   $('tbody').innerHTML = view.length ? view.map(o => `
-    <tr>
+    <tr class="${waitTm(o) ? 'row-tm' : ''}">
+      <td data-col="sel">${waitTm(o) ? `<input type="checkbox" data-sel="${o.orderNo}" ${state.tmSel.has(o.orderNo) ? 'checked' : ''}>` : ''}</td>
       <td data-col="action"><button class="act" data-order="${o.orderNo}" title="Lihat detail">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-      </button></td>
+      </button>${tm && waitTm(o) ? `<br><button class="btn-accept" data-accept="${o.orderNo}" title="Accept Finish Order">Accept</button>` : ''}</td>
       <td data-col="date">${fmtDate(o.date)}</td>
       <td data-col="orderNo">${o.orderNo}</td>
       <td data-col="type">${o.type}</td>
@@ -202,8 +209,11 @@ function render() {
       <td data-col="fa">${o.fa}</td>
       ${[0, 1, 2, 3, 4].map(i => `<td data-col="c${i + 1}">${cycleCell(o, i)}</td>`).join('')}
       <td data-col="status">${statusCell(o)}</td>
+      <td data-col="finishScan">${o.finishScan ? fmtTS(o.finishScan.at) + `<span class="sub-info">${esc(o.finishScan.by)}</span>` : '-'}</td>
+      <td data-col="tmBy">${o.tmAccepted ? esc(o.tmAccepted.by) : '-'}</td>
+      <td data-col="tmAt">${o.tmAccepted ? fmtTS(o.tmAccepted.at) : '-'}</td>
     </tr>`).join('')
-    : '<tr><td colspan="17" class="empty">Tidak ada data yang cocok</td></tr>';
+    : '<tr><td colspan="21" class="empty">Tidak ada data yang cocok</td></tr>';
 
   const total = visibleTotal();
   $('info').textContent = rows.length
@@ -228,17 +238,81 @@ function render() {
     }
   });
   $('btnCreateDTP').style.display = state.actor.role === 'IELP_ADMIN' ? '' : 'none';
+  renderTm(rows);
   applyColumns();
 }
 function applyColumns() {
-  document.querySelectorAll('[data-col]').forEach(el => el.classList.toggle('hidden-col', state.hidden.has(el.dataset.col)));
+  document.querySelectorAll('[data-col]').forEach(el => el.classList.toggle('hidden-col', state.hidden.has(el.dataset.col) || (el.dataset.col === 'sel' && !isTM())));
 }
+
+// ---------- [CR] Finish Order acceptance by VPLD TM ----------
+const isTM = () => state.actor.role === 'VPLD_TM';
+function renderTm(rows) {
+  const waiting = DATA.filter(o => W.canView(state.actor, o) && o.status === ORDER.WAIT_TM);
+  $('tmCount').textContent = waiting.length;
+  $('chipTm').classList.toggle('on', state.status === ORDER.WAIT_TM);
+  [...state.tmSel.keys()].forEach(no => { if (!waiting.some(o => o.orderNo === no)) state.tmSel.delete(no); });
+  $('btnTmAccept').style.display = isTM() ? '' : 'none';
+  $('btnTmAccept').disabled = !state.tmSel.size;
+  $('tmSel').textContent = state.tmSel.size;
+  const sel = rows.filter(o => o.status === ORDER.WAIT_TM);
+  $('tmAll').checked = !!sel.length && sel.every(o => state.tmSel.has(o.orderNo));
+  $('tmAll').disabled = !sel.length;
+}
+let tmSimulate = false;
+function openTmAccept(orders, fromDetail) {
+  const items = orders.map(o => ({ orderNo: o.orderNo, version: state.tmSel.get(o.orderNo) ?? W.rowVersion(o) }));
+  const rows = orders.map(o => `<tr><td>${o.orderNo}</td><td>${esc(o.supplier)}</td><td>${o.truck || '-'}</td><td>${esc(o.driver || '-')}</td>
+    <td>${o.finishScan ? fmtTS(o.finishScan.at) : '-'}</td><td>${o.finishScan ? `${esc(o.finishScan.by)}<span class="sub-info">${o.finishScan.byLp ? 'LP Admin (manual)' : 'Driver scan'}</span>` : '-'}</td>
+    <td>${o.cycles.length} / ${o.planned}</td><td>${o.cycles.map(c => c.container || '-').join('<br>')}</td><td>${esc(W.current(o).to)}</td></tr>`).join('');
+  showPreview('Accept Finish Order', `<form id="tmForm" onsubmit="return false">
+      <p style="margin:0;font-size:11px">Accept Finish Order of <b>${orders.length}</b> order(s)? Accepted orders become <b>${ORDER.FIN}</b> and are sent to SA Approval.</p>
+      <div class="table-wrap"><table class="tm-conf"><tr><th>No. Order</th><th>Trucking Comp.</th><th>License Plate</th><th>Driver</th><th>Finish Scan</th><th>Finished By</th><th>Cycle (Act / Plan)</th><th>Container No.</th><th>Last Destination</th></tr>${rows}</table></div>
+      <label class="form-check" style="font-size:10px;color:#6b7280"><input type="checkbox" id="tmSim" ${tmSimulate ? 'checked' : ''}> Mock-up: simulate a change of the first order by another user before Confirm</label>
+    </form>`,
+  `<button class="btn-outline" id="tmCancel">Cancel</button><button class="btn-sm-blue" style="height:30px" id="tmConfirm">Confirm Accept</button>`,
+  () => { $('pvBody').closest('.pv').style.width = ''; });
+  $('pvBody').closest('.pv').style.width = 'min(1100px, 96vw)';
+  $('tmCancel').onclick = closePreview;
+  $('tmConfirm').onclick = () => {
+    tmSimulate = $('tmSim').checked;
+    if (tmSimulate) W.log(orders[0], new Date(), { role: 'SYSTEM', name: 'other user' }, 'Data changed (simulation)', { order: orders[0].status }, { order: orders[0].status }, '', 'Simulated concurrent change');
+    const res = W.tmAcceptMany(items, state.actor, new Date(), CTX);
+    if (!res.ok) {
+      const box = $('tmForm'); box.querySelector('.form-alert')?.remove();
+      box.insertAdjacentHTML('afterbegin', `<div class="form-alert">${esc(res.message)}${res.failed.length ? `<ul class="tm-fail">${res.failed.map(f => `<li>${f.orderNo}: ${esc(f.msg)}</li>`).join('')}</ul>` : ''}</div>`);
+      res.failed.forEach(f => state.tmSel.delete(f.orderNo)); // failed rows must be selected again with the refreshed data
+      render(); return;
+    }
+    state.tmSel.clear(); closePreview(); render();
+    if (fromDetail) openDetail(orders[0].orderNo);
+    toast(res.message);
+  };
+}
+$('tbody').addEventListener('change', e => {
+  const cb = e.target.closest('[data-sel]'); if (!cb) return;
+  const o = DATA.find(x => x.orderNo === cb.dataset.sel);
+  cb.checked ? state.tmSel.set(o.orderNo, W.rowVersion(o)) : state.tmSel.delete(o.orderNo);
+  renderTm(filtered());
+});
+$('tmAll').addEventListener('change', e => {
+  filtered().filter(o => o.status === ORDER.WAIT_TM).forEach(o => e.target.checked ? state.tmSel.set(o.orderNo, W.rowVersion(o)) : state.tmSel.delete(o.orderNo));
+  render();
+});
+$('btnTmAccept').addEventListener('click', () => {
+  if (!state.tmSel.size) { toast(W.TM_MSG.none); return; }
+  openTmAccept([...state.tmSel.keys()].map(no => DATA.find(o => o.orderNo === no)));
+});
+$('chipTm').addEventListener('click', () => {
+  state.status = state.status === ORDER.WAIT_TM ? '' : ORDER.WAIT_TM; $('stsFilter').value = state.status; state.page = 1; render();
+});
 
 // ---------- Init controls ----------
 FROM.forEach(v => $('fromLoc').add(new Option(v, v)));
 TO.forEach(v => $('toLoc').add(new Option(v, v)));
+W.ORDER_SEQ.forEach(v => $('stsFilter').add(new Option(v, v)));
 
-const COLS = [['date', 'Date'], ['orderNo', 'No. Order'], ['type', 'Type'], ['trucking', 'Trucking Comp.'], ['plate', 'License Plate'], ['from', 'DTP Loc. From'], ['to', 'DTP Loc. To'], ['renban', 'Renban'], ['shift', 'Shift'], ['fa', 'FA'], ['c1', 'Cycle 1'], ['c2', 'Cycle 2'], ['c3', 'Cycle 3'], ['c4', 'Cycle 4'], ['c5', 'Cycle 5'], ['status', 'Order Status']];
+const COLS = [['date', 'Date'], ['orderNo', 'No. Order'], ['type', 'Type'], ['trucking', 'Trucking Comp.'], ['plate', 'License Plate'], ['from', 'DTP Loc. From'], ['to', 'DTP Loc. To'], ['renban', 'Renban'], ['shift', 'Shift'], ['fa', 'FA'], ['c1', 'Cycle 1'], ['c2', 'Cycle 2'], ['c3', 'Cycle 3'], ['c4', 'Cycle 4'], ['c5', 'Cycle 5'], ['status', 'Order Status'], ['finishScan', 'Finish Scan'], ['tmBy', 'Accepted By'], ['tmAt', 'Accepted Date']];
 $('kolomMenu').innerHTML = COLS.map(([k, l]) => `<label><input type="checkbox" data-k="${k}" checked> ${l}</label>`).join('');
 $('kolomMenu').addEventListener('change', e => {
   const k = e.target.dataset.k;
@@ -262,13 +336,13 @@ $('search').addEventListener('input', e => { state.search = e.target.value; stat
 $('btnFind').addEventListener('click', () => {
   const df = $('dateFrom').value, dt = $('dateTo').value;
   if (df && dt && df > dt) { toast('Date From tidak boleh lebih besar dari Date To'); return; }
-  Object.assign(state, { dateFrom: df, dateTo: dt, from: $('fromLoc').value, to: $('toLoc').value, page: 1 });
+  Object.assign(state, { dateFrom: df, dateTo: dt, from: $('fromLoc').value, to: $('toLoc').value, status: $('stsFilter').value, page: 1 });
   render();
   toast(`Ditemukan ${filtered().length} order`);
 });
 function clearFilters() {
-  ['dateFrom', 'dateTo', 'fromLoc', 'toLoc', 'search'].forEach(id => $(id).value = '');
-  Object.assign(state, { dateFrom: '', dateTo: '', from: '', to: '', search: '', page: 1 });
+  ['dateFrom', 'dateTo', 'fromLoc', 'toLoc', 'stsFilter', 'search'].forEach(id => $(id).value = '');
+  Object.assign(state, { dateFrom: '', dateTo: '', from: '', to: '', status: '', search: '', page: 1 });
 }
 $('btnClear').addEventListener('click', () => { clearFilters(); render(); toast('Filter dibersihkan'); });
 
@@ -306,7 +380,7 @@ function exportExcel() {
   const now = new Date(), ts = `${W.ymd(now).replace(/-/g, '')}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   const opt = id => { const el = $(id); return el.value ? el.options[el.selectedIndex].text : 'All'; };
   const crit = [['Date From', state.dateFrom ? fmtDate(state.dateFrom) : 'All'], ['Date To', state.dateTo ? fmtDate(state.dateTo) : 'All'],
-    ['From Loc.', opt('fromLoc')], ['To Loc.', opt('toLoc')], ['DTP Type', state.dtp ? state.dtp.replace('DTP', 'DTP ') : 'ALL'], ['Search', state.search.trim() || '-']];
+    ['From Loc.', opt('fromLoc')], ['To Loc.', opt('toLoc')], ['Order Status', state.status || 'All'], ['DTP Type', state.dtp ? state.dtp.replace('DTP', 'DTP ') : 'ALL'], ['Search', state.search.trim() || '-']];
   const h1 = [...EXPORT_HEAD, ...[1, 2, 3, 4, 5].flatMap(n => [`CYCLE ${n}`, '', '']), ...EXPORT_TAIL];
   const h2 = [...EXPORT_HEAD.map(() => ''), ...[1, 2, 3, 4, 5].flatMap(() => ['Time', 'Status', 'Container No.']), ...EXPORT_TAIL.map(() => '')];
   const aoa = [['DAILY ORDER MONITORING'], [`Printed by : ${state.actor.name} (${W.roleLabel(state.actor)})`, '', '', '', '', '', '', '', '', '', '', '', '', '', `Printed date : ${fmtTS(now)}`],
@@ -383,6 +457,7 @@ function openDetail(no) {
   const summary = [['No. Order', o.orderNo], ['Date / Shift', `${fmtDate(o.date)} · ${o.shift}`], ['Trucking Company', o.supplier], ['Type / Renban', `${o.type} · ${o.renban}`],
     ['License Plate', o.truck || '-'], ['Driver', o.driver || '-'], ['Planned / Aktual Cycle', `${o.planned} / ${o.cycles.filter(c => c.startAt).length}`],
     ['Order Status', orderBadge(o.status)], ['Cycle Status', cycleBadge(W.current(o).status)],
+    ['Finish Scan', o.finishScan ? `${fmtTS(o.finishScan.at)} · ${o.finishScan.by}` : '-'], ['TM Accepted', o.tmAccepted ? `${o.tmAccepted.by} · ${fmtTS(o.tmAccepted.at)}` : '-'],
     ['SA Approved', o.saAt ? fmtTS(o.saAt) : '-'], ['SA Number', o.saNo || '-'], ['PO Number', o.poNo ? `${o.poNo} (${fmtTS(o.poAt)})` : '-']];
   const readOnly = actor.role === 'SUPPLIER' && !actor.lpAdmin;
   const actionBar = `<div class="od-actions"><span class="lbl">Aksi ${W.roleLabel(actor)}:</span>${actions.length
@@ -480,6 +555,7 @@ function showErrors(box, errors) {
 }
 
 function openAction(key) {
+  if (key === 'tmAccept') return openTmAccept([current], true); // [CR] same confirmation as the list
   const a = W.ACTIONS[key], o = current, actor = state.actor;
   const fields = a.fields(actor).map(f => {
     if (f.type === 'truck') return { ...f, type: 'select', options: MASTER.trucks.filter(t => t.supplier === o.supplier).map(t => {
@@ -508,7 +584,7 @@ function openAction(key) {
 const ROLE_SEL = $('roleSel');
 let roleValue = ROLE_SEL.value;
 function setActor(actor, value) {
-  state.actor = actor; roleValue = value; ROLE_SEL.value = value;
+  state.actor = actor; state.tmSel.clear(); roleValue = value; ROLE_SEL.value = value;
   $('userName').textContent = actor.name;
   $('userRole').textContent = W.roleLabel(actor) + (actor.supplier ? ` · ${actor.supplier}` : '') + (actor.truck ? ` · ${actor.truck}` : '');
   $('userAvatar').textContent = actor.name.split(' ').map(w => w[0]).join('').slice(0, 2);
@@ -548,6 +624,7 @@ function openLogin() {
 ROLE_SEL.addEventListener('change', () => {
   const v = ROLE_SEL.value;
   if (v === 'ip') return setActor(IP, v);
+  if (v === 'tm') return setActor(TM, v);
   if (v === 'planner') return setActor({ role: 'PLANNER', userId: 'planner1', name: 'Planner VPLD' }, v);
   if (v === 'driver') return openLogin();
   const [, code, mode] = v.split(':'), sup = SUP_BY_CODE[code];
@@ -618,7 +695,10 @@ $('mBody').addEventListener('click', e => {
 });
 
 const closeDetail = () => $('overlay').classList.remove('show');
-$('tbody').addEventListener('click', e => { const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order); });
+$('tbody').addEventListener('click', e => {
+  const acc = e.target.closest('[data-accept]'); if (acc) return openTmAccept([DATA.find(o => o.orderNo === acc.dataset.accept)]);
+  const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order);
+});
 $('mClose').addEventListener('click', closeDetail);
 $('pvClose').addEventListener('click', closePreview);
 $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) closeDetail(); });

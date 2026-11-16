@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "Download Daily Order Monitoring",
   "uiss_name": "UISS-Report Download Daily Order Monitoring",
-  "uiss_rev": "0.4",
+  "uiss_rev": "0.5",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -17,12 +17,12 @@
     {
      "key": "file",
      "case": "Export file: header, criteria, body, footer",
-     "ref": "UISS: Item 1-28, 1., 2.3, 3., 4., Log no.6",
+     "ref": "UISS: Item 1-29, 1., 2.3, 3., 4., Log no.6",
      "procedure": [
       "Open the downloaded file."
      ],
      "expected": [
-      "Header Report Title, Printed By, Printed Date; Print Criteria = screen criteria.",
+      "Header Report Title, Printed By, Printed Date; Print Criteria = screen criteria ([CR] incl. Order Status, \"All\" when not selected).",
       "One row per order (all pages, grid sort), cycles 1..5 Time / Status / Container, Order Status, SA Approved At, PO Number; Total row.",
       "Log no.6 (Info): 'n row(s) exported.'"
      ],
@@ -33,12 +33,14 @@
     {
      "key": "scope",
      "case": "Data scope by role and filters",
-     "ref": "UISS: 2.3 a-e",
+     "ref": "UISS: 2.3 a-e, 2.3 b2",
      "procedure": [
-      "Export as LP Admin of DNX with tab DTP 2 and keyword \"SNT\"."
+      "Export as LP Admin of DNX with tab DTP 2 and keyword \"SNT\".",
+      "[CR] Export with Order Status = Waiting TM Acceptance (or after clicking the counter)."
      ],
      "expected": [
-      "Only DNX DTP 2 orders containing \"SNT\"; same rows as the grid."
+      "Only DNX DTP 2 orders containing \"SNT\"; same rows as the grid.",
+      "Only Waiting TM Acceptance orders; Print Criteria \"Order Status : Waiting TM Acceptance\"; no Finish Scan / Accepted columns in the file."
      ],
      "execution": [
       "Login as LP Admin DNX, open Daily Monitoring, click tab DTP 2, Search \"SNT\", Export."

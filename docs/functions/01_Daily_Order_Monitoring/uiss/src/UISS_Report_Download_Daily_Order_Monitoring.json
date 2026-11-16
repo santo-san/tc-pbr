@@ -7,7 +7,7 @@
   "function_name": "TBD Download Daily Order Monitoring",
   "created_date": "03-Nov-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "16-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; no DB change needed"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "16-Nov-26",
+   "reviewed_by": "",
+   "description": "CR: Finish Order acceptance by VPLD Transportation Management. Print criteria Order Status added (new screen filter); Order Status values include Waiting TM Acceptance. Changed parts marked [CR]."
   }
  ],
  "general": {
@@ -249,6 +256,21 @@
    "field": "DTP tab",
    "condition": "-",
    "remarks": "ALL / DTP 1 / DTP 2 / DTP 3 / DTP 4."
+  },
+  {
+   "name": "[CR] Order Status",
+   "source": "Screen criteria",
+   "field": "Order Status",
+   "type": "Varchar",
+   "len": "30",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "X..30..X",
+   "validation": "",
+   "description": "Print criteria row \"Order Status : <value>\" (All when not selected). Inserted after DTP Type."
   },
   {
    "name": "Search",
@@ -498,7 +520,7 @@
   {
    "type": "bullets",
    "items": [
-    "Header filters: Date From, Date To, From Loc., To Loc.",
+    "Header filters: Date From, Date To, From Loc., To Loc., [CR] Order Status.",
     "DTP tab: ALL / DTP 1 / DTP 2 / DTP 3 / DTP 4.",
     "Search keyword of the Order List.",
     "Current sort column and direction of the Order List.",
@@ -698,7 +720,13 @@
   {
    "type": "item",
    "marker": "b.",
-   "text": "Filter: Order Date >= Date From (if filled) and <= Date To (if filled); DTP Loc. From = From Loc. (if selected); DTP Loc. To = To Loc. (if selected); Type = DTP tab (if not ALL).",
+   "text": "Filter: Order Date >= Date From (if filled) and <= Date To (if filled); DTP Loc. From = From Loc. (if selected); DTP Loc. To = To Loc. (if selected); Type = DTP tab (if not ALL). [CR] Order Status = selected status (if not All; also set by the [Waiting TM Acceptance (n)] counter).",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b2.",
+   "text": "[CR] Order Status values include Waiting TM Acceptance (between Start Daily Order and Finish Daily Order). Finish Scan / Accepted By / Accepted Date columns of the screen are not exported (no layout change).",
    "level": 2
   },
   {

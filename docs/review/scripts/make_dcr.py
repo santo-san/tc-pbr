@@ -8,7 +8,7 @@ used = {}
 for p in glob.glob(os.path.join(R, 'docs/review/db-mapping/UISS_*.json')):
     for c in json.load(open(p)).get('conflicts', []):
         used.setdefault(c['id'], set()).add(os.path.basename(p)[5:-5])
-EXTRA_USE = {'G-GEN-04': {'all UISS with VERSION'}, 'G-MLC-05': {'Screen_Master_Location'}, 'G-DM-05': {'Screen_Daily_Order_Monitoring'}, 'G-COM-01': {'Screen_TCPBR_Menu_Authorization'}}
+EXTRA_USE = {'G-GEN-04': {'all UISS with VERSION'}, 'G-MLC-05': {'Screen_Master_Location'}, 'G-DM-05': {'Screen_Daily_Order_Monitoring'}, 'G-DM-06': {'Screen_Daily_Order_Monitoring', 'Screen_SA_Approval'}, 'G-COM-01': {'Screen_TCPBR_Menu_Authorization'}}
 L = ['# 12 - DB Change Requests (keep the existing application logic)', '',
      'Decision 14-Nov-26 (user): for every conflict between the implemented logic (mock-up code / UISS) and the existing ELIPS tables,',
      '**the existing application logic is kept**. The changes below are what the ELIPS database needs so the implemented logic can be stored.',
@@ -50,7 +50,7 @@ for t, cols in sorted(MISS.items()):
         else:
             auto.setdefault(t, []).append(c); cov = 'AUTO'
         rows.append([t, c, cov, ', '.join(x.replace('UISS_', '') for x in u)])
-n = sum(1 for d in DEC.values() if d['dcr_id'])
+n = sum(1 for d in DEC.values() if d['dcr_id'] and not d.get('after_auto'))  # CR DCRs (after_auto) are numbered after the auto DCRs, so existing numbers stay
 ids = {}
 for t in sorted(auto):
     n += 1; ids[t] = f'DCR-{n:02d}'

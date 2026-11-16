@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "TC-PBR SA Approval (Service Acceptance)",
   "uiss_name": "UISS-Screen SA Approval",
-  "uiss_rev": "0.5",
+  "uiss_rev": "0.6",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -46,8 +46,25 @@
       "Open Calculation of an order; open Order Detail."
      ],
      "expected": [
-      "One row per finished delivery without SA, sorted Order Date, Order Number; Total KM (sum of route legs from ielp.TB_M_MILEAGE), PO (ielp.PO_HEADER valid on order date), Rate / KM (ielp.MS_ROUTE_PRICE), Price = KM x rate.",
+      "One row per finished delivery without SA ([CR] Daily status Finish Daily Order = accepted by VPLD TM), sorted Order Date, Order Number; Total KM (sum of route legs from ielp.TB_M_MILEAGE), PO (ielp.PO_HEADER valid on order date), Rate / KM (ielp.MS_ROUTE_PRICE), Price = KM x rate.",
       "Popup: route & KM, PO & cost, validation list."
+     ]
+    },
+    {
+     "key": "tm",
+     "case": "[CR] Only deliveries accepted by VPLD TM; TM acceptance info",
+     "ref": "UISS: Item 50-52, 5.2 a, 5.2 a2, SA-V01",
+     "procedure": [
+      "Prepare ORD-W1 Waiting TM Acceptance and ORD-F1 accepted by tm1 (ST Daily Order Monitoring). Login as Planner VPLD, open Service Acceptance > SA Approval.",
+      "Search the period of both orders.",
+      "Open the Calculation detail of ORD-F1.",
+      "Accept ORD-W1 on Daily Order Monitoring (VPLD TM), Search again."
+     ],
+     "expected": [
+      "ORD-W1 (Waiting TM Acceptance) is not listed; ORD-F1 is listed with column TM Accepted = \"TM VPLD (tm1)\" + date-time.",
+      "Delivery info shows Finish Scan (date-time · user) and TM Accepted By / Date; calculation and validation unchanged.",
+      "ORD-W1 is now listed. An order Finish before go-live shows TM Accepted \"-\" (OP-CR-06).",
+      "DB (SQL TD-11): ielp.SA_DETAIL source = DTP_2_DETAIL.STATUS_CODE Finish Daily Order, TM_ACCEPT_BY / TM_ACCEPT_DATE (DCR-44)."
      ]
     },
     {
@@ -156,6 +173,12 @@
    "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
   ],
   "sql_verify": [
+   {
+    "id": "TD-11",
+    "tc": "{tc:tm}",
+    "title": "[CR] Eligible = accepted by TM",
+    "sql": "SELECT ORDER_NO, STATUS_CODE, TM_ACCEPT_BY, TM_ACCEPT_DATE FROM ielp.DTP_2_DETAIL WHERE ORDER_NO IN ('ORD-W1', 'ORD-F1');  -- DCR-44"
+   },
    {
     "id": "TD-10",
     "tc": "{tc:approve}, {tc:monthly}",

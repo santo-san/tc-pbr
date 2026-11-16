@@ -293,5 +293,11 @@
   "decision": "Existing logic kept: Master screens have no role restriction (any logged-in role); the \"IELP Admin only\" badge is informational.",
   "dcr": null,
   "dcr_id": null
+ },
+ "G-DM-06": {
+  "decision": "Existing logic kept (CR 16-Nov-26): Finish Order acceptance by VPLD TM - new order status 'Waiting TM Acceptance' and the acceptance user / date of the Finish Order (workflow.js tmAccept); finish scan uses the existing ORDER_CYCLE.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP.",
+  "dcr": "ADD ielp.DTP_2_DETAIL.TM_ACCEPT_BY varchar(500), TM_ACCEPT_DATE datetime; INSERT ielp.MS_STATUS row 'Waiting TM Acceptance' (STATUS_CODE TBD)",
+  "dcr_id": "DCR-44",
+  "after_auto": true
  }
 }
