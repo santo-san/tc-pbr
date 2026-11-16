@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "Daily Order Monitoring",
   "uiss_name": "UISS-Screen Daily Order Monitoring",
-  "uiss_rev": "0.7",
+  "uiss_rev": "0.8",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -219,15 +219,15 @@
      "ref": "UISS: Item 73-84, 5.1, 5.2.2 h-j, 5.4, Gen Desc mode VPLD TM",
      "procedure": [
       "Login as VPLD TM. Open menu Daily > Daily Monitoring.",
-      "Check the counter [Waiting TM Approval (n)]; click it; click it again.",
-      "Order Status = Waiting TM Approval, [Find]; then [Clear].",
+      "Open the Order Status list.",
+      "Order Status = Waiting TM Approval (n), [Find]; then [Clear].",
       "Login as Planner VPLD and as LP Admin DNX."
      ],
      "expected": [
-      "Counter = number of orders Waiting TM Approval in the scope (SQL TD-20). Click: only Waiting TM Approval rows (light orange), chip highlighted; second click: all.",
-      "Columns Finish Scan (date-time + user), Edited (N), Approved By, Approved Date (\"-\"); Order Status sub text \"Finish scan <date-time>\".",
-      "VPLD TM: check box, [Edit] and [Approve] only on rows Waiting TM Approval; [Approve Finish Order (0)] disabled.",
-      "Planner VPLD / LP Admin: same rows and columns, no check box / Edit / Approve (view only)."
+      "Option \"Waiting TM Approval (n)\": n = number of orders Waiting TM Approval in the scope (SQL TD-20); no separate counter button.",
+      "Only Waiting TM Approval rows (light orange). Columns Finish Scan (date-time + user), Edited (N), Approved By, Approved Date (\"-\"); Order Status sub text \"Finish scan <date-time>\".",
+      "VPLD TM: check box (first column) and column TM Review with [Edit] (outline) and [Approve] (green) side by side on rows Waiting TM Approval; approved rows show \"Approved\", others \"-\"; [Approve Finish Order (0)] disabled.",
+      "Planner VPLD / LP Admin: same rows and columns, no check box and no TM Review column (view only)."
      ]
     }
    ]
@@ -240,7 +240,7 @@
      "case": "Edit and save: confirmation, status unchanged, history",
      "ref": "UISS: Item 85-111, 5.6.7, 5.6.8, Msg no.38, Msg no.39, Data Map blk 13, Data Map blk 14, Data Map blk 15, Log 8",
      "procedure": [
-      "VPLD TM: click [Edit] of ORD-W1 (from the list) and check the form.",
+      "VPLD TM: click [Edit] in column TM Review of ORD-W1 and check the form.",
       "Container No. cycle 1 = \"TGCU5529491\", Finish Cycle time cycle 1 + 10 minutes, Remarks = \"corrected from Surat Jalan photo\", Edit Reason = \"Driver typed a wrong container\"; [Save].",
       "[Back], then [Save] and [Confirm Save].",
       "Click Edited = Y of ORD-W1; open its Order Detail.",
@@ -277,7 +277,7 @@
      "case": "Approve one order (row and Order Detail): status Finish, locked",
      "ref": "UISS: Item 112-118, 5.6.9, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6",
      "procedure": [
-      "VPLD TM: click [Approve] of ORD-W1 (edited); check the confirmation; [Cancel].",
+      "VPLD TM: click [Approve] in column TM Review of ORD-W1 (edited); check the confirmation; [Cancel].",
       "Click [Approve] again, [Confirm Approve].",
       "Open Order Detail of ORD-W2, click [Approve Finish Order], [Confirm Approve].",
       "Open Order Detail of ORD-W1 again; try the Edit request for ORD-W1 (browser tools)."

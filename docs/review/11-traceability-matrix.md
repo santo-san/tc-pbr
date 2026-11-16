@@ -69,21 +69,21 @@ Status: **Verified** (UISS already matched the schema) · **Revised** (UISS chan
 | TR-062 | Daily | Order Detail (Surat Jalan) | DM-12..14 | CTR NO | delivery-note.js | dn-rules.js, dn-pdf.js | ielp.ORDER_CYCLE.CONTAINER_NO | Report_Delivery_Note rev 0.4 | Revised |
 | TR-063 | Daily | Order Detail (Surat Jalan) | DM-12..14 | KETERANGAN | delivery-note.js | dn-rules.js, dn-pdf.js | TBD | Report_Delivery_Note rev 0.4 | TBD |
 | TR-064 | Daily | Order Detail (Surat Jalan) | DM-12..14 | Delivery note file / GR attachment | delivery-note.js | dn-rules.js, dn-pdf.js | ielp.ORDER_FILES.FILE_PATH | Report_Delivery_Note rev 0.4 | TBD |
-| TR-065 | Daily | Daily Monitoring (export) | DM-04 | Date | app.js:303 | SheetJS | ielp.ORDER_CYCLE.ORDER_DATE | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-066 | Daily | Daily Monitoring (export) | DM-04 | No. Order | app.js:303 | SheetJS | ielp.ORDER_CYCLE.ORDER_NO | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-067 | Daily | Daily Monitoring (export) | DM-04 | Type | app.js:303 | SheetJS | ielp.DTP_HEADER.DTP_TYPE | Report_Download_Daily_Order_Monitoring rev 0.6 | TBD |
-| TR-068 | Daily | Daily Monitoring (export) | DM-04 | Trucking Comp. | app.js:303 | SheetJS | ielp.MS_TRUCKING_COMPANY.COMPANY_NAME | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-069 | Daily | Daily Monitoring (export) | DM-04 | License Plate | app.js:303 | SheetJS | ielp.ORDER_CYCLE.LICENSE_PLATE | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-070 | Daily | Daily Monitoring (export) | DM-04 | Driver | app.js:303 | SheetJS | ielp.MS_DRIVER.DRIVER_NAME | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-071 | Daily | Daily Monitoring (export) | DM-04 | DTP Loc. From / To | app.js:303 | SheetJS | ielp.MS_LOCATION.LOCATION_NAME | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-072 | Daily | Daily Monitoring (export) | DM-04 | Renban | app.js:303 | SheetJS | ielp.ORDER_CYCLE.RENBAN | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-073 | Daily | Daily Monitoring (export) | DM-04 | Shift | app.js:303 | SheetJS | ielp.ORDER_CYCLE.SHIFT | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-074 | Daily | Daily Monitoring (export) | DM-04 | FA | app.js:303 | SheetJS | TBD | Report_Download_Daily_Order_Monitoring rev 0.6 | TBD |
-| TR-075 | Daily | Daily Monitoring (export) | DM-04 | Cycle n - Time | app.js:303 | SheetJS | ielp.ORDER_CYCLE.START_DATE | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-076 | Daily | Daily Monitoring (export) | DM-04 | Cycle n - Status | app.js:303 | SheetJS | ielp.ORDER_CYCLE.STATUS_CODE | Report_Download_Daily_Order_Monitoring rev 0.6 | TBD |
-| TR-077 | Daily | Daily Monitoring (export) | DM-04 | Cycle n - Container | app.js:303 | SheetJS | ielp.ORDER_CYCLE.CONTAINER_NO | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
-| TR-078 | Daily | Daily Monitoring (export) | DM-04 | SA Approved At | app.js:303 | SheetJS | ielp.SA_DETAIL.APPROVED_DATE | Report_Download_Daily_Order_Monitoring rev 0.6 | TBD |
-| TR-079 | Daily | Daily Monitoring (export) | DM-04 | PO Number | app.js:303 | SheetJS | ielp.ORDER_CYCLE.PO_NUMBER | Report_Download_Daily_Order_Monitoring rev 0.6 | Revised |
+| TR-065 | Daily | Daily Monitoring (export) | DM-04 | Date | app.js:303 | SheetJS | ielp.ORDER_CYCLE.ORDER_DATE | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-066 | Daily | Daily Monitoring (export) | DM-04 | No. Order | app.js:303 | SheetJS | ielp.ORDER_CYCLE.ORDER_NO | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-067 | Daily | Daily Monitoring (export) | DM-04 | Type | app.js:303 | SheetJS | ielp.DTP_HEADER.DTP_TYPE | Report_Download_Daily_Order_Monitoring rev 0.7 | TBD |
+| TR-068 | Daily | Daily Monitoring (export) | DM-04 | Trucking Comp. | app.js:303 | SheetJS | ielp.MS_TRUCKING_COMPANY.COMPANY_NAME | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-069 | Daily | Daily Monitoring (export) | DM-04 | License Plate | app.js:303 | SheetJS | ielp.ORDER_CYCLE.LICENSE_PLATE | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-070 | Daily | Daily Monitoring (export) | DM-04 | Driver | app.js:303 | SheetJS | ielp.MS_DRIVER.DRIVER_NAME | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-071 | Daily | Daily Monitoring (export) | DM-04 | DTP Loc. From / To | app.js:303 | SheetJS | ielp.MS_LOCATION.LOCATION_NAME | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-072 | Daily | Daily Monitoring (export) | DM-04 | Renban | app.js:303 | SheetJS | ielp.ORDER_CYCLE.RENBAN | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-073 | Daily | Daily Monitoring (export) | DM-04 | Shift | app.js:303 | SheetJS | ielp.ORDER_CYCLE.SHIFT | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-074 | Daily | Daily Monitoring (export) | DM-04 | FA | app.js:303 | SheetJS | TBD | Report_Download_Daily_Order_Monitoring rev 0.7 | TBD |
+| TR-075 | Daily | Daily Monitoring (export) | DM-04 | Cycle n - Time | app.js:303 | SheetJS | ielp.ORDER_CYCLE.START_DATE | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-076 | Daily | Daily Monitoring (export) | DM-04 | Cycle n - Status | app.js:303 | SheetJS | ielp.ORDER_CYCLE.STATUS_CODE | Report_Download_Daily_Order_Monitoring rev 0.7 | TBD |
+| TR-077 | Daily | Daily Monitoring (export) | DM-04 | Cycle n - Container | app.js:303 | SheetJS | ielp.ORDER_CYCLE.CONTAINER_NO | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
+| TR-078 | Daily | Daily Monitoring (export) | DM-04 | SA Approved At | app.js:303 | SheetJS | ielp.SA_DETAIL.APPROVED_DATE | Report_Download_Daily_Order_Monitoring rev 0.7 | TBD |
+| TR-079 | Daily | Daily Monitoring (export) | DM-04 | PO Number | app.js:303 | SheetJS | ielp.ORDER_CYCLE.PO_NUMBER | Report_Download_Daily_Order_Monitoring rev 0.7 | Revised |
 | TR-080 | Daily | Planning Order | DTP-01..13 | Daily Plan Date | dtp.js | dtp-rules.js | ielp.DTP_HEADER.DTP_DATE | Screen_DTP_Creation rev 0.9 | Revised |
 | TR-081 | Daily | Planning Order | DTP-01..13 | DTP Model / type | dtp.js | dtp-rules.js | ielp.DTP_HEADER.DTP_TYPE | Screen_DTP_Creation rev 0.9 | TBD |
 | TR-082 | Daily | Planning Order | DTP-01..13 | DTP header status | dtp.js | dtp-rules.js | ielp.DTP_HEADER.DTP_STATUS | Screen_DTP_Creation rev 0.9 | TBD |
@@ -119,30 +119,30 @@ Status: **Verified** (UISS already matched the schema) · **Revised** (UISS chan
 | TR-112 | Daily | Planning Order | DTP-01..13 | Order Sharing % (KPI) | dtp.js | dtp-rules.js | ielp.CRITERIA_LAST_ORDER.ORDER_SHARING | Screen_DTP_Creation rev 0.9 | Revised |
 | TR-113 | Daily | Planning Order | DTP-01..13 | Daily Trip (KPI) | dtp.js | dtp-rules.js | TBD | Screen_DTP_Creation rev 0.9 | Revised |
 | TR-114 | Daily | Planning Order | DTP-01..13 | Uploaded file | dtp.js | dtp-rules.js | ielp.DTP_FILES.FILE_NAME | Screen_DTP_Creation rev 0.9 | TBD |
-| TR-115 | Daily | Daily Monitoring | DM-01..11 | Date | app.js | workflow.js | ielp.ORDER_CYCLE.ORDER_DATE | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-116 | Daily | Daily Monitoring | DM-01..11 | No. Order | app.js | workflow.js | ielp.ORDER_CYCLE.ORDER_NO | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-117 | Daily | Daily Monitoring | DM-01..11 | Type (DTP 1-4) | app.js | workflow.js | ielp.DTP_HEADER.DTP_TYPE | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
-| TR-118 | Daily | Daily Monitoring | DM-01..11 | Trucking Comp. | app.js | workflow.js | ielp.ORDER_CYCLE.COMPANY_ID | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-119 | Daily | Daily Monitoring | DM-01..11 | License Plate | app.js | workflow.js | ielp.ORDER_CYCLE.LICENSE_PLATE | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-120 | Daily | Daily Monitoring | DM-01..11 | Driver | app.js | workflow.js | ielp.ORDER_CYCLE.DRIVER_ID | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-121 | Daily | Daily Monitoring | DM-01..11 | From / To | app.js | workflow.js | ielp.ORDER_CYCLE.FROM_LOC | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-122 | Daily | Daily Monitoring | DM-01..11 | To | app.js | workflow.js | ielp.ORDER_CYCLE.TO_LOC | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-123 | Daily | Daily Monitoring | DM-01..11 | Renban | app.js | workflow.js | ielp.ORDER_CYCLE.RENBAN | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-124 | Daily | Daily Monitoring | DM-01..11 | Shift | app.js | workflow.js | ielp.ORDER_CYCLE.SHIFT | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-125 | Daily | Daily Monitoring | DM-01..11 | FA | app.js | workflow.js | TBD | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
-| TR-126 | Daily | Daily Monitoring | DM-01..11 | Cycle status | app.js | workflow.js | ielp.ORDER_CYCLE.STATUS_CODE | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
-| TR-127 | Daily | Daily Monitoring | DM-01..11 | Cycle sequence | app.js | workflow.js | ielp.ORDER_CYCLE.CYCLE_SEQ | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-128 | Daily | Daily Monitoring | DM-01..11 | Container No | app.js | workflow.js | ielp.ORDER_CYCLE.CONTAINER_NO | Screen_Daily_Order_Monitoring rev 0.7 | Verified |
-| TR-129 | Daily | Daily Monitoring | DM-01..11 | Start / Pick Up / Finish | app.js | workflow.js | ielp.ORDER_CYCLE.START_DATE | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-130 | Daily | Daily Monitoring | DM-01..11 | SA approved | app.js | workflow.js | ielp.SA_DETAIL.APPROVED_DATE | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
-| TR-131 | Daily | Daily Monitoring | DM-01..11 | PO Number | app.js | workflow.js | ielp.ORDER_CYCLE.PO_NUMBER | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-132 | Daily | Daily Monitoring | DM-01..11 | Planned / Actual Cycle | app.js | workflow.js | TBD | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
-| TR-133 | Daily | Daily Monitoring | DM-01..11 | Files | app.js | workflow.js | ielp.ORDER_FILES.FILE_NAME | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-134 | Daily | Daily Monitoring | DM-01..11 | Status history | app.js | workflow.js | ielp.LOG_ACTIVITY_ORDER.ACT | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
-| TR-135 | Daily | Daily Monitoring | DM-01..11 | Truck Number (picker) | app.js | workflow.js | ielp.MS_TRUCK_REGISTRATION.LICENSE_PLATE | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-136 | Daily | Daily Monitoring | DM-01..11 | Driver (picker) | app.js | workflow.js | ielp.MS_DRIVER.DRIVER_ID | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-137 | Daily | Daily Monitoring | DM-01..11 | Truck change history | app.js | workflow.js | ielp.ORDER_TRUCK_H.LICENSE_PLATE | Screen_Daily_Order_Monitoring rev 0.7 | Revised |
-| TR-138 | Daily | Daily Monitoring | DM-01..11 | Reason (release / reject) | app.js | workflow.js | TBD | Screen_Daily_Order_Monitoring rev 0.7 | TBD |
+| TR-115 | Daily | Daily Monitoring | DM-01..11 | Date | app.js | workflow.js | ielp.ORDER_CYCLE.ORDER_DATE | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-116 | Daily | Daily Monitoring | DM-01..11 | No. Order | app.js | workflow.js | ielp.ORDER_CYCLE.ORDER_NO | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-117 | Daily | Daily Monitoring | DM-01..11 | Type (DTP 1-4) | app.js | workflow.js | ielp.DTP_HEADER.DTP_TYPE | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
+| TR-118 | Daily | Daily Monitoring | DM-01..11 | Trucking Comp. | app.js | workflow.js | ielp.ORDER_CYCLE.COMPANY_ID | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-119 | Daily | Daily Monitoring | DM-01..11 | License Plate | app.js | workflow.js | ielp.ORDER_CYCLE.LICENSE_PLATE | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-120 | Daily | Daily Monitoring | DM-01..11 | Driver | app.js | workflow.js | ielp.ORDER_CYCLE.DRIVER_ID | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-121 | Daily | Daily Monitoring | DM-01..11 | From / To | app.js | workflow.js | ielp.ORDER_CYCLE.FROM_LOC | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-122 | Daily | Daily Monitoring | DM-01..11 | To | app.js | workflow.js | ielp.ORDER_CYCLE.TO_LOC | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-123 | Daily | Daily Monitoring | DM-01..11 | Renban | app.js | workflow.js | ielp.ORDER_CYCLE.RENBAN | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-124 | Daily | Daily Monitoring | DM-01..11 | Shift | app.js | workflow.js | ielp.ORDER_CYCLE.SHIFT | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-125 | Daily | Daily Monitoring | DM-01..11 | FA | app.js | workflow.js | TBD | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
+| TR-126 | Daily | Daily Monitoring | DM-01..11 | Cycle status | app.js | workflow.js | ielp.ORDER_CYCLE.STATUS_CODE | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
+| TR-127 | Daily | Daily Monitoring | DM-01..11 | Cycle sequence | app.js | workflow.js | ielp.ORDER_CYCLE.CYCLE_SEQ | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-128 | Daily | Daily Monitoring | DM-01..11 | Container No | app.js | workflow.js | ielp.ORDER_CYCLE.CONTAINER_NO | Screen_Daily_Order_Monitoring rev 0.8 | Verified |
+| TR-129 | Daily | Daily Monitoring | DM-01..11 | Start / Pick Up / Finish | app.js | workflow.js | ielp.ORDER_CYCLE.START_DATE | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-130 | Daily | Daily Monitoring | DM-01..11 | SA approved | app.js | workflow.js | ielp.SA_DETAIL.APPROVED_DATE | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
+| TR-131 | Daily | Daily Monitoring | DM-01..11 | PO Number | app.js | workflow.js | ielp.ORDER_CYCLE.PO_NUMBER | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-132 | Daily | Daily Monitoring | DM-01..11 | Planned / Actual Cycle | app.js | workflow.js | TBD | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
+| TR-133 | Daily | Daily Monitoring | DM-01..11 | Files | app.js | workflow.js | ielp.ORDER_FILES.FILE_NAME | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-134 | Daily | Daily Monitoring | DM-01..11 | Status history | app.js | workflow.js | ielp.LOG_ACTIVITY_ORDER.ACT | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
+| TR-135 | Daily | Daily Monitoring | DM-01..11 | Truck Number (picker) | app.js | workflow.js | ielp.MS_TRUCK_REGISTRATION.LICENSE_PLATE | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-136 | Daily | Daily Monitoring | DM-01..11 | Driver (picker) | app.js | workflow.js | ielp.MS_DRIVER.DRIVER_ID | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-137 | Daily | Daily Monitoring | DM-01..11 | Truck change history | app.js | workflow.js | ielp.ORDER_TRUCK_H.LICENSE_PLATE | Screen_Daily_Order_Monitoring rev 0.8 | Revised |
+| TR-138 | Daily | Daily Monitoring | DM-01..11 | Reason (release / reject) | app.js | workflow.js | TBD | Screen_Daily_Order_Monitoring rev 0.8 | TBD |
 | TR-139 | Master | KPI | MKP-01..02 | Enter New KPI (KPI item name) | kpi.js | master-kpi.js | ielp.MS_KPI.KPI_NAME | Screen_Master_KPI rev 0.5 | Revised |
 | TR-140 | Master | KPI | MKP-01..02 | KPI item code | kpi.js | master-kpi.js | ielp.MS_KPI.KPI_ID | Screen_Master_KPI rev 0.5 | TBD |
 | TR-141 | Master | KPI | MKP-01..02 | KPI item order | kpi.js | master-kpi.js | ielp.MS_KPI.ORDER_SEQ | Screen_Master_KPI rev 0.5 | Revised |

@@ -196,7 +196,8 @@ function render() {
       <td data-col="sel">${waitTm(o) ? `<input type="checkbox" data-sel="${o.orderNo}" ${state.tmSel.has(o.orderNo) ? 'checked' : ''}>` : ''}</td>
       <td data-col="action"><button class="act" data-order="${o.orderNo}" title="Lihat detail">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-      </button>${tm && waitTm(o) ? `<br><button class="btn-edit-tm" data-tmedit="${o.orderNo}" title="Edit Finish Order">Edit</button><br><button class="btn-accept" data-approve="${o.orderNo}" title="Approve Finish Order">Approve</button>` : ''}</td>
+      </button></td>
+      <td data-col="tmAct">${tmReviewCell(o)}</td>
       <td data-col="date">${fmtDate(o.date)}</td>
       <td data-col="orderNo">${o.orderNo}</td>
       <td data-col="type">${o.type}</td>
@@ -214,7 +215,7 @@ function render() {
       <td data-col="tmBy">${o.tmApproved ? esc(o.tmApproved.by) : '-'}</td>
       <td data-col="tmAt">${o.tmApproved ? fmtTS(o.tmApproved.at) : '-'}</td>
     </tr>`).join('')
-    : '<tr><td colspan="22" class="empty">Tidak ada data yang cocok</td></tr>';
+    : '<tr><td colspan="23" class="empty">Tidak ada data yang cocok</td></tr>';
 
   const total = visibleTotal();
   $('info').textContent = rows.length
@@ -243,15 +244,15 @@ function render() {
   applyColumns();
 }
 function applyColumns() {
-  document.querySelectorAll('[data-col]').forEach(el => el.classList.toggle('hidden-col', state.hidden.has(el.dataset.col) || (el.dataset.col === 'sel' && !isTM())));
+  document.querySelectorAll('[data-col]').forEach(el => el.classList.toggle('hidden-col', state.hidden.has(el.dataset.col) || (['sel', 'tmAct'].includes(el.dataset.col) && !isTM())));
 }
 
 // ---------- [CR] Edit & Approve Finish Order by VPLD TM ----------
 const isTM = () => state.actor.role === 'VPLD_TM';
 function renderTm(rows) {
   const waiting = DATA.filter(o => W.canView(state.actor, o) && o.status === ORDER.WAIT_TM);
-  $('tmCount').textContent = waiting.length;
-  $('chipTm').classList.toggle('on', state.status === ORDER.WAIT_TM);
+  const opt = [...$('stsFilter').options].find(x => x.value === ORDER.WAIT_TM); // count of orders to review, in the Order Status filter
+  if (opt) opt.textContent = `${ORDER.WAIT_TM} (${waiting.length})`;
   [...state.tmSel.keys()].forEach(no => { if (!waiting.some(o => o.orderNo === no)) state.tmSel.delete(no); });
   $('btnTmApprove').style.display = isTM() ? '' : 'none';
   $('btnTmApprove').disabled = !state.tmSel.size;
@@ -262,6 +263,12 @@ function renderTm(rows) {
 }
 const wide = () => { $('pvBody').closest('.pv').style.width = 'min(1100px, 96vw)'; };
 const unwide = () => { $('pvBody').closest('.pv').style.width = ''; };
+// TM Review column (VPLD TM only): Edit / Approve for orders Waiting TM Approval, result after approval
+const IC_EDIT = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>';
+const IC_OK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const tmReviewCell = o => o.status === ORDER.WAIT_TM
+  ? `<div class="tm-act"><button class="tm-btn tm-btn-edit" data-tmedit="${o.orderNo}" title="Edit the delivery data of ${o.orderNo}">${IC_EDIT}Edit</button><button class="tm-btn tm-btn-ok" data-approve="${o.orderNo}" title="Approve the Finish Order of ${o.orderNo}">${IC_OK}Approve</button></div>`
+  : o.tmApproved ? `<span class="tm-done">${IC_OK}Approved</span>` : '<span class="tm-na">-</span>';
 const editedCell = o => o.tmEdited ? `<button class="tm-ed" data-tmhist="${o.orderNo}" title="Show the TM edit history">&#9998; Y</button>` : 'N';
 const simulateChange = o => W.log(o, new Date(), { role: 'SYSTEM', name: 'other user' }, 'Data changed (simulation)', { order: o.status }, { order: o.status }, '', 'Simulated concurrent change');
 let tmSimulate = false;
@@ -378,9 +385,7 @@ $('btnTmApprove').addEventListener('click', () => {
   if (!state.tmSel.size) { toast(W.TM_MSG.none); return; }
   openTmApprove([...state.tmSel.keys()].map(no => DATA.find(o => o.orderNo === no)));
 });
-$('chipTm').addEventListener('click', () => {
-  state.status = state.status === ORDER.WAIT_TM ? '' : ORDER.WAIT_TM; $('stsFilter').value = state.status; state.page = 1; render();
-});
+
 
 // ---------- Init controls ----------
 FROM.forEach(v => $('fromLoc').add(new Option(v, v)));

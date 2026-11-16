@@ -6,8 +6,8 @@ and `src/` with the spec JSON of each workbook and its screenshots `src/img/<UIS
 
 | Folder | UISS | Type | Rev |
 |---|---|---|---|
-| [01_Daily_Order_Monitoring](01_Daily_Order_Monitoring/README.md) | [UISS_Screen_Daily_Order_Monitoring](01_Daily_Order_Monitoring/uiss/UISS_Screen_Daily_Order_Monitoring.xlsx) | screen | 0.7 |
-| [01_Daily_Order_Monitoring](01_Daily_Order_Monitoring/README.md) | [UISS_Report_Download_Daily_Order_Monitoring](01_Daily_Order_Monitoring/uiss/UISS_Report_Download_Daily_Order_Monitoring.xlsx) | report | 0.6 |
+| [01_Daily_Order_Monitoring](01_Daily_Order_Monitoring/README.md) | [UISS_Screen_Daily_Order_Monitoring](01_Daily_Order_Monitoring/uiss/UISS_Screen_Daily_Order_Monitoring.xlsx) | screen | 0.8 |
+| [01_Daily_Order_Monitoring](01_Daily_Order_Monitoring/README.md) | [UISS_Report_Download_Daily_Order_Monitoring](01_Daily_Order_Monitoring/uiss/UISS_Report_Download_Daily_Order_Monitoring.xlsx) | report | 0.7 |
 | [02_Planning_Order_DTP](02_Planning_Order_DTP/README.md) | [UISS_Screen_DTP_Creation](02_Planning_Order_DTP/uiss/UISS_Screen_DTP_Creation.xlsx) | screen | 0.9 |
 | [02_Planning_Order_DTP](02_Planning_Order_DTP/README.md) | [UISS_Batch_DTP_Excel_Upload](02_Planning_Order_DTP/uiss/UISS_Batch_DTP_Excel_Upload.xlsx) | batch | 0.5 |
 | [02_Planning_Order_DTP](02_Planning_Order_DTP/README.md) | [UISS_Batch_DTP_Queue_Processing](02_Planning_Order_DTP/uiss/UISS_Batch_DTP_Queue_Processing.xlsx) | batch | 0.4 |

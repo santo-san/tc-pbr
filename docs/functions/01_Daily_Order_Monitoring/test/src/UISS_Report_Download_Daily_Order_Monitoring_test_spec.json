@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "Download Daily Order Monitoring",
   "uiss_name": "UISS-Report Download Daily Order Monitoring",
-  "uiss_rev": "0.6",
+  "uiss_rev": "0.7",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -36,7 +36,7 @@
      "ref": "UISS: 2.3 a-e, 2.3 b2",
      "procedure": [
       "Export as LP Admin of DNX with tab DTP 2 and keyword \"SNT\".",
-      "[CR] Export with Order Status = Waiting TM Approval (or after clicking the counter); include an order edited by VPLD TM."
+      "[CR] Export with Order Status = Waiting TM Approval (n); include an order edited by VPLD TM."
      ],
      "expected": [
       "Only DNX DTP 2 orders containing \"SNT\"; same rows as the grid.",

@@ -59,6 +59,13 @@
    "date": "16-Nov-26",
    "reviewed_by": "",
    "description": "CR: Edit & Approve finish order by VPLD Transportation Management. Status renamed Waiting TM Approval; VPLD TM can Edit the delivery data (truck, driver, container, cycle times, finish time, remarks; Edit Reason mandatory; edit history before / after) and Approve (per row, Order Detail, bulk); after approval Finish Daily Order and locked; editable-field table 5.6.8; columns Finish Scan / Edited / Approved By / Approved Date; Data Map [CR] blocks 11-15; messages no. 31-43, logs no. 6-8; Open Points OP-CR-01..10; screenshots 10-18. Supersedes the 0.6 acceptance design: status Waiting TM Acceptance -> Waiting TM Approval, Accept -> Approve, DCR-44 columns TM_ACCEPT_* -> TM_APPROVE_BY / TM_APPROVE_DATE + TM_EDIT_BY / TM_EDIT_DATE. Changed parts marked [CR]."
+  },
+  {
+   "revision": "0.8",
+   "author": "Susanto",
+   "date": "16-Nov-26",
+   "reviewed_by": "",
+   "description": "[CR] UI review of CR Edit & Approve (user 16-Nov-26): counter button [Waiting TM Approval (n)] removed - the count is shown in the Order Status option; Edit / Approve moved from below the Action icon to the new column TM Review (Item 74, 77, 78 redefined, numbering unchanged); screenshots 10-18 retaken. No change of rules, messages or database."
   }
  ],
  "general": {
@@ -189,20 +196,16 @@
     "function": "To close the modal without saving."
    },
    {
-    "name": "[CR] Waiting TM Approval (n)",
-    "function": "To filter the Order List on Order Status Waiting TM Approval; the counter shows the number of waiting orders in the user data scope."
-   },
-   {
     "name": "[CR] Approve Finish Order (n)",
     "function": "VPLD TM: to approve the selected orders (check box, status Waiting TM Approval). Opens the Approve Finish Order confirmation (5.6.9)."
    },
    {
-    "name": "[CR] Edit (row) / Edit Finish Order (Order Detail)",
-    "function": "VPLD TM: to open the Edit Finish Order form of an order Waiting TM Approval (5.6.7)."
+    "name": "[CR] TM Review: Edit / Edit Finish Order (Order Detail)",
+    "function": "VPLD TM: button [Edit] in column TM Review (or Order Detail): to open the Edit Finish Order form of an order Waiting TM Approval (5.6.7)."
    },
    {
-    "name": "[CR] Approve (row) / Approve Finish Order (Order Detail)",
-    "function": "VPLD TM: to approve one order. Opens the Approve Finish Order confirmation (5.6.9)."
+    "name": "[CR] TM Review: Approve / Approve Finish Order (Order Detail)",
+    "function": "VPLD TM: button [Approve] in column TM Review (or Order Detail): to approve one order. Opens the Approve Finish Order confirmation (5.6.9)."
    },
    {
     "name": "[CR] Edited (Y) - history",
@@ -251,10 +254,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "E",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "E",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -287,10 +289,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "E",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "E",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -328,10 +329,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -364,10 +364,9 @@
        "PDF": "E",
        "Submit": "D",
        "Cancel / Close (x)": "E",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -405,10 +404,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -441,10 +439,9 @@
        "PDF": "E",
        "Submit": "D",
        "Cancel / Close (x)": "E",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -482,10 +479,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "E",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -518,10 +514,9 @@
        "PDF": "E",
        "Submit": "D",
        "Cancel / Close (x)": "E",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -559,10 +554,9 @@
        "PDF": "D",
        "Submit": "E",
        "Cancel / Close (x)": "E",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -600,10 +594,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "E",
        "[CR] Approve Finish Order (n)": "E",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "E",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "E",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "E",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "E",
        "[CR] Edited (Y) - history": "E",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "D",
@@ -636,10 +629,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "E",
        "[CR] Confirm Approve": "D",
@@ -672,10 +664,9 @@
        "PDF": "D",
        "Submit": "D",
        "Cancel / Close (x)": "D",
-       "[CR] Waiting TM Approval (n)": "D",
        "[CR] Approve Finish Order (n)": "D",
-       "[CR] Edit (row) / Edit Finish Order (Order Detail)": "D",
-       "[CR] Approve (row) / Approve Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Edit / Edit Finish Order (Order Detail)": "D",
+       "[CR] TM Review: Approve / Approve Finish Order (Order Detail)": "D",
        "[CR] Edited (Y) - history": "D",
        "[CR] Save / Back / Confirm Save (edit)": "D",
        "[CR] Confirm Approve": "E",
@@ -689,7 +680,7 @@
    "1) A workflow button is displayed only when the login role is allowed to do the action AND the current Order Status / Cycle Status allows it (Operation Description 5.5).",
    "2) View 'Foto Surat Jalan' is enabled after Pickup Container; View 'Finish Cycle Foto' after Finish Cycle; Surat Jalan ELIPS and PDF after Start Cycle.",
    "3) IELP Admin sees all orders. Supplier (Viewer / LP Admin) sees only orders whose Trucking Company is the login supplier.",
-   "4) [CR] VPLD TM: the selection check box, [Edit] and [Approve] are shown only for orders Waiting TM Approval; [Approve Finish Order (n)] is enabled when at least one row is selected. After approval (Finish Daily Order) Edit / Approve are not shown (locked). Other roles (incl. Planner VPLD of SA Approval) see the data read only."
+   "4) [CR] VPLD TM: the selection check box and column TM Review ([Edit] outline button + [Approve] green button side by side) are shown only to VPLD TM; the buttons only on orders Waiting TM Approval, approved orders show 'Approved', others '-'. [Approve Finish Order (n)] is enabled when at least one row is selected. Other roles (incl. Planner VPLD of SA Approval) do not see the check box / TM Review column (read only)."
   ]
  },
  "screen_flow": [
@@ -784,7 +775,7 @@
      {
       "from": "m",
       "to": "ed",
-      "label": "[CR] Edit"
+      "label": "[CR] TM Review: Edit"
      },
      {
       "from": "d",
@@ -799,7 +790,7 @@
      {
       "from": "m",
       "to": "c",
-      "label": "[CR] Approve / Approve (n)"
+      "label": "[CR] TM Review: Approve / Approve (n)"
      },
      {
       "from": "d",
@@ -1560,7 +1551,7 @@
    "image": "img/UISS_Screen_Daily_Order_Monitoring/08_mock_detail_viewer.png"
   },
   {
-   "caption": "[CR] 10. VPLD TM - Order List filtered on Waiting TM Approval (counter, highlighted rows, check box, [Edit], [Approve], [Approve Finish Order (n)])",
+   "caption": "[CR] 10. VPLD TM - Order Status 'Waiting TM Approval (n)', highlighted rows, check box, column TM Review ([Edit] / [Approve]), [Approve Finish Order (n)]",
    "image": "img/UISS_Screen_Daily_Order_Monitoring/10_cr_tm_waiting_list.png"
   },
   {
@@ -2720,25 +2711,25 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "All / Planning Order / Order Release / Start Daily Order / Waiting TM Approval / Finish Daily Order / SA Approved / SA Approved with PO Number. Applied on [Find]; [Clear] resets to All.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3); code of Waiting TM Approval = new ielp.MS_STATUS row - TBD - Not confirmed from existing schema/data/code."
+   "description": "All / Planning Order / Order Release / Start Daily Order / Waiting TM Approval / Finish Daily Order / SA Approved / SA Approved with PO Number. The option Waiting TM Approval shows the number of waiting orders in the user data scope, e.g. 'Waiting TM Approval (5)' (refreshed with the list). Applied on [Find]; [Clear] resets to All.\nDB: ielp.DTP_2_DETAIL.STATUS_CODE varchar(3); code of Waiting TM Approval = new ielp.MS_STATUS row - TBD - Not confirmed from existing schema/data/code."
   },
   {
    "group": "<[CR] Order List Section - additions>"
   },
   {
-   "name": "[CR] Waiting TM Approval (n)",
+   "name": "[CR] Order Status option count",
    "source": "ielp.DTP_2_DETAIL",
    "field": "count of STATUS_CODE = Waiting TM Approval",
    "type": "Number",
    "len": "",
    "io": "O",
-   "control": "Button (chip)",
+   "control": "Combo Box option text",
    "justified": "Left",
    "initial": "",
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Counter of orders Waiting TM Approval in the user data scope (all dates). Click: Order Status filter = Waiting TM Approval (click again: All)."
+   "description": "Number of orders Waiting TM Approval in the user data scope (all dates), shown in the Order Status option 'Waiting TM Approval (n)'. Replaces the counter button of rev 0.7 (removed)."
   },
   {
    "name": "[CR] Approve Finish Order (n)",
@@ -2768,37 +2759,37 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "VPLD TM only, enabled only on rows Waiting TM Approval. Selection kept over pages; cleared after Approve or a role change."
+   "description": "First column, VPLD TM only, enabled only on rows Waiting TM Approval. Selection kept over pages; cleared after Approve or a role change."
   },
   {
-   "name": "[CR] Edit (row)",
+   "name": "[CR] TM Review (column)",
+   "source": "",
+   "field": "",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Grid column",
+   "justified": "Center",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Column after Action, VPLD TM only (hidden for other roles). Rows Waiting TM Approval: buttons [Edit] and [Approve] side by side; approved orders: 'Approved' (green check); other rows: '-'."
+  },
+  {
+   "name": "[CR] TM Review - [Edit] / [Approve] buttons",
    "source": "",
    "field": "",
    "type": "",
    "len": "",
    "io": "O",
    "control": "Button",
-   "justified": "Left",
+   "justified": "Center",
    "initial": "",
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Below the Action icon, VPLD TM only, rows Waiting TM Approval only. Opens the Edit Finish Order form (5.6.7)."
-  },
-  {
-   "name": "[CR] Approve (row)",
-   "source": "",
-   "field": "",
-   "type": "",
-   "len": "",
-   "io": "O",
-   "control": "Button",
-   "justified": "Left",
-   "initial": "",
-   "required": "N",
-   "format": "",
-   "validation": "",
-   "description": "Below [Edit], VPLD TM only, rows Waiting TM Approval only. Opens the Approve Finish Order confirmation (5.6.9)."
+   "description": "[Edit] (blue outline, pencil icon) opens the Edit Finish Order form (5.6.7); [Approve] (green, check icon) opens the Approve Finish Order confirmation of the row (5.6.9). Same height, one line."
   },
   {
    "name": "[CR] Row highlight",
@@ -4112,7 +4103,7 @@
   },
   {
    "type": "text",
-   "text": "[CR] Only VPLD TM can edit or approve a Finish Order. Planner VPLD (SA Approval), IELP Admin, Supplier and Driver see Waiting TM Approval orders read only (no check box / Edit / Approve); a request from another role gets message no. 35.",
+   "text": "[CR] Only VPLD TM can edit or approve a Finish Order. Planner VPLD (SA Approval), IELP Admin, Supplier and Driver see Waiting TM Approval orders read only (no check box / TM Review column); a request from another role gets message no. 35.",
    "level": 2
   },
   {
@@ -4216,7 +4207,7 @@
   {
    "type": "item",
    "marker": "i.",
-   "text": "[CR] User clicks [Waiting TM Approval (n)]: Order Status filter = Waiting TM Approval at once; click again to remove it. The counter is recalculated on every refresh of the list.",
+   "text": "[CR] The Order Status option 'Waiting TM Approval (n)' shows how many orders wait for TM review; select it and [Find] to list them (rows highlighted). The count is recalculated on every refresh of the list.",
    "level": 2
   },
   {
@@ -4578,7 +4569,7 @@
    "marker": "1.",
    "level": 3,
    "items": [
-    "Open: [Edit] of a row or [Edit Finish Order] of the Order Detail (VPLD TM, Order Status Waiting TM Approval). The form shows the current data (driver scan, or the last TM edit) and remembers the VERSION.",
+    "Open: [Edit] in column TM Review or [Edit Finish Order] of the Order Detail (VPLD TM, Order Status Waiting TM Approval). The form shows the current data (driver scan, or the last TM edit) and remembers the VERSION.",
     "Read-only part: No. Order, Date / Shift, Trucking Company, route, Order Status, Finished By. Editable fields: table 5.6.8. Edit Reason is mandatory.",
     "[Save]: check all fields at once (Item Desc validation): mandatory, container format / check digit / duplicate / active elsewhere (messages no. 17-20), truck and driver master (messages no. 11, 12, 15), time order Start <= Pickup <= Finish, cycle n >= Finish of cycle n-1, Finish Order >= last Finish Cycle (message no. 41), no future time (message no. 42), Remarks <= 500, Edit Reason >= 10 characters (message no. 40). Errors are shown below the fields; nothing saved.",
     "If no field differs from the current data, display message no. 43. Stop.",
@@ -4685,7 +4676,7 @@
    "marker": "1.",
    "level": 3,
    "items": [
-    "Open: [Approve] of a row, [Approve Finish Order] of the Order Detail, or [Approve Finish Order (n)] for the selected rows. If no row is selected, display message no. 37. Stop.",
+    "Open: [Approve] in column TM Review, [Approve Finish Order] of the Order Detail, or [Approve Finish Order (n)] for the selected rows. If no row is selected, display message no. 37. Stop.",
     "Show the confirmation (message no. 31) with No. Order, Trucking Comp., License Plate, Driver, Finish Scan, Finished By (Driver scan / LP Admin), Cycle (Act / Plan), Container No. of every cycle, Last Destination and Edited (Y with user / date, or N). Data is read only.",
     "[Cancel]: close, no change. [Confirm Approve]: send the list (No. Order + VERSION shown) to the server.",
     "Server, for every order: role VPLD TM (else message no. 35 for the whole request); Order Status still Waiting TM Approval (else message no. 34); VERSION equal to the displayed version (else message no. 36).",
