@@ -3,7 +3,7 @@ Planning Truck Assignment (+ driver sync), Delivery Note (+ GR attachment). Data
 from common import C, LOGCHK
 
 D2, OC, LAO = 'ielp.DTP_2_DETAIL', 'ielp.ORDER_CYCLE', 'ielp.LOG_ACTIVITY_ORDER'
-WTM = 'Waiting TM Acceptance'  # [CR] 16-Nov-26
+WTM = 'Waiting TM Approval'  # [CR] 16-Nov-26 (Edit & Approve)
 DCRN = 'Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept).'
 
 
@@ -56,30 +56,46 @@ def daily_monitoring(u):
         [M(23, {'n': '2'}), f'[CR] Cycle Finish Cycle (COMPLETE_DATE); Order Status {WTM} (not Finish Daily Order); DB {D2}.STATUS_CODE = {WTM} code, {OC}.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP (Data Map blk 11).']),
       C('rules', 'Status / role rule check', 'UISS: 5.5, Msg no.7, Msg no.8', ['Send Finish Order for an order in Planning Order (request).', 'Supplier Viewer sends Order Release (request).'],
         [M(7, {'Action': 'Finish Order', 'Allowed Status': 'Start Daily Order'}), M(8, {'Role': 'Supplier Viewer', 'Action': 'Order Release'})])]},
-     {'title': '[CR] Accept Finish Order (VPLD TM)', 'items': [
-      C('tmlist', 'Waiting TM Acceptance: filter, counter, highlight, columns', 'UISS: Item 73-82, 5.2.2 h-i, 5.4, Gen Desc mode VPLD TM',
-        ['Login as VPLD TM. ' + OPEN, 'Check the counter [Waiting TM Acceptance (n)]; click it; click it again.', f'Order Status = {WTM}, [Find]; then [Clear].', 'Login as Planner VPLD and as LP Admin DNX.'],
-        [f'Counter = number of orders {WTM} in the scope (SQL TD-20). Click: only {WTM} rows (light orange), chip highlighted; second click: all.', 'Columns Finish Scan (date-time + user), Accepted By, Accepted Date ("-" when not accepted); Order Status sub text "Finish scan <date-time>".',
-         'VPLD TM: check box and [Accept] only on rows ' + WTM + '; [Accept Finish Order (0)] disabled.', 'Planner VPLD / LP Admin: same rows and columns, no check box / Accept buttons (view only).']),
-      C('tmone', 'Accept one order (row and Order Detail)', 'UISS: Item 83-96, 5.6.7, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6',
-        ['VPLD TM: click [Accept] of order ORD-W1; check the confirmation; click [Cancel].', 'Click [Accept] again, [Confirm Accept].', 'Open Order Detail of ORD-W2, click [Accept Finish Order], [Confirm Accept].'],
-        [M(31, {'n': '1'}) + '; list No. Order, Trucking Comp., License Plate / Driver, Finish Scan, Finished By (Driver scan / LP Admin (manual)), Cycle (Act / Plan), Container No., Last Destination (read only). Cancel: no change.',
-         M(32, {'n': '1'}) + '; list and counter refreshed; Order Status Finish Daily Order, sub text "TM accepted <date-time>".',
-         f'DB (SQL TD-20): {D2}.STATUS_CODE = Finish Daily Order, TM_ACCEPT_BY = login user, TM_ACCEPT_DATE = now (DCR-44), VERSION + 1; {LAO} row ACT Accept Finish Order; ' + L(6, {'User': 'tm1', 'Order No': 'ORD-W1'}),
-         'Order Detail: Finish Scan and TM Accepted shown; the order is now listed in SA Approval (ST SA Approval).']),
-      C('tmbulk', 'Bulk accept with selection', 'UISS: Item 74-76, 5.6.7, Msg no.37, Msg no.31, Msg no.32',
-        ['VPLD TM: click [Accept Finish Order (n)] with nothing selected (request / button state).', 'Tick 3 rows (two on page 1, one on page 2), click [Accept Finish Order (3)], [Confirm Accept].', 'Tick the header check box.'],
+     {'title': '[CR] Waiting TM Approval - list (VPLD TM)', 'items': [
+      C('tmlist', 'Waiting TM Approval: filter, counter, highlight, columns, roles', 'UISS: Item 73-84, 5.1, 5.2.2 h-j, 5.4, Gen Desc mode VPLD TM',
+        ['Login as VPLD TM. ' + OPEN, 'Check the counter [Waiting TM Approval (n)]; click it; click it again.', f'Order Status = {WTM}, [Find]; then [Clear].', 'Login as Planner VPLD and as LP Admin DNX.'],
+        [f'Counter = number of orders {WTM} in the scope (SQL TD-20). Click: only {WTM} rows (light orange), chip highlighted; second click: all.', 'Columns Finish Scan (date-time + user), Edited (N), Approved By, Approved Date ("-"); Order Status sub text "Finish scan <date-time>".',
+         'VPLD TM: check box, [Edit] and [Approve] only on rows ' + WTM + '; [Approve Finish Order (0)] disabled.', 'Planner VPLD / LP Admin: same rows and columns, no check box / Edit / Approve (view only).'])]},
+     {'title': '[CR] Edit Finish Order (VPLD TM)', 'items': [
+      C('tmedit', 'Edit and save: confirmation, status unchanged, history', 'UISS: Item 85-111, 5.6.7, 5.6.8, Msg no.38, Msg no.39, Data Map blk 13, Data Map blk 14, Data Map blk 15, Log 8',
+        ['VPLD TM: click [Edit] of ORD-W1 (from the list) and check the form.', 'Container No. cycle 1 = "TGCU5529491", Finish Cycle time cycle 1 + 10 minutes, Remarks = "corrected from Surat Jalan photo", Edit Reason = "Driver typed a wrong container"; [Save].', '[Back], then [Save] and [Confirm Save].', 'Click Edited = Y of ORD-W1; open its Order Detail.', 'Edit ORD-W1 again (License Plate = B 5678 DN, Driver = driver of that truck, reason), [Confirm Save].'],
+        ['Read only: No. Order, Date / Shift, Trucking Company, route, cycles; editable: License Plate, Driver, Container No. / Start / Pickup / Finish per cycle, Finish Order time, Remarks, Edit Reason (table 5.6.8).',
+         M(38, {'Order No': 'ORD-W1'}) + ' with Field / Cycle / Before / After of the 3 changed fields and the reason; Back keeps the entered values.',
+         M(39, {'Order No': 'ORD-W1', 'n': '3'}) + f'; Order Status still {WTM}; Edited = Y.',
+         f'DB (SQL TD-20): {OC} CONTAINER_NO / COMPLETE_DATE / FINISH_REMARKS changed, {D2}.TM_EDIT_BY / TM_EDIT_DATE (DCR-44), VERSION + 1; {LAO} row ACT Edit Finish Order, REMARK = reason, PARAM_REQ / PARAM_RES before / after; ' + L(8),
+         'TM Edit History popup and Order Detail section: Edited At, Edited By, Field, Cycle, Before, After, Edit Reason (latest first); second save adds a second group (LICENSE_PLATE / DRIVER_ID also on every cycle).']),
+      C('tmeditval', 'Edit validation (all errors at once)', 'UISS: Item 91-100, 5.6.7, 5.6.8, Msg no.40, Msg no.41, Msg no.42, Msg no.43, Msg no.11, Msg no.12, Msg no.15, Msg no.17, Msg no.18, Msg no.19, Msg no.20',
+        ['VPLD TM: open Edit of ORD-W2 and [Save] without change and without reason.', 'Enter the invalid values of Test Data table T one by one (with a valid reason), [Save].'],
+        [M(43) + ' / ' + M(40) + '.', 'Table T: ' + M(41) + '; ' + M(42) + '; truck / driver / container messages as in table T; errors below the fields, nothing saved (SQL TD-20 unchanged).'])]},
+     {'title': '[CR] Approve Finish Order (VPLD TM)', 'items': [
+      C('tmone', 'Approve one order (row and Order Detail): status Finish, locked', 'UISS: Item 112-118, 5.6.9, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6',
+        ['VPLD TM: click [Approve] of ORD-W1 (edited); check the confirmation; [Cancel].', 'Click [Approve] again, [Confirm Approve].', 'Open Order Detail of ORD-W2, click [Approve Finish Order], [Confirm Approve].', 'Open Order Detail of ORD-W1 again; try the Edit request for ORD-W1 (browser tools).'],
+        [M(31, {'n': '1'}) + '; list No. Order, Trucking Comp., License Plate / Driver, Finish Scan, Finished By, Cycle (Act / Plan), Container No., Last Destination, Edited = Y (user / date). Cancel: no change.',
+         M(32, {'n': '1'}) + '; list and counter refreshed; Order Status Finish Daily Order, sub text "TM approved <date-time>"; Approved By / Date filled.',
+         f'DB (SQL TD-20): {D2}.STATUS_CODE = Finish Daily Order, TM_APPROVE_BY / TM_APPROVE_DATE (DCR-44), VERSION + 1; {LAO} row ACT Approve Finish Order; ' + L(6, {'User': 'tm1', 'Order No': 'ORD-W1'}),
+         'ORD-W1 locked: no Edit / Approve buttons; the Edit request returns ' + M(34, {'Order No': 'ORD-W1', 'Status': 'Finish Daily Order'}) + '. The order (edited data) is listed in SA Approval (ST SA Approval).']),
+      C('tmbulk', 'Bulk approve with selection', 'UISS: Item 74-76, 5.6.9, Msg no.37, Msg no.31, Msg no.32',
+        ['VPLD TM: click [Approve Finish Order (n)] with nothing selected (request / button state).', 'Tick 3 rows (two on page 1, one on page 2), [Approve Finish Order (3)], [Confirm Approve].', 'Tick the header check box.'],
         [M(37), M(31, {'n': '3'}) + ' then ' + M(32, {'n': '3'}) + '; selection cleared.', 'Header check box selects all ' + WTM + ' rows of the filtered list.'])]}]
     ab = [C('version', 'Concurrency check', 'UISS: Msg no.9', ['Users A and B open the same order; B submits an action first, then A.'], [M(9)]),
-          C('tmfail', '[CR] Accept refused: status changed / version / all-or-nothing', 'UISS: 5.6.7, Msg no.33, Msg no.34, Msg no.36, Log 7',
-            ['VPLD TM A and B select ORD-W3 and ORD-W4; B accepts ORD-W4; A clicks [Confirm Accept].', 'A selects ORD-W5; another user changes ORD-W5 (e.g. history entry); A confirms.'],
-            [M(33, {'x': '1', 'n': '2'}) + ' with "ORD-W4: ' + M(34).split(": '", 1)[1].rstrip("'") + '"; ORD-W3 not accepted either (all-or-nothing); modal stays open; failed row unselected.',
-             M(36, {'Order No': 'ORD-W5'}) + ' in the list; ' + L(7)]),
-          C('tmrole', '[CR] Accept request by another role', 'UISS: 5.1, Msg no.35', ['Send the accept request as Planner VPLD and as IELP Admin (browser tools).'], [M(35) + '; status unchanged.']),
+          C('tmfail', '[CR] Approve / edit refused: status changed / version / all-or-nothing', 'UISS: 5.6.7, 5.6.9, Msg no.33, Msg no.34, Msg no.36, Log 7',
+            ['VPLD TM A and B select ORD-W3 and ORD-W4; B approves ORD-W4; A clicks [Confirm Approve].', 'A selects ORD-W5; B edits ORD-W5; A confirms the approval.', 'A opens Edit of ORD-W5; B edits ORD-W5 again; A clicks [Confirm Save].'],
+            [M(33, {'x': '1', 'n': '2'}) + ' with "ORD-W4: ' + M(34).split(": '", 1)[1].rstrip("'") + '"; ORD-W3 not approved either (all-or-nothing); modal stays open; failed row unselected.',
+             M(36, {'Order No': 'ORD-W5'}) + ' in the list; ' + L(7), M(36, {'Order No': 'ORD-W5'}) + '; nothing saved.']),
+          C('tmrole', '[CR] Edit / approve request by another role', 'UISS: 5.1, Msg no.35', ['Send the edit and the approve request as Planner VPLD and as IELP Admin (browser tools).'], [M(35) + '; data and status unchanged.']),
           C('iferr', 'SA / PAS interface not reachable', 'UISS: Log 4', ['Stop the SA interface stub; Process to SA.'], [L(4, {'SA/PAS': 'SA'}), 'Status not changed.'])]
     td = {'precondition': ['Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD, [CR] VPLD TM (tm1).', f'[CR] Orders ORD-W1..ORD-W5 in {WTM} (finished by driver scan; ORD-W2 by LP Admin), DCR-44 applied, MS_STATUS code of {WTM} defined.', 'Orders of 14-Nov-2026 for DNX (Planning Order, Order Release, Start Daily Order) and PNJ; trucks B 1234 DN (valid), license-expired truck.', DCRN],
+          'data': [['{tc:tmeditval}', 'T License Plate', 'truck of PNJ / truck with license expired before the order date', 'Msg 11 / Msg 12'], ['{tc:tmeditval}', 'T Driver', 'inactive driver', 'Msg 15'],
+                   ['{tc:tmeditval}', 'T Container No.', '"ABC123" / "MSKU1234560" / same as cycle 2 / active in another order', 'Msg 17 / 18 / 19 / 20'],
+                   ['{tc:tmeditval}', 'T Times', 'Pickup < Start; Start cycle 2 < Finish cycle 1; Finish Order < last Finish Cycle', 'Msg 41'], ['{tc:tmeditval}', 'T Times', 'Finish Cycle tomorrow', 'Msg 42'],
+                   ['{tc:tmeditval}', 'T Remarks / Edit Reason', '501 characters / "short"', 'max 500 / Msg 40']],
           'sql_verify': [{'id': 'TD-10', 'tc': '{tc:assign}, {tc:release}, {tc:sa}', 'title': 'Order and log', 'sql': f"SELECT ORDER_NO, LICENSE_PLATE, DRIVER_ID, STATUS_CODE, PO_NUMBER, UPDATED_BY, UPDATED_DATE FROM {D2} WHERE ORDER_NO = :order_no;\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, STATUS_CODE, PICKUP_DATE, COMPLETE_DATE FROM {OC} WHERE ORDER_NO = :order_no;\nSELECT * FROM {LAO} WHERE ORDER_NO = :order_no ORDER BY CREATED_DATE;"},
-                         {'id': 'TD-20', 'tc': '{tc:tmlist}, {tc:tmone}', 'title': '[CR] TM acceptance', 'sql': f"SELECT COUNT(*) FROM {D2} WHERE STATUS_CODE = :wait_tm_code;  -- counter\nSELECT ORDER_NO, STATUS_CODE, TM_ACCEPT_BY, TM_ACCEPT_DATE, UPDATED_BY, VERSION FROM {D2} WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');  -- DCR-44 / DCR-36\nSELECT ORDER_NO, CYCLE_SEQ, FINISH_ORDER_DATE, FINISH_ORDER_BY, FINISH_BY_LP FROM {OC} WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');"}]}
+                         {'id': 'TD-20', 'tc': '{tc:tmlist}, {tc:tmedit}, {tc:tmone}', 'title': '[CR] TM edit / approval', 'sql': f"SELECT COUNT(*) FROM {D2} WHERE STATUS_CODE = :wait_tm_code;  -- counter\nSELECT ORDER_NO, STATUS_CODE, LICENSE_PLATE, DRIVER_ID, TM_EDIT_BY, TM_EDIT_DATE, TM_APPROVE_BY, TM_APPROVE_DATE, VERSION FROM {D2} WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');  -- DCR-44 / DCR-36\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, START_DATE, PICKUP_DATE, COMPLETE_DATE, FINISH_ORDER_DATE, FINISH_ORDER_BY, FINISH_BY_LP, FINISH_REMARKS FROM {OC} WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');\nSELECT ACT, REMARK, PARAM_REQ, PARAM_RES, CREATED_BY, CRETED_DATE FROM {LAO} WHERE ORDER_NO = 'ORD-W1' ORDER BY CRETED_DATE;"}]}
     return {'header': u.header(), 'groups': g, 'abnormal': ab, 'test_data': td}
 
 
@@ -88,7 +104,7 @@ def download_dom(u):
     E = ['Login as IELP Admin, open Daily > Daily Monitoring, set the criteria of the case, click [Export] > [Export ke Excel (.xlsx)].']
     n = [C('file', 'Export file: header, criteria, body, footer', 'UISS: Item 1-29, 1., 2.3, 3., 4., Log no.6',
            ['Open the downloaded file.'], ['Header Report Title, Printed By, Printed Date; Print Criteria = screen criteria ([CR] incl. Order Status, "All" when not selected).', 'One row per order (all pages, grid sort), cycles 1..5 Time / Status / Container, Order Status, SA Approved At, PO Number; Total row.', L(6, {'0': 'n'})], execution=E),
-         C('scope', 'Data scope by role and filters', 'UISS: 2.3 a-e, 2.3 b2', ['Export as LP Admin of DNX with tab DTP 2 and keyword "SNT".', f'[CR] Export with Order Status = {WTM} (or after clicking the counter).'], ['Only DNX DTP 2 orders containing "SNT"; same rows as the grid.', f'Only {WTM} orders; Print Criteria "Order Status : {WTM}"; no Finish Scan / Accepted columns in the file.'],
+         C('scope', 'Data scope by role and filters', 'UISS: 2.3 a-e, 2.3 b2', ['Export as LP Admin of DNX with tab DTP 2 and keyword "SNT".', f'[CR] Export with Order Status = {WTM} (or after clicking the counter); include an order edited by VPLD TM.'], ['Only DNX DTP 2 orders containing "SNT"; same rows as the grid.', f'Only {WTM} orders; Print Criteria "Order Status : {WTM}"; edited order exported with the edited container / times; no Finish Scan / Edited / Approved columns in the file.'],
            execution=['Login as LP Admin DNX, open Daily Monitoring, click tab DTP 2, Search "SNT", Export.'])]
     ab = [C('nodata', 'No data', 'UISS: 2.3 f, Log no.3', ['Check the screen and the download folder.'], [L(3), 'No file.'], execution=['Export with a date without orders.']),
           C('max', 'Over the maximum rows', 'UISS: Log no.4', ['Check the screen.'], [L(4, {'0': 'max (TBD)'})], execution=['Export a range above the maximum rows (TBD).'], tbd='Max rows TBD'),

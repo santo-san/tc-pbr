@@ -5,8 +5,8 @@ Code: app.js, workflow.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_Daily_Order_Monitoring](uiss/UISS_Screen_Daily_Order_Monitoring.xlsx) | screen | 0.6 (16-Nov-26) | [uiss/src/UISS_Screen_Daily_Order_Monitoring.json](uiss/src/UISS_Screen_Daily_Order_Monitoring.json) | 14 |
-| [UISS_Report_Download_Daily_Order_Monitoring](uiss/UISS_Report_Download_Daily_Order_Monitoring.xlsx) | report | 0.5 (16-Nov-26) | [uiss/src/UISS_Report_Download_Daily_Order_Monitoring.json](uiss/src/UISS_Report_Download_Daily_Order_Monitoring.json) | 3 |
+| [UISS_Screen_Daily_Order_Monitoring](uiss/UISS_Screen_Daily_Order_Monitoring.xlsx) | screen | 0.7 (16-Nov-26) | [uiss/src/UISS_Screen_Daily_Order_Monitoring.json](uiss/src/UISS_Screen_Daily_Order_Monitoring.json) | 18 |
+| [UISS_Report_Download_Daily_Order_Monitoring](uiss/UISS_Report_Download_Daily_Order_Monitoring.xlsx) | report | 0.6 (16-Nov-26) | [uiss/src/UISS_Report_Download_Daily_Order_Monitoring.json](uiss/src/UISS_Report_Download_Daily_Order_Monitoring.json) | 3 |
 
 Rules / specification (`uiss/`):
 

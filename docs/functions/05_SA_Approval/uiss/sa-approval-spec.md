@@ -25,8 +25,8 @@ TC-PBR = Trucking Container Payment By Resource. VPLD performs Service Acceptanc
 
 ```mermaid
 flowchart LR
-  A0["Daily Monitoring<br>Finish Order scan (Driver / LP)<br>Waiting TM Acceptance"] --> A
-  A["VPLD TM Accept Finish Order<br>Finish Daily Order (CR)"] --> B["SA Approval<br>list eligible deliveries"]
+  A0["Daily Monitoring<br>Finish Order scan (Driver / LP)<br>Waiting TM Approval"] --> A
+  A["VPLD TM Edit (optional) + Approve<br>Finish Daily Order (CR)"] --> B["SA Approval<br>list eligible deliveries"]
   B --> C["Route → Total KM<br>(Master Mileage)"]
   C --> D["PO mapping<br>(LP, month, TC-PBR, active)"]
   D --> E["Cost = Total KM × PO rate/KM"]
@@ -49,7 +49,7 @@ flowchart LR
 | ID | Requirement | Type |
 |---|---|---|
 | FR-01 | SA Approval lists only deliveries that are finished (Daily status `Finish Daily Order`) and have no SA Number | C (P for "finished" = Finish Daily Order, per the reference "Finished by LP") |
-| FR-01a | *(CR 16-Nov-26)* `Finish Daily Order` is set only by the **VPLD TM acceptance** (Accept Finish Order on Daily Order Monitoring); deliveries `Waiting TM Acceptance` are never listed. The list shows **TM Accepted** (user / date) and the Calculation Detail shows Finish Scan and TM Accepted By / Date (information only, DCR-44). Orders already Finish before go-live go to SA directly (OP-CR-06) | C |
+| FR-01a | *(CR 16-Nov-26)* `Finish Daily Order` is set only by the **VPLD TM approval** (Approve Finish Order on Daily Order Monitoring, after optional TM Edit); deliveries `Waiting TM Approval` are never listed. The calculation uses the data after the TM edits. The list shows **TM Approved** (user / date, marker *Edited*) and the Calculation Detail shows Finish Scan, TM Approved By / Date and TM Edited (information only, DCR-44). Orders already Finish before go-live go to SA directly (OP-CR-07) | C |
 | FR-02 | Each row shows the delivery, trucking company and code, route, Total KM, PO, PO validity, rate, cost, currency and validation result | C |
 | FR-03 | A row with any validation issue shows the reason and cannot be selected | C |
 | FR-04 | VPLD selects rows (or Select All valid rows of the filter) and clicks **Approve**. A confirmation shows the deliveries, Total KM and cost per trucking company + PO | C / P (confirmation) |
@@ -112,7 +112,7 @@ Additions to the reference (required by the request): Validation, PO Validity, T
 
 | Code | Label (screen) | Condition | Type |
 |---|---|---|---|
-| NOT_ELIGIBLE | Not Eligible | Daily status is not Finish Daily Order (CR: includes Waiting TM Acceptance) | C |
+| NOT_ELIGIBLE | Not Eligible | Daily status is not Finish Daily Order (CR: includes Waiting TM Approval) | C |
 | ALREADY_SA | Already SA Approved | Delivery already has an SA Number | C |
 | LP_CODE_MISSING | Trucking Company Code Not Found | No code for the trucking company | C |
 | ROUTE_NOT_FOUND | Route Not Found | No finished cycle, or a cycle location has no Master Location code | C |

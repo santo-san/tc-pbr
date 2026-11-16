@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "Daily Order Monitoring",
   "uiss_name": "UISS-Screen Daily Order Monitoring",
-  "uiss_rev": "0.6",
+  "uiss_rev": "0.7",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -192,7 +192,7 @@
      ],
      "expected": [
       "Msg no.23 (Error): 'Container Number of Cycle 2 has not been recorded.'",
-      "[CR] Cycle Finish Cycle (COMPLETE_DATE); Order Status Waiting TM Acceptance (not Finish Daily Order); DB ielp.DTP_2_DETAIL.STATUS_CODE = Waiting TM Acceptance code, ielp.ORDER_CYCLE.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP (Data Map blk 11)."
+      "[CR] Cycle Finish Cycle (COMPLETE_DATE); Order Status Waiting TM Approval (not Finish Daily Order); DB ielp.DTP_2_DETAIL.STATUS_CODE = Waiting TM Approval code, ielp.ORDER_CYCLE.FINISH_ORDER_DATE / FINISH_ORDER_BY / FINISH_BY_LP (Data Map blk 11)."
      ]
     },
     {
@@ -211,54 +211,97 @@
    ]
   },
   {
-   "title": "[CR] Accept Finish Order (VPLD TM)",
+   "title": "[CR] Waiting TM Approval - list (VPLD TM)",
    "items": [
     {
      "key": "tmlist",
-     "case": "Waiting TM Acceptance: filter, counter, highlight, columns",
-     "ref": "UISS: Item 73-82, 5.2.2 h-i, 5.4, Gen Desc mode VPLD TM",
+     "case": "Waiting TM Approval: filter, counter, highlight, columns, roles",
+     "ref": "UISS: Item 73-84, 5.1, 5.2.2 h-j, 5.4, Gen Desc mode VPLD TM",
      "procedure": [
       "Login as VPLD TM. Open menu Daily > Daily Monitoring.",
-      "Check the counter [Waiting TM Acceptance (n)]; click it; click it again.",
-      "Order Status = Waiting TM Acceptance, [Find]; then [Clear].",
+      "Check the counter [Waiting TM Approval (n)]; click it; click it again.",
+      "Order Status = Waiting TM Approval, [Find]; then [Clear].",
       "Login as Planner VPLD and as LP Admin DNX."
      ],
      "expected": [
-      "Counter = number of orders Waiting TM Acceptance in the scope (SQL TD-20). Click: only Waiting TM Acceptance rows (light orange), chip highlighted; second click: all.",
-      "Columns Finish Scan (date-time + user), Accepted By, Accepted Date (\"-\" when not accepted); Order Status sub text \"Finish scan <date-time>\".",
-      "VPLD TM: check box and [Accept] only on rows Waiting TM Acceptance; [Accept Finish Order (0)] disabled.",
-      "Planner VPLD / LP Admin: same rows and columns, no check box / Accept buttons (view only)."
+      "Counter = number of orders Waiting TM Approval in the scope (SQL TD-20). Click: only Waiting TM Approval rows (light orange), chip highlighted; second click: all.",
+      "Columns Finish Scan (date-time + user), Edited (N), Approved By, Approved Date (\"-\"); Order Status sub text \"Finish scan <date-time>\".",
+      "VPLD TM: check box, [Edit] and [Approve] only on rows Waiting TM Approval; [Approve Finish Order (0)] disabled.",
+      "Planner VPLD / LP Admin: same rows and columns, no check box / Edit / Approve (view only)."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "[CR] Edit Finish Order (VPLD TM)",
+   "items": [
+    {
+     "key": "tmedit",
+     "case": "Edit and save: confirmation, status unchanged, history",
+     "ref": "UISS: Item 85-111, 5.6.7, 5.6.8, Msg no.38, Msg no.39, Data Map blk 13, Data Map blk 14, Data Map blk 15, Log 8",
+     "procedure": [
+      "VPLD TM: click [Edit] of ORD-W1 (from the list) and check the form.",
+      "Container No. cycle 1 = \"TGCU5529491\", Finish Cycle time cycle 1 + 10 minutes, Remarks = \"corrected from Surat Jalan photo\", Edit Reason = \"Driver typed a wrong container\"; [Save].",
+      "[Back], then [Save] and [Confirm Save].",
+      "Click Edited = Y of ORD-W1; open its Order Detail.",
+      "Edit ORD-W1 again (License Plate = B 5678 DN, Driver = driver of that truck, reason), [Confirm Save]."
+     ],
+     "expected": [
+      "Read only: No. Order, Date / Shift, Trucking Company, route, cycles; editable: License Plate, Driver, Container No. / Start / Pickup / Finish per cycle, Finish Order time, Remarks, Edit Reason (table 5.6.8).",
+      "Msg no.38 (Confirmation): 'Save the changes of order ORD-W1? The order stays Waiting TM Approval until it is approved. (+ list Field / Cycle / Before / After)' with Field / Cycle / Before / After of the 3 changed fields and the reason; Back keeps the entered values.",
+      "Msg no.39 (Info): 'Order ORD-W1 updated (3 field(s) changed). Approve the order to finish it.'; Order Status still Waiting TM Approval; Edited = Y.",
+      "DB (SQL TD-20): ielp.ORDER_CYCLE CONTAINER_NO / COMPLETE_DATE / FINISH_REMARKS changed, ielp.DTP_2_DETAIL.TM_EDIT_BY / TM_EDIT_DATE (DCR-44), VERSION + 1; ielp.LOG_ACTIVITY_ORDER row ACT Edit Finish Order, REMARK = reason, PARAM_REQ / PARAM_RES before / after; Log no.8 (Info): 'Edit Finish Order by {User} (VPLD TM) on {Order No}: {Field} (cycle {n}) {Before} -> {After}; ... Reason: {Edit Reason}.'",
+      "TM Edit History popup and Order Detail section: Edited At, Edited By, Field, Cycle, Before, After, Edit Reason (latest first); second save adds a second group (LICENSE_PLATE / DRIVER_ID also on every cycle)."
      ]
     },
     {
-     "key": "tmone",
-     "case": "Accept one order (row and Order Detail)",
-     "ref": "UISS: Item 83-96, 5.6.7, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6",
+     "key": "tmeditval",
+     "case": "Edit validation (all errors at once)",
+     "ref": "UISS: Item 91-100, 5.6.7, 5.6.8, Msg no.40, Msg no.41, Msg no.42, Msg no.43, Msg no.11, Msg no.12, Msg no.15, Msg no.17, Msg no.18, Msg no.19, Msg no.20",
      "procedure": [
-      "VPLD TM: click [Accept] of order ORD-W1; check the confirmation; click [Cancel].",
-      "Click [Accept] again, [Confirm Accept].",
-      "Open Order Detail of ORD-W2, click [Accept Finish Order], [Confirm Accept]."
+      "VPLD TM: open Edit of ORD-W2 and [Save] without change and without reason.",
+      "Enter the invalid values of Test Data table T one by one (with a valid reason), [Save]."
      ],
      "expected": [
-      "Msg no.31 (Confirmation): 'Accept Finish Order of 1 order(s)? Accepted orders become Finish Daily Order and are sent to SA Approval.'; list No. Order, Trucking Comp., License Plate / Driver, Finish Scan, Finished By (Driver scan / LP Admin (manual)), Cycle (Act / Plan), Container No., Last Destination (read only). Cancel: no change.",
-      "Msg no.32 (Info): '1 order(s) accepted. Order Status: Finish Daily Order.'; list and counter refreshed; Order Status Finish Daily Order, sub text \"TM accepted <date-time>\".",
-      "DB (SQL TD-20): ielp.DTP_2_DETAIL.STATUS_CODE = Finish Daily Order, TM_ACCEPT_BY = login user, TM_ACCEPT_DATE = now (DCR-44), VERSION + 1; ielp.LOG_ACTIVITY_ORDER row ACT Accept Finish Order; Log no.6 (Info): 'Accept Finish Order by tm1 (VPLD TM) on ORD-W1: Waiting TM Acceptance -> Finish Daily Order.'",
-      "Order Detail: Finish Scan and TM Accepted shown; the order is now listed in SA Approval (ST SA Approval)."
+      "Msg no.43 (Info): 'There is no change to save.' / Msg no.40 (Error): 'Edit Reason is required (minimum 10 characters).'.",
+      "Table T: Msg no.41 (Error): '{Time field} of cycle {n} must not be earlier than {previous time field}.'; Msg no.42 (Error): '{Time field} must not be later than the current date-time.'; truck / driver / container messages as in table T; errors below the fields, nothing saved (SQL TD-20 unchanged)."
+     ]
+    }
+   ]
+  },
+  {
+   "title": "[CR] Approve Finish Order (VPLD TM)",
+   "items": [
+    {
+     "key": "tmone",
+     "case": "Approve one order (row and Order Detail): status Finish, locked",
+     "ref": "UISS: Item 112-118, 5.6.9, Msg no.31, Msg no.32, Data Map blk 12, Data Map blk 10, Log 6",
+     "procedure": [
+      "VPLD TM: click [Approve] of ORD-W1 (edited); check the confirmation; [Cancel].",
+      "Click [Approve] again, [Confirm Approve].",
+      "Open Order Detail of ORD-W2, click [Approve Finish Order], [Confirm Approve].",
+      "Open Order Detail of ORD-W1 again; try the Edit request for ORD-W1 (browser tools)."
+     ],
+     "expected": [
+      "Msg no.31 (Confirmation): 'Approve Finish Order of 1 order(s)? Approved orders become Finish Daily Order, are locked for edit and are sent to SA Approval.'; list No. Order, Trucking Comp., License Plate / Driver, Finish Scan, Finished By, Cycle (Act / Plan), Container No., Last Destination, Edited = Y (user / date). Cancel: no change.",
+      "Msg no.32 (Info): '1 order(s) approved. Order Status: Finish Daily Order.'; list and counter refreshed; Order Status Finish Daily Order, sub text \"TM approved <date-time>\"; Approved By / Date filled.",
+      "DB (SQL TD-20): ielp.DTP_2_DETAIL.STATUS_CODE = Finish Daily Order, TM_APPROVE_BY / TM_APPROVE_DATE (DCR-44), VERSION + 1; ielp.LOG_ACTIVITY_ORDER row ACT Approve Finish Order; Log no.6 (Info): 'Approve Finish Order by tm1 (VPLD TM) on ORD-W1: Waiting TM Approval -> Finish Daily Order. Edited: {Y/N}.'",
+      "ORD-W1 locked: no Edit / Approve buttons; the Edit request returns Msg no.34 (Error): 'Order ORD-W1 is no longer Waiting TM Approval (current status: Finish Daily Order). Please refresh the data.'. The order (edited data) is listed in SA Approval (ST SA Approval)."
      ]
     },
     {
      "key": "tmbulk",
-     "case": "Bulk accept with selection",
-     "ref": "UISS: Item 74-76, 5.6.7, Msg no.37, Msg no.31, Msg no.32",
+     "case": "Bulk approve with selection",
+     "ref": "UISS: Item 74-76, 5.6.9, Msg no.37, Msg no.31, Msg no.32",
      "procedure": [
-      "VPLD TM: click [Accept Finish Order (n)] with nothing selected (request / button state).",
-      "Tick 3 rows (two on page 1, one on page 2), click [Accept Finish Order (3)], [Confirm Accept].",
+      "VPLD TM: click [Approve Finish Order (n)] with nothing selected (request / button state).",
+      "Tick 3 rows (two on page 1, one on page 2), [Approve Finish Order (3)], [Confirm Approve].",
       "Tick the header check box."
      ],
      "expected": [
-      "Msg no.37 (Warning): 'Please select at least one order with status Waiting TM Acceptance.'",
-      "Msg no.31 (Confirmation): 'Accept Finish Order of 3 order(s)? Accepted orders become Finish Daily Order and are sent to SA Approval.' then Msg no.32 (Info): '3 order(s) accepted. Order Status: Finish Daily Order.'; selection cleared.",
-      "Header check box selects all Waiting TM Acceptance rows of the filtered list."
+      "Msg no.37 (Warning): 'Please select at least one order with status Waiting TM Approval.'",
+      "Msg no.31 (Confirmation): 'Approve Finish Order of 3 order(s)? Approved orders become Finish Daily Order, are locked for edit and are sent to SA Approval.' then Msg no.32 (Info): '3 order(s) approved. Order Status: Finish Daily Order.'; selection cleared.",
+      "Header check box selects all Waiting TM Approval rows of the filtered list."
      ]
     }
    ]
@@ -278,26 +321,28 @@
   },
   {
    "key": "tmfail",
-   "case": "[CR] Accept refused: status changed / version / all-or-nothing",
-   "ref": "UISS: 5.6.7, Msg no.33, Msg no.34, Msg no.36, Log 7",
+   "case": "[CR] Approve / edit refused: status changed / version / all-or-nothing",
+   "ref": "UISS: 5.6.7, 5.6.9, Msg no.33, Msg no.34, Msg no.36, Log 7",
    "procedure": [
-    "VPLD TM A and B select ORD-W3 and ORD-W4; B accepts ORD-W4; A clicks [Confirm Accept].",
-    "A selects ORD-W5; another user changes ORD-W5 (e.g. history entry); A confirms."
+    "VPLD TM A and B select ORD-W3 and ORD-W4; B approves ORD-W4; A clicks [Confirm Approve].",
+    "A selects ORD-W5; B edits ORD-W5; A confirms the approval.",
+    "A opens Edit of ORD-W5; B edits ORD-W5 again; A clicks [Confirm Save]."
    ],
    "expected": [
-    "Msg no.33 (Error): '1 of 2 order(s) cannot be accepted. Nothing was accepted. (+ list \"<No. Order>: <reason>\")' with \"ORD-W4: Order {Order No} is no longer Waiting TM Acceptance (current status: {Status}). Please refresh the data.\"; ORD-W3 not accepted either (all-or-nothing); modal stays open; failed row unselected.",
-    "Msg no.36 (Error): 'Order ORD-W5 was changed by another user. Please refresh the data.' in the list; Log no.7 (Warning): 'Accept Finish Order by {User} refused: {x} of {n} order(s) failed ({Order No}: {reason}).'"
+    "Msg no.33 (Error): '1 of 2 order(s) cannot be approved. Nothing was approved. (+ list \"<No. Order>: <reason>\")' with \"ORD-W4: Order {Order No} is no longer Waiting TM Approval (current status: {Status}). Please refresh the data.\"; ORD-W3 not approved either (all-or-nothing); modal stays open; failed row unselected.",
+    "Msg no.36 (Error): 'Order ORD-W5 was changed by another user. Please refresh the data.' in the list; Log no.7 (Warning): 'Approve Finish Order by {User} refused: {x} of {n} order(s) failed ({Order No}: {reason}).'",
+    "Msg no.36 (Error): 'Order ORD-W5 was changed by another user. Please refresh the data.'; nothing saved."
    ]
   },
   {
    "key": "tmrole",
-   "case": "[CR] Accept request by another role",
+   "case": "[CR] Edit / approve request by another role",
    "ref": "UISS: 5.1, Msg no.35",
    "procedure": [
-    "Send the accept request as Planner VPLD and as IELP Admin (browser tools)."
+    "Send the edit and the approve request as Planner VPLD and as IELP Admin (browser tools)."
    ],
    "expected": [
-    "Msg no.35 (Error): 'Only VPLD Transportation Management can accept Finish Order.'; status unchanged."
+    "Msg no.35 (Error): 'Only VPLD Transportation Management can edit or approve Finish Order.'; data and status unchanged."
    ]
   },
   {
@@ -316,9 +361,47 @@
  "test_data": {
   "precondition": [
    "Users: IELP Admin, LP Admin DNX, Supplier Viewer DNX, Planner VPLD, [CR] VPLD TM (tm1).",
-   "[CR] Orders ORD-W1..ORD-W5 in Waiting TM Acceptance (finished by driver scan; ORD-W2 by LP Admin), DCR-44 applied, MS_STATUS code of Waiting TM Acceptance defined.",
+   "[CR] Orders ORD-W1..ORD-W5 in Waiting TM Approval (finished by driver scan; ORD-W2 by LP Admin), DCR-44 applied, MS_STATUS code of Waiting TM Approval defined.",
    "Orders of 14-Nov-2026 for DNX (Planning Order, Order Release, Start Daily Order) and PNJ; trucks B 1234 DN (valid), license-expired truck.",
    "Columns marked [DCR] in the UISS Data Map need the DB change requests of docs/review/12 (existing logic kept)."
+  ],
+  "data": [
+   [
+    "{tc:tmeditval}",
+    "T License Plate",
+    "truck of PNJ / truck with license expired before the order date",
+    "Msg 11 / Msg 12"
+   ],
+   [
+    "{tc:tmeditval}",
+    "T Driver",
+    "inactive driver",
+    "Msg 15"
+   ],
+   [
+    "{tc:tmeditval}",
+    "T Container No.",
+    "\"ABC123\" / \"MSKU1234560\" / same as cycle 2 / active in another order",
+    "Msg 17 / 18 / 19 / 20"
+   ],
+   [
+    "{tc:tmeditval}",
+    "T Times",
+    "Pickup < Start; Start cycle 2 < Finish cycle 1; Finish Order < last Finish Cycle",
+    "Msg 41"
+   ],
+   [
+    "{tc:tmeditval}",
+    "T Times",
+    "Finish Cycle tomorrow",
+    "Msg 42"
+   ],
+   [
+    "{tc:tmeditval}",
+    "T Remarks / Edit Reason",
+    "501 characters / \"short\"",
+    "max 500 / Msg 40"
+   ]
   ],
   "sql_verify": [
    {
@@ -329,9 +412,9 @@
    },
    {
     "id": "TD-20",
-    "tc": "{tc:tmlist}, {tc:tmone}",
-    "title": "[CR] TM acceptance",
-    "sql": "SELECT COUNT(*) FROM ielp.DTP_2_DETAIL WHERE STATUS_CODE = :wait_tm_code;  -- counter\nSELECT ORDER_NO, STATUS_CODE, TM_ACCEPT_BY, TM_ACCEPT_DATE, UPDATED_BY, VERSION FROM ielp.DTP_2_DETAIL WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');  -- DCR-44 / DCR-36\nSELECT ORDER_NO, CYCLE_SEQ, FINISH_ORDER_DATE, FINISH_ORDER_BY, FINISH_BY_LP FROM ielp.ORDER_CYCLE WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');"
+    "tc": "{tc:tmlist}, {tc:tmedit}, {tc:tmone}",
+    "title": "[CR] TM edit / approval",
+    "sql": "SELECT COUNT(*) FROM ielp.DTP_2_DETAIL WHERE STATUS_CODE = :wait_tm_code;  -- counter\nSELECT ORDER_NO, STATUS_CODE, LICENSE_PLATE, DRIVER_ID, TM_EDIT_BY, TM_EDIT_DATE, TM_APPROVE_BY, TM_APPROVE_DATE, VERSION FROM ielp.DTP_2_DETAIL WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');  -- DCR-44 / DCR-36\nSELECT ORDER_NO, CYCLE_SEQ, CONTAINER_NO, START_DATE, PICKUP_DATE, COMPLETE_DATE, FINISH_ORDER_DATE, FINISH_ORDER_BY, FINISH_BY_LP, FINISH_REMARKS FROM ielp.ORDER_CYCLE WHERE ORDER_NO IN ('ORD-W1', 'ORD-W2');\nSELECT ACT, REMARK, PARAM_REQ, PARAM_RES, CREATED_BY, CRETED_DATE FROM ielp.LOG_ACTIVITY_ORDER WHERE ORDER_NO = 'ORD-W1' ORDER BY CRETED_DATE;"
    }
   ]
  }

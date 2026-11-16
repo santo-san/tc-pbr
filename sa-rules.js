@@ -17,7 +17,7 @@
   const e = (code, msg) => ({ code, label: ERR[code], msg });
 
   // SA-01 eligibility: Daily status Finish Daily Order and no SA Number yet. [CR] Finish Daily Order is set only by the VPLD TM
-  // acceptance (workflow.js tmAccept); orders Waiting TM Acceptance are therefore never eligible.
+  // approval (workflow.js tmApprove, after optional TM edit); orders Waiting TM Approval are therefore never eligible.
   const eligible = (o, finStatus) => o.status === finStatus && !o.saNo;
 
   // SA-04 route of the delivery = location codes of the finished cycles (Cycle n: From -> To)

@@ -45,6 +45,13 @@
    "date": "16-Nov-26",
    "reviewed_by": "",
    "description": "CR: Finish Order acceptance by VPLD Transportation Management. Print criteria Order Status added (new screen filter); Order Status values include Waiting TM Acceptance. Changed parts marked [CR]."
+  },
+  {
+   "revision": "0.6",
+   "author": "Susanto",
+   "date": "16-Nov-26",
+   "reviewed_by": "",
+   "description": "CR: Edit & Approve finish order by VPLD Transportation Management. Status renamed Waiting TM Approval; exported data = data after VPLD TM edits. Supersedes the 0.6 acceptance design: status Waiting TM Acceptance -> Waiting TM Approval, Accept -> Approve, DCR-44 columns TM_ACCEPT_* -> TM_APPROVE_BY / TM_APPROVE_DATE + TM_EDIT_BY / TM_EDIT_DATE. Changed parts marked [CR]."
   }
  ],
  "general": {
@@ -720,13 +727,13 @@
   {
    "type": "item",
    "marker": "b.",
-   "text": "Filter: Order Date >= Date From (if filled) and <= Date To (if filled); DTP Loc. From = From Loc. (if selected); DTP Loc. To = To Loc. (if selected); Type = DTP tab (if not ALL). [CR] Order Status = selected status (if not All; also set by the [Waiting TM Acceptance (n)] counter).",
+   "text": "Filter: Order Date >= Date From (if filled) and <= Date To (if filled); DTP Loc. From = From Loc. (if selected); DTP Loc. To = To Loc. (if selected); Type = DTP tab (if not ALL). [CR] Order Status = selected status (if not All; also set by the [Waiting TM Approval (n)] counter).",
    "level": 2
   },
   {
    "type": "item",
    "marker": "b2.",
-   "text": "[CR] Order Status values include Waiting TM Acceptance (between Start Daily Order and Finish Daily Order). Finish Scan / Accepted By / Accepted Date columns of the screen are not exported (no layout change).",
+   "text": "[CR] Order Status values include Waiting TM Approval (between Start Daily Order and Finish Daily Order). License Plate, Driver, cycle times and Container No. are exported as currently stored (after VPLD TM edits). Finish Scan / Edited / Approved By / Approved Date columns of the screen are not exported (no layout change).",
    "level": 2
   },
   {

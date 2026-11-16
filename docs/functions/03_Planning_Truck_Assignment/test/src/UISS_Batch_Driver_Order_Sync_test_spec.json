@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "Driver Order Sync - HiveMQ (TC-PBR to Driver APK)",
   "uiss_name": "UISS-Batch Driver Order Sync",
-  "uiss_rev": "0.5",
+  "uiss_rev": "0.6",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""

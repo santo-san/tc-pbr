@@ -184,7 +184,7 @@ td[data-col^="c"], td[data-col="status"] { white-space: nowrap; }
 .badge.rel { background: #cfe3fd; color: #1e4f9a; }
 .badge.sa { background: #0f766e; color: #fff; }
 .badge.po { background: var(--navy); color: #fff; }
-/* [CR] Finish Order acceptance by VPLD TM */
+/* [CR] Edit & Approve Finish Order by VPLD TM */
 .badge.tm { background: #fde68a; color: #7c2d12; outline: 1px dashed #b45309; }
 tr.row-tm td { background: #fff7e6; }
 .chip-tm { height: 28px; border: 1px solid #f59e0b; background: #fffbeb; color: #92400e; border-radius: 14px; padding: 0 10px; font-size: 11px; font-weight: 600; cursor: pointer; }
@@ -241,3 +241,7 @@ table.tm-conf { width: 100%; border-collapse: collapse; font-size: 10.5px; margi
   .sidebar, .topbar, .filters, .tabs, .list-head .btn-green, .search, .dd, .pager, .act { display: none !important; }
   .card { box-shadow: none; padding: 0; }
 }
+
+.btn-edit-tm { height: 20px; margin-top: 3px; padding: 0 6px; border: 1px solid #2563eb; border-radius: 3px; background: #fff; color: #2563eb; font-size: 9.5px; font-weight: 600; cursor: pointer; }
+.tm-ed { white-space: nowrap; border: 0; background: #dbeafe; color: #1e40af; border-radius: 3px; padding: 1px 5px; font-size: 10px; font-weight: 700; cursor: pointer; }
+.tm-cell { margin: 0; } .tm-cell input { width: 100%; min-width: 130px; height: 26px; font-size: 11px; }

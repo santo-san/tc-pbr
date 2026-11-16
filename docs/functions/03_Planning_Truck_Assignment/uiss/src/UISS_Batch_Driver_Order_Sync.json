@@ -45,6 +45,13 @@
    "date": "16-Nov-26",
    "reviewed_by": "",
    "description": "CR: Finish Order acceptance by VPLD Transportation Management. Order status Waiting TM Acceptance (after Finish Order scan, before VPLD TM acceptance) handled as finished: HISTORY. Changed parts marked [CR]."
+  },
+  {
+   "revision": "0.6",
+   "author": "Susanto",
+   "date": "16-Nov-26",
+   "reviewed_by": "",
+   "description": "CR: Edit & Approve finish order by VPLD Transportation Management. Status Waiting TM Approval handled as finished (HISTORY); TM edits / approval are not synchronised to the APK. Supersedes the 0.6 acceptance design: status Waiting TM Acceptance -> Waiting TM Approval, Accept -> Approve, DCR-44 columns TM_ACCEPT_* -> TM_APPROVE_BY / TM_APPROVE_DATE + TM_EDIT_BY / TM_EDIT_DATE. Changed parts marked [CR]."
   }
  ],
  "general": {
@@ -1658,7 +1665,7 @@
      "Card refreshed"
     ],
     [
-     "Cycle Finish Cycle, or order [CR] Waiting TM Acceptance / Finish Daily Order / SA",
+     "Cycle Finish Cycle, or order [CR] Waiting TM Approval / Finish Daily Order / SA",
      "HISTORY",
      "Card moves to Riwayat"
     ],
@@ -1682,7 +1689,7 @@
   },
   {
    "type": "text",
-   "text": "[CR] After the driver scans Finish Order the order is Waiting TM Acceptance (VPLD TM acceptance on Daily Order Monitoring). For the APK this is a finished order: the card moves to history (HISTORY); the later TM acceptance (Finish Daily Order) needs no new card.",
+   "text": "[CR] After the driver scans Finish Order the order is Waiting TM Approval (VPLD TM edit / approval on Daily Order Monitoring). For the APK this is a finished order: the card moves to history (HISTORY). A later TM edit (truck, driver, container, times) or the approval (Finish Daily Order) creates no sync event and no new card (OP-CR-10 of Daily Order Monitoring).",
    "level": 1
   },
   {

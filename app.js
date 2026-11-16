@@ -102,7 +102,7 @@ function seed(spec) {
     if (!step('finishCycle', actor, reason, 20 + Math.floor(rand() * 60))) return;
   }
   if (target < 3 || !step('finishOrder', actor, reason, 5)) return;
-  if (target < 4 || !step('tmAccept', TM, {}, 20 + Math.floor(rand() * 90))) return; // [CR] VPLD TM acceptance
+  if (target < 4 || !step('tmApprove', TM, {}, 20 + Math.floor(rand() * 90))) return; // [CR] VPLD TM approval
   if (target < 5 || !step('processSA', SYS, {}, 60 + Math.floor(rand() * 120))) return;
   if (target < 6) return;
   step('processPAS', SYS, { poNo: '45' + pad(Math.floor(rand() * 1e8), 8) }, 180);
@@ -155,7 +155,7 @@ function cycleCell(o, i) {
 function statusCell(o) {
   let sub = '';
   if (o.status === ORDER.WAIT_TM && o.finishScan) sub = `Finish scan ${fmtTS(o.finishScan.at)}`;
-  if (o.status === ORDER.FIN && o.tmAccepted) sub = `TM accepted ${fmtTS(o.tmAccepted.at)}`;
+  if (o.status === ORDER.FIN && o.tmApproved) sub = `TM approved ${fmtTS(o.tmApproved.at)}`;
   if (o.status === ORDER.SA) sub = `${o.saNo || 'SA'} · ${fmtTS(o.saAt)}`;
   if (o.status === ORDER.PO) sub = `PO ${o.poNo} · ${fmtTS(o.poAt)}`;
   return orderBadge(o.status) + (sub ? `<span class="sub-info">${sub}</span>` : '');
@@ -176,7 +176,7 @@ function filtered() {
       ...o.cycles.flatMap(c => [c.container, c.status])].join(' ').toLowerCase().includes(q))
   );
   const k = state.sortKey;
-  const val = o => k === 'status' ? W.ORDER_SEQ.indexOf(o.status) : k === 'finishScanAt' ? +(o.finishScan?.at || 0) : k === 'tmAcceptedAt' ? +(o.tmAccepted?.at || 0) : o[k];
+  const val = o => k === 'status' ? W.ORDER_SEQ.indexOf(o.status) : k === 'finishScanAt' ? +(o.finishScan?.at || 0) : k === 'tmApprovedAt' ? +(o.tmApproved?.at || 0) : o[k];
   rows.sort((a, b) => val(a) < val(b) ? -state.sortDir : val(a) > val(b) ? state.sortDir : 0);
   return rows;
 }
@@ -196,7 +196,7 @@ function render() {
       <td data-col="sel">${waitTm(o) ? `<input type="checkbox" data-sel="${o.orderNo}" ${state.tmSel.has(o.orderNo) ? 'checked' : ''}>` : ''}</td>
       <td data-col="action"><button class="act" data-order="${o.orderNo}" title="Lihat detail">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-      </button>${tm && waitTm(o) ? `<br><button class="btn-accept" data-accept="${o.orderNo}" title="Accept Finish Order">Accept</button>` : ''}</td>
+      </button>${tm && waitTm(o) ? `<br><button class="btn-edit-tm" data-tmedit="${o.orderNo}" title="Edit Finish Order">Edit</button><br><button class="btn-accept" data-approve="${o.orderNo}" title="Approve Finish Order">Approve</button>` : ''}</td>
       <td data-col="date">${fmtDate(o.date)}</td>
       <td data-col="orderNo">${o.orderNo}</td>
       <td data-col="type">${o.type}</td>
@@ -210,10 +210,11 @@ function render() {
       ${[0, 1, 2, 3, 4].map(i => `<td data-col="c${i + 1}">${cycleCell(o, i)}</td>`).join('')}
       <td data-col="status">${statusCell(o)}</td>
       <td data-col="finishScan">${o.finishScan ? fmtTS(o.finishScan.at) + `<span class="sub-info">${esc(o.finishScan.by)}</span>` : '-'}</td>
-      <td data-col="tmBy">${o.tmAccepted ? esc(o.tmAccepted.by) : '-'}</td>
-      <td data-col="tmAt">${o.tmAccepted ? fmtTS(o.tmAccepted.at) : '-'}</td>
+      <td data-col="tmEdited">${editedCell(o)}</td>
+      <td data-col="tmBy">${o.tmApproved ? esc(o.tmApproved.by) : '-'}</td>
+      <td data-col="tmAt">${o.tmApproved ? fmtTS(o.tmApproved.at) : '-'}</td>
     </tr>`).join('')
-    : '<tr><td colspan="21" class="empty">Tidak ada data yang cocok</td></tr>';
+    : '<tr><td colspan="22" class="empty">Tidak ada data yang cocok</td></tr>';
 
   const total = visibleTotal();
   $('info').textContent = rows.length
@@ -245,39 +246,52 @@ function applyColumns() {
   document.querySelectorAll('[data-col]').forEach(el => el.classList.toggle('hidden-col', state.hidden.has(el.dataset.col) || (el.dataset.col === 'sel' && !isTM())));
 }
 
-// ---------- [CR] Finish Order acceptance by VPLD TM ----------
+// ---------- [CR] Edit & Approve Finish Order by VPLD TM ----------
 const isTM = () => state.actor.role === 'VPLD_TM';
 function renderTm(rows) {
   const waiting = DATA.filter(o => W.canView(state.actor, o) && o.status === ORDER.WAIT_TM);
   $('tmCount').textContent = waiting.length;
   $('chipTm').classList.toggle('on', state.status === ORDER.WAIT_TM);
   [...state.tmSel.keys()].forEach(no => { if (!waiting.some(o => o.orderNo === no)) state.tmSel.delete(no); });
-  $('btnTmAccept').style.display = isTM() ? '' : 'none';
-  $('btnTmAccept').disabled = !state.tmSel.size;
+  $('btnTmApprove').style.display = isTM() ? '' : 'none';
+  $('btnTmApprove').disabled = !state.tmSel.size;
   $('tmSel').textContent = state.tmSel.size;
   const sel = rows.filter(o => o.status === ORDER.WAIT_TM);
   $('tmAll').checked = !!sel.length && sel.every(o => state.tmSel.has(o.orderNo));
   $('tmAll').disabled = !sel.length;
 }
+const wide = () => { $('pvBody').closest('.pv').style.width = 'min(1100px, 96vw)'; };
+const unwide = () => { $('pvBody').closest('.pv').style.width = ''; };
+const editedCell = o => o.tmEdited ? `<button class="tm-ed" data-tmhist="${o.orderNo}" title="Show the TM edit history">&#9998; Y</button>` : 'N';
+const simulateChange = o => W.log(o, new Date(), { role: 'SYSTEM', name: 'other user' }, 'Data changed (simulation)', { order: o.status }, { order: o.status }, '', 'Simulated concurrent change');
 let tmSimulate = false;
-function openTmAccept(orders, fromDetail) {
+function tmHistoryHtml(o) {
+  const rows = (o.tmEdits || []).slice().reverse().flatMap(e => e.changes.map((c, k) => `<tr>${k ? '<td></td><td></td>' : `<td style="white-space:nowrap">${fmtTS(e.at)}</td><td>${esc(e.by)}</td>`}
+    <td>${esc(c.field)}</td><td>${c.cycle || '-'}</td><td>${esc(c.old)}</td><td>${esc(c.new)}</td>${k ? '<td></td>' : `<td>${esc(e.reason)}</td>`}</tr>`));
+  return rows.length ? `<div class="table-wrap"><table class="tm-conf"><tr><th>Edited At</th><th>Edited By</th><th>Field</th><th>Cycle</th><th>Before</th><th>After</th><th>Edit Reason</th></tr>${rows.join('')}</table></div>`
+    : '<p class="q-note" style="font-size:11px">No TM edit.</p>';
+}
+function openTmHistory(o) {
+  showPreview(`TM Edit History - ${o.orderNo}`, tmHistoryHtml(o), '', unwide); wide();
+}
+function openTmApprove(orders, fromDetail) {
   const items = orders.map(o => ({ orderNo: o.orderNo, version: state.tmSel.get(o.orderNo) ?? W.rowVersion(o) }));
   const rows = orders.map(o => `<tr><td>${o.orderNo}</td><td>${esc(o.supplier)}</td><td>${o.truck || '-'}</td><td>${esc(o.driver || '-')}</td>
     <td>${o.finishScan ? fmtTS(o.finishScan.at) : '-'}</td><td>${o.finishScan ? `${esc(o.finishScan.by)}<span class="sub-info">${o.finishScan.byLp ? 'LP Admin (manual)' : 'Driver scan'}</span>` : '-'}</td>
-    <td>${o.cycles.length} / ${o.planned}</td><td>${o.cycles.map(c => c.container || '-').join('<br>')}</td><td>${esc(W.current(o).to)}</td></tr>`).join('');
-  showPreview('Accept Finish Order', `<form id="tmForm" onsubmit="return false">
-      <p style="margin:0;font-size:11px">Accept Finish Order of <b>${orders.length}</b> order(s)? Accepted orders become <b>${ORDER.FIN}</b> and are sent to SA Approval.</p>
-      <div class="table-wrap"><table class="tm-conf"><tr><th>No. Order</th><th>Trucking Comp.</th><th>License Plate</th><th>Driver</th><th>Finish Scan</th><th>Finished By</th><th>Cycle (Act / Plan)</th><th>Container No.</th><th>Last Destination</th></tr>${rows}</table></div>
+    <td>${o.cycles.length} / ${o.planned}</td><td>${o.cycles.map(c => c.container || '-').join('<br>')}</td><td>${esc(W.current(o).to)}</td>
+    <td>${o.tmEdited ? `<b>Y</b><span class="sub-info">${esc(o.tmEdited.by)} · ${fmtTS(o.tmEdited.at)}</span>` : 'N'}</td></tr>`).join('');
+  showPreview('Approve Finish Order', `<form id="tmForm" onsubmit="return false">
+      <p style="margin:0;font-size:11px">Approve Finish Order of <b>${orders.length}</b> order(s)? Approved orders become <b>${ORDER.FIN}</b>, are locked for edit and are sent to SA Approval.</p>
+      <div class="table-wrap"><table class="tm-conf"><tr><th>No. Order</th><th>Trucking Comp.</th><th>License Plate</th><th>Driver</th><th>Finish Scan</th><th>Finished By</th><th>Cycle (Act / Plan)</th><th>Container No.</th><th>Last Destination</th><th>Edited</th></tr>${rows}</table></div>
       <label class="form-check" style="font-size:10px;color:#6b7280"><input type="checkbox" id="tmSim" ${tmSimulate ? 'checked' : ''}> Mock-up: simulate a change of the first order by another user before Confirm</label>
     </form>`,
-  `<button class="btn-outline" id="tmCancel">Cancel</button><button class="btn-sm-blue" style="height:30px" id="tmConfirm">Confirm Accept</button>`,
-  () => { $('pvBody').closest('.pv').style.width = ''; });
-  $('pvBody').closest('.pv').style.width = 'min(1100px, 96vw)';
+  `<button class="btn-outline" id="tmCancel">Cancel</button><button class="btn-sm-blue" style="height:30px" id="tmConfirm">Confirm Approve</button>`, unwide);
+  wide();
   $('tmCancel').onclick = closePreview;
   $('tmConfirm').onclick = () => {
     tmSimulate = $('tmSim').checked;
-    if (tmSimulate) W.log(orders[0], new Date(), { role: 'SYSTEM', name: 'other user' }, 'Data changed (simulation)', { order: orders[0].status }, { order: orders[0].status }, '', 'Simulated concurrent change');
-    const res = W.tmAcceptMany(items, state.actor, new Date(), CTX);
+    if (tmSimulate) simulateChange(orders[0]);
+    const res = W.tmApproveMany(items, state.actor, new Date(), CTX);
     if (!res.ok) {
       const box = $('tmForm'); box.querySelector('.form-alert')?.remove();
       box.insertAdjacentHTML('afterbegin', `<div class="form-alert">${esc(res.message)}${res.failed.length ? `<ul class="tm-fail">${res.failed.map(f => `<li>${f.orderNo}: ${esc(f.msg)}</li>`).join('')}</ul>` : ''}</div>`);
@@ -289,6 +303,67 @@ function openTmAccept(orders, fromDetail) {
     toast(res.message);
   };
 }
+// Edit form: truck, driver, container / times per cycle, finish order time, remarks; Edit Reason mandatory
+const dtl = d => d ? `${W.ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+const pdt = v => v ? new Date(v) : null;
+function openTmEdit(o, fromDetail) {
+  const version = W.rowVersion(o), d0 = W.tmEditData(o, CTX);
+  const cell = (name, html) => `<div class="form-row tm-cell" data-f="${name}">${html}</div>`;
+  const trucks = MASTER.trucks.filter(t => t.supplier === o.supplier), drivers = MASTER.drivers.filter(d => d.supplier === o.supplier);
+  const cyc = o.cycles.map((c, i) => `<tr><td>${i + 1}</td><td>${esc(c.from)} &rarr; ${esc(c.to)}</td>
+    <td>${cell(`c${i}_container`, `<input name="c${i}_container" value="${esc(c.container)}">`)}</td>
+    ${['startAt', 'pickupAt', 'finishAt'].map(f => `<td>${cell(`c${i}_${f}`, `<input type="datetime-local" name="c${i}_${f}" value="${dtl(c[f])}">`)}</td>`).join('')}</tr>`).join('');
+  const body = `<form id="tmEditForm" onsubmit="return false">
+    <div class="od-sum" style="margin-bottom:8px">${[['No. Order', o.orderNo], ['Date / Shift', `${fmtDate(o.date)} · ${o.shift}`], ['Trucking Company', o.supplier], ['Route', `${o.from} → ${o.to}`],
+      ['Order Status', orderBadge(o.status)], ['Finished By', o.finishScan ? `${o.finishScan.by} (${o.finishScan.byLp ? 'LP Admin' : 'Driver scan'})` : '-']].map(([k, v]) => `<div><small>${k}</small><b>${k === 'Order Status' ? v : esc(v)}</b></div>`).join('')}</div>
+    <p class="q-note" style="font-size:10.5px;margin:0 0 6px">Read only: No. Order, Date, Shift, Type, Trucking Company, route and number of cycles. Saving does not change the status (stays ${ORDER.WAIT_TM}).</p>
+    <div class="form-grid">
+      ${formRow({ name: 'truck', label: 'License Plate', type: 'select', required: true, options: trucks.map(t => [t.plate, `${t.plate} (license until ${t.licenseDate})`]) }, d0.truck)}
+      ${formRow({ name: 'driver', label: 'Driver', type: 'select', required: true, options: drivers.map(d => [d.userId, `${d.name} - ${d.userId}${d.active ? '' : ' (inactive)'}`]) }, d0.driver)}
+    </div>
+    <div class="table-wrap"><table class="tm-conf"><tr><th>Cycle</th><th>Route (read only)</th><th>Container No. *</th><th>Start Cycle *</th><th>Pickup *</th><th>Finish Cycle *</th></tr>${cyc}</table></div>
+    <div class="form-grid">
+      ${formRow({ name: 'finishAt', label: 'Finish Order time', type: 'datetime-local', required: true }, dtl(d0.finishAt))}
+      ${formRow({ name: 'remarks', label: 'Remarks', type: 'textarea', placeholder: '', hint: 'Optional, max 500 characters (ORDER_CYCLE.FINISH_REMARKS).' }, d0.remarks)}
+    </div>
+    ${formRow({ name: 'reason', label: 'Edit Reason', type: 'textarea', required: true, hint: `Mandatory, minimum ${W.REASON_MIN} characters; saved in the edit history.` })}
+    <label class="form-check" style="font-size:10px;color:#6b7280"><input type="checkbox" id="tmEditSim"> Mock-up: simulate a change of this order by another user before Confirm Save</label>
+  </form>`;
+  const payload = () => {
+    const f = readForm($('tmEditForm'));
+    return { truck: f.truck, driver: f.driver, finishAt: pdt(f.finishAt), remarks: f.remarks, reason: f.reason,
+      cycles: o.cycles.map((c, i) => ({ container: f[`c${i}_container`], startAt: pdt(f[`c${i}_startAt`]), pickupAt: pdt(f[`c${i}_pickupAt`]), finishAt: pdt(f[`c${i}_finishAt`]) })) };
+  };
+  let p = null;
+  const editView = () => {
+    showPreview(`Edit Finish Order - ${o.orderNo}`, body, `<button class="btn-outline" id="tmEdCancel">Cancel</button><button class="btn-sm-blue" style="height:30px" id="tmEdSave">Save</button>`, unwide); wide();
+    $('tmEdCancel').onclick = closePreview;
+    $('tmEdSave').onclick = () => {
+      p = payload();
+      const chk = W.tmEditCheck(o, p, state.actor, CTX, new Date(), version);
+      if (!chk.ok) return showErrors($('tmEditForm'), chk.errors);
+      const sim = $('tmEditSim').checked;
+      $('pvBody').innerHTML = `<form id="tmEditConf" onsubmit="return false"><p style="margin:0;font-size:11px">Save the changes of order <b>${o.orderNo}</b>? The order stays <b>${ORDER.WAIT_TM}</b> until it is approved.</p>
+        <div class="table-wrap"><table class="tm-conf"><tr><th>Field</th><th>Cycle</th><th>Before</th><th>After</th></tr>${chk.changes.map(c => `<tr><td>${esc(c.field)}</td><td>${c.cycle || '-'}</td><td>${esc(c.old)}</td><td><b>${esc(c.new)}</b></td></tr>`).join('')}</table></div>
+        <p style="font-size:11px;margin:4px 0 0"><b>Edit Reason:</b> ${esc(p.reason)}</p></form>`;
+      $('pvFoot').innerHTML = `<button class="btn-outline" id="tmEdBack">Back</button><button class="btn-sm-blue" style="height:30px" id="tmEdConfirm">Confirm Save</button>`;
+      $('tmEdBack').onclick = () => { editView(); fill(p); };
+      $('tmEdConfirm').onclick = () => {
+        if (sim) simulateChange(o);
+        const res = W.tmEdit(o, p, state.actor, new Date(), CTX, version);
+        if (!res.ok) { $('tmEditConf').insertAdjacentHTML('afterbegin', `<div class="form-alert">${esc(res.errors._ || Object.values(res.errors).join(' '))}</div>`); $('tmEdConfirm').disabled = true; render(); return; }
+        closePreview(); render(); if (fromDetail) openDetail(o.orderNo);
+        toast(res.message);
+      };
+    };
+  };
+  const fill = q => {
+    const f = $('tmEditForm'), set = (n, v) => { const el = f.querySelector(`[name="${n}"]`); if (el) el.value = v ?? ''; };
+    set('truck', q.truck); set('driver', q.driver); set('finishAt', dtl(q.finishAt)); set('remarks', q.remarks); set('reason', q.reason);
+    q.cycles.forEach((c, i) => { set(`c${i}_container`, c.container); ['startAt', 'pickupAt', 'finishAt'].forEach(k => set(`c${i}_${k}`, dtl(c[k]))); });
+  };
+  editView();
+}
 $('tbody').addEventListener('change', e => {
   const cb = e.target.closest('[data-sel]'); if (!cb) return;
   const o = DATA.find(x => x.orderNo === cb.dataset.sel);
@@ -299,9 +374,9 @@ $('tmAll').addEventListener('change', e => {
   filtered().filter(o => o.status === ORDER.WAIT_TM).forEach(o => e.target.checked ? state.tmSel.set(o.orderNo, W.rowVersion(o)) : state.tmSel.delete(o.orderNo));
   render();
 });
-$('btnTmAccept').addEventListener('click', () => {
+$('btnTmApprove').addEventListener('click', () => {
   if (!state.tmSel.size) { toast(W.TM_MSG.none); return; }
-  openTmAccept([...state.tmSel.keys()].map(no => DATA.find(o => o.orderNo === no)));
+  openTmApprove([...state.tmSel.keys()].map(no => DATA.find(o => o.orderNo === no)));
 });
 $('chipTm').addEventListener('click', () => {
   state.status = state.status === ORDER.WAIT_TM ? '' : ORDER.WAIT_TM; $('stsFilter').value = state.status; state.page = 1; render();
@@ -312,7 +387,7 @@ FROM.forEach(v => $('fromLoc').add(new Option(v, v)));
 TO.forEach(v => $('toLoc').add(new Option(v, v)));
 W.ORDER_SEQ.forEach(v => $('stsFilter').add(new Option(v, v)));
 
-const COLS = [['date', 'Date'], ['orderNo', 'No. Order'], ['type', 'Type'], ['trucking', 'Trucking Comp.'], ['plate', 'License Plate'], ['from', 'DTP Loc. From'], ['to', 'DTP Loc. To'], ['renban', 'Renban'], ['shift', 'Shift'], ['fa', 'FA'], ['c1', 'Cycle 1'], ['c2', 'Cycle 2'], ['c3', 'Cycle 3'], ['c4', 'Cycle 4'], ['c5', 'Cycle 5'], ['status', 'Order Status'], ['finishScan', 'Finish Scan'], ['tmBy', 'Accepted By'], ['tmAt', 'Accepted Date']];
+const COLS = [['date', 'Date'], ['orderNo', 'No. Order'], ['type', 'Type'], ['trucking', 'Trucking Comp.'], ['plate', 'License Plate'], ['from', 'DTP Loc. From'], ['to', 'DTP Loc. To'], ['renban', 'Renban'], ['shift', 'Shift'], ['fa', 'FA'], ['c1', 'Cycle 1'], ['c2', 'Cycle 2'], ['c3', 'Cycle 3'], ['c4', 'Cycle 4'], ['c5', 'Cycle 5'], ['status', 'Order Status'], ['finishScan', 'Finish Scan'], ['tmEdited', 'Edited'], ['tmBy', 'Approved By'], ['tmAt', 'Approved Date']];
 $('kolomMenu').innerHTML = COLS.map(([k, l]) => `<label><input type="checkbox" data-k="${k}" checked> ${l}</label>`).join('');
 $('kolomMenu').addEventListener('change', e => {
   const k = e.target.dataset.k;
@@ -457,7 +532,7 @@ function openDetail(no) {
   const summary = [['No. Order', o.orderNo], ['Date / Shift', `${fmtDate(o.date)} · ${o.shift}`], ['Trucking Company', o.supplier], ['Type / Renban', `${o.type} · ${o.renban}`],
     ['License Plate', o.truck || '-'], ['Driver', o.driver || '-'], ['Planned / Aktual Cycle', `${o.planned} / ${o.cycles.filter(c => c.startAt).length}`],
     ['Order Status', orderBadge(o.status)], ['Cycle Status', cycleBadge(W.current(o).status)],
-    ['Finish Scan', o.finishScan ? `${fmtTS(o.finishScan.at)} · ${o.finishScan.by}` : '-'], ['TM Accepted', o.tmAccepted ? `${o.tmAccepted.by} · ${fmtTS(o.tmAccepted.at)}` : '-'],
+    ['Finish Scan', o.finishScan ? `${fmtTS(o.finishScan.at)} · ${o.finishScan.by}` : '-'], ['TM Edited', o.tmEdited ? `Y · ${o.tmEdited.by} · ${fmtTS(o.tmEdited.at)}` : 'N'], ['TM Approved', o.tmApproved ? `${o.tmApproved.by} · ${fmtTS(o.tmApproved.at)}` : '-'],
     ['SA Approved', o.saAt ? fmtTS(o.saAt) : '-'], ['SA Number', o.saNo || '-'], ['PO Number', o.poNo ? `${o.poNo} (${fmtTS(o.poAt)})` : '-']];
   const readOnly = actor.role === 'SUPPLIER' && !actor.lpAdmin;
   const actionBar = `<div class="od-actions"><span class="lbl">Aksi ${W.roleLabel(actor)}:</span>${actions.length
@@ -515,7 +590,7 @@ function openDetail(no) {
 
   $('mTitle').textContent = 'Order Detail';
   $('mBody').innerHTML = `<div class="od-sum">${summary.map(([k, v]) => `<div><small>${k}</small><b>${k.includes('Status') ? v : esc(v)}</b></div>`).join('')}</div>
-    ${actionBar}${cycles}${hist}`;
+    ${actionBar}${cycles}${o.tmEdits?.length ? `<div class="hist"><p class="sec-title">TM Edit History</p>${tmHistoryHtml(o)}</div>` : ''}${hist}`;
   $('overlay').classList.add('show');
 }
 
@@ -533,10 +608,10 @@ function closePreview() {
 function formRow(f, value = '') {
   const req = f.required ? ' <span class="req">*</span>' : '';
   let input;
-  if (f.type === 'textarea') input = `<textarea name="${f.name}" placeholder="Minimal ${W.REASON_MIN} karakter">${esc(value)}</textarea>`;
+  if (f.type === 'textarea') input = `<textarea name="${f.name}" placeholder="${f.placeholder ?? `Minimal ${W.REASON_MIN} karakter`}">${esc(value)}</textarea>`;
   else if (f.type === 'checkbox') return `<div class="form-row" data-f="${f.name}"><label class="form-check"><input type="checkbox" name="${f.name}"> ${f.label}</label></div>`;
   else if (f.type === 'select') input = `<select name="${f.name}"><option value="">- Pilih -</option>${f.options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
-  else input = `<input type="${f.type === 'date' || f.type === 'number' ? f.type : 'text'}" name="${f.name}" value="${esc(value)}" ${f.type === 'number' ? 'min="1" max="5"' : ''}>`;
+  else input = `<input type="${['date', 'number', 'datetime-local'].includes(f.type) ? f.type : 'text'}" name="${f.name}" value="${esc(value)}" ${f.type === 'number' ? 'min="1" max="5"' : ''}>`;
   return `<div class="form-row" data-f="${f.name}"><label>${f.label}${req}</label>${input}${f.hint ? `<div class="hint">${f.hint}</div>` : ''}</div>`;
 }
 function readForm(box) {
@@ -555,7 +630,8 @@ function showErrors(box, errors) {
 }
 
 function openAction(key) {
-  if (key === 'tmAccept') return openTmAccept([current], true); // [CR] same confirmation as the list
+  if (key === 'tmApprove') return openTmApprove([current], true); // [CR] same confirmation as the list
+  if (key === 'tmEdit') return openTmEdit(current, true);
   const a = W.ACTIONS[key], o = current, actor = state.actor;
   const fields = a.fields(actor).map(f => {
     if (f.type === 'truck') return { ...f, type: 'select', options: MASTER.trucks.filter(t => t.supplier === o.supplier).map(t => {
@@ -696,7 +772,9 @@ $('mBody').addEventListener('click', e => {
 
 const closeDetail = () => $('overlay').classList.remove('show');
 $('tbody').addEventListener('click', e => {
-  const acc = e.target.closest('[data-accept]'); if (acc) return openTmAccept([DATA.find(o => o.orderNo === acc.dataset.accept)]);
+  const ap = e.target.closest('[data-approve]'); if (ap) return openTmApprove([DATA.find(o => o.orderNo === ap.dataset.approve)]);
+  const ed = e.target.closest('[data-tmedit]'); if (ed) return openTmEdit(DATA.find(o => o.orderNo === ed.dataset.tmedit));
+  const hi = e.target.closest('[data-tmhist]'); if (hi) return openTmHistory(DATA.find(o => o.orderNo === hi.dataset.tmhist));
   const b = e.target.closest('.act'); if (b) openDetail(b.dataset.order);
 });
 $('mClose').addEventListener('click', closeDetail);

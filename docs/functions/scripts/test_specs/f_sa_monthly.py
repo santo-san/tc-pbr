@@ -17,11 +17,11 @@ def sa_approval(u):
         ['Order From / To, Regular Trip / Monthly tabs, list with ready / issue count.', M(1, {'Role': 'IELP Admin'}) + '; Approve hidden.', M(2) + '; ' + L(3), M(3)])]},
      {'title': 'Search and Calculation', 'items': [
       C('list', 'Eligible deliveries and calculation', 'UISS: Item 13-31, 42-45, 5.2, 5.3, 5.4', [V, 'Order From = 01-Nov-2026, Order To = 14-Nov-2026, [Search].', 'Open Calculation of an order; open Order Detail.'],
-        ['One row per finished delivery without SA ([CR] Daily status Finish Daily Order = accepted by VPLD TM), sorted Order Date, Order Number; Total KM (sum of route legs from ielp.TB_M_MILEAGE), PO (ielp.PO_HEADER valid on order date), Rate / KM (ielp.MS_ROUTE_PRICE), Price = KM x rate.', 'Popup: route & KM, PO & cost, validation list.']),
-      C('tm', '[CR] Only deliveries accepted by VPLD TM; TM acceptance info', 'UISS: Item 50-52, 5.2 a, 5.2 a2, SA-V01',
-        ['Prepare ORD-W1 Waiting TM Acceptance and ORD-F1 accepted by tm1 (ST Daily Order Monitoring). ' + V, 'Search the period of both orders.', 'Open the Calculation detail of ORD-F1.', 'Accept ORD-W1 on Daily Order Monitoring (VPLD TM), Search again.'],
-        ['ORD-W1 (Waiting TM Acceptance) is not listed; ORD-F1 is listed with column TM Accepted = "TM VPLD (tm1)" + date-time.', 'Delivery info shows Finish Scan (date-time · user) and TM Accepted By / Date; calculation and validation unchanged.',
-         'ORD-W1 is now listed. An order Finish before go-live shows TM Accepted "-" (OP-CR-06).', f'DB (SQL TD-11): {SD} source = DTP_2_DETAIL.STATUS_CODE Finish Daily Order, TM_ACCEPT_BY / TM_ACCEPT_DATE (DCR-44).']),
+        ['One row per finished delivery without SA ([CR] Daily status Finish Daily Order = approved by VPLD TM), sorted Order Date, Order Number; Total KM (sum of route legs from ielp.TB_M_MILEAGE), PO (ielp.PO_HEADER valid on order date), Rate / KM (ielp.MS_ROUTE_PRICE), Price = KM x rate.', 'Popup: route & KM, PO & cost, validation list.']),
+      C('tm', '[CR] Only deliveries approved by VPLD TM; edited data; TM approval info', 'UISS: Item 50-53, 5.2 a, 5.2 a2, SA-V01',
+        ['Prepare ORD-W1 Waiting TM Approval and ORD-F1 edited (container cycle 1) and approved by tm1 (ST Daily Order Monitoring). ' + V, 'Search the period of both orders.', 'Open the Calculation detail of ORD-F1.', 'Approve ORD-W1 on Daily Order Monitoring (VPLD TM, no edit), Search again.'],
+        ['ORD-W1 (Waiting TM Approval) is not listed; ORD-F1 is listed with column TM Approved = "TM VPLD (tm1)" + date-time + marker Edited.', 'Delivery info shows Finish Scan, TM Approved By / Date and TM Edited = Y; the route legs show the edited Container No.; Total KM / cost unchanged by the edit.',
+         'ORD-W1 is now listed without marker Edited. An order Finish before go-live shows TM Approved "-" (OP-CR-07).', f'DB (SQL TD-11): source = DTP_2_DETAIL.STATUS_CODE Finish Daily Order, TM_APPROVE_BY / TM_APPROVE_DATE / TM_EDIT_BY (DCR-44).']),
       C('issue', 'Validation issues shown per row', 'UISS: 5.3.5, Item 16, Msg no.4', ['Search a period with an SRL delivery without valid PO and a route without mileage.'], [M(4) + ' ; row not selectable.'])]},
      {'title': 'Approve Operation', 'items': [
       C('approve', 'Approve deliveries (SA per LP + PO)', 'UISS: Item 7-9, 46-49, 5.5-5.8, Msg no.5, Msg no.6, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Data Map blk 9, Log 1',
@@ -35,7 +35,7 @@ def sa_approval(u):
           C('tx', 'Transaction error / request in progress', 'UISS: Msg no.10, Msg no.11, Log 4', ['Lock ielp.SA_HEADER; confirm.', 'Double click Confirm Approve.'], [M(10) + '; ' + L(4), M(11)]),
           C('seq', 'SA Number conflict / sequence overflow', 'UISS: 5.7, Log 5', ['Set the SA sequence (proposed table) to 9999; approve.'], [L(5)], tbd='SA sequence table proposed')]
     td = {'precondition': ['Users Planner VPLD, IELP Admin, LP Admin.', 'Finished deliveries 01-14 Nov 2026 for DNX (PO valid) and PNJ; SRL without valid PO; released monthly PO.', DCRN],
-          'sql_verify': [{'id': 'TD-11', 'tc': '{tc:tm}', 'title': '[CR] Eligible = accepted by TM', 'sql': "SELECT ORDER_NO, STATUS_CODE, TM_ACCEPT_BY, TM_ACCEPT_DATE FROM ielp.DTP_2_DETAIL WHERE ORDER_NO IN ('ORD-W1', 'ORD-F1');  -- DCR-44"},
+          'sql_verify': [{'id': 'TD-11', 'tc': '{tc:tm}', 'title': '[CR] Eligible = approved by TM', 'sql': "SELECT ORDER_NO, STATUS_CODE, TM_APPROVE_BY, TM_APPROVE_DATE, TM_EDIT_BY, TM_EDIT_DATE FROM ielp.DTP_2_DETAIL WHERE ORDER_NO IN ('ORD-W1', 'ORD-F1');  -- DCR-44"},
                          {'id': 'TD-10', 'tc': '{tc:approve}, {tc:monthly}', 'title': 'SA created', 'sql': f"SELECT * FROM {SH} WHERE APPROVED_DT >= CAST(GETDATE() AS date);\nSELECT * FROM {SD} WHERE SA_CODE IN (:sa);\nSELECT ORDER_NO, SA_CODE, STATUS_CODE FROM {OC} WHERE ORDER_NO IN (:orders);"}]}
     return {'header': u.header(), 'groups': g, 'abnormal': ab, 'test_data': td}
 

@@ -1,4 +1,5 @@
-"""CR (16-Nov-26): Finish Order acceptance by VPLD Transportation Management (VPLD TM).
+"""SUPERSEDED by cr_tm_edit_approve_patch.py (CR Edit & Approve, rebuilds the UISS from the pre-CR version). Kept for history.
+CR (16-Nov-26): Finish Order acceptance by VPLD Transportation Management (VPLD TM).
 Patches the source JSON of: UISS_Screen_Daily_Order_Monitoring (0.6), UISS_Screen_SA_Approval (0.6),
 UISS_Report_Download_Daily_Order_Monitoring (0.5), UISS_Batch_Driver_Order_Sync (0.5). Changed parts are prefixed [CR].
 Usage: python3 cr_tm_acceptance_patch.py <repo> <screenshot dir>   (run once; refuses to run twice)"""

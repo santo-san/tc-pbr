@@ -5,7 +5,7 @@
     PLAN: 'Planning Order',
     REL: 'Order Release',
     START: 'Start Daily Order',
-    WAIT_TM: 'Waiting TM Acceptance', // [CR] driver / LP finished, waiting for VPLD Transportation Management acceptance
+    WAIT_TM: 'Waiting TM Approval', // [CR] driver / LP finished; VPLD Transportation Management can edit and must approve
     FIN: 'Finish Daily Order',
     SA: 'SA Approved',
     PO: 'SA Approved with PO Number',
@@ -293,20 +293,27 @@
         if (miss >= 0) e._ = `Container Number Cycle ${miss + 1} belum tercatat`;
         return e;
       },
-      // [CR] Finish Order no longer finishes the order: it waits for the VPLD TM acceptance (tmAccept)
+      // [CR] Finish Order no longer finishes the order: it waits for the VPLD TM edit / approval (tmEdit, tmApprove)
       apply(o, p, a, at) {
         o.status = ORDER.WAIT_TM;
         o.finishScan = { at, by: a.name, byLp: isLp(a) };
         const note = o.cycles.length < o.planned ? `Aktual ${o.cycles.length} dari rencana ${o.planned} cycle` : '';
-        return [note, 'Menunggu acceptance VPLD TM'].filter(Boolean).join(' · ');
+        return [note, 'Menunggu approval VPLD TM'].filter(Boolean).join(' · ');
       },
     },
-    // [CR] VPLD Transportation Management accepts the finish order; only then the order is Finish Daily Order (-> SA Approval)
-    tmAccept: {
-      label: 'Accept Finish Order', allow: a => a.role === 'VPLD_TM',
+    // [CR] VPLD Transportation Management corrects the delivery data (tmEdit) and approves it (tmApprove);
+    // only an approved order is Finish Daily Order (-> SA Approval) and is locked for edit
+    tmEdit: {
+      label: 'Edit Finish Order', allow: a => a.role === 'VPLD_TM', custom: true, // edit form on the screen, saved with tmEdit()
       fields: () => [],
       guard: o => o.status !== ORDER.WAIT_TM && `Order ${o.orderNo} is no longer ${ORDER.WAIT_TM} (current status: ${o.status}). Please refresh the data.`,
-      apply(o, p, a, at) { o.status = ORDER.FIN; o.tmAccepted = { by: a.name, at }; return 'Finish Order accepted by VPLD TM'; },
+      apply() { return ''; },
+    },
+    tmApprove: {
+      label: 'Approve Finish Order', allow: a => a.role === 'VPLD_TM',
+      fields: () => [],
+      guard: o => o.status !== ORDER.WAIT_TM && `Order ${o.orderNo} is no longer ${ORDER.WAIT_TM} (current status: ${o.status}). Please refresh the data.`,
+      apply(o, p, a, at) { o.status = ORDER.FIN; o.tmApproved = { by: a.name, at }; return `Finish Order approved by VPLD TM${o.tmEdited ? ' (data edited by TM)' : ''}`; },
     },
     // SA is approved by VPLD on the SA Approval screen (sa.js / sa-rules.js). processSA is kept for the legacy seed data only (SYSTEM).
     saApprove: {
@@ -363,6 +370,7 @@
   function perform(o, key, payload, actor, at, ctx) {
     const a = ACTIONS[key];
     if (!a) return { ok: false, errors: { _: 'Aksi tidak dikenal' } };
+    if (a.custom) return { ok: false, errors: { _: `${a.label}: use the edit form (tmEdit)` } };
     const block = blockReason(o, key, actor, ctx);
     if (block) return { ok: false, errors: { _: block } };
     const errors = {};
@@ -382,17 +390,99 @@
     return { ok: true };
   }
 
-  // ---------- [CR] Finish Order acceptance by VPLD TM (bulk, all-or-nothing) ----------
-  // items: [{ orderNo, version }] where version = number of history rows when the row was displayed (stands for VERSION)
+  // ---------- [CR] Edit & Approve Finish Order by VPLD TM ----------
+  // version = number of history rows when the row / form was displayed (stands for VERSION)
   const TM_MSG = {
-    none: 'Please select at least one order with status Waiting TM Acceptance.',
-    noAuth: 'Only VPLD Transportation Management can accept Finish Order.',
+    none: `Please select at least one order with status ${ORDER.WAIT_TM}.`,
+    noAuth: 'Only VPLD Transportation Management can edit or approve Finish Order.',
+    status: o => `Order ${o.orderNo} is no longer ${ORDER.WAIT_TM} (current status: ${o.status}). Please refresh the data.`,
     version: no => `Order ${no} was changed by another user. Please refresh the data.`,
-    failed: (x, n) => `${x} of ${n} order(s) cannot be accepted. Nothing was accepted.`,
-    ok: n => `${n} order(s) accepted. Order Status: ${ORDER.FIN}.`,
+    failed: (x, n) => `${x} of ${n} order(s) cannot be approved. Nothing was approved.`,
+    ok: n => `${n} order(s) approved. Order Status: ${ORDER.FIN}.`,
+    reason: `Edit Reason is required (minimum ${REASON_MIN} characters).`,
+    timeOrder: (f, n, prev) => `${f} of cycle ${n} must not be earlier than ${prev}.`,
+    future: f => `${f} must not be later than the current date-time.`,
+    noChange: 'There is no change to save.',
+    saved: (no, n) => `Order ${no} updated (${n} field(s) changed). Approve the order to finish it.`,
+    remarks: 'Remarks must be 500 characters or less.',
   };
   const rowVersion = o => o.history.length;
-  function tmAcceptMany(items, actor, at, ctx) {
+  const TIME = [['startAt', 'Start Cycle time'], ['pickupAt', 'Pickup time'], ['finishAt', 'Finish Cycle time']];
+  const fmtV = v => v instanceof Date ? `${ymd(v)} ${String(v.getHours()).padStart(2, '0')}:${String(v.getMinutes()).padStart(2, '0')}` : (v ?? '') === '' ? '-' : String(v);
+  const same = (a, b) => a instanceof Date || b instanceof Date ? +a === +b : String(a ?? '') === String(b ?? '');
+  const driverOf = (o, ctx) => ctx.master.drivers.find(d => d.name === o.driver && d.supplier === o.supplier);
+
+  // Current editable data of the order (what the edit form shows)
+  function tmEditData(o, ctx) {
+    return { truck: o.truck, driver: driverOf(o, ctx)?.userId || '', finishAt: o.finishScan?.at || null, remarks: o.finishRemarks || '',
+      cycles: o.cycles.map(c => ({ container: c.container, startAt: c.startAt, pickupAt: c.pickupAt, finishAt: c.finishAt })) };
+  }
+  // Validate an edit; p = { truck, driver (userId), finishAt, remarks, reason, cycles: [{ container, startAt, pickupAt, finishAt }] }
+  function tmEditCheck(o, p, actor, ctx, at, version) {
+    if (actor.role !== 'VPLD_TM') return { ok: false, code: 'FORBIDDEN', errors: { _: TM_MSG.noAuth } };
+    if (o.status !== ORDER.WAIT_TM) return { ok: false, code: 'STATUS', errors: { _: TM_MSG.status(o) } };
+    if (version != null && version !== rowVersion(o)) return { ok: false, code: 'VERSION', errors: { _: TM_MSG.version(o.orderNo) } };
+    const e = {}, now = at || new Date();
+    if (String(p.reason ?? '').trim().length < REASON_MIN) e.reason = TM_MSG.reason;
+    const t = ctx.master.trucks.find(x => x.plate === p.truck);
+    if (!t || t.supplier !== o.supplier) e.truck = `Truck ${p.truck || '-'} is not registered for ${o.supplier}.`;
+    else if (t.licenseDate < o.date) e.truck = `License of truck ${t.plate} expired on ${t.licenseDate}, before order date ${o.date}.`;
+    const d = ctx.master.drivers.find(x => x.userId === p.driver);
+    if (!d || d.supplier !== o.supplier || !d.active) e.driver = `Driver ${p.driver || '-'} is not active or not registered for ${o.supplier}.`;
+    const seen = new Set();
+    (p.cycles || []).forEach((c, i) => {
+      const n = normContainer(c.container), k = `c${i}_container`;
+      const err = containerError(c.container);
+      if (err) e[k] = err;
+      else if (seen.has(n)) e[k] = `Duplication found for Container Number ${n}`;
+      else {
+        const other = ctx.orders.find(x => x !== o && x.cycles.some(y => y.status === CYCLE.PICK && y.container === n));
+        if (other) e[k] = `Container Number ${n} is still active in order ${other.orderNo}.`;
+      }
+      seen.add(n);
+      let prev = i > 0 ? [p.cycles[i - 1].finishAt, `Finish Cycle time of cycle ${i}`] : null;
+      TIME.forEach(([f, label]) => {
+        const v = c[f], key = `c${i}_${f}`;
+        if (!(v instanceof Date) || isNaN(v)) { e[key] = `${label} of cycle ${i + 1} is required.`; return; }
+        if (v > now) e[key] = TM_MSG.future(`${label} of cycle ${i + 1}`);
+        else if (prev && prev[0] instanceof Date && v < prev[0]) e[key] = TM_MSG.timeOrder(label, i + 1, prev[1]);
+        prev = [v, `${label} of cycle ${i + 1}`];
+      });
+    });
+    const last = (p.cycles || [])[(p.cycles || []).length - 1];
+    if (!(p.finishAt instanceof Date) || isNaN(p.finishAt)) e.finishAt = 'Finish Order time is required.';
+    else if (p.finishAt > now) e.finishAt = TM_MSG.future('Finish Order time');
+    else if (last?.finishAt instanceof Date && p.finishAt < last.finishAt) e.finishAt = `Finish Order time must not be earlier than Finish Cycle time of cycle ${p.cycles.length}.`;
+    if (String(p.remarks ?? '').length > 500) e.remarks = TM_MSG.remarks;
+    if (Object.keys(e).length) return { ok: false, code: 'INVALID', errors: e };
+    // changed fields (before / after)
+    const cur0 = tmEditData(o, ctx), changes = [];
+    const add = (field, cycle, oldV, newV) => { if (!same(oldV, newV)) changes.push({ field, cycle, old: fmtV(oldV), new: fmtV(newV) }); };
+    add('License Plate', null, cur0.truck, p.truck);
+    add('Driver', null, o.driver, d.name);
+    p.cycles.forEach((c, i) => { add('Container No.', i + 1, cur0.cycles[i].container, normContainer(c.container)); TIME.forEach(([f, label]) => add(label, i + 1, cur0.cycles[i][f], c[f])); });
+    add('Finish Order time', null, cur0.finishAt, p.finishAt);
+    add('Remarks', null, cur0.remarks, String(p.remarks ?? '').trim());
+    if (!changes.length) return { ok: false, code: 'NO_CHANGE', errors: { _: TM_MSG.noChange } };
+    return { ok: true, changes, driver: d };
+  }
+  // Save the edit: status unchanged (Waiting TM Approval); history row per edit with before / after (LOG_ACTIVITY_ORDER PARAM_REQ / PARAM_RES)
+  function tmEdit(o, p, actor, at, ctx, version) {
+    const chk = tmEditCheck(o, p, actor, ctx, at, version);
+    if (!chk.ok) return chk;
+    const reason = String(p.reason).trim();
+    o.truck = p.truck; o.driver = chk.driver.name;
+    p.cycles.forEach((c, i) => Object.assign(o.cycles[i], { container: normContainer(c.container), startAt: c.startAt, pickupAt: c.pickupAt, finishAt: c.finishAt }));
+    o.finishScan = { ...(o.finishScan || {}), at: p.finishAt };
+    o.finishRemarks = String(p.remarks ?? '').trim();
+    o.tmEdited = { by: actor.name, at };
+    (o.tmEdits = o.tmEdits || []).push({ at, by: actor.name, reason, changes: chk.changes });
+    const st = { order: o.status, cycle: cur(o).status };
+    log(o, at, actor, 'Edit Finish Order', st, st, reason, chk.changes.map(c => `${c.field}${c.cycle ? ` (cycle ${c.cycle})` : ''}: ${c.old} → ${c.new}`).join('; '));
+    return { ok: true, changes: chk.changes, message: TM_MSG.saved(o.orderNo, chk.changes.length) };
+  }
+  // Approve (bulk, all-or-nothing). items: [{ orderNo, version }]
+  function tmApproveMany(items, actor, at, ctx) {
     if (actor.role !== 'VPLD_TM') return { ok: false, code: 'FORBIDDEN', message: TM_MSG.noAuth, failed: [] };
     if (!items || !items.length) return { ok: false, code: 'EMPTY', message: TM_MSG.none, failed: [] };
     const failed = [], list = [];
@@ -400,19 +490,19 @@
       const o = ctx.orders.find(x => x.orderNo === it.orderNo);
       if (!o) return failed.push({ orderNo: it.orderNo, msg: 'Order not found' });
       if (it.version != null && it.version !== rowVersion(o)) return failed.push({ orderNo: o.orderNo, msg: TM_MSG.version(o.orderNo) });
-      const block = blockReason(o, 'tmAccept', actor, ctx);
+      const block = blockReason(o, 'tmApprove', actor, ctx);
       if (block) return failed.push({ orderNo: o.orderNo, msg: block });
       list.push(o);
     });
     if (failed.length) return { ok: false, code: 'REVALIDATION', message: TM_MSG.failed(failed.length, items.length), failed };
-    list.forEach(o => perform(o, 'tmAccept', {}, actor, at, ctx));
-    return { ok: true, message: TM_MSG.ok(list.length), accepted: list.map(o => o.orderNo) };
+    list.forEach(o => perform(o, 'tmApprove', {}, actor, at, ctx));
+    return { ok: true, message: TM_MSG.ok(list.length), approved: list.map(o => o.orderNo) };
   }
 
   const api = {
     ORDER, ORDER_SEQ, CYCLE, MAX_CYCLES, REASON_MIN, ACTIONS,
     LP_STATUS, ASSIGN_STATUS, lpStatus, assignStatus, needsAccept, truckState,
-    TM_MSG, rowVersion, tmAcceptMany,
+    TM_MSG, rowVersion, tmEditData, tmEditCheck, tmEdit, tmApproveMany,
     canView, login, checkDTP, createDTP, newOrder, perform, available, blockReason, roleLabel,
     containerCheckDigit, containerError, normContainer, current: cur, ymd, log,
   };
