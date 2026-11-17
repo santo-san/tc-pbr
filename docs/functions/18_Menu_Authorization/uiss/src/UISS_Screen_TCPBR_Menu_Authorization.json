@@ -6,7 +6,9 @@
   "block_name": "Screen",
   "function_name": "TBD TC-PBR Menu & Authorization",
   "created_date": "14-Nov-26",
-  "created_by": "Susanto"
+  "created_by": "Susanto",
+  "updated_date": "17-Nov-26",
+  "updated_by": "Susanto"
  },
  "revisions": [
   {
@@ -22,6 +24,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Decision 14-Nov-26 (existing logic kept): Master screens open for every role as implemented (G-COM-01)"
+  },
+  {
+   "revision": "0.3",
+   "author": "Susanto",
+   "date": "17-Nov-26",
+   "reviewed_by": "",
+   "description": "[CR] Role VPLD TM (CR Edit & Approve Finish Order, 16-Nov-26) added: access matrix 5.1 (Daily Monitoring X, Planning Order V, Truck Assignment V, Master X, other menus -), Item Desc evidence and role selector; USERID_CLASS of VPLD TM TBD."
   }
  ],
  "general": {
@@ -132,7 +141,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens index.html#monitoring. Access in the mock-up: IELP Admin X, Planner VPLD X, LP Admin X, Supplier Viewer V, Driver X, System X. Evidence: workflow.js:57 canView, action allow()."
+   "description": "Opens index.html#monitoring. Access in the mock-up: IELP Admin X, Planner VPLD X, LP Admin X, Supplier Viewer V, Driver X, System X, [CR] VPLD TM X (CR: Edit / Approve Finish Order only). Evidence: workflow.js:57 canView, action allow(). [CR] workflow.js ACTIONS.tmEdit / tmApprove."
   },
   {
    "name": "Daily > Planning Order",
@@ -147,7 +156,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens index.html#planning-order. Access in the mock-up: IELP Admin V, Planner VPLD X. Evidence: dtp-rules.js canCreate (PLANNER); dtp.js isPlanner."
+   "description": "Opens index.html#planning-order. Access in the mock-up: IELP Admin V, Planner VPLD X, [CR] VPLD TM V. Evidence: dtp-rules.js canCreate (PLANNER); dtp.js isPlanner."
   },
   {
    "name": "Daily > Planning Truck Assignment",
@@ -162,7 +171,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens index.html#truck-assignment. Access in the mock-up: IELP Admin V, Planner VPLD V, LP Admin X, Supplier Viewer V. Evidence: truck-assign.js:8 isLpAdmin."
+   "description": "Opens index.html#truck-assignment. Access in the mock-up: IELP Admin V, Planner VPLD V, LP Admin X, Supplier Viewer V, [CR] VPLD TM V. Evidence: truck-assign.js:8 isLpAdmin."
   },
   {
    "name": "Service Acceptance > SA Approval",
@@ -177,7 +186,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens index.html#sa-approval. Access in the mock-up: IELP Admin V, Planner VPLD X. Evidence: sa.js:10-11 isVPLD, canSeeApproval."
+   "description": "Opens index.html#sa-approval. Access in the mock-up: IELP Admin V, Planner VPLD X, [CR] VPLD TM - (message no. 1). Evidence: sa.js:10-11 isVPLD, canSeeApproval."
   },
   {
    "name": "Service Acceptance > SA Monitoring",
@@ -192,7 +201,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens index.html#sa-monitoring. Access in the mock-up: IELP Admin X, Planner VPLD V, LP Admin V, Supplier Viewer V, System X. Evidence: sa-monitoring.js:15-17 canView, canRetry (IELP Admin)."
+   "description": "Opens index.html#sa-monitoring. Access in the mock-up: IELP Admin X, Planner VPLD V, LP Admin V, Supplier Viewer V, System X, [CR] VPLD TM - (SA Monitoring not available). Evidence: sa-monitoring.js:15-17 canView, canRetry (IELP Admin)."
   },
   {
    "name": "Master > Trucking Company, Mileage, Price, Location Code, Priority, Renban, KPI, Route Percentage",
@@ -207,7 +216,7 @@
    "required": "N",
    "format": "-",
    "validation": "Shown only for user classes with the menu in USERID_MENU_OPTION (TBD)",
-   "description": "Opens master.html#.... Access in the mock-up: IELP Admin X, Planner VPLD ?, LP Admin ?, Supplier Viewer ?, VPLD Staff / SH ?, Approver (SH/DpH/DH) ?, GA ?. Evidence: no role check in master.js / master-*.js - all roles (existing logic kept, decision G-COM-01; the \"IELP Admin only\" badge on Master Mileage is informational)."
+   "description": "Opens master.html#.... Access in the mock-up: IELP Admin X, Planner VPLD ?, LP Admin ?, Supplier Viewer ?, VPLD Staff / SH ?, Approver (SH/DpH/DH) ?, GA ?, [CR] VPLD TM X (no role check). Evidence: no role check in master.js / master-*.js - all roles (existing logic kept, decision G-COM-01; the \"IELP Admin only\" badge on Master Mileage is informational)."
   },
   {
    "name": "Monthly > PR Creation",
@@ -270,7 +279,7 @@
    "required": "N",
    "format": "-",
    "validation": "-",
-   "description": "Simulates the logged-in user (app.js:510 setActor, :519 openLogin; monthly.js:325). In ELIPS the user comes from ielp.USERID + USERID_DETAIL (USERID_CLASS) - not a screen field."
+   "description": "Simulates the logged-in user (app.js:510 setActor, :519 openLogin; monthly.js:325). In ELIPS the user comes from ielp.USERID + USERID_DETAIL (USERID_CLASS) - not a screen field. [CR] Option \"VPLD TM - tm1 (Transportation Management)\" (role VPLD_TM)."
   },
   {
    "name": "User name / role label",
@@ -344,6 +353,10 @@
      "width": 3
     },
     {
+     "title": "[CR] VPLD TM",
+     "width": 3
+    },
+    {
      "title": "System",
      "width": 3
     }
@@ -359,6 +372,7 @@
      "-",
      "-",
      "-",
+     "X",
      "X"
     ],
     [
@@ -371,6 +385,7 @@
      "-",
      "-",
      "-",
+     "V",
      "-"
     ],
     [
@@ -383,12 +398,14 @@
      "-",
      "-",
      "-",
+     "V",
      "-"
     ],
     [
      "SA Approval",
      "V",
      "X",
+     "-",
      "-",
      "-",
      "-",
@@ -407,10 +424,12 @@
      "-",
      "-",
      "-",
+     "-",
      "X"
     ],
     [
      "Master (8 screens)",
+     "X",
      "X",
      "X",
      "X",
@@ -431,6 +450,7 @@
      "X",
      "V",
      "-",
+     "-",
      "-"
     ],
     [
@@ -443,6 +463,7 @@
      "V",
      "X",
      "V",
+     "-",
      "X"
     ],
     [
@@ -455,6 +476,7 @@
      "V",
      "V",
      "V",
+     "-",
      "-"
     ]
    ],
@@ -529,7 +551,7 @@
    "marker": "-",
    "level": 0,
    "items": [
-    "USERID_CLASS values for each mock-up role (IELP Admin, Planner VPLD, LP Admin, Supplier Viewer, Driver, VPLD Staff / SH, Approver (SH/DpH/DH), GA, System) - TBD - Not confirmed from existing schema/data/code",
+    "USERID_CLASS values for each mock-up role (IELP Admin, Planner VPLD, LP Admin, Supplier Viewer, Driver, [CR] VPLD TM, VPLD Staff / SH, Approver (SH/DpH/DH), GA, System) - TBD - Not confirmed from existing schema/data/code",
     "MENU_ID / APP_NAME of the TC-PBR menus",
     "How Driver and LP Admin (supplier users) are linked to MS_DRIVER.USER_NAME / MS_TRUCKING_COMPANY (USERID.COMPANY?)"
    ]

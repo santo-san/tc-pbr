@@ -405,6 +405,7 @@
     noChange: 'There is no change to save.',
     saved: (no, n) => `Order ${no} updated (${n} field(s) changed). Approve the order to finish it.`,
     remarks: 'Remarks must be 500 characters or less.',
+    mandatory: 'Mandatory Field Not Entered', // Daily Monitoring message no. 6
   };
   const rowVersion = o => o.history.length;
   const TIME = [['startAt', 'Start Cycle time'], ['pickupAt', 'Pickup time'], ['finishAt', 'Finish Cycle time']];
@@ -432,7 +433,7 @@
     const seen = new Set();
     (p.cycles || []).forEach((c, i) => {
       const n = normContainer(c.container), k = `c${i}_container`;
-      const err = containerError(c.container);
+      const err = blank(c.container) ? TM_MSG.mandatory : containerError(c.container);
       if (err) e[k] = err;
       else if (seen.has(n)) e[k] = `Duplication found for Container Number ${n}`;
       else {
@@ -443,14 +444,14 @@
       let prev = i > 0 ? [p.cycles[i - 1].finishAt, `Finish Cycle time of cycle ${i}`] : null;
       TIME.forEach(([f, label]) => {
         const v = c[f], key = `c${i}_${f}`;
-        if (!(v instanceof Date) || isNaN(v)) { e[key] = `${label} of cycle ${i + 1} is required.`; return; }
+        if (!(v instanceof Date) || isNaN(v)) { e[key] = TM_MSG.mandatory; return; }
         if (v > now) e[key] = TM_MSG.future(`${label} of cycle ${i + 1}`);
         else if (prev && prev[0] instanceof Date && v < prev[0]) e[key] = TM_MSG.timeOrder(label, i + 1, prev[1]);
         prev = [v, `${label} of cycle ${i + 1}`];
       });
     });
     const last = (p.cycles || [])[(p.cycles || []).length - 1];
-    if (!(p.finishAt instanceof Date) || isNaN(p.finishAt)) e.finishAt = 'Finish Order time is required.';
+    if (!(p.finishAt instanceof Date) || isNaN(p.finishAt)) e.finishAt = TM_MSG.mandatory;
     else if (p.finishAt > now) e.finishAt = TM_MSG.future('Finish Order time');
     else if (last?.finishAt instanceof Date && p.finishAt < last.finishAt) e.finishAt = `Finish Order time must not be earlier than Finish Cycle time of cycle ${p.cycles.length}.`;
     if (String(p.remarks ?? '').length > 500) e.remarks = TM_MSG.remarks;

@@ -7,7 +7,7 @@
   "function_name": "TBD Planning Truck Assignment",
   "created_date": "02-Nov-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "17-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-27, DCR-28)"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "17-Nov-26",
+   "reviewed_by": "",
+   "description": "[CR] Calendar legend Finish: orders Waiting TM Approval (CR Edit & Approve, Daily Order Monitoring) count as not finished until VPLD TM approval; no logic change."
   }
  ],
  "general": {
@@ -1742,7 +1749,7 @@
    "rows": [
     [
      "Complete Order (navy)",
-     "All Finish / SA / PO"
+     "All Finish / SA / PO ([CR] an order Waiting TM Approval - finished by the driver, not yet approved by VPLD TM - is not finished: the entry stays Assigned until the approval)"
     ],
     [
      "Order Already Assign (green)",

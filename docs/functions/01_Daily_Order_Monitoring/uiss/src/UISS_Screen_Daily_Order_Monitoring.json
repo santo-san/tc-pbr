@@ -7,7 +7,7 @@
   "function_name": "TBD Daily Order Monitoring",
   "created_date": "28-Oct-26",
   "created_by": "Susanto",
-  "updated_date": "16-Nov-26",
+  "updated_date": "17-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -66,6 +66,13 @@
    "date": "16-Nov-26",
    "reviewed_by": "",
    "description": "[CR] UI review of CR Edit & Approve (user 16-Nov-26): counter button [Waiting TM Approval (n)] removed - the count is shown in the Order Status option; Edit / Approve moved from below the Action icon to the new column TM Review (Item 74, 77, 78 redefined, numbering unchanged); screenshots 10-18 retaken. No change of rules, messages or database."
+  },
+  {
+   "revision": "0.9",
+   "author": "Susanto",
+   "date": "17-Nov-26",
+   "reviewed_by": "",
+   "description": "[CR] Consistency with the mock-up: message no. 41 generic text (also used for Finish Order time); new message no. 44 Remarks length; blank editable field = message no. 6 (Item Desc validation, 5.6.7, table 5.6.8)."
   }
  ],
  "general": {
@@ -2989,7 +2996,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "",
-   "validation": "Registered for the trucking company (msg 11); license >= order date (msg 12)",
+   "validation": "Blank: msg 6. Registered for the trucking company (msg 11); license >= order date (msg 12)",
    "description": "Trucks of the order trucking company with license date. Also written to ielp.ORDER_CYCLE.LICENSE_PLATE of every cycle."
   },
   {
@@ -3004,7 +3011,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "",
-   "validation": "Active and registered for the trucking company (msg 15)",
+   "validation": "Blank: msg 6. Active and registered for the trucking company (msg 15)",
    "description": "Drivers of the order trucking company (inactive marked). Also written to ielp.ORDER_CYCLE.DRIVER_ID."
   },
   {
@@ -3034,7 +3041,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "AAAU9999999",
-   "validation": "Format (msg 17), check digit (msg 18), unique in the order (msg 19), not active in another order (msg 20)",
+   "validation": "Blank: msg 6. Format (msg 17), check digit (msg 18), unique in the order (msg 19), not active in another order (msg 20)",
    "description": "Per cycle; normalised upper case without space / dash."
   },
   {
@@ -3049,7 +3056,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "DD/MM/YYYY HH:MI",
-   "validation": ">= Finish Cycle of the previous cycle (msg 41); not future (msg 42)",
+   "validation": "Blank: msg 6. >= Finish Cycle of the previous cycle (msg 41); not future (msg 42)",
    "description": "Per cycle."
   },
   {
@@ -3064,7 +3071,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "DD/MM/YYYY HH:MI",
-   "validation": ">= Start Cycle (msg 41); not future (msg 42)",
+   "validation": "Blank: msg 6. >= Start Cycle (msg 41); not future (msg 42)",
    "description": "Per cycle."
   },
   {
@@ -3079,7 +3086,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "DD/MM/YYYY HH:MI",
-   "validation": ">= Pickup (msg 41); not future (msg 42)",
+   "validation": "Blank: msg 6. >= Pickup (msg 41); not future (msg 42)",
    "description": "Per cycle."
   },
   {
@@ -3094,7 +3101,7 @@
    "initial": "Current value",
    "required": "Y",
    "format": "DD/MM/YYYY HH:MI",
-   "validation": ">= Finish Cycle of the last cycle (msg 41); not future (msg 42)",
+   "validation": "Blank: msg 6. >= Finish Cycle of the last cycle (msg 41); not future (msg 42)",
    "description": "Finish Order date-time."
   },
   {
@@ -3109,7 +3116,7 @@
    "initial": "Current value",
    "required": "N",
    "format": "X..500..X",
-   "validation": "Max 500 characters",
+   "validation": "Max 500 characters (msg 44)",
    "description": "Optional note of TM."
   },
   {
@@ -4571,7 +4578,7 @@
    "items": [
     "Open: [Edit] in column TM Review or [Edit Finish Order] of the Order Detail (VPLD TM, Order Status Waiting TM Approval). The form shows the current data (driver scan, or the last TM edit) and remembers the VERSION.",
     "Read-only part: No. Order, Date / Shift, Trucking Company, route, Order Status, Finished By. Editable fields: table 5.6.8. Edit Reason is mandatory.",
-    "[Save]: check all fields at once (Item Desc validation): mandatory, container format / check digit / duplicate / active elsewhere (messages no. 17-20), truck and driver master (messages no. 11, 12, 15), time order Start <= Pickup <= Finish, cycle n >= Finish of cycle n-1, Finish Order >= last Finish Cycle (message no. 41), no future time (message no. 42), Remarks <= 500, Edit Reason >= 10 characters (message no. 40). Errors are shown below the fields; nothing saved.",
+    "[Save]: check all fields at once (Item Desc validation): mandatory (message no. 6), container format / check digit / duplicate / active elsewhere (messages no. 17-20), truck and driver master (messages no. 11, 12, 15), time order Start <= Pickup <= Finish, cycle n >= Finish of cycle n-1, Finish Order >= last Finish Cycle (message no. 41), no future time (message no. 42), Remarks <= 500 (message no. 44), Edit Reason >= 10 characters (message no. 40). Errors are shown below the fields; nothing saved.",
     "If no field differs from the current data, display message no. 43. Stop.",
     "Otherwise show the confirmation (message no. 38) with the changed fields (Field, Cycle, Before, After) and the Edit Reason. [Back] returns to the form with the entered values.",
     "[Confirm Save] - server: role VPLD TM (else message no. 35), Order Status still Waiting TM Approval (else message no. 34), VERSION unchanged (else message no. 36); then in one transaction update the order and cycles (Data Edit Mapping [CR] Edit blocks 13 / 14), set TM_EDIT_BY / TM_EDIT_DATE, VERSION + 1, insert the edit history (block 15, Log no. 8). Status is NOT changed.",
@@ -4651,7 +4658,7 @@
     [
      "Remarks",
      "Y",
-     "Optional note of TM, max 500 characters (ORDER_CYCLE.FINISH_REMARKS)."
+     "Optional note of TM, max 500 characters (ORDER_CYCLE.FINISH_REMARKS, message no. 44)."
     ],
     [
      "Edit Reason",
@@ -5543,7 +5550,7 @@
    "cause": "Time earlier than the previous step (Start <= Pickup <= Finish, cycle n >= cycle n-1, Finish Order >= last Finish Cycle)",
    "type": "Error",
    "msg_id": "TBD",
-   "message": "{Time field} of cycle {n} must not be earlier than {previous time field}.",
+   "message": "{Time field} must not be earlier than {previous time field}. (e.g. \"Pickup time of cycle 1 must not be earlier than Start Cycle time of cycle 1.\", \"Finish Order time must not be earlier than Finish Cycle time of cycle 3.\")",
    "action": "Correct the time"
   },
   {
@@ -5561,6 +5568,14 @@
    "msg_id": "TBD",
    "message": "There is no change to save.",
    "action": "Change a field or Cancel"
+  },
+  {
+   "event": "Edit form - click [Save]",
+   "cause": "Remarks longer than 500 characters",
+   "type": "Error",
+   "msg_id": "TBD",
+   "message": "Remarks must be 500 characters or less.",
+   "action": "Shorten the remarks"
   }
  ],
  "logging_messages": [

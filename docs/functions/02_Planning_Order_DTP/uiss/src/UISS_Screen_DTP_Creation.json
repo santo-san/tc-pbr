@@ -7,7 +7,7 @@
   "function_name": "TBD DTP Creation (Planning Order)",
   "created_date": "02-Nov-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "17-Nov-26",
   "updated_by": "Susanto"
  },
  "general": {
@@ -3695,7 +3695,7 @@
    "rows": [
     [
      "Order Finish (navy)",
-     "All orders Finish / SA Approved / SA Approved with PO"
+     "All orders Finish / SA Approved / SA Approved with PO ([CR] an order Waiting TM Approval - finished by the driver, not yet approved by VPLD TM - is not finished: the entry stays Assigned until the approval)"
     ],
     [
      "Rejected by LP (red)",
@@ -5048,6 +5048,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-16, DCR-17, DCR-18, DCR-19, DCR-20)"
+  },
+  {
+   "revision": "1.0",
+   "author": "Susanto",
+   "date": "17-Nov-26",
+   "reviewed_by": "",
+   "description": "[CR] Calendar legend Order Finish: orders Waiting TM Approval (CR Edit & Approve, Daily Order Monitoring) count as not finished until VPLD TM approval; no logic change."
   }
  ]
 }

@@ -214,7 +214,8 @@ def menu_auth(u):
             ('Driver', 'Daily Monitoring X, Master X only'),
             ('VPLD Staff / SH', 'Master X, PR Creation X, PR / PO Approval V, Inquiry V'),
             ('Approver (SH / DpH / DH)', 'Master X, PR Creation V, PR / PO Approval X, Inquiry V'),
-            ('GA', 'Master X, PR / PO Approval V (PO approve per ST PO Approval), Inquiry V')]
+            ('GA', 'Master X, PR / PO Approval V (PO approve per ST PO Approval), Inquiry V'),
+            ('VPLD TM (Transportation Management) [CR]', 'Daily Monitoring X (only Edit / Approve Finish Order), Planning Order V, Truck Assignment V, Master X; SA Approval / SA Monitoring not available; no Monthly menus')]
     items = [C(f'r{i}', f'Menu and access: {r}', 'UISS: Item 1-11, 5.1, Msg no.1', [f'Login as {r}.', 'Check the side menu and the header.', 'Open each menu; open the URL of every menu not shown.'],
                [f'Matrix 5.1: {t} (X = execute, V = view only).', "Header 'Login sebagai' shows the role; hidden menus by URL show " + M(1) + '.'], tbd='Role-to-USERID_CLASS mapping TBD') for i, (r, t) in enumerate(rows, 1)]
     g = [{'title': 'Role Access', 'items': items},

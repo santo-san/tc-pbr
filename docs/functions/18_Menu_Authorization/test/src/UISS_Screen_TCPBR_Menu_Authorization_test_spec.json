@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "TC-PBR Menu & Authorization",
   "uiss_name": "UISS-Screen TCPBR Menu Authorization",
-  "uiss_rev": "0.2",
+  "uiss_rev": "0.3",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -130,6 +130,21 @@
      ],
      "expected": [
       "Matrix 5.1: Master X, PR / PO Approval V (PO approve per ST PO Approval), Inquiry V (X = execute, V = view only).",
+      "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
+     ],
+     "tbd": "Role-to-USERID_CLASS mapping TBD"
+    },
+    {
+     "key": "r9",
+     "case": "Menu and access: VPLD TM (Transportation Management) [CR]",
+     "ref": "UISS: Item 1-11, 5.1, Msg no.1",
+     "procedure": [
+      "Login as VPLD TM (Transportation Management) [CR].",
+      "Check the side menu and the header.",
+      "Open each menu; open the URL of every menu not shown."
+     ],
+     "expected": [
+      "Matrix 5.1: Daily Monitoring X (only Edit / Approve Finish Order), Planning Order V, Truck Assignment V, Master X; SA Approval / SA Monitoring not available; no Monthly menus (X = execute, V = view only).",
       "Header 'Login sebagai' shows the role; hidden menus by URL show Msg no.1 (Error): 'Per screen (e.g. \"SA Approval is only available for VPLD (approve) and IELP Admin (view)\", PR Creation noAuth)'."
      ],
      "tbd": "Role-to-USERID_CLASS mapping TBD"

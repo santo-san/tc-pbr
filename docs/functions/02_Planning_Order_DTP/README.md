@@ -5,7 +5,7 @@ Code: dtp.js, dtp-rules.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_DTP_Creation](uiss/UISS_Screen_DTP_Creation.xlsx) | screen | 0.9 (14-Nov-26) | [uiss/src/UISS_Screen_DTP_Creation.json](uiss/src/UISS_Screen_DTP_Creation.json) | 34 |
+| [UISS_Screen_DTP_Creation](uiss/UISS_Screen_DTP_Creation.xlsx) | screen | 1.0 (17-Nov-26) | [uiss/src/UISS_Screen_DTP_Creation.json](uiss/src/UISS_Screen_DTP_Creation.json) | 34 |
 | [UISS_Batch_DTP_Excel_Upload](uiss/UISS_Batch_DTP_Excel_Upload.xlsx) | batch | 0.5 (14-Nov-26) | [uiss/src/UISS_Batch_DTP_Excel_Upload.json](uiss/src/UISS_Batch_DTP_Excel_Upload.json) | 0 |
 | [UISS_Batch_DTP_Queue_Processing](uiss/UISS_Batch_DTP_Queue_Processing.xlsx) | batch | 0.4 (14-Nov-26) | [uiss/src/UISS_Batch_DTP_Queue_Processing.json](uiss/src/UISS_Batch_DTP_Queue_Processing.json) | 0 |
 | [UISS_Batch_DTP_Switching](uiss/UISS_Batch_DTP_Switching.xlsx) | batch | 0.5 (14-Nov-26) | [uiss/src/UISS_Batch_DTP_Switching.json](uiss/src/UISS_Batch_DTP_Switching.json) | 0 |
