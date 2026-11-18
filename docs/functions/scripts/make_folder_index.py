@@ -1,10 +1,13 @@
-"""Write docs/functions/<NN_Function>/uiss/README.md and docs/functions/README.md (index) from folders.json, the UISS sources and the
-review mapping files. Usage: python3 make_folder_index.py [repo]"""
+"""Write docs/functions/<NN_Menu>/<NN_Function>/README.md, docs/functions/<NN_Menu>/README.md and docs/functions/README.md (index, grouped by
+the application menu) from folders.json, the UISS sources and the review mapping files. Usage: python3 make_folder_index.py [repo]"""
 import json, glob, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from uiss_paths import locate
 R = sys.argv[1] if len(sys.argv) > 1 else '.'
-info = json.load(open(os.path.join(R, 'docs/functions/folders.json')))['folders']
+FJ = json.load(open(os.path.join(R, 'docs/functions/folders.json'))); info, GROUPS = FJ['folders'], FJ['groups']
+MENU = {'01_Master': 'Master (master.html)', '02_Daily': 'Daily (index.html: Daily Monitoring, Planning Order, Planning Truck Assignment; Surat Jalan)',
+        '03_Monthly': 'Monthly (monthly.html: PR Creation, PR / PO Approval, PR / PO Inquiry)', '04_Service_Acceptance': 'Service Acceptance (index.html: SA Approval, SA Monitoring; PAS interfaces)',
+        '05_Common': 'Common (menu and authorization of all pages)'}
 FUNC = {'01': ('DM-01..DM-11, DM-04', 'app.js, workflow.js'), '02': ('DTP-01..DTP-13, DTP-05 (IPMS)', 'dtp.js, dtp-rules.js'), '03': ('TA-01..TA-05, DTP-16', 'truck-assign.js, workflow.js'),
  '04': ('DM-12..DM-14, INT-03', 'delivery-note.js, dn-rules.js, dn-pdf.js'), '05': ('SA-01..SA-03', 'sa.js, sa-rules.js'), '06': ('SA-04..SA-07, INT-04', 'sa-monitoring.js, sa-pas-rules.js'),
  '07': ('MTC-01..03', 'master.js, master-trucking.js'), '08': ('MLC-01..03', 'location.js, master-location.js'), '09': ('MML-01..04', 'mileage.js, master-mileage.js'),
@@ -13,8 +16,8 @@ FUNC = {'01': ('DM-01..DM-11, DM-04', 'app.js, workflow.js'), '02': ('DTP-01..DT
  '16': ('PRI-01, PRA-01..02, POA-01, POI-01', 'monthly.js, monthly-workflow.js'), '17': ('INT-01..02', '(Talend - existing tJava in this folder)'), '18': ('COM-01..02', 'index.html, master.html, monthly.html, app.js, workflow.js')}
 rows = []
 for folder, v in info.items():
-    d = os.path.join(R, 'docs/functions', folder, 'uiss'); fd = os.path.join(R, 'docs/functions', folder); fid, code = FUNC[folder[:2]]
-    L = [f'# {folder[3:].replace("_", " ")}', '', f'Functions (see [../../review/01-function-inventory.md](../../review/01-function-inventory.md)): {fid}  ', f'Code: {code}', '',
+    d = os.path.join(R, 'docs/functions', folder, 'uiss'); fd = os.path.join(R, 'docs/functions', folder); base = os.path.basename(folder); fid, code = FUNC[base[:2]]
+    L = [f'# {base[3:].replace("_", " ")}', '', f'Menu: [{MENU[os.path.dirname(folder)].split(" (")[0]}](../README.md)  ', f'Functions (see [../../../review/01-function-inventory.md](../../../review/01-function-inventory.md)): {fid}  ', f'Code: {code}', '',
          '| UISS | Type | Revision | Source | Screenshots |', '|---|---|---|---|---|']
     tables = set()
     for n in v['uiss']:
@@ -28,17 +31,27 @@ for folder, v in info.items():
     L += ['', 'Rules / specification (`uiss/`):', ''] + [f'- [{x}](uiss/{x})' for x in sorted(os.listdir(d)) if x.endswith(('.md', '.java', '.xlsx')) and not x.startswith('UISS_')]
     tests = sorted(x for x in os.listdir(os.path.join(fd, 'test')) if x.endswith('.xlsx')) if os.path.isdir(os.path.join(fd, 'test')) else []
     L += ['', 'ST test scripts (`test/`, generated with the uiss-test-script skill; spec JSON in `test/src/`):', ''] + ([f'- [{x}](test/{x})' for x in tests] or ['- (none yet)'])
-    L += ['', 'ELIPS tables (schema, see [../../db/schema-dictionary.md](../../db/schema-dictionary.md)): ' + (', '.join(f'`{t}`' for t in sorted(tables)) or 'see UISS'), '',
-          'Review: database mapping [../../review/06-database-mapping-matrix.md](../../review/06-database-mapping-matrix.md), gaps [../../review/07-gap-analysis.md](../../review/07-gap-analysis.md), traceability [../../review/11-traceability-matrix.md](../../review/11-traceability-matrix.md).', '',
+    L += ['', 'ELIPS tables (schema, see [../../../db/schema-dictionary.md](../../../db/schema-dictionary.md)): ' + (', '.join(f'`{t}`' for t in sorted(tables)) or 'see UISS'), '',
+          'Review: database mapping [../../../review/06-database-mapping-matrix.md](../../../review/06-database-mapping-matrix.md), gaps [../../../review/07-gap-analysis.md](../../../review/07-gap-analysis.md), traceability [../../../review/11-traceability-matrix.md](../../../review/11-traceability-matrix.md).', '',
           'Rebuild: `python3 docs/functions/scripts/build_all.py ' + ' '.join(v['uiss']) + '`']
     open(os.path.join(fd, 'README.md'), 'w').write('\n'.join(L) + '\n')
-I = ['# TC-PBR functions - one folder per function', '',
-     'Every folder `<NN_Function>/` has `uiss/` (UISS workbooks of the function - screen plus the batch / report UISS that serve it - the rules / specification `.md`,',
+# menu READMEs
+for g, fs in GROUPS.items():
+    G = [f'# {MENU[g]}', '', '[All functions](../README.md)', '', '| Function | UISS | Type | Rev |', '|---|---|---|---|']
+    G += [f'| [{os.path.basename(f)}]({os.path.basename(f)}/README.md) | [{n}]({os.path.basename(f)}/uiss/{n}.xlsx) | {t} | {r} |' for f, n, t, r in rows if os.path.dirname(f) == g]
+    open(os.path.join(R, 'docs/functions', g, 'README.md'), 'w').write('\n'.join(G) + '\n')
+I = ['# TC-PBR functions - grouped by the application menu', '',
+     'Layout: `docs/functions/<NN_Menu>/<NN_Function>/` - the menu folder follows the sidebar of the application (Master, Daily, Monthly, Service Acceptance;',
+     'Common = menu / authorization of all pages). Every function folder has `uiss/` (UISS workbooks of the function - screen plus the batch / report UISS that serve it - the rules / specification `.md`,',
      'and `src/` with the spec JSON of each workbook and its screenshots `src/img/<UISS>/`) and `test/` (ST Integrated Function Test scripts, spec JSON in `test/src/`). The workbook is generated from the JSON with the',
-     '`anthropic-skills:uiss-generator` skill; `scripts/build_all.py` rebuilds one or all workbooks (cwd = `src/`, image paths relative).', '',
-     '| Folder | UISS | Type | Rev |', '|---|---|---|---|'] + [f'| [{f}]({f}/README.md) | [{n}]({f}/uiss/{n}.xlsx) | {t} | {r} |' for f, n, t, r in rows] + ['',
-     'Shared scripts (`scripts/`): `uiss_paths.py` (locate a UISS), `build_all.py`, `db_revision.py` (revision against the ELIPS schema with `docs/review/db-mapping/*.json`),',
-     '`missing_uiss_gen.py` (UISS created in the review), `make_folder_index.py` (these READMEs) and the historical patch / generator scripts (run before the folder layout; they take the src folder as argument).', '',
+     '`anthropic-skills:uiss-generator` skill; `scripts/build_all.py` rebuilds one or all workbooks (cwd = `src/`, image paths relative).',
+     'ST test scripts of all functions (cases, coverage, rebuild): [TEST_SCRIPTS.md](TEST_SCRIPTS.md).', '']
+for g in GROUPS:
+    I += [f'## [{MENU[g]}]({g}/README.md)', '', '| Function | UISS | Type | Rev |', '|---|---|---|---|']
+    I += [f'| [{os.path.basename(f)}]({f}/README.md) | [{n}]({f}/uiss/{n}.xlsx) | {t} | {r} |' for f, n, t, r in rows if os.path.dirname(f) == g] + ['']
+I += ['Shared scripts (`scripts/`): `uiss_paths.py` (locate a UISS), `build_all.py`, `db_revision.py` (revision against the ELIPS schema with `docs/review/db-mapping/*.json`),',
+     '`missing_uiss_gen.py` (UISS created in the review), `make_folder_index.py` (these READMEs), `test_specs/` (ST test scripts) and the historical patch / generator scripts',
+     '(run before the current folder layout; `group_by_menu.py` moved the function folders into the menu folders on 18-Nov-26).', '',
      'Database: `docs/db/` (ELIPS schema, dictionary). Review deliverables: `docs/review/`.']
 open(os.path.join(R, 'docs/functions/README.md'), 'w').write('\n'.join(I) + '\n')
-print('written', len(info), 'folder READMEs +', len(rows), 'UISS in index')
+print('written', len(info), 'folder READMEs,', len(GROUPS), 'menu READMEs +', len(rows), 'UISS in index')

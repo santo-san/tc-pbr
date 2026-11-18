@@ -1,6 +1,6 @@
 """Helpers to write ST test-script specs (uiss-test-script skill format) for the TC-PBR UISS.
 Message / log texts are read from the UISS source JSON so expected results quote them exactly.
-Each <function>.py module defines SPECS = {uiss_name: spec}; run.py builds them into docs/functions/<NN>/test/."""
+Each <function>.py module defines SPECS = {uiss_name: spec}; run.py builds them into docs/functions/<NN_Menu>/<NN_Function>/test/."""
 import json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..', '..'))
@@ -54,7 +54,7 @@ def LOGCHK(fid='TBD'):
 
 
 def build(u, spec):
-    folder = os.path.dirname(u.p['folder'])          # docs/functions/<NN>
+    folder = os.path.dirname(u.p['folder'])          # docs/functions/<NN_Menu>/<NN_Function>
     tdir = os.path.join(folder, 'test'); sdir = os.path.join(tdir, 'src')
     os.makedirs(sdir, exist_ok=True)
     fn = re.sub(r'[^A-Za-z0-9]+', '_', spec['header']['function_name']).strip('_')

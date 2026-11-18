@@ -1,4 +1,4 @@
-"""Rebuild UISS workbooks from docs/functions/<NN_Function>/uiss/src/<name>.json into docs/functions/<NN_Function>/uiss/<name>.xlsx.
+"""Rebuild UISS workbooks from docs/functions/<NN_Menu>/<NN_Function>/uiss/src/<name>.json into docs/functions/<NN_Menu>/<NN_Function>/uiss/<name>.xlsx.
 Usage: python3 build_all.py [<name> ...]   (no name = all)   [--repo .]
 Screenshots are referenced as img/<name>/<file> relative to the src folder, so the build runs with cwd = src folder."""
 import os, subprocess, sys, argparse

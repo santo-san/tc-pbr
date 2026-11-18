@@ -1,6 +1,71 @@
 {
  "folders": {
-  "01_Daily_Order_Monitoring": {
+  "01_Master/07_Master_Trucking_Company": {
+   "uiss": [
+    "UISS_Screen_Master_Trucking_Company"
+   ],
+   "docs": [
+    "master-trucking-company-rules.md"
+   ]
+  },
+  "01_Master/08_Master_Location": {
+   "uiss": [
+    "UISS_Screen_Master_Location"
+   ],
+   "docs": [
+    "master-location-rules.md"
+   ]
+  },
+  "01_Master/09_Master_Mileage": {
+   "uiss": [
+    "UISS_Screen_Master_Mileage",
+    "UISS_Batch_Master_Mileage_Upload"
+   ],
+   "docs": [
+    "master-mileage-rules.md"
+   ]
+  },
+  "01_Master/10_Master_Price": {
+   "uiss": [
+    "UISS_Screen_Master_Price"
+   ],
+   "docs": [
+    "master-price-rules.md"
+   ]
+  },
+  "01_Master/11_Master_Priority": {
+   "uiss": [
+    "UISS_Screen_Master_Priority"
+   ],
+   "docs": [
+    "master-priority-rules.md"
+   ]
+  },
+  "01_Master/12_Master_KPI": {
+   "uiss": [
+    "UISS_Screen_Master_KPI"
+   ],
+   "docs": [
+    "master-kpi-rules.md"
+   ]
+  },
+  "01_Master/13_Master_Route_Percentage": {
+   "uiss": [
+    "UISS_Screen_Master_Route_Percentage"
+   ],
+   "docs": [
+    "master-route-percentage-rules.md"
+   ]
+  },
+  "01_Master/14_Master_Renban": {
+   "uiss": [
+    "UISS_Screen_Master_Renban"
+   ],
+   "docs": [
+    "master-renban-rules.md"
+   ]
+  },
+  "02_Daily/01_Daily_Order_Monitoring": {
    "uiss": [
     "UISS_Screen_Daily_Order_Monitoring",
     "UISS_Report_Download_Daily_Order_Monitoring"
@@ -9,7 +74,7 @@
     "daily-monitoring-rules.md"
    ]
   },
-  "02_Planning_Order_DTP": {
+  "02_Daily/02_Planning_Order_DTP": {
    "uiss": [
     "UISS_Screen_DTP_Creation",
     "UISS_Batch_DTP_Excel_Upload",
@@ -22,7 +87,7 @@
     "dtp-switching-spec.md"
    ]
   },
-  "03_Planning_Truck_Assignment": {
+  "02_Daily/03_Planning_Truck_Assignment": {
    "uiss": [
     "UISS_Screen_Planning_Truck_Assignment",
     "UISS_Batch_Driver_Order_Sync"
@@ -31,7 +96,7 @@
     "truck-assignment-spec.md"
    ]
   },
-  "04_Delivery_Note": {
+  "02_Daily/04_Delivery_Note": {
    "uiss": [
     "UISS_Report_Delivery_Note",
     "UISS_Batch_ELIPS_PAS_GR_Attachment"
@@ -43,89 +108,7 @@
     "elips-pas-gr-attachment-spec.md"
    ]
   },
-  "05_SA_Approval": {
-   "uiss": [
-    "UISS_Screen_SA_Approval"
-   ],
-   "docs": [
-    "sa-approval-spec.md"
-   ]
-  },
-  "06_SA_Monitoring": {
-   "uiss": [
-    "UISS_Screen_SA_Monitoring",
-    "UISS_Batch_SA_PAS_Interface"
-   ],
-   "docs": [
-    "sa-monitoring-spec.md"
-   ]
-  },
-  "07_Master_Trucking_Company": {
-   "uiss": [
-    "UISS_Screen_Master_Trucking_Company"
-   ],
-   "docs": [
-    "master-trucking-company-rules.md"
-   ]
-  },
-  "08_Master_Location": {
-   "uiss": [
-    "UISS_Screen_Master_Location"
-   ],
-   "docs": [
-    "master-location-rules.md"
-   ]
-  },
-  "09_Master_Mileage": {
-   "uiss": [
-    "UISS_Screen_Master_Mileage",
-    "UISS_Batch_Master_Mileage_Upload"
-   ],
-   "docs": [
-    "master-mileage-rules.md"
-   ]
-  },
-  "10_Master_Price": {
-   "uiss": [
-    "UISS_Screen_Master_Price"
-   ],
-   "docs": [
-    "master-price-rules.md"
-   ]
-  },
-  "11_Master_Priority": {
-   "uiss": [
-    "UISS_Screen_Master_Priority"
-   ],
-   "docs": [
-    "master-priority-rules.md"
-   ]
-  },
-  "12_Master_KPI": {
-   "uiss": [
-    "UISS_Screen_Master_KPI"
-   ],
-   "docs": [
-    "master-kpi-rules.md"
-   ]
-  },
-  "13_Master_Route_Percentage": {
-   "uiss": [
-    "UISS_Screen_Master_Route_Percentage"
-   ],
-   "docs": [
-    "master-route-percentage-rules.md"
-   ]
-  },
-  "14_Master_Renban": {
-   "uiss": [
-    "UISS_Screen_Master_Renban"
-   ],
-   "docs": [
-    "master-renban-rules.md"
-   ]
-  },
-  "15_PR_Creation": {
+  "03_Monthly/15_PR_Creation": {
    "uiss": [
     "UISS_Screen_PR_Creation"
    ],
@@ -133,7 +116,7 @@
     "pr-creation-rules.md"
    ]
   },
-  "16_Monthly_PR_PO_Approval_Inquiry": {
+  "03_Monthly/16_Monthly_PR_PO_Approval_Inquiry": {
    "uiss": [
     "UISS_Screen_PR_Inquiry",
     "UISS_Screen_PR_Approval",
@@ -144,7 +127,24 @@
     "monthly-pr-po-rules.md"
    ]
   },
-  "17_PAS_PR_Interface": {
+  "04_Service_Acceptance/05_SA_Approval": {
+   "uiss": [
+    "UISS_Screen_SA_Approval"
+   ],
+   "docs": [
+    "sa-approval-spec.md"
+   ]
+  },
+  "04_Service_Acceptance/06_SA_Monitoring": {
+   "uiss": [
+    "UISS_Screen_SA_Monitoring",
+    "UISS_Batch_SA_PAS_Interface"
+   ],
+   "docs": [
+    "sa-monitoring-spec.md"
+   ]
+  },
+  "04_Service_Acceptance/17_PAS_PR_Interface": {
    "uiss": [
     "UISS_Batch_ELIPS_PAS_PR_Interface",
     "UISS_Batch_PAS_ELIPS_PR_PO_Callback"
@@ -155,7 +155,7 @@
     "current-tjava-json-to-pas.java"
    ]
   },
-  "18_Menu_Authorization": {
+  "05_Common/18_Menu_Authorization": {
    "uiss": [
     "UISS_Screen_TCPBR_Menu_Authorization"
    ],
@@ -186,5 +186,35 @@
   "docs/pas-interface/elips-pas-pr-interface-spec.md": "docs/uiss/17_PAS_PR_Interface/elips-pas-pr-interface-spec.md",
   "docs/pas-interface/pas-elips-callback-spec.md": "docs/uiss/17_PAS_PR_Interface/pas-elips-callback-spec.md",
   "docs/pas-interface/current-tjava-json-to-pas.java": "docs/uiss/17_PAS_PR_Interface/current-tjava-json-to-pas.java"
+ },
+ "groups": {
+  "01_Master": [
+   "07_Master_Trucking_Company",
+   "08_Master_Location",
+   "09_Master_Mileage",
+   "10_Master_Price",
+   "11_Master_Priority",
+   "12_Master_KPI",
+   "13_Master_Route_Percentage",
+   "14_Master_Renban"
+  ],
+  "02_Daily": [
+   "01_Daily_Order_Monitoring",
+   "02_Planning_Order_DTP",
+   "03_Planning_Truck_Assignment",
+   "04_Delivery_Note"
+  ],
+  "03_Monthly": [
+   "15_PR_Creation",
+   "16_Monthly_PR_PO_Approval_Inquiry"
+  ],
+  "04_Service_Acceptance": [
+   "05_SA_Approval",
+   "06_SA_Monitoring",
+   "17_PAS_PR_Interface"
+  ],
+  "05_Common": [
+   "18_Menu_Authorization"
+  ]
  }
 }

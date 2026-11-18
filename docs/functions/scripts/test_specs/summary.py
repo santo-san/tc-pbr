@@ -1,10 +1,10 @@
 """Write docs/functions/TEST_SCRIPTS.md: one row per UISS with its ST test script, cases per group and coverage.
-Run after run.py (uses the spec JSON in docs/functions/<NN>/test/src/ and the message / log counts of the UISS source)."""
+Run after run.py (uses the spec JSON in docs/functions/<NN_Menu>/<NN_Function>/test/src/ and the message / log counts of the UISS source)."""
 import glob, json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from common import U, REPO
 rows, tot = [], [0, 0, 0]
-for sp in sorted(glob.glob(os.path.join(REPO, 'docs/functions/*/test/src/*_test_spec.json'))):
+for sp in sorted(glob.glob(os.path.join(REPO, 'docs/functions/*/*/test/src/*_test_spec.json'))):
     name = os.path.basename(sp)[:-len('_test_spec.json')]
     s, u = json.load(open(sp)), U(name)
     fd = os.path.relpath(os.path.dirname(os.path.dirname(os.path.dirname(sp))), os.path.join(REPO, 'docs/functions'))

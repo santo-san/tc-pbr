@@ -5,7 +5,7 @@ Usage:
 
 Mapping file (docs/review/db-mapping/<UISS name>.json):
 {
-  "uiss": "UISS_Screen_Master_Trucking_Company",          // docs/functions/<NN_Function>/uiss/src/<uiss>.json
+  "uiss": "UISS_Screen_Master_Trucking_Company",          // docs/functions/<NN_Menu>/<NN_Function>/uiss/src/<uiss>.json
   "revision": "Database mapping revised to ELIPS ...",     // revision text (row appended once, marker "[DB-R1]")
   "replace": {"Trucking Company Master (TBD)": "ielp.MS_TRUCKING_COMPANY", ...},   // text replacements, whole spec
   "fields": [                                              // UI element -> DB (drives Item Desc + DB spec table)
