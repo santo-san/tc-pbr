@@ -127,12 +127,12 @@ function openPcDetail(partner) {
   const i = pcs.plan?.items.find(x => x.row.partner === partner); if (!i) return;
   const x = i.row;
   $('pcmTitle').textContent = `PR Detail - ${partner} - ${prName(partner)}`;
-  $('pcmTable').innerHTML = `<thead><tr><th style="min-width:250px">Route</th><th>Route<br>Percentage</th><th>Number of<br>Orders</th><th>Distance<br>(Km)</th><th>Planned Cost<br>(IDR)</th></tr></thead>
+  // Revision 26-Nov-26 (user review 2): Route Percentage and Number of Orders are not shown; Total Cost is still Σ Planned Cost x orders per day (5.3)
+  $('pcmTable').innerHTML = `<thead><tr><th style="min-width:300px">Route</th><th>Distance<br>(Km)</th><th>Planned Cost<br>(IDR)</th></tr></thead>
     <tbody>${x.lines.length ? x.lines.map(l => `<tr><td class="left"><b>${l.code}</b><span>${esc(l.description)}</span></td>
-      <td>${l.percentage}%</td><td>${l.orders.toFixed(2)}</td><td>${num(l.distance)}</td><td class="num">${num(l.planned)}</td></tr>`).join('')
-      : `<tr><td colspan="5" class="empty">${esc(i.prep.error || 'No route data')}</td></tr>`}</tbody>
-    <tfoot><tr><td style="text-align:right" title="Σ (Planned Cost × Number of Orders) = Delivery Cost (IDR/Day)">Total Cost <small>(Σ Planned Cost × Number of Orders, IDR/Day)</small></td><td>${PS.src.routePercentageTotal()}%</td><td>${x.lines.length ? x.lines.reduce((s, l) => s + l.orders, 0).toFixed(2) : '-'}</td><td></td>
-      <td class="num">${idr(x.perDay)}</td></tr></tfoot>`;
+      <td>${num(l.distance)}</td><td class="num">${num(l.planned)}</td></tr>`).join('')
+      : `<tr><td colspan="3" class="empty">${esc(i.prep.error || 'No route data')}</td></tr>`}</tbody>
+    <tfoot><tr><td style="text-align:right" title="Delivery Cost (IDR/Day) of the List Summary">Total Cost (IDR/Day)</td><td></td><td class="num">${idr(x.perDay)}</td></tr></tfoot>`;
   $('pcOverlay').classList.add('show');
 }
 const closePcm = () => $('pcOverlay').classList.remove('show');

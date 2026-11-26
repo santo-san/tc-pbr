@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "PR Creation",
   "uiss_name": "UISS-Screen PR Creation",
-  "uiss_rev": "0.5",
+  "uiss_rev": "0.6",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -68,14 +68,14 @@
     {
      "key": "detail",
      "case": "Detail pop-up read only and export",
-     "ref": "UISS: Item 24-30, 5.7, 5.8, Msg no.21",
+     "ref": "UISS: Item 24-28, 5.7, 5.8, Msg no.21",
      "procedure": [
       "Click Detail of DNX.",
       "Click x.",
       "Click Export > List Summary and Route Plan Detail."
      ],
      "expected": [
-      "No header information; columns Route, Route Percentage, Number of Orders (per day, 2 decimals), Distance, Planned Cost (= Distance x Mileage Cost); Total Cost row = Delivery Cost (IDR/Day) of the row; no Close / Confirm buttons.",
+      "No header information; columns Route, Distance, Planned Cost (= Distance x Mileage Cost) only - no Route Percentage, no Number of Orders; Total Cost (IDR/Day) row = Delivery Cost of the row; no Close / Confirm buttons.",
       "Pop-up closed.",
       "Msg no.21 (Info): 'PR_Creation_{Summary | Route_Plan}_{YYYYMM}.xls exported.'"
      ]

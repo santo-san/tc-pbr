@@ -100,9 +100,9 @@ def pr_creation(u):
          'Columns: Trucking Company, Mileage Cost, Fixed Cost (information), Working Days, Delivery Cost (IDR/Day), Monthly Delivery Cost, Status (empty), Detail; no check box, no PR Amount.',
          'DNX: Delivery Cost = sum of Total Cost of the pop-up (432,405); Monthly Delivery Cost = 432,405 x 22 = 9,512,910 (no Fixed Cost added).',
          "Total row: sum of Fixed Cost, Delivery Cost, Monthly Delivery Cost; footer 'Total PR Cost (bundle, 5 trucking companies)'. " + L(1)]),
-      C('detail', 'Detail pop-up read only and export', 'UISS: Item 24-30, 5.7, 5.8, Msg no.21',
+      C('detail', 'Detail pop-up read only and export', 'UISS: Item 24-28, 5.7, 5.8, Msg no.21',
         ['Click Detail of DNX.', 'Click x.', 'Click Export > List Summary and Route Plan Detail.'],
-        ['No header information; columns Route, Route Percentage, Number of Orders (per day, 2 decimals), Distance, Planned Cost (= Distance x Mileage Cost); Total Cost row = Delivery Cost (IDR/Day) of the row; no Close / Confirm buttons.',
+        ['No header information; columns Route, Distance, Planned Cost (= Distance x Mileage Cost) only - no Route Percentage, no Number of Orders; Total Cost (IDR/Day) row = Delivery Cost of the row; no Close / Confirm buttons.',
          'Pop-up closed.', M(21)])]},
      {'title': 'Status - Abnormality', 'items': [
       C('abn', 'Abnormality shown in Status; Submit PR blocked for the whole bundle', 'UISS: Item 19, 5.4, 5.6, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.15, Log 4',

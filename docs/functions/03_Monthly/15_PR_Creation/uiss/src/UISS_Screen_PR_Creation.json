@@ -45,6 +45,13 @@
    "date": "26-Nov-26",
    "reviewed_by": "",
    "description": "Revise PR Creation based on user review: remove PR Creation Type / Logistics Partner / System Master, rename buttons, bundle approval, column & detail pop-up changes"
+  },
+  {
+   "revision": "0.6",
+   "author": "Susanto",
+   "date": "26-Nov-26",
+   "reviewed_by": "",
+   "description": "PR Detail pop-up: columns Route Percentage and Number of Orders removed (user review); Item Desc of the pop-up renumbered (24-28), Operation Desc 5.3 / 5.7 and screenshot 5 updated. Calculation unchanged."
   }
  ],
  "general": {
@@ -658,7 +665,7 @@
    "image": "img/UISS_Screen_PR_Creation/c02_staff_list.png"
   },
   {
-   "caption": "5. PR Detail pop-up - read only, routes of Master Route Percentage, Total Cost row, close with x (HTML mock-up)",
+   "caption": "5. PR Detail pop-up - read only: Route, Distance, Planned Cost, Total Cost (IDR/Day) row, close with x (HTML mock-up)",
    "image": "img/UISS_Screen_PR_Creation/c03_detail.png"
   },
   {
@@ -1073,37 +1080,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Active routes of Master Route Percentage (status Active, % > 0). Sticky header; scrolls.\nDB: ielp.MS_ROUTE_DETAIL.ROUTE_CODE varchar(100) NOT NULL [Revised]"
-  },
-  {
-   "name": "Route Percentage",
-   "source": "ielp.MS_ROUTE_HEADER",
-   "field": "ROUTE_PERCENTAGE_VALUE",
-   "type": "Float",
-   "len": "-",
-   "io": "O",
-   "control": "Grid",
-   "justified": "Center",
-   "initial": "",
-   "required": "",
-   "format": "ZZ9.99%",
-   "validation": "",
-   "description": "DB: ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE float NOT NULL [Revised]"
-  },
-  {
-   "name": "Number of Orders",
-   "source": "Calculation",
-   "field": "--",
-   "type": "Number",
-   "len": "",
-   "io": "O",
-   "control": "Label",
-   "justified": "Right",
-   "initial": "",
-   "required": "N",
-   "format": "9,999.99",
-   "validation": "",
-   "description": "Orders per day of the route = Order Sharing (Master KPI) × Route % ÷ Σ active Route % (2 decimals, 5.3).\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_ORDER_SHARING float NULL - TBD - Not confirmed from existing schema/data/code"
+   "description": "Active routes of Master Route Percentage (code and description) (status Active, % > 0). Sticky header; scrolls.\nDB: ielp.MS_ROUTE_DETAIL.ROUTE_CODE varchar(100) NOT NULL [Revised]"
   },
   {
    "name": "Distance (Km)",
@@ -1148,7 +1125,7 @@
    "required": "N",
    "format": "999,999,999",
    "validation": "",
-   "description": "Σ (Planned Cost × Number of Orders) of the routes = Delivery Cost (IDR/Day) of the List Summary (OP-14).\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL float NULL (per route) - TBD - Not confirmed from existing schema/data/code"
+   "description": "'Total Cost (IDR/Day)' = Delivery Cost (IDR/Day) of the List Summary = Σ (Planned Cost × orders per day of the route). The orders per day (Order Sharing × Route % ÷ Σ active Route %) are used in the calculation (5.3) but not shown (OP-14).\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL float NULL (per route) - TBD - Not confirmed from existing schema/data/code"
   }
  ],
  "data_map": {
@@ -1437,7 +1414,7 @@
    "items": [
     "Number of Orders (route, per day) = Order Sharing × Route % ÷ Σ active Route % (2 decimals). Total below 100%: split proportionally (TBD, OP-07).",
     "Planned Cost (route) = Distance (Km) × Mileage Cost (IDR/Km).",
-    "Total Cost (route) = Planned Cost × Number of Orders (TBD, OP-14); the pop-up shows the sum in the Total Cost row.",
+    "Total Cost (route) = Planned Cost × Number of Orders (TBD, OP-14); only the sum is shown, as the Total Cost row of the pop-up (orders per day not displayed).",
     "Delivery Cost (IDR/Day) = Σ Total Cost of the routes.",
     "Monthly Delivery Cost (IDR) = Delivery Cost (IDR/Day) × Working Days = PR amount of the trucking company (Fixed Cost not added, OP-16).",
     "Example DNX, December 2026: 4 orders/day; route DPCMR_CYKRW 15% of 95% -> 0.63 orders; Planned Cost 57 × 2,700 = 153,900; Total Cost 96,957. Delivery Cost 432,405 / day × 22 = 9,512,910."
@@ -1546,7 +1523,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "No header information. Table: Route, Route Percentage, Number of Orders, Distance, Planned Cost, then the Total Cost row (= Delivery Cost IDR/Day). Data from Master Route Percentage. Sticky header / footer; scrolls.",
+   "text": "No header information. Table: Route, Distance (Km), Planned Cost (IDR), then the Total Cost (IDR/Day) row (= Delivery Cost of the List Summary). Route Percentage and Number of Orders are not shown (user review 26-Nov-26); they remain part of the calculation (5.3). Data from Master Route Percentage. Sticky header / footer; scrolls.",
    "level": 2
   },
   {

@@ -40,7 +40,7 @@ ST test scripts of all functions (cases, coverage, rebuild): [TEST_SCRIPTS.md](T
 
 | Function | UISS | Type | Rev |
 |---|---|---|---|
-| [15_PR_Creation](03_Monthly/15_PR_Creation/README.md) | [UISS_Screen_PR_Creation](03_Monthly/15_PR_Creation/uiss/UISS_Screen_PR_Creation.xlsx) | screen | 0.5 |
+| [15_PR_Creation](03_Monthly/15_PR_Creation/README.md) | [UISS_Screen_PR_Creation](03_Monthly/15_PR_Creation/uiss/UISS_Screen_PR_Creation.xlsx) | screen | 0.6 |
 | [16_Monthly_PR_PO_Approval_Inquiry](03_Monthly/16_Monthly_PR_PO_Approval_Inquiry/README.md) | [UISS_Screen_PR_Inquiry](03_Monthly/16_Monthly_PR_PO_Approval_Inquiry/uiss/UISS_Screen_PR_Inquiry.xlsx) | screen | 0.5 |
 | [16_Monthly_PR_PO_Approval_Inquiry](03_Monthly/16_Monthly_PR_PO_Approval_Inquiry/README.md) | [UISS_Screen_PR_Approval](03_Monthly/16_Monthly_PR_PO_Approval_Inquiry/uiss/UISS_Screen_PR_Approval.xlsx) | screen | 0.5 |
 | [16_Monthly_PR_PO_Approval_Inquiry](03_Monthly/16_Monthly_PR_PO_Approval_Inquiry/README.md) | [UISS_Screen_PO_Approval](03_Monthly/16_Monthly_PR_PO_Approval_Inquiry/uiss/UISS_Screen_PO_Approval.xlsx) | screen | 0.4 |

@@ -12,7 +12,7 @@ new List Summary columns / formulas; read-only detail pop-up. The Fixed Cost PR 
 - **Rules:** [`pr-creation-rules.js`](../../../../../pr-creation-rules.js) · bundle approval: [`monthly-workflow.js`](../../../../../monthly-workflow.js) (`approveBundle`, `rejectBundle`)
 - **Data sources:** [`pr-sources.js`](../../../../../pr-sources.js)
 - **Unit tests:** [`tests/pr-creation.test.js`](../../../../../tests/pr-creation.test.js)
-- **UISS:** [`UISS_Screen_PR_Creation.xlsx`](UISS_Screen_PR_Creation.xlsx) (rev 0.5)
+- **UISS:** [`UISS_Screen_PR_Creation.xlsx`](UISS_Screen_PR_Creation.xlsx) (rev 0.6)
 
 ---
 
@@ -40,7 +40,7 @@ new List Summary columns / formulas; read-only detail pop-up. The Fixed Cost PR 
 | Info chips | Creation period result, TMMIN Calendar working days, Route Percentage (active routes, total %), Total By Resource (Master KPI) |
 | List Summary | No., Trucking Company (all By Resources), Mileage Cost (IDR/Km), Fixed Cost (IDR/Month, information), Working Days, Delivery Cost (IDR/Day), Monthly Delivery Cost (IDR), Status, Detail. Total row: Fixed Cost, Delivery Cost, Monthly Delivery Cost. No check box, no PR Amount |
 | Footer | "Showing x to y of z records", **Total PR Cost (bundle, n trucking companies)**, pager. Search on trucking company; Column show / hide |
-| Detail pop-up | Read only, no header information: Route, Route Percentage, Number of Orders, Distance, Planned Cost, **Total Cost** row. Closed with × only |
+| Detail pop-up | Read only, no header information: Route, Distance, Planned Cost, **Total Cost (IDR/Day)** row. Route Percentage and Number of Orders are not shown (still used in the calculation). Closed with × only |
 | Status | Empty when normal; abnormality in red; grey "Already in PR {PR No}" when all routes are in an active PR |
 
 Confirmation dialog before Submit PR (one line per trucking company, total, approval path, Current PIC). Loading indicators while calculating and submitting. Toast on success.
@@ -58,7 +58,7 @@ No longer created by this screen (OP-11). The Monthly Price is shown in the List
 ```
 Number of Orders (route, per day) = Order Sharing (Master KPI) × Route % ÷ Σ active Route %   (2 decimals)
 Planned Cost (route)              = Distance (Km) × Mileage Cost (IDR/Km, E-Catalogue)
-Total Cost (route)                = Planned Cost × Number of Orders                            (OP-14)
+Total Cost (route)                = Planned Cost × Number of Orders                            (OP-14; only the sum is shown in the pop-up)
 Delivery Cost (IDR/Day)           = Σ Total Cost of the routes
 Monthly Delivery Cost (IDR)       = Delivery Cost (IDR/Day) × Working Days (TMMIN Calendar)  = PR amount
 ```
