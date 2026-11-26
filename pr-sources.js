@@ -5,7 +5,8 @@
 (function (root) {
   const MP = root.MasterPrice, RP = root.MasterRoutePercentage;
 
-  // System Master: PR creation in the current operational month (true / false); undefined = not configured
+  // System Master: PR creation in the current operational month (true / false); undefined = not configured.
+  // Read in the background by PR Creation (no longer shown on the screen, revision 26-Nov-26)
   const SYSTEM_MASTER = { prAllowCurrentMonth: undefined };
   // Authorization configuration: who may create PR (approval levels themselves come from monthly-workflow.js)
   const PR_CREATORS = [{ role: 'VPLD_STAFF', division: 'VPLD' }, { role: 'APPROVER', level: 'SH', division: 'VPLD' }];
@@ -16,7 +17,7 @@
   // eCatalogue prices (Master Price / Pricing Data): Fix Cost (Monthly Price) and Mileage (Price per KM)
   const PRICES = [];
   (() => {
-    const partners = { DNX: [28000000, 2600], PNJ: [29000000, 2800], PBM: [27500000, 2550], JMP: [28250000, 2650], SRL: [27800000, 2700] };
+    const partners = { DNX: [28000000, 2600], PNJ: [29000000, 2800], PBM: [27500000, 2550], JMP: [28250000, 2650], SRL: [27800000, 2700], AGR: [27000000, 2500], GIB: [27250000, 2580] };
     ['202607', '202608', '202609', '202610', '202611', '202612'].forEach(period => Object.entries(partners).forEach(([partner, [fix, km]]) => {
       const raise = period >= '202610' ? 1 : 0;
       const base = { partner, period, vehicleType: 'TRAILER 40FT', effStart: MP.periodStart(period), effEnd: MP.periodEnd(period) };
@@ -53,8 +54,8 @@
     routePercentageTotal: () => RP.totalActive(ROUTES),
     split: RP.split,
     shareTotal: () => Object.values(ORDER_SHARING).reduce((s, n) => s + n, 0),
-    // Logistics Partners that can get a PR: paid By Resources (Master KPI) or with an eCatalogue price
-    partners: () => [...new Set([...Object.keys(ORDER_SHARING), ...PRICES.map(p => p.partner)])].sort(),
+    // Trucking companies of the PR bundle: paid By Resources (Master KPI Order Sharing); always all of them (no Logistics Partner filter, OP-1)
+    partners: () => Object.keys(ORDER_SHARING).sort(),
   };
 
   root.PrSources = { SYSTEM_MASTER, PR_CREATORS, CALENDAR, PRICES, ORDER_SHARING, ROUTES, src };

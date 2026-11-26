@@ -154,7 +154,7 @@ const COLS = {
       <th colspan="2" data-col="trucking">Trucking</th><th colspan="3" data-col="sharing">Order Sharing</th><th colspan="3" data-col="released">Released By</th></tr>
       <tr>${LEVELS.map(l => `<th data-col="status">${l}</th>`).join('')}<th data-col="trucking">Code</th><th data-col="trucking" style="min-width:170px">Name</th>
       <th data-col="sharing">Percentage</th><th data-col="sharing">Qty</th><th data-col="sharing">Total Price</th>${LEVELS.map(l => `<th data-col="released">${l}</th>`).join('')}</tr>`,
-    row: d => `<td data-col="prodMonth">${d.prodMonth}</td>
+    row: d => `<td data-col="prodMonth">${d.prodMonth}${d.bundle ? `<span class="sub-info" title="Approved / rejected together with the other PR of the same Submit PR">Bundle · ${d.bundleSize} PR</span>` : ''}</td>
       <td data-col="no"><a class="doc-link" data-open="${d.prNo}">${d.prNo}</a><button class="dl" data-dl="${d.prNo}" title="Download">&#11015;</button>${[PR.REJECTED, PR.RETURNED].includes(M.prStatus(d)) ? `<span class="sub-info">${prBadge(M.prStatus(d))}${d.returned ? ' perlu submit ulang' : ''}</span>` : ''}</td>
       ${LEVELS.map(l => `<td data-col="status">${dot(d.approval[l].status)}</td>`).join('')}
       <td data-col="pic">${M.currentPic(d)}</td><td data-col="date">${fmtD(d.prDate)}</td>${trucking(d)}${prSharing(d)}
@@ -308,7 +308,12 @@ $('thead').addEventListener('click', e => {
 });
 $('tbody').addEventListener('click', e => {
   const chk = e.target.closest('[data-chk]');
-  if (chk) { chk.checked ? state.selected.add(chk.dataset.chk) : state.selected.delete(chk.dataset.chk); return render(); }
+  if (chk) {
+    // PR bundle (PR Creation revision 26-Nov-26): the PRs of one Submit PR are selected / approved together
+    const d = docs().find(x => docNo(x) === chk.dataset.chk), group = VIEWS[state.view].doc === 'pr' && d ? M.bundleOf(d, PRS) : [d];
+    group.forEach(x => chk.checked ? state.selected.add(docNo(x)) : state.selected.delete(docNo(x)));
+    return render();
+  }
   const o = e.target.closest('[data-open]'); if (o) return openDetail(o.dataset.open);
   const dl = e.target.closest('[data-dl]'); if (dl) return download(dl.dataset.dl);
 });
@@ -354,10 +359,13 @@ $('bulk').addEventListener('click', e => {
 function openApproval(list, reject) {
   const isPo = VIEWS[state.view].doc === 'po';
   const what = isPo ? 'PO' : 'PR';
+  // PR: whole bundles only (no partial approval); one representative PR per bundle is processed by approveBundle / rejectBundle
+  const groups = isPo ? list.map(d => [d]) : [...new Map(list.map(d => [d.bundle || d.prNo, M.bundleOf(d, PRS)])).values()];
+  list = groups.flat();
   showPreview(`${reject ? 'Reject' : 'Approve'} ${what}${isPo ? '' : ` - ${state.actor.level} ${MASTER.division}`}`,
     `<form id="apvForm" onsubmit="return false">
-      <p style="margin:0 0 8px;font-size:11px">${list.length} ${what} dipilih:</p>
-      <div class="apv-list">${list.map(d => `<div data-r="${docNo(d)}">${docNo(d)} · ${esc(d.supplierName)} · ${num(d.price)}</div>`).join('')}</div>
+      <p style="margin:0 0 8px;font-size:11px">${list.length} ${what} dipilih${!isPo && groups.some(g => g.length > 1) ? ` (${groups.length} bundle; approval per bundle, semua PR dalam bundle di-${reject ? 'reject' : 'approve'} sekaligus)` : ''}:</p>
+      <div class="apv-list">${groups.map(g => g.map(d => `<div data-r="${docNo(d)}">${g.length > 1 ? `<b>${d.prodMonth}</b> · ` : ''}${docNo(d)} · ${esc(d.supplierName)} · ${num(d.price)}</div>`).join('')).join('')}</div>
       ${reject ? `<div class="form-row" data-f="reason"><label>Reason <span class="req">*</span></label><textarea name="reason" placeholder="Minimal ${M.REASON_MIN} karakter"></textarea></div>`
         : `<p style="font-size:11px;margin:0">${isPo ? 'Approve PO ini?' : `Approve sebagai <b>${state.actor.level}</b>?${skipNote(list)}${state.actor.level === 'DH' ? ' PO akan dibuat otomatis.' : ''}`}</p>`}
     </form>`,
@@ -372,13 +380,15 @@ function openApproval(list, reject) {
       if (err) { row.classList.add('err'); row.insertAdjacentHTML('beforeend', `<div class="msg">${err}</div>`); return; }
     }
     const now = new Date(), fails = [], pos = [], returned = [];
-    for (const d of list) {
+    for (const g of groups) {
+      const d = g[0];
       const res = isPo ? (reject ? M.rejectPO(d, state.actor, reason, now, CTX) : M.approvePO(d, state.actor, now))
-        : (reject ? M.rejectPR(d, state.actor, reason, now) : M.approvePR(d, state.actor, now, CTX));
+        : (reject ? M.rejectBundle(d, state.actor, reason, now, CTX) : M.approveBundle(d, state.actor, now, CTX));
       if (res.pr) returned.push(res.pr.prNo);
-      if (!res.ok) fails.push(`${docNo(d)}: ${res.error || Object.values(res.errors).join(', ')}`);
+      if (!res.ok) fails.push(`${g.length > 1 ? `Bundle ${d.prodMonth}` : docNo(d)}: ${res.error || Object.values(res.errors).join(', ')}`);
       if (res.po) pos.push(res.po.poNo);
-      state.selected.delete(docNo(d));
+      (res.pos || []).forEach(p => pos.push(p.poNo));
+      g.forEach(x => state.selected.delete(docNo(x)));
     }
     if (fails.length) {
       $('apvForm').insertAdjacentHTML('afterbegin', `<div class="form-alert">${fails.map(esc).join('<br>')}</div>`);
@@ -414,7 +424,7 @@ function openDetail(no) {
   $('docActions').innerHTML = onApproval ? `<button class="btn-green" data-doc="approve" ${can ? '' : 'disabled'} title="${esc(why || '')}">Approve</button>
     <button class="btn-red2" data-doc="reject" ${can ? '' : 'disabled'} title="${esc(why || '')}">Reject</button>${why ? `<span class="sub-info" style="align-self:center">${esc(why)}</span>` : ''}` : '';
   const h = d.history.slice().reverse();
-  const typeInfo = d.type ? `<p class="notice" style="margin:0 0 10px">${esc(PrCreation.TYPE_LABEL[d.type])} · PR Sequence ${d.rev}${d.parentPrNo ? ` (additional to ${d.parentPrNo})` : ' (initial PR)'} · Working Days ${d.workingDays ?? '-'} · Next process: ${esc(d.nextProcess)}</p>` : '';
+  const typeInfo = d.type ? `<p class="notice" style="margin:0 0 10px">${esc(PrCreation.TYPE_LABEL[d.type])} · PR Sequence ${d.rev}${d.parentPrNo ? ` (additional to ${d.parentPrNo})` : ' (initial PR)'}${d.bundle ? ` · Bundle ${d.prodMonth}: ${M.bundleOf(d, PRS).map(x => x.supplierCode).join(', ')} (approved / rejected together)` : ''} · Working Days ${d.workingDays ?? '-'} · Next process: ${esc(d.nextProcess)}</p>` : '';
   $('docHistory').innerHTML = `${typeInfo}<p class="sec-title">Riwayat Approval</p><div class="table-wrap"><table>
     <tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Dari</th><th>Ke</th><th>Reason / Catatan</th></tr>
     ${h.map(x => `<tr><td style="white-space:nowrap">${fmtDT(x.at)}</td><td>${esc(x.user)}<span class="sub-info">${esc(x.role)}</span></td><td>${esc(x.action)}</td><td>${esc(x.from)}</td><td>${esc(x.to)}</td><td class="left">${esc([x.reason, x.note].filter(Boolean).join(' · ') || '-')}</td></tr>`).join('')}
@@ -454,12 +464,13 @@ function renderPcRoutes(d, q) {
   const rows = d.routes.filter(r => !q || (r.code + ' ' + r.description).toLowerCase().includes(q)).sort((a, b) => a.code < b.code ? -rs.sortDir : rs.sortDir);
   const pages = Math.max(1, Math.ceil(rows.length / rs.size)); rs.page = Math.min(rs.page, pages);
   const start = (rs.page - 1) * rs.size, view = rows.slice(start, start + rs.size);
+  // PR Creation revision 26-Nov-26: orders per day, Planned Cost = Distance x Mileage Cost, Total Cost = Planned Cost x orders (per day)
   $('routeTable').innerHTML = `<thead><tr><th class="sortable" id="rSort" style="min-width:280px">Route <span class="arrow">${rs.sortDir === 1 ? '▲' : '▼'}</span></th>
-      <th>Route<br>Percentage</th><th>Number of<br>Orders</th><th>Distance<br>(Km)</th><th>Mileage Cost<br>(IDR/Km)</th><th>Planned Cost<br>(IDR)</th></tr></thead>
-    <tbody>${view.map(r => `<tr><td class="rcell"><b>${r.code}</b><span>${esc(r.description)}</span></td><td>${r.percentage}%</td><td class="tq">${num(r.orders)}</td>
-      <td>${num(r.distance)}</td><td class="num">${num(r.priceKm)}</td><td class="num tp">${num(r.cost)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">No Data Found</td></tr>'}</tbody>
-    <tfoot><tr><td style="text-align:right">Working Days : ${d.workingDays} · Order Sharing ${d.dailyOrders}/day (${d.percentage}%)</td><td></td>
-      <td><span class="pill">${num(d.qty)}</span></td><td colspan="2" style="text-align:right">Total PR Cost :</td><td><span class="pill">${num(d.price)}</span></td></tr></tfoot>`;
+      <th>Route<br>Percentage</th><th>Number of<br>Orders / Day</th><th>Distance<br>(Km)</th><th>Planned Cost<br>(IDR)</th><th>Total Cost<br>(IDR/Day)</th></tr></thead>
+    <tbody>${view.map(r => `<tr><td class="rcell"><b>${r.code}</b><span>${esc(r.description)}</span></td><td>${r.percentage}%</td><td class="tq">${Number(r.orders).toFixed(2)}</td>
+      <td>${num(r.distance)}</td><td class="num">${num(r.planned ?? r.distance * r.priceKm)}</td><td class="num tp">${num(r.cost)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">No Data Found</td></tr>'}</tbody>
+    <tfoot><tr><td style="text-align:right">Delivery Cost : IDR ${num(d.perDay ?? 0)} / day × ${d.workingDays} working days</td><td></td>
+      <td><span class="pill">${num(d.qty)}</span></td><td colspan="2" style="text-align:right">Total PR Cost (Monthly Delivery Cost) :</td><td><span class="pill">${num(d.price)}</span></td></tr></tfoot>`;
   $('rInfo').textContent = rows.length ? `Showing ${start + 1} to ${start + view.length} of ${rows.length} records` : 'Showing 0 to 0 of 0 records';
   $('rPager').innerHTML = pagerHtml(rs.page, pages);
 }
@@ -479,10 +490,10 @@ function download(no) {
   const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const head = [d.poNo ? 'PO Number' : 'PR Number', 'Production Month', 'Trucking Code', 'Trucking Name', 'Route', 'Route Description', 'Qty 20', 'Qty 40', 'Qty Total', 'Price 20', 'Price 40', 'Price Total'];
   if (d.type) {
-    const pcHead = [d.poNo ? 'PO Number' : 'PR Number', 'Production Month', 'PR Sequence', 'PR Type', 'Trucking Code', 'Trucking Name', 'Component / Route', 'Description', 'Route Percentage', 'Number of Orders', 'Distance (Km)', 'Mileage Cost (IDR/Km)', 'Amount (IDR)'];
+    const pcHead = [d.poNo ? 'PO Number' : 'PR Number', 'Production Month', 'PR Sequence', 'PR Type', 'Trucking Code', 'Trucking Name', 'Component / Route', 'Description', 'Route Percentage', 'Number of Orders (per day)', 'Distance (Km)', 'Mileage Cost (IDR/Km)', 'Total Cost (IDR/Day)'];
     const body = d.type === PrCreation.TYPE.FIX ? [[no, d.prodMonth, d.rev, PrCreation.TYPE_LABEL[d.type], d.supplierCode, d.supplierName, 'FIX', 'Monthly Cost (E-Catalogue)', '', '', '', d.mileageRate, d.fixedCost]]
       : d.routes.map(r => [no, d.prodMonth, d.rev, PrCreation.TYPE_LABEL[d.type], d.supplierCode, d.supplierName, r.code, r.description, r.percentage, r.orders, r.distance, r.priceKm, r.cost]);
-    const out = [pcHead, ...body, ['TOTAL', '', '', '', '', '', '', `Working Days ${d.workingDays ?? '-'}`, '', d.qty, '', '', d.price]].map(r => r.map(q).join(','));
+    const out = [pcHead, ...body, ['TOTAL', '', '', '', '', '', '', `Working Days ${d.workingDays ?? '-'}`, '', d.qty, '', d.perDay != null ? `Delivery Cost/Day ${d.perDay}` : '', d.price]].map(r => r.map(q).join(','));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['﻿' + out.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
     a.download = `${no}.csv`; a.click(); URL.revokeObjectURL(a.href);

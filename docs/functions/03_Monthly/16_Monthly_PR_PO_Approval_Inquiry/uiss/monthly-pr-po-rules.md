@@ -156,6 +156,10 @@ stateDiagram-v2
 | MV-24 | Job terjadwal mengubah setiap PO Pending yang melewati batas waktu menjadi Auto Approved (Approved By = SYSTEM) | - |
 | MV-30 | Supplier hanya melihat PR / PO milik sendiri (daftar, detail, download) | Anda tidak memiliki akses ke dokumen ini |
 | MV-31 | Setiap approve / reject / skip / auto approve / pengembalian PR dicatat di Riwayat Approval: waktu, user, role, aksi, status sebelum/sesudah, reason | - |
+| MV-40 | *(Revisi PR Creation 26-Nov-26)* **PR bundle:** semua PR dari satu Submit PR (operational month dan PR Sequence sama, satu PR per trucking company) di-approve / di-reject **sekaligus**, tidak bisa sebagian. Centang satu PR = seluruh bundle tercentang; Approve / Reject dari detail juga berlaku untuk seluruh bundle (`approveBundle` / `rejectBundle`) | <n> PR dipilih (<b> bundle; approval per bundle, semua PR dalam bundle di-approve / di-reject sekaligus) |
+| MV-41 | Bila satu PR dalam bundle tidak bisa diproses (MV-10 / MV-11 / MV-13), seluruh bundle tidak diproses | Bundle MM/YYYY-n (x PR): <alasan> |
+| MV-42 | Reject di level mana pun mengembalikan seluruh PR bundle ke PR Creation; submit berikutnya memakai PR Sequence baru (OP-15 PR Creation). PO tetap per trucking company; PO Rejected (MV-23) hanya mengembalikan PR-nya sendiri | - |
+| MV-43 | Detail PR dari PR Creation: Number of Orders per hari, Planned Cost = Distance × Mileage Cost, Total Cost = Planned Cost × Number of Orders (IDR/Day); footer Delivery Cost × Working Days = Total PR Cost; info baris berisi trucking company dalam bundle | - |
 
 ---
 
@@ -167,7 +171,7 @@ stateDiagram-v2
 | Batas waktu auto approve | Day + 1 |
 | Skip | Level lebih tinggi boleh approve langsung; level di bawahnya menjadi Skip |
 | Current PIC | User yang men-generate PR |
-| "-n" pada Production Month | Urutan pembuatan PR untuk production month yang sama |
+| "-n" pada Production Month | PR Sequence per operational month; satu bundle (satu Submit PR) memakai sequence yang sama untuk semua trucking company (revisi 26-Nov-26) |
 | Format PO Number | `PO` + PR Number |
 | PO Rejected | PR kembali seperti saat dibuat dan perlu submit ulang |
 

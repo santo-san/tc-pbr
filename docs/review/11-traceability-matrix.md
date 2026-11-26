@@ -263,46 +263,46 @@ Status: **Verified** (UISS already matched the schema) · **Revised** (UISS chan
 | TR-256 | Monthly | PO Inquiry | POI-01 | Order Sharing | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING | Screen_PO_Inquiry rev 0.4 | Revised |
 | TR-257 | Monthly | PO Inquiry | POI-01 | Route lines | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID | Screen_PO_Inquiry rev 0.4 | Revised |
 | TR-258 | Monthly | PO Inquiry | POI-01 | Approval History | monthly.js | monthly-workflow.js | TBD | Screen_PO_Inquiry rev 0.4 | TBD |
-| TR-259 | Monthly | PR Approval | PRA-01..02 | Production Month / PR seq | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE | Screen_PR_Approval rev 0.4 | Revised |
-| TR-260 | Monthly | PR Approval | PRA-01..02 | PR Number (per trucking company) | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET | Screen_PR_Approval rev 0.4 | Revised |
-| TR-261 | Monthly | PR Approval | PRA-01..02 | Trucking Code / Name | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID | Screen_PR_Approval rev 0.4 | Revised |
-| TR-262 | Monthly | PR Approval | PRA-01..02 | Order Sharing % | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING | Screen_PR_Approval rev 0.4 | Revised |
-| TR-263 | Monthly | PR Approval | PRA-01..02 | Order Sharing Qty | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_TRIP | Screen_PR_Approval rev 0.4 | Revised |
-| TR-264 | Monthly | PR Approval | PRA-01..02 | Order Sharing Total Price | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE | Screen_PR_Approval rev 0.4 | Revised |
-| TR-265 | Monthly | PR Approval | PRA-01..02 | Approval status per level | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS | Screen_PR_Approval rev 0.4 | TBD |
-| TR-266 | Monthly | PR Approval | PRA-01..02 | Route | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID | Screen_PR_Approval rev 0.4 | Revised |
-| TR-267 | Monthly | PR Approval | PRA-01..02 | Route Percentage | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_PERCENTAGE_VALUE | Screen_PR_Approval rev 0.4 | Revised |
-| TR-268 | Monthly | PR Approval | PRA-01..02 | Qty 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_QTY_20 | Screen_PR_Approval rev 0.4 | Revised |
-| TR-269 | Monthly | PR Approval | PRA-01..02 | Price 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.PRICE_20 | Screen_PR_Approval rev 0.4 | Revised |
-| TR-270 | Monthly | PR Approval | PRA-01..02 | Approval History | monthly.js | monthly-workflow.js | TBD | Screen_PR_Approval rev 0.4 | TBD |
-| TR-271 | Monthly | PR Approval | PRA-01..02 | Current PIC / PR date | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY | Screen_PR_Approval rev 0.4 | Revised |
-| TR-272 | Monthly | PR Approval | PRA-01..02 | Approve / Reject | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_BY | Screen_PR_Approval rev 0.4 | Revised |
-| TR-273 | Monthly | PR Approval | PRA-01..02 | PR status | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.APPROVAL_STS | Screen_PR_Approval rev 0.4 | TBD |
-| TR-274 | Monthly | PR Creation | PRC-01..02 | PR Creation Type | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_HEADER.BUSINESS_TYPE | Screen_PR_Creation rev 0.4 | TBD |
-| TR-275 | Monthly | PR Creation | PRC-01..02 | Operational Month | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE | Screen_PR_Creation rev 0.4 | Revised |
-| TR-276 | Monthly | PR Creation | PRC-01..02 | Trucking Company | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_TRUCKING_COMPANY.COMPANY_CODE | Screen_PR_Creation rev 0.4 | Revised |
-| TR-277 | Monthly | PR Creation | PRC-01..02 | Mileage / Fixed cost price | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE | Screen_PR_Creation rev 0.4 | Revised |
-| TR-278 | Monthly | PR Creation | PRC-01..02 | Working Days | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.TB_M_WORKING_CALENDAR.WORKING_FLAG | Screen_PR_Creation rev 0.4 | Revised |
-| TR-279 | Monthly | PR Creation | PRC-01..02 | Route | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_DETAIL.ROUTE_CODE | Screen_PR_Creation rev 0.4 | Revised |
-| TR-280 | Monthly | PR Creation | PRC-01..02 | Route Percentage | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE | Screen_PR_Creation rev 0.4 | Revised |
-| TR-281 | Monthly | PR Creation | PRC-01..02 | Distance (Km) | pr-creation.js | pr-creation-rules.js, pr-sources.js | TBD | Screen_PR_Creation rev 0.4 | Revised |
-| TR-282 | Monthly | PR Creation | PRC-01..02 | PR per company | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET | Screen_PR_Creation rev 0.4 | Revised |
-| TR-283 | Monthly | PR Creation | PRC-01..02 | PR route lines | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL | Screen_PR_Creation rev 0.4 | Revised |
-| TR-284 | Monthly | PR Creation | PRC-01..02 | PR approval levels | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS | Screen_PR_Creation rev 0.4 | Revised |
-| TR-285 | Monthly | PR Creation | PRC-01..02 | Fixed cost (by resource) lines | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.TB_R_PR_DAILY.TOTAL_PRICE | Screen_PR_Creation rev 0.4 | TBD |
-| TR-286 | Monthly | PR Inquiry | PRI-01 | Production Month / PR seq | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-287 | Monthly | PR Inquiry | PRI-01 | PR Number (per trucking company) | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-288 | Monthly | PR Inquiry | PRI-01 | Trucking Code / Name | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-289 | Monthly | PR Inquiry | PRI-01 | Order Sharing % | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-290 | Monthly | PR Inquiry | PRI-01 | Order Sharing Qty | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_TRIP | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-291 | Monthly | PR Inquiry | PRI-01 | Order Sharing Total Price | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-292 | Monthly | PR Inquiry | PRI-01 | Approval status per level | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS | Screen_PR_Inquiry rev 0.4 | TBD |
-| TR-293 | Monthly | PR Inquiry | PRI-01 | Route | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-294 | Monthly | PR Inquiry | PRI-01 | Route Percentage | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_PERCENTAGE_VALUE | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-295 | Monthly | PR Inquiry | PRI-01 | Qty 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_QTY_20 | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-296 | Monthly | PR Inquiry | PRI-01 | Price 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.PRICE_20 | Screen_PR_Inquiry rev 0.4 | Revised |
-| TR-297 | Monthly | PR Inquiry | PRI-01 | Approval History | monthly.js | monthly-workflow.js | TBD | Screen_PR_Inquiry rev 0.4 | TBD |
-| TR-298 | Monthly | PR Inquiry | PRI-01 | Current PIC / PR date | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY | Screen_PR_Inquiry rev 0.4 | Revised |
+| TR-259 | Monthly | PR Approval | PRA-01..02 | Production Month / PR seq | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE | Screen_PR_Approval rev 0.5 | Revised |
+| TR-260 | Monthly | PR Approval | PRA-01..02 | PR Number (per trucking company) | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET | Screen_PR_Approval rev 0.5 | Revised |
+| TR-261 | Monthly | PR Approval | PRA-01..02 | Trucking Code / Name | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID | Screen_PR_Approval rev 0.5 | Revised |
+| TR-262 | Monthly | PR Approval | PRA-01..02 | Order Sharing % | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING | Screen_PR_Approval rev 0.5 | Revised |
+| TR-263 | Monthly | PR Approval | PRA-01..02 | Order Sharing Qty | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_TRIP | Screen_PR_Approval rev 0.5 | Revised |
+| TR-264 | Monthly | PR Approval | PRA-01..02 | Order Sharing Total Price | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE | Screen_PR_Approval rev 0.5 | Revised |
+| TR-265 | Monthly | PR Approval | PRA-01..02 | Approval status per level | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS | Screen_PR_Approval rev 0.5 | TBD |
+| TR-266 | Monthly | PR Approval | PRA-01..02 | Route | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID | Screen_PR_Approval rev 0.5 | Revised |
+| TR-267 | Monthly | PR Approval | PRA-01..02 | Route Percentage | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_PERCENTAGE_VALUE | Screen_PR_Approval rev 0.5 | Revised |
+| TR-268 | Monthly | PR Approval | PRA-01..02 | Qty 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_QTY_20 | Screen_PR_Approval rev 0.5 | Revised |
+| TR-269 | Monthly | PR Approval | PRA-01..02 | Price 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.PRICE_20 | Screen_PR_Approval rev 0.5 | Revised |
+| TR-270 | Monthly | PR Approval | PRA-01..02 | Approval History | monthly.js | monthly-workflow.js | TBD | Screen_PR_Approval rev 0.5 | TBD |
+| TR-271 | Monthly | PR Approval | PRA-01..02 | Current PIC / PR date | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY | Screen_PR_Approval rev 0.5 | Revised |
+| TR-272 | Monthly | PR Approval | PRA-01..02 | Approve / Reject | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_BY | Screen_PR_Approval rev 0.5 | Revised |
+| TR-273 | Monthly | PR Approval | PRA-01..02 | PR status | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.APPROVAL_STS | Screen_PR_Approval rev 0.5 | TBD |
+| TR-274 | Monthly | PR Creation | PRC-01..02 | PR Creation Type | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_HEADER.BUSINESS_TYPE | Screen_PR_Creation rev 0.5 | TBD |
+| TR-275 | Monthly | PR Creation | PRC-01..02 | Operational Month | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE | Screen_PR_Creation rev 0.5 | Revised |
+| TR-276 | Monthly | PR Creation | PRC-01..02 | Trucking Company | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_TRUCKING_COMPANY.COMPANY_CODE | Screen_PR_Creation rev 0.5 | Revised |
+| TR-277 | Monthly | PR Creation | PRC-01..02 | Mileage / Fixed cost price | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE | Screen_PR_Creation rev 0.5 | Revised |
+| TR-278 | Monthly | PR Creation | PRC-01..02 | Working Days | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.TB_M_WORKING_CALENDAR.WORKING_FLAG | Screen_PR_Creation rev 0.5 | Revised |
+| TR-279 | Monthly | PR Creation | PRC-01..02 | Route | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_DETAIL.ROUTE_CODE | Screen_PR_Creation rev 0.5 | Revised |
+| TR-280 | Monthly | PR Creation | PRC-01..02 | Route Percentage | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.MS_ROUTE_HEADER.ROUTE_PERCENTAGE_VALUE | Screen_PR_Creation rev 0.5 | Revised |
+| TR-281 | Monthly | PR Creation | PRC-01..02 | Distance (Km) | pr-creation.js | pr-creation-rules.js, pr-sources.js | TBD | Screen_PR_Creation rev 0.5 | Revised |
+| TR-282 | Monthly | PR Creation | PRC-01..02 | PR per company | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET | Screen_PR_Creation rev 0.5 | Revised |
+| TR-283 | Monthly | PR Creation | PRC-01..02 | PR route lines | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL | Screen_PR_Creation rev 0.5 | Revised |
+| TR-284 | Monthly | PR Creation | PRC-01..02 | PR approval levels | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_CLASS | Screen_PR_Creation rev 0.5 | Revised |
+| TR-285 | Monthly | PR Creation | PRC-01..02 | Fixed cost (by resource) lines | pr-creation.js | pr-creation-rules.js, pr-sources.js | ielp.TB_R_PR_DAILY.TOTAL_PRICE | Screen_PR_Creation rev 0.5 | TBD |
+| TR-286 | Monthly | PR Inquiry | PRI-01 | Production Month / PR seq | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-287 | Monthly | PR Inquiry | PRI-01 | PR Number (per trucking company) | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.PR_NO_DET | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-288 | Monthly | PR Inquiry | PRI-01 | Trucking Code / Name | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.COMPANY_ID | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-289 | Monthly | PR Inquiry | PRI-01 | Order Sharing % | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_ORDER_SHARING | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-290 | Monthly | PR Inquiry | PRI-01 | Order Sharing Qty | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_TRIP | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-291 | Monthly | PR Inquiry | PRI-01 | Order Sharing Total Price | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.TOTAL_PRICE | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-292 | Monthly | PR Inquiry | PRI-01 | Approval status per level | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_APPROVAL.APPROVAL_STS | Screen_PR_Inquiry rev 0.5 | TBD |
+| TR-293 | Monthly | PR Inquiry | PRI-01 | Route | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_HEADER_ID | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-294 | Monthly | PR Inquiry | PRI-01 | Route Percentage | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_PERCENTAGE_VALUE | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-295 | Monthly | PR Inquiry | PRI-01 | Qty 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.ROUTE_QTY_20 | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-296 | Monthly | PR Inquiry | PRI-01 | Price 20 / 40 | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_ROUTE.PRICE_20 | Screen_PR_Inquiry rev 0.5 | Revised |
+| TR-297 | Monthly | PR Inquiry | PRI-01 | Approval History | monthly.js | monthly-workflow.js | TBD | Screen_PR_Inquiry rev 0.5 | TBD |
+| TR-298 | Monthly | PR Inquiry | PRI-01 | Current PIC / PR date | monthly.js | monthly-workflow.js | ielp.CRITERIA_SCORE_DETAIL_FINAL.CREATED_BY | Screen_PR_Inquiry rev 0.5 | Revised |
 | TR-299 | Daily | Planning Truck Assignment | TA-01..05 | Order list | truck-assign.js | workflow.js | ielp.ORDER_CYCLE.ORDER_NO | Screen_Planning_Truck_Assignment rev 0.5 | Revised |
 | TR-300 | Daily | Planning Truck Assignment | TA-01..05 | Delivery Date | truck-assign.js | workflow.js | ielp.ORDER_CYCLE.ORDER_DATE | Screen_Planning_Truck_Assignment rev 0.5 | Revised |
 | TR-301 | Daily | Planning Truck Assignment | TA-01..05 | Trucking Company | truck-assign.js | workflow.js | ielp.ORDER_CYCLE.COMPANY_ID | Screen_Planning_Truck_Assignment rev 0.5 | Revised |

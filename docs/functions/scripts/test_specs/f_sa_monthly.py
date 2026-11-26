@@ -80,32 +80,48 @@ def sa_pas(u):
 
 # ------------------------------------------------------------------ Monthly
 def pr_creation(u):
+    """Revision 26-Nov-26 (UISS 0.5): Operational Month only, Create PR (calculate) / Submit PR (bundle), abnormality Status."""
     M, L = u.M, u.L
     S = 'Login as VPLD Staff, open Monthly > PR Creation.'
+    CSH = 'ielp.CRITERIA_SCORE_HEADER'
     g = [
      {'title': 'Initial', 'items': [
-      C('open', 'Open screen and parameters', 'UISS: Item 1-11, 5.1, Msg no.17', [S, 'Login as Planner VPLD, open the URL.'], ['PR Creation Type, Operational Month (next month), Logistics Partner, info chips.', M(17)])]},
-     {'title': 'Generate Route Plan', 'items': [
-      C('param', 'Mandatory and period rules', 'UISS: 5.1, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.6, Msg no.7, Msg no.24',
-        ['[Create PR] before generate.', '[Generate Route Plan] with blank fields.', 'Operational Month = current month (System Master N); = last month; = month N+2.', 'Remove the System Master parameter.'],
-        [M(24), M(1) + ', ' + M(2) + ', ' + M(3), M(5) + ' / ' + M(6) + ' / ' + M(7), M(4)]),
-      C('gen', 'Route plan calculated', 'UISS: Item 12-28, 5.2-5.4, Msg no.16, Log 1', ['Type Route-based, Month 2026-12, LP All, [Generate Route Plan].'],
-        [M(16, {'Month YYYY': 'December 2026', 'n': '3'}), 'Per LP: mileage cost, fixed cost, working days, delivery cost, PR amount, status Ready; ' + L(1)]),
-      C('generr', 'Data source errors per LP', 'UISS: 5.2, 5.3, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.12, Msg no.15',
-        ['Generate with: no TMMIN calendar; no active route percentage; LP without Order Sharing; LP with 0 planned orders; LP without price; LP with price 0.'],
-        [M(8), M(9), M(10), M(11), M(12), M(15)], tbd='OP-01'),
-      C('detail', 'PR detail pop-up and export', 'UISS: Item 25, 29-39, 5.7, 5.8, Msg no.23', ['Click Detail of DNX.', 'Click [Export].'], ['Routes, %, orders, days, distance, planned cost, components, total.', M(23)])]},
-     {'title': 'Create PR', 'items': [
-      C('create', 'Create PR and DB', 'UISS: Item 3, 14, 5.5, 5.6, Msg no.18, Msg no.19, Msg no.21, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Log 2',
-        ['[Create PR] with nothing selected.', 'Select DNX and PNJ (Ready), [Create PR], confirm.'],
-        [M(18), M(19), M(21, {'n': '2'}), f'DB (SQL TD-10): {CSF} per LP (PR_NO_DET, COMPANY_ID, CRITERIA_PERIODE, PR_SEQ, totals), ielp.CRITERIA_SCORE_DETAIL_ROUTE per component, {CSA} per level; ' + L(2)]),
-      C('sh', 'Section Head creates PR (SH skip)', 'UISS: 5.6, Log 3', ['Login as VPLD Section Head; create a PR.'], [L(3), 'Approval starts at DpH.']),
-      C('seq', 'Duplicate components and sequence', 'UISS: 5.5, Msg no.13, Msg no.14, Msg no.20, Msg no.22, Log 4',
-        ['Generate again for DNX (monthly cost already in PR).', 'All routes already in PR.', 'Another user created sequence 2 meanwhile; create.', 'Create for 2 LP where one fails.'],
-        [M(13), M(14), M(20), M(22) + '; ' + L(4)])]}]
-    ab = [C('syserr', 'System error', 'UISS: Msg no.25, Log 5', ['Stop DB; generate.'], [M(25), L(5)])]
-    td = {'precondition': ['VPLD Staff / Section Head; Master KPI, Route Percentage, Price, TMMIN calendar for 2026-12.', DCRN],
-          'sql_verify': [{'id': 'TD-10', 'tc': '{tc:create}', 'title': 'PR created', 'sql': f"SELECT * FROM {CSF} WHERE CRITERIA_PERIODE = '202612';\nSELECT * FROM ielp.CRITERIA_SCORE_DETAIL_ROUTE WHERE CRITERIA_DETAIL_FINAL_ID IN (:ids);\nSELECT * FROM {CSA} WHERE CRITERIA_PERIODE = '202612';"}]}
+      C('open', 'Open screen: Operational Month only, list of all trucking companies', 'UISS: Item 1-9, 5.1, Msg no.14',
+        [S, 'Login as IELP Admin, open the screen.'],
+        ['Only Operational Month (default next month) and PR Sequence (read only); no PR Creation Type, Logistics Partner or System Master setting; buttons Create PR, Submit PR, Export.',
+         'List calculated on open for all trucking companies paid By Resources (AGR, DNX, GIB, JMP, PBM).', M(14) + '; Submit PR disabled (view only).'])]},
+     {'title': 'Create PR (calculate)', 'items': [
+      C('param', 'Mandatory and creation period', 'UISS: 5.1, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.20',
+        ['[Submit PR] / [Export] before Create PR (clear the month first).', 'Clear Operational Month, [Create PR].', 'Operational Month = current month with System Master "N allowed" = No; = last month; = month N+2.', 'Remove the System Master parameter (test DB), current month.'],
+        [M(20), M(1), M(3) + ' / ' + M(4) + ' / ' + M(5), M(2) + ' (parameter read in the background, not shown on the screen).']),
+      C('gen', 'List Summary calculated: new columns and formulas', 'UISS: Item 10-23, 5.2, 5.3, 5.5, Msg no.13, Log 1',
+        ['Operational Month = 2026-12, [Create PR].', 'Check DNX row against SQL TD-11 and the detail pop-up.'],
+        [M(13, {'Month YYYY': 'December 2026', 'n': '5'}) + '; PR Sequence "Sequence 2 - additional bundle" (bundle 1 rejected in sample data).',
+         'Columns: Trucking Company, Mileage Cost, Fixed Cost (information), Working Days, Delivery Cost (IDR/Day), Monthly Delivery Cost, Status (empty), Detail; no check box, no PR Amount.',
+         'DNX: Delivery Cost = sum of Total Cost of the pop-up (432,405); Monthly Delivery Cost = 432,405 x 22 = 9,512,910 (no Fixed Cost added).',
+         "Total row: sum of Fixed Cost, Delivery Cost, Monthly Delivery Cost; footer 'Total PR Cost (bundle, 5 trucking companies)'. " + L(1)]),
+      C('detail', 'Detail pop-up read only and export', 'UISS: Item 24-30, 5.7, 5.8, Msg no.21',
+        ['Click Detail of DNX.', 'Click x.', 'Click Export > List Summary and Route Plan Detail.'],
+        ['No header information; columns Route, Route Percentage, Number of Orders (per day, 2 decimals), Distance, Planned Cost (= Distance x Mileage Cost); Total Cost row = Delivery Cost (IDR/Day) of the row; no Close / Confirm buttons.',
+         'Pop-up closed.', M(21)])]},
+     {'title': 'Status - Abnormality', 'items': [
+      C('abn', 'Abnormality shown in Status; Submit PR blocked for the whole bundle', 'UISS: Item 19, 5.4, 5.6, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.15, Log 4',
+        ['Create PR with, one at a time (test data): no TMMIN calendar; no active Route Percentage; trucking company without Order Sharing; Order Sharing 0; Price per KM of GIB removed; price 0.', 'Click [Submit PR].'],
+        ['Status of the affected trucking company (red): ' + M(6) + ' / ' + M(7) + ' / ' + M(8) + ' / ' + M(9) + ' / ' + M(10) + ' / ' + M(11) + '; Status of normal rows empty.',
+         M(15, {'n': '1'}) + ' (alert and button tooltip); nothing created. ' + L(4)], tbd='OP-12, OP-13')]},
+     {'title': 'Submit PR (bundle)', 'items': [
+      C('submit', 'Submit PR: one bundle, one PR Sequence, DB', 'UISS: Item 3, 23, 5.5, 5.6, Msg no.17, Msg no.19, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Log 2',
+        ['Month 2026-12 without abnormality: [Submit PR], [Batal]; [Submit PR] again, [Submit PR] in the confirmation.'],
+        [M(17) + ': one line per trucking company (routes, amount), Total PR Cost, approval SH -> DpH -> DH, Current PIC.', M(19, {'n': '5'}) + '; status Waiting SH; rows show grey "Already in PR".',
+         f'DB (SQL TD-10): one {CSH} row (CRITERIA_PERIODE, PR_SEQ = 2), one {CSF} row per trucking company (PR_NO_DET, TOTAL_PRICE = Monthly Delivery Cost), route rows, {CSA} per level; ' + L(2)]),
+      C('sh', 'Section Head submits (SH skip)', 'UISS: 5.6, Log 3', ['Login as VPLD Section Head; Create PR and Submit PR for the next bundle.'], [L(3), 'Every PR of the bundle starts at DpH.']),
+      C('seq', 'Sequence per month, new routes only, sequence taken', 'UISS: 5.5, Msg no.12, Msg no.16, Msg no.18',
+        ['After the bundle of 2026-12 is active: [Create PR], [Submit PR].', 'Add an active route in Master Route Percentage; [Create PR].', 'Another user submits the same month meanwhile; confirm Submit PR.'],
+        [M(12) + ' (grey) on every row; ' + M(16), 'PR Sequence 3: only the new route for each trucking company.', M(18) + '; nothing created.'])]}]
+    ab = [C('syserr', 'System error', 'UISS: Msg no.22, Log 5', ['Stop DB; Create PR / Submit PR.'], [M(22), L(5)])]
+    td = {'precondition': ['VPLD Staff / Section Head; Master KPI (By Resources), Route Percentage, Price, TMMIN calendar for 2026-12; bundle 12/2026-1 rejected (sample data).', DCRN],
+          'sql_verify': [{'id': 'TD-10', 'tc': '{tc:submit}', 'title': 'Bundle created', 'sql': f"SELECT * FROM {CSH} WHERE CRITERIA_PERIODE = '2026-12' ORDER BY PR_SEQ;\nSELECT * FROM {CSF} WHERE CRITERIA_HEADER_ID = :header;\nSELECT * FROM ielp.CRITERIA_SCORE_DETAIL_ROUTE WHERE CRITERIA_HEADER_ID = :header;\nSELECT * FROM {CSA} WHERE CRITERIA_HEADER_ID = :header;"},
+                         {'id': 'TD-11', 'tc': '{tc:gen}', 'title': 'Inputs of the formulas', 'sql': "SELECT ROUTE_HEADER_ID, ROUTE_PERCENTAGE_VALUE FROM ielp.MS_ROUTE_HEADER;  -- active routes, distance TBD\nSELECT ROUTE_PRICE_VALUE FROM ielp.MS_ROUTE_PRICE WHERE COMPANY_CODE = 'DNX';  -- Price per KM 202612"}]}
     return {'header': u.header(), 'groups': g, 'abnormal': ab, 'test_data': td}
 
 
@@ -113,13 +129,14 @@ def _inquiry(u, doc):
     M, L = u.M, u.L
     pre = 'PR' if doc == 'PR' else 'PO'
     n_items = '1-26' if doc == 'PR' else '1-27'
-    modal = '27-37' if doc == 'PR' else '28-38'
+    modal = '27-39' if doc == 'PR' else '28-38'
     g = [
      {'title': 'Initial', 'items': [C('open', 'Open screen and access', f'UISS: Item 1-9, 5.1, 5.2.1, Msg no.3, Log no.1', [f'Login as VPLD Staff, open Monthly > {pre} Inquiry.', f'Login as LP Admin, open a {pre} of another company (URL).'],
         [f'{pre} of the current production month, read only (no Approve / Reject); no data change, Log no.1 not applicable.', M(3, {'Document No': f'{pre}-X'})])]},
      {'title': 'Search Operation', 'items': [C('search', 'Search, no data, list', f'UISS: Item {n_items}, 5.2.2, 5.4, Msg no.1, Msg no.2',
         ['Prod. Month From 2026-12, To 2026-11, [Search].', f'{pre} Number "ZZZ", [Search].', 'Valid range, Status, [Search]; [Clear].'], [M(1), M(2), f'Matching {pre}s with status, order sharing and paging; Clear resets.'])]},
-     {'title': 'Detail and Download', 'items': [C('detail', 'Detail modal and download', f'UISS: Item {modal}, 5.3', [f'Click a {pre} Number; click Download.'], ['Routes, %, qty, price, footer, approval history; file downloaded.'])]}]
+     {'title': 'Detail and Download', 'items': [C('detail', 'Detail modal and download', f'UISS: Item {modal}, 5.3', [f'Click a {pre} Number; click Download.'] + (['Open a PR of the bundle 12/2026-2 from PR Creation.'] if doc == 'PR' else []),
+        ['Routes, %, qty, price, footer, approval history; file downloaded.'] + (['Production Month sub text "Bundle · 5 PR"; columns Number of Orders / Day, Distance, Planned Cost, Total Cost (IDR/Day); footer Delivery Cost x working days = Total PR Cost; info line lists the trucking companies of the bundle.'] if doc == 'PR' else []))]}]
     td = {'sql_verify': [{'id': 'TD-10', 'tc': '{tc:search}', 'title': 'Documents', 'sql': (f"SELECT * FROM {CSF} WHERE CRITERIA_PERIODE BETWEEN '202611' AND '202612';" if doc == 'PR' else f"SELECT * FROM {POH} WHERE CRITERIA_PERIODE BETWEEN '202611' AND '202612';")}]}
     return {'header': u.header(), 'groups': g, 'abnormal': [], 'test_data': td}
 
@@ -132,13 +149,16 @@ def pr_approval(u):
     M, L = u.M, u.L
     g = [
      {'title': 'Initial', 'items': [C('open', 'Open screen and access', 'UISS: Item 1-9, 5.1, 5.2.1, Msg no.3', ['Login as VPLD SH, open Monthly > PR Approval.', 'Open a PR of another scope (URL).'], ['PR waiting for the user level; Approve / Reject.', M(3, {'Document No': 'PR-X'})])]},
-     {'title': 'Search Operation', 'items': [C('search', 'Search and detail', 'UISS: Item 10-50, 5.2.2, 5.3, 5.4, Msg no.1, Msg no.2', ['From > To, [Search]; "ZZZ"; valid search; open detail.'], [M(1), M(2), 'List with status SH / DpH / DH, current PIC; detail with history.'])]},
+     {'title': 'Search Operation', 'items': [C('search', 'Search and detail', 'UISS: Item 10-52, 5.2.2, 5.3, 5.4, Msg no.1, Msg no.2', ['From > To, [Search]; "ZZZ"; valid search; open detail.'], [M(1), M(2), 'List with status SH / DpH / DH, current PIC; detail with history.'])]},
      {'title': 'Approve / Reject', 'items': [
       C('approve', 'Approve by SH, DpH, DH (PO created)', 'UISS: 5.5, Msg no.4, Msg no.10, Data Map blk 1, Data Map blk 2, Data Map blk 4, Data Map blk 5, Data Map blk 6, Log 1, Log 3',
         ['[Approve] without selection.', 'SH selects 2 PR, [Approve], confirm; DpH and DH approve the same PR.'],
         [M(4), M(10, {'n': '2'}), f'DB (SQL TD-10): {CSA} APPROVAL_STS / BY / DATE per level; DH: {POH} row (PO_NUMBER, PR_NO_DET, APPROVAL_STS); ' + L(1) + '; ' + L(3)]),
       C('reject', 'Reject with reason', 'UISS: 5.5, Msg no.5, Msg no.6, Data Map blk 3, Log 2', ['[Reject] with blank reason; "no"; "route data wrong", confirm.'], [M(5), M(6), 'APPROVAL_STS rejected, APPROVAL_REMARK; ' + L(2)]),
-      C('rule', 'Role and level rules', 'UISS: Msg no.7, Msg no.8', ['VPLD Staff sends approve (request).', 'SH approves a PR already approved by SH.'], [M(7), M(8, {'Level': 'SH', 'Status': 'Approved'})])]}]
+      C('rule', 'Role and level rules', 'UISS: Msg no.7, Msg no.8', ['VPLD Staff sends approve (request).', 'SH approves a PR already approved by SH.'], [M(7), M(8, {'Level': 'SH', 'Status': 'Approved'})]),
+      C('bundle', 'PR bundle from PR Creation: approve / reject the whole bundle', 'UISS: Item 10-17, 33-34, 46, 51-52, 5.5 a0, Msg no.11, Msg no.8',
+        ['Login as SH; tick one PR of bundle 12/2026-2 (5 PR).', '[Approve], check the confirmation, [Approve].', 'Login as DpH; open a PR of the bundle, [Reject] with reason "Route plan belum sesuai".', 'Tick a bundle where one PR was already processed at SH (test data).'],
+        ['All 5 PR of the bundle are ticked; Approve (5).', M(11, {'n': '5', 'b': '1'}) + '; all 5 PR Waiting DpH.', 'All 5 PR Rejected and back to PR Creation (OP-15 of PR Creation); next Submit PR uses a new sequence.', M(8) + ' prefixed with "Bundle 12/2026-2 (5 PR)"; nothing processed.'])]}]
     ab = [C('version', 'Concurrency check', 'UISS: Msg no.9', ['SH in two browsers approves the same PR.'], [M(9)])]
     td = {'precondition': ['PR of 2026-12 waiting SH; users SH, DpH, DH, VPLD Staff.', DCRN],
           'sql_verify': [{'id': 'TD-10', 'tc': '{tc:approve}, {tc:reject}', 'title': 'Approval', 'sql': f"SELECT * FROM {CSA} WHERE CRITERIA_DETAIL_FINAL_ID = :id ORDER BY APV_APPROVAL_CLASS;\nSELECT * FROM {POH} WHERE PR_NO_DET = :pr;"}]}

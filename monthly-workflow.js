@@ -76,6 +76,31 @@
     return { ok: true };
   }
 
+  // ---------- PR bundle (PR Creation revision 26-Nov-26) ----------
+  // All PRs of one Submit PR (same operational month and sequence) are approved / rejected together; no partial approval.
+  // PRs created before the revision have no bundle and are handled one by one.
+  const bundleOf = (pr, prs) => pr.bundle ? prs.filter(p => p.bundle === pr.bundle) : [pr];
+  function bundleBlock(pr, actor, prs) {
+    const members = bundleOf(pr, prs);
+    const b = members.map(p => prBlock(p, actor)).find(Boolean);
+    return b ? (members.length > 1 ? `Bundle ${pr.prodMonth} (${members.length} PR): ${b}` : b) : null;
+  }
+  function approveBundle(pr, actor, at, ctx) {
+    const members = bundleOf(pr, ctx.prs), block = bundleBlock(pr, actor, ctx.prs);
+    if (block) return { ok: false, error: block, members };
+    const pos = members.map(p => approvePR(p, actor, at, ctx).po).filter(Boolean);
+    return { ok: true, members, pos };
+  }
+  function rejectBundle(pr, actor, reason, at, ctx) {
+    const members = bundleOf(pr, ctx.prs), block = bundleBlock(pr, actor, ctx.prs);
+    if (block) return { ok: false, error: block, members };
+    if (blank(reason)) return { ok: false, errors: { reason: 'Reason wajib diisi' }, members };
+    const re = reasonError(reason);
+    if (re) return { ok: false, errors: { reason: re }, members };
+    members.forEach(p => rejectPR(p, actor, reason, at));
+    return { ok: true, members };
+  }
+
   // ---------- PO ----------
   // Auto approve deadline: PO date + N days (System Master, currently Day + 1)
   function createPO(pr, at, master) {
@@ -138,7 +163,7 @@
 
   const api = {
     LEVELS, LEVEL_NAME, AP, PR, PO, REASON_MIN,
-    currentLevel, prStatus, isPending, currentPic, canView, newApproval, prBlock, needsMe, approvePR, rejectPR,
+    currentLevel, prStatus, isPending, currentPic, canView, newApproval, prBlock, needsMe, approvePR, rejectPR, bundleOf, bundleBlock, approveBundle, rejectBundle,
     createPO, poBlock, approvePO, rejectPO, runAutoApprove, roleLabel,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

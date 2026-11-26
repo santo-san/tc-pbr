@@ -68,7 +68,7 @@ naming of the target table; new table names are proposals - TBD - Not confirmed 
 | G-MO-01 | one PR per trucking company (PR_NO_DET) under the period PR (CRITERIA_SCORE_HEADER). |
 | G-MO-04 | 3-letter trucking code shown = MS_TRUCKING_COMPANY.COMPANY_CODE (joined by COMPANY_ID). |
 | G-PO-01 | PO number created by ELIPS when DH approves the PR (monthly-workflow.js createPO); stored in PO_DETAIL.PO_NUMBER. |
-| G-PRC-01 | Monthly Fixed Cost PR and Route-Based PR as calculated in pr-creation-rules.js; stored in CRITERIA_SCORE_* (type in CRITERIA_SCORE_HEADER.BUSINESS_TYPE). |
+| G-PRC-01 | Existing logic kept (revision 26-Nov-26): route-based PR only, submitted as one bundle per operational month (pr-creation-rules.js submitBundle); bundle = CRITERIA_SCORE_HEADER (CRITERIA_PERIODE + PR_SEQ), one CRITERIA_SCORE_DETAIL_FINAL row per trucking company; the Fixed Cost PR is no longer created by this screen (OP-11). |
 | G-MLC-05 | the UISS already states that the mock-up map (Leaflet / OpenStreetMap, location.js) is a stand-in for the existing ELIPS Google Maps - no change. |
 | G-DM-05 | legacy "+ Create DTP" dialog for IELP Admin stays in Daily Monitoring and is documented in its UISS. |
 | G-COM-01 | Master screens have no role restriction (any logged-in role); the "IELP Admin only" badge is informational. |

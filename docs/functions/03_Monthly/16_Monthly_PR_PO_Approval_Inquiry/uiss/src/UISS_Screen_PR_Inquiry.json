@@ -7,7 +7,7 @@
   "function_name": "TBD PR Inquiry",
   "created_date": "28-Oct-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "26-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-34, DCR-35)"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "26-Nov-26",
+   "reviewed_by": "",
+   "description": "PR bundle from PR Creation revision 26-Nov-26: Production Month sub text \"Bundle · n PR\"; detail columns of route-based PRs (orders per day, Planned Cost, Total Cost) and bundle info line."
   }
  ],
  "general": {
@@ -344,6 +351,10 @@
   {
    "caption": "5. Supplier login - own data only (HTML mock-up)",
    "image": "img/UISS_Screen_PR_Inquiry/pri_04_supplier_scope.png"
+  },
+  {
+   "caption": "Detail of a PR from PR Creation: bundle info line and route columns (HTML mock-up, revision 26-Nov-26)",
+   "image": "img/UISS_Screen_PR_Inquiry/pri_05_bundle_detail.png"
   }
  ],
  "items": [
@@ -534,7 +545,7 @@
    "required": "",
    "format": "MM/YYYY-9",
    "validation": "",
-   "description": "'-n' = sequence of PR creation for the same production month. Default sort ascending, then PR Number.\nDB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7); PR_SEQ int default 1."
+   "description": "'-n' = PR Sequence of the operational month; PRs of one Submit PR (bundle) have the same sequence and the sub text 'Bundle · n PR' (PR Creation revision 26-Nov-26). Default sort ascending, then PR Number.\nDB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7); PR_SEQ int default 1."
   },
   {
    "name": "PR Number",
@@ -913,6 +924,39 @@
    "format": "",
    "validation": "",
    "description": ""
+  },
+  {
+   "group": "<Detail PR Modal - PR from PR Creation (revision 26-Nov-26)>"
+  },
+  {
+   "name": "Route-based PR from PR Creation (bundle): columns",
+   "source": "PR Creation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Route, Route Percentage, Number of Orders / Day, Distance (Km), Planned Cost (IDR) = Distance × Mileage Cost, Total Cost (IDR/Day) = Planned Cost × Number of Orders."
+  },
+  {
+   "name": "Route-based PR from PR Creation (bundle): footer",
+   "source": "PR Creation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Delivery Cost: IDR x / day × n working days', Total QTY, 'Total PR Cost (Monthly Delivery Cost)'. Info line: PR type, PR Sequence, 'Bundle MM/YYYY-n: {trucking companies} (approved / rejected together)', working days, next process."
   }
  ],
  "data_map": {
@@ -1049,6 +1093,12 @@
    "type": "item",
    "marker": "b.",
    "text": "Route Percentage = route Qty Total / document Total Qty (TBD, OP-09). Price Total = Qty 20 x Price 20 + Qty 40 x Price 40.",
+   "level": 2
+  },
+  {
+   "type": "item",
+   "marker": "b2.",
+   "text": "Route-based PR from PR Creation (bundle, revision 26-Nov-26): Number of Orders per day, Planned Cost = Distance × Mileage Cost, Total Cost = Planned Cost × Number of Orders (IDR/Day); footer Delivery Cost × Working Days = Total PR Cost. The info line names the trucking companies of the bundle.",
    "level": 2
   },
   {

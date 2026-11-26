@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "PR Approval",
   "uiss_name": "UISS-Screen PR Approval",
-  "uiss_rev": "0.4",
+  "uiss_rev": "0.5",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -35,7 +35,7 @@
     {
      "key": "search",
      "case": "Search and detail",
-     "ref": "UISS: Item 10-50, 5.2.2, 5.3, 5.4, Msg no.1, Msg no.2",
+     "ref": "UISS: Item 10-52, 5.2.2, 5.3, 5.4, Msg no.1, Msg no.2",
      "procedure": [
       "From > To, [Search]; \"ZZZ\"; valid search; open detail."
      ],
@@ -88,6 +88,23 @@
      "expected": [
       "Msg no.7 (Error): 'Only VPLD approver (SH / DpH / DH) can approve or reject PR.'",
       "Msg no.8 (Error): 'Level SH for PR {PR No} is already Approved.'"
+     ]
+    },
+    {
+     "key": "bundle",
+     "case": "PR bundle from PR Creation: approve / reject the whole bundle",
+     "ref": "UISS: Item 10-17, 33-34, 46, 51-52, 5.5 a0, Msg no.11, Msg no.8",
+     "procedure": [
+      "Login as SH; tick one PR of bundle 12/2026-2 (5 PR).",
+      "[Approve], check the confirmation, [Approve].",
+      "Login as DpH; open a PR of the bundle, [Reject] with reason \"Route plan belum sesuai\".",
+      "Tick a bundle where one PR was already processed at SH (test data)."
+     ],
+     "expected": [
+      "All 5 PR of the bundle are ticked; Approve (5).",
+      "Msg no.11 (Info): '5 PR dipilih (1 bundle; approval per bundle, semua PR dalam bundle di-approve / di-reject sekaligus).'; all 5 PR Waiting DpH.",
+      "All 5 PR Rejected and back to PR Creation (OP-15 of PR Creation); next Submit PR uses a new sequence.",
+      "Msg no.8 (Error): 'Level {Level} for PR {PR No} is already {Status}.' prefixed with \"Bundle 12/2026-2 (5 PR)\"; nothing processed."
      ]
     }
    ]

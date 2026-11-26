@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "PR Inquiry",
   "uiss_name": "UISS-Screen PR Inquiry",
-  "uiss_rev": "0.4",
+  "uiss_rev": "0.5",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -55,12 +55,14 @@
     {
      "key": "detail",
      "case": "Detail modal and download",
-     "ref": "UISS: Item 27-37, 5.3",
+     "ref": "UISS: Item 27-39, 5.3",
      "procedure": [
-      "Click a PR Number; click Download."
+      "Click a PR Number; click Download.",
+      "Open a PR of the bundle 12/2026-2 from PR Creation."
      ],
      "expected": [
-      "Routes, %, qty, price, footer, approval history; file downloaded."
+      "Routes, %, qty, price, footer, approval history; file downloaded.",
+      "Production Month sub text \"Bundle · 5 PR\"; columns Number of Orders / Day, Distance, Planned Cost, Total Cost (IDR/Day); footer Delivery Cost x working days = Total PR Cost; info line lists the trucking companies of the bundle."
      ]
     }
    ]

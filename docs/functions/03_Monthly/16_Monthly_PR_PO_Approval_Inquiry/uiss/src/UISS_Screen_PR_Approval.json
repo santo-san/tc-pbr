@@ -7,7 +7,7 @@
   "function_name": "TBD PR Approval",
   "created_date": "28-Oct-26",
   "created_by": "Susanto",
-  "updated_date": "14-Nov-26",
+  "updated_date": "26-Nov-26",
   "updated_by": "Susanto"
  },
  "revisions": [
@@ -38,6 +38,13 @@
    "date": "14-Nov-26",
    "reviewed_by": "",
    "description": "[DB-R2] Conflicts resolved by decision 14-Nov-26: existing application logic kept; required DB changes listed as DB change requests (DCR-34, DCR-35)"
+  },
+  {
+   "revision": "0.5",
+   "author": "Susanto",
+   "date": "26-Nov-26",
+   "reviewed_by": "",
+   "description": "PR bundle from PR Creation revision 26-Nov-26: approve / reject per bundle (no partial approval), selection of the whole bundle, message no. 11; detail columns of route-based PRs (orders per day, Planned Cost, Total Cost)."
   }
  ],
  "general": {
@@ -789,6 +796,14 @@
   {
    "caption": "6. Detail PR modal with Approve / Reject (HTML mock-up)",
    "image": "img/UISS_Screen_PR_Approval/pra_06_detail_with_actions.png"
+  },
+  {
+   "caption": "PR bundle: ticking one PR ticks all 5 PR of the bundle (HTML mock-up, revision 26-Nov-26)",
+   "image": "img/UISS_Screen_PR_Approval/pra_07_bundle_selected.png"
+  },
+  {
+   "caption": "Approve confirmation per bundle, message no. 11 (HTML mock-up, revision 26-Nov-26)",
+   "image": "img/UISS_Screen_PR_Approval/pra_08_bundle_confirm.png"
   }
  ],
  "items": [
@@ -949,7 +964,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Always shown. Enabled only for VPLD approver with at least one ticked row; label shows count."
+   "description": "Always shown. Enabled only for VPLD approver with at least one ticked row; label shows count. PR bundle: approve / reject applies to every PR of the bundle (msg 11)."
   },
   {
    "name": "Reject",
@@ -964,7 +979,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Same condition as Approve."
+   "description": "Same condition as Approve. PR bundle: approve / reject applies to every PR of the bundle (msg 11)."
   },
   {
    "name": "Notice",
@@ -1009,7 +1024,7 @@
    "required": "N",
    "format": "",
    "validation": "Enabled only when the row can be processed by the login user",
-   "description": ""
+   "description": "Ticking a PR of a bundle ticks / unticks all PR of the same bundle (no partial approval)."
   },
   {
    "name": "Search (list)",
@@ -1054,7 +1069,7 @@
    "required": "",
    "format": "MM/YYYY-9",
    "validation": "",
-   "description": "'-n' = sequence of PR creation for the same production month. Default sort ascending, then PR Number.\nDB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7); PR_SEQ int default 1."
+   "description": "'-n' = PR Sequence of the operational month; PRs of one Submit PR (bundle) have the same sequence and the sub text 'Bundle · n PR' (PR Creation revision 26-Nov-26). Default sort ascending, then PR Number.\nDB: ielp.CRITERIA_SCORE_HEADER.CRITERIA_PERIODE varchar(7) NOT NULL [Revised] varchar(7); PR_SEQ int default 1."
   },
   {
    "name": "PR Number",
@@ -1297,7 +1312,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Approve this document only; same as list Approve. Disabled with reason text when not allowed."
+   "description": "Approve this document - for a PR of a bundle: the whole bundle; same as list Approve. Disabled with reason text when not allowed."
   },
   {
    "name": "Reject (modal)",
@@ -1312,7 +1327,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Reject this document only; same as list Reject."
+   "description": "Reject this document - for a PR of a bundle: the whole bundle; same as list Reject."
   },
   {
    "name": "Search (route)",
@@ -1495,7 +1510,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "'<n> PR dipilih' + one line per document."
+   "description": "'<n> PR dipilih (<b> bundle; approval per bundle ...)' + one line per document, grouped by bundle (message no. 11)."
   },
   {
    "name": "Confirmation text",
@@ -1556,6 +1571,39 @@
    "format": "",
    "validation": "",
    "description": "Close without saving."
+  },
+  {
+   "group": "<Detail PR Modal - PR from PR Creation (revision 26-Nov-26)>"
+  },
+  {
+   "name": "Route-based PR from PR Creation (bundle): columns",
+   "source": "PR Creation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "Route, Route Percentage, Number of Orders / Day, Distance (Km), Planned Cost (IDR) = Distance × Mileage Cost, Total Cost (IDR/Day) = Planned Cost × Number of Orders."
+  },
+  {
+   "name": "Route-based PR from PR Creation (bundle): footer",
+   "source": "PR Creation",
+   "field": "--",
+   "type": "",
+   "len": "",
+   "io": "O",
+   "control": "Label",
+   "justified": "Left",
+   "initial": "",
+   "required": "N",
+   "format": "",
+   "validation": "",
+   "description": "'Delivery Cost: IDR x / day × n working days', Total QTY, 'Total PR Cost (Monthly Delivery Cost)'. Info line: PR type, PR Sequence, 'Bundle MM/YYYY-n: {trucking companies} (approved / rejected together)', working days, next process."
   }
  ],
  "data_map": {
@@ -1946,6 +1994,12 @@
   },
   {
    "type": "item",
+   "marker": "b2.",
+   "text": "Route-based PR from PR Creation (bundle, revision 26-Nov-26): Number of Orders per day, Planned Cost = Distance × Mileage Cost, Total Cost = Planned Cost × Number of Orders (IDR/Day); footer Delivery Cost × Working Days = Total PR Cost. The info line names the trucking companies of the bundle.",
+   "level": 2
+  },
+  {
+   "type": "item",
    "marker": "c.",
    "text": "Approval History lists every action on the document, latest first.",
    "level": 2
@@ -2006,6 +2060,12 @@
    "type": "heading",
    "text": "5.5 Approve / Reject Operation",
    "level": 0
+  },
+  {
+   "type": "item",
+   "marker": "a0.",
+   "text": "PR bundle (PR Creation revision 26-Nov-26): the PRs of one Submit PR (same operational month and PR Sequence, one per trucking company) are approved / rejected together - no partial approval. Ticking one PR ticks the whole bundle; the confirmation lists the bundle (message no. 11); a block on any PR of the bundle (message no. 7 / 8, prefixed with the bundle) stops the whole bundle. Reject returns every PR of the bundle to PR Creation (OP-15 of PR Creation). PO creation stays per trucking company. PRs created before the revision are handled one by one.",
+   "level": 2
   },
   {
    "type": "item",
@@ -2366,6 +2426,14 @@
    "msg_id": "TBD",
    "message": "{n} PR approved / rejected. PO created: {PO No list}.",
    "action": "-"
+  },
+  {
+   "event": "Click [Approve] / [Reject] with a PR of a bundle",
+   "cause": "PR bundle (no partial approval)",
+   "type": "Info",
+   "msg_id": "TBD",
+   "message": "{n} PR dipilih ({b} bundle; approval per bundle, semua PR dalam bundle di-approve / di-reject sekaligus).",
+   "action": "Approve / Reject or Batal"
   }
  ],
  "logging_messages": [

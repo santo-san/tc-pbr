@@ -193,8 +193,8 @@
     <div id="prcPage" style="display:none">
       <p class="pc-sub">Review and create Purchase Requisition for each trucking company</p>
       <div class="pc-bar">
-        <button class="pc-btn green" id="pcGenerate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M9 18h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6"/></svg><span id="pcGenLbl">Generate Route Plan</span></button>
-        <button class="pc-btn navy" id="pcCreate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M10 13h6M10 17h4"/></svg><span id="pcCreateLbl">Create PR</span></button>
+        <button class="pc-btn green" id="pcGenerate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M9 18h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6"/></svg><span id="pcGenLbl">Create PR</span></button>
+        <button class="pc-btn navy" id="pcCreate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M10 13h6M10 17h4"/></svg><span id="pcCreateLbl">Submit PR</span></button>
         <div class="dd" id="ddPcExport">
           <button class="pc-btn outline"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Export <span style="font-size:8px">▼</span></button>
           <div class="dd-menu" id="pcExportMenu"><button data-x="summary">List Summary (.xls)</button><button data-x="routes">Route Plan Detail (.xls)</button></div>
@@ -202,10 +202,7 @@
       </div>
       <section class="pc-params">
         <div class="pc-grid" id="pcForm">
-          <div class="f" data-f="type"><label for="pcType">PR Creation Type <span class="req">*</span></label>
-            <select id="pcType"><option value="">Select PR Creation Type</option><option value="FIX">Monthly PR - Fixed Cost</option><option value="ROUTE">Route-Based PR for LP Operations</option></select></div>
           <div class="f" data-f="ym"><label for="pcMonth">Operational Month <span class="req">*</span></label><input type="month" id="pcMonth"></div>
-          <div class="f" data-f="partner"><label for="pcPartner">Logistics Partner <span class="req">*</span></label><select id="pcPartner"></select></div>
           <div class="f"><label>PR Sequence</label><div class="ro" id="pcSeq">-</div></div>
         </div>
         <div class="pc-chips" id="pcChips"></div>
@@ -231,7 +228,7 @@
         <div class="table-wrap" id="pcTableBox"><table id="pcTable"><thead id="pcThead"></thead><tbody id="pcTbody"></tbody><tfoot id="pcTfoot"></tfoot></table></div>
         <div class="pc-foot">
           <span id="pcInfo"></span>
-          <span class="pc-total" id="pcSelTotal">Total PR Cost (selected): IDR 0</span>
+          <span class="pc-total" id="pcSelTotal">Total PR Cost (bundle): IDR 0</span>
           <div class="pager" id="pcPager" style="margin-top:0"></div>
         </div>
       </section>
@@ -323,9 +320,7 @@
 <div class="overlay" id="pcOverlay">
   <div class="modal pcm" role="dialog" aria-modal="true" aria-labelledby="pcmTitle">
     <div class="modal-h"><h3 id="pcmTitle"></h3><button id="pcmClose" aria-label="Tutup">&times;</button></div>
-    <div class="info" id="pcmInfo"></div>
     <div class="scroll"><table id="pcmTable"></table></div>
-    <div class="mf"><span class="note" id="pcmNote"></span><button class="btn-outline" id="pcmCancel">Close</button><button class="pc-btn navy" id="pcmConfirm">Confirm &amp; Create PR</button></div>
   </div>
 </div>
 
@@ -339,12 +334,12 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="monthly-workflow.js?v=20261101a"></script>
+<script src="monthly-workflow.js?v=20261126a"></script>
 <script src="master-price.js?v=20261030b"></script>
 <script src="master-route-percentage.js?v=20261030a"></script>
-<script src="pr-sources.js?v=20261101a"></script>
-<script src="pr-creation-rules.js?v=20261101a"></script>
-<script src="monthly.js?v=20261101a"></script>
-<script src="pr-creation.js?v=20261101a"></script>
+<script src="pr-sources.js?v=20261126a"></script>
+<script src="pr-creation-rules.js?v=20261126a"></script>
+<script src="monthly.js?v=20261126a"></script>
+<script src="pr-creation.js?v=20261126a"></script>
 </body>
 </html>

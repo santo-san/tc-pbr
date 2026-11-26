@@ -270,7 +270,7 @@
   "dcr_id": null
  },
  "G-PRC-01": {
-  "decision": "Existing logic kept: Monthly Fixed Cost PR and Route-Based PR as calculated in pr-creation-rules.js; stored in CRITERIA_SCORE_* (type in CRITERIA_SCORE_HEADER.BUSINESS_TYPE).",
+  "decision": "Existing logic kept (revision 26-Nov-26): route-based PR only, submitted as one bundle per operational month (pr-creation-rules.js submitBundle); bundle = CRITERIA_SCORE_HEADER (CRITERIA_PERIODE + PR_SEQ), one CRITERIA_SCORE_DETAIL_FINAL row per trucking company; the Fixed Cost PR is no longer created by this screen (OP-11).",
   "dcr": null,
   "dcr_id": null
  },
