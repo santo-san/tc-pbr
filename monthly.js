@@ -464,7 +464,7 @@ function renderPcRoutes(d, q) {
   const rows = d.routes.filter(r => !q || (r.code + ' ' + r.description).toLowerCase().includes(q)).sort((a, b) => a.code < b.code ? -rs.sortDir : rs.sortDir);
   const pages = Math.max(1, Math.ceil(rows.length / rs.size)); rs.page = Math.min(rs.page, pages);
   const start = (rs.page - 1) * rs.size, view = rows.slice(start, start + rs.size);
-  // PR Creation revision 26-Nov-26: orders per day, Planned Cost = Distance x Mileage Cost, Total Cost = Planned Cost x orders (per day)
+  // PR Creation revision 26-Nov-26: orders per day, Planned Cost = Distance x Mileage Cost, Total Cost = Planned Cost (PR Creation review: Total Cost = sum of Planned Cost)
   $('routeTable').innerHTML = `<thead><tr><th class="sortable" id="rSort" style="min-width:280px">Route <span class="arrow">${rs.sortDir === 1 ? '▲' : '▼'}</span></th>
       <th>Route<br>Percentage</th><th>Number of<br>Orders / Day</th><th>Distance<br>(Km)</th><th>Planned Cost<br>(IDR)</th><th>Total Cost<br>(IDR/Day)</th></tr></thead>
     <tbody>${view.map(r => `<tr><td class="rcell"><b>${r.code}</b><span>${esc(r.description)}</span></td><td>${r.percentage}%</td><td class="tq">${Number(r.orders).toFixed(2)}</td>

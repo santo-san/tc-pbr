@@ -22,7 +22,8 @@
     noOrders: p => `No orders are planned for ${p} in this month (Order Sharing = 0).`,
     dupRoutes: (p, prNos) => `All planned routes of ${p} for this operational month are already included in PR ${prNos}.`,
     badAmount: p => `Calculated PR amount for ${p} is not valid (must be greater than 0). Please check the price and planning data.`,
-    abnormal: n => `Submit PR is not possible: ${n} trucking company(ies) have an abnormality (see Status). Please correct the data first.`,
+    zeroPrice: (p, per) => `Price per KM of ${p} for period ${per} is 0 in Master Price.`,
+    abnormal: n => `Submit PR is not possible: ${n} trucking company(ies) have an abnormality (see the list below and the Status column). Please correct the data first.`,
     nothing: 'There is no trucking company with new routes to submit for this operational month.',
     seqTaken: (ym, seq) => `PR Sequence ${seq} for ${ym} already exists. Please click Create PR again.`,
     submitted: (ym, seq, n, nos) => `PR bundle ${ym} sequence ${seq} submitted: ${n} PR (${nos}).`,
@@ -74,13 +75,14 @@
   // Detail per active route of Master Route Percentage:
   //   Number of Orders (per day) = Order Sharing (daily QTY) x Route % / total active Route %
   //   Planned Cost              = Distance (Km) x Mileage Cost (IDR/Km)
-  //   Total Cost                = Planned Cost x Number of Orders   (TBD, OP-4)
-  // Delivery Cost (IDR/Day) = sum of Total Cost; Monthly Delivery Cost = Delivery Cost x Working Days
+  //   Total Cost                = sum of Planned Cost (user review 26-Nov-26, OP-14: the pop-up shows Route, Distance, Planned Cost only)
+  // Delivery Cost (IDR/Day) = Total Cost; Monthly Delivery Cost = Delivery Cost x Working Days.
+  // Orders per day are kept for the PR quantity (TOTAL_TRIP) only; they are not part of the cost.
   function routeLines({ dailyOrders, routes, priceKm }) {
     const totalPct = routes.reduce((s, r) => s + r.percentage, 0);
     return routes.map(r => {
       const orders = totalPct ? round2(dailyOrders * r.percentage / totalPct) : 0, planned = r.distance * priceKm;
-      return { code: r.code, description: r.description, percentage: r.percentage, distance: r.distance, orders, priceKm, planned, cost: Math.round(planned * orders) };
+      return { code: r.code, description: r.description, percentage: r.percentage, distance: r.distance, orders, priceKm, planned, cost: Math.round(planned) };
     });
   }
   function calculate(partner, ym, src) {
@@ -90,13 +92,14 @@
     row.fixed = fix.ok ? fix.price : null; row.fixedNote = fix.ok ? '' : fix.error;   // information only (OP-6)
     row.mileage = km.ok ? km.price : null;
     if (!km.ok) row.errors.km = km.error;
+    else if (!(km.price > 0)) row.errors.km = MSG.zeroPrice(partner, per);   // price 0 (user review 2, 26-Nov-26)
     row.dailyOrders = src.orderSharing(partner);
     const routes = src.routes();
     if (row.workingDays == null) row.errors.calendar = MSG.noCalendar(ym);
     if (!routes.length) row.errors.routes = MSG.noRoutes;
     if (row.dailyOrders == null) row.errors.sharing = MSG.noSharing(partner);
     else if (!(row.dailyOrders > 0)) row.errors.orders = MSG.noOrders(partner);
-    if (routes.length && row.dailyOrders > 0 && km.ok) {
+    if (routes.length && row.dailyOrders > 0 && km.ok && km.price > 0) {
       row.lines = routeLines({ dailyOrders: row.dailyOrders, routes, priceKm: km.price });
       row.perDay = row.lines.reduce((s, l) => s + l.cost, 0);
     } else Object.assign(row, { lines: [], perDay: null });
@@ -104,9 +107,12 @@
     if (row.monthlyTotal != null && !(row.monthlyTotal > 0)) row.errors.amount = MSG.badAmount(partner);
     return row;
   }
-  // Abnormality of the row (Status column; OP-2): the first data error, or null
-  const ABNORMAL = ['calendar', 'routes', 'sharing', 'orders', 'km', 'amount'];
+  // Abnormality of the row (blocks Submit PR): the first data error, or null.
+  // Status column (user review 2, 26-Nov-26): only the price problem - Price per KM not found or 0; other data errors go to the alert.
+  const ABNORMAL = ['km', 'calendar', 'routes', 'sharing', 'orders', 'amount'];
   const abnormality = row => ABNORMAL.map(k => row.errors[k]).find(Boolean) || null;
+  const priceStatus = row => row.errors.km || null;
+  const dataErrors = row => ABNORMAL.filter(k => k !== 'km').map(k => row.errors[k]).filter(Boolean);
 
   // ---------- Bundle ----------
   // What the trucking company contributes to the bundle: new routes (not yet in an active PR of the month), amount
@@ -171,7 +177,7 @@
   }
 
   const api = { TYPE, TYPE_LABEL, MSG, routeComponent, ymOf, ymAdd, period, validateHeader, canCreate, periodCheck, nextSequence, bundleId,
-    usedComponents, initialPr, routeLines, calculate, abnormality, prepare, planBundle, initialApproval, buildPR, submitBundle };
+    usedComponents, initialPr, routeLines, calculate, abnormality, priceStatus, dataErrors, prepare, planBundle, initialApproval, buildPR, submitBundle };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PrCreation = api;
 })(this);

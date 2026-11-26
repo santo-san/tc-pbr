@@ -5,7 +5,7 @@
   "function_id": "TBD",
   "function_name": "PR Creation",
   "uiss_name": "UISS-Screen PR Creation",
-  "uiss_rev": "0.6",
+  "uiss_rev": "0.7",
   "sa_name": "Susanto",
   "tester": "",
   "programmer": ""
@@ -17,13 +17,13 @@
     {
      "key": "open",
      "case": "Open screen: Operational Month only, list of all trucking companies",
-     "ref": "UISS: Item 1-9, 5.1, Msg no.14",
+     "ref": "UISS: Item 1-8, 5.1, Msg no.14",
      "procedure": [
       "Login as VPLD Staff, open Monthly > PR Creation.",
       "Login as IELP Admin, open the screen."
      ],
      "expected": [
-      "Only Operational Month (default next month) and PR Sequence (read only); no PR Creation Type, Logistics Partner or System Master setting; buttons Create PR, Submit PR, Export.",
+      "Only Operational Month (default next month) and PR Sequence (read only); no PR Creation Type, Logistics Partner or System Master setting, no info chips; buttons Create PR, Submit PR, Export.",
       "List calculated on open for all trucking companies paid By Resources (AGR, DNX, GIB, JMP, PBM).",
       "Msg no.14 (Error): 'You are not authorized to create PR. PR Creation is available to VPLD Staff and VPLD Section Head.'; Submit PR disabled (view only)."
      ]
@@ -53,7 +53,7 @@
     {
      "key": "gen",
      "case": "List Summary calculated: new columns and formulas",
-     "ref": "UISS: Item 10-23, 5.2, 5.3, 5.5, Msg no.13, Log 1",
+     "ref": "UISS: Item 9-22, 5.2, 5.3, 5.5, Msg no.13, Log 1",
      "procedure": [
       "Operational Month = 2026-12, [Create PR].",
       "Check DNX row against SQL TD-11 and the detail pop-up."
@@ -61,21 +61,21 @@
      "expected": [
       "Msg no.13 (Info): 'PR December 2026 calculated for 5 trucking company(ies).'; PR Sequence \"Sequence 2 - additional bundle\" (bundle 1 rejected in sample data).",
       "Columns: Trucking Company, Mileage Cost, Fixed Cost (information), Working Days, Delivery Cost (IDR/Day), Monthly Delivery Cost, Status (empty), Detail; no check box, no PR Amount.",
-      "DNX: Delivery Cost = sum of Total Cost of the pop-up (432,405); Monthly Delivery Cost = 432,405 x 22 = 9,512,910 (no Fixed Cost added).",
+      "DNX: Delivery Cost = Total Cost of the pop-up = sum of Planned Cost (1,061,100); Monthly Delivery Cost = 1,061,100 x 22 = 23,344,200 (no Fixed Cost added).",
       "Total row: sum of Fixed Cost, Delivery Cost, Monthly Delivery Cost; footer 'Total PR Cost (bundle, 5 trucking companies)'. Log no.1 (Info): 'PR {YYYY-MM} calculated by {User} for {n} trucking company(ies) (sequence {n}, {abnormal} abnormal).'"
      ]
     },
     {
      "key": "detail",
      "case": "Detail pop-up read only and export",
-     "ref": "UISS: Item 24-28, 5.7, 5.8, Msg no.21",
+     "ref": "UISS: Item 23-27, 5.7, 5.8, Msg no.21",
      "procedure": [
       "Click Detail of DNX.",
       "Click x.",
       "Click Export > List Summary and Route Plan Detail."
      ],
      "expected": [
-      "No header information; columns Route, Distance, Planned Cost (= Distance x Mileage Cost) only - no Route Percentage, no Number of Orders; Total Cost (IDR/Day) row = Delivery Cost of the row; no Close / Confirm buttons.",
+      "No header information; columns Route, Distance, Planned Cost (= Distance x Mileage Cost) only - no Route Percentage, no Number of Orders; Total Cost (IDR/Day) row = sum of the Planned Cost column = Delivery Cost of the row; no Close / Confirm buttons.",
       "Pop-up closed.",
       "Msg no.21 (Info): 'PR_Creation_{Summary | Route_Plan}_{YYYYMM}.xls exported.'"
      ]
@@ -87,15 +87,17 @@
    "items": [
     {
      "key": "abn",
-     "case": "Abnormality shown in Status; Submit PR blocked for the whole bundle",
-     "ref": "UISS: Item 19, 5.4, 5.6, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.15, Log 4",
+     "case": "Status only for the price; other abnormalities in the Submit PR dialog; bundle blocked",
+     "ref": "UISS: Item 3, 7, 18, 5.4, 5.6, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.15, Log 4",
      "procedure": [
-      "Create PR with, one at a time (test data): no TMMIN calendar; no active Route Percentage; trucking company without Order Sharing; Order Sharing 0; Price per KM of GIB removed; price 0.",
-      "Click [Submit PR]."
+      "Create PR with Price per KM of GIB removed, then with Price per KM of GIB = 0 (test data).",
+      "Click [Submit PR].",
+      "Repeat with, one at a time: no TMMIN calendar; no active Route Percentage; trucking company without Order Sharing; Order Sharing 0."
      ],
      "expected": [
-      "Status of the affected trucking company (red): Msg no.6 (Error): 'TMMIN Calendar (working days) for {YYYY-MM} is not available. Please maintain the TMMIN Calendar first.' / Msg no.7 (Error): 'No active Route Percentage data. Please maintain Master Route Percentage first.' / Msg no.8 (Error): 'No Order Sharing for {LP} in Master KPI (By Resources). Route-based PR cannot be calculated.' / Msg no.9 (Error): 'No orders are planned for {LP} in this month (Order Sharing = 0).' / Msg no.10 (Error): 'No Price per KM found in Master Price for {LP} period {YYYYMM}. (or expired / more than one valid price)' / Msg no.11 (Error): 'Calculated PR amount for {LP} is not valid (must be greater than 0). Please check the price and planning data.'; Status of normal rows empty.",
-      "Msg no.15 (Error): 'Submit PR is not possible: 1 trucking company(ies) have an abnormality (see Status). Please correct the data first.' (alert and button tooltip); nothing created. Log no.4 (Warning): 'PR bundle {YYYY-MM} not submitted: {reason}.'"
+      "Status of GIB (red): Msg no.10 (Error): 'No Price per KM found in Master Price for {LP} period {YYYYMM}. (or expired / more than one valid price) / Price per KM of {LP} for period {YYYYMM} is 0 in Master Price.'; Status of the other rows empty; no info chips and no abnormality alert above the list.",
+      "Dialog 'Submit PR not possible': Msg no.15 (Error): 'Submit PR is not possible: 1 trucking company(ies) have an abnormality (see the list below and the Status column). Please correct the data first. (+ problem list)' with the problem list; nothing created. Log no.4 (Warning): 'PR bundle {YYYY-MM} not submitted: {reason}.'",
+      "Status stays empty for every row; the dialog lists Msg no.6 (Error): 'TMMIN Calendar (working days) for {YYYY-MM} is not available. Please maintain the TMMIN Calendar first.' / Msg no.7 (Error): 'No active Route Percentage data. Please maintain Master Route Percentage first.' / Msg no.8 (Error): 'No Order Sharing for {LP} in Master KPI (By Resources). Route-based PR cannot be calculated.' / Msg no.9 (Error): 'No orders are planned for {LP} in this month (Order Sharing = 0).' / Msg no.11 (Error): 'Calculated PR amount for {LP} is not valid (must be greater than 0). Please check the price and planning data.'."
      ],
      "tbd": "OP-12, OP-13"
     }
@@ -107,13 +109,13 @@
     {
      "key": "submit",
      "case": "Submit PR: one bundle, one PR Sequence, DB",
-     "ref": "UISS: Item 3, 23, 5.5, 5.6, Msg no.17, Msg no.19, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Log 2",
+     "ref": "UISS: Item 3, 22, 5.5, 5.6, Msg no.17, Msg no.19, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Log 2",
      "procedure": [
       "Month 2026-12 without abnormality: [Submit PR], [Batal]; [Submit PR] again, [Submit PR] in the confirmation."
      ],
      "expected": [
       "Msg no.17 (Confirmation): 'Submit PR - {Month} - PR Sequence {n}: one bundle of {n} PR (trucking company, routes, amount), Total PR Cost IDR {x}, Approval {path}, Current PIC {user}.': one line per trucking company (routes, amount), Total PR Cost, approval SH -> DpH -> DH, Current PIC.",
-      "Msg no.19 (Info): 'PR bundle {YYYY-MM} sequence 5 submitted: 5 PR ({PR Nos}). Status: {Waiting SH | Waiting DpH}.'; status Waiting SH; rows show grey \"Already in PR\".",
+      "Msg no.19 (Info): 'PR bundle {YYYY-MM} sequence 5 submitted: 5 PR ({PR Nos}). Status: {Waiting SH | Waiting DpH}.'; status Waiting SH; Status column stays empty.",
       "DB (SQL TD-10): one ielp.CRITERIA_SCORE_HEADER row (CRITERIA_PERIODE, PR_SEQ = 2), one ielp.CRITERIA_SCORE_DETAIL_FINAL row per trucking company (PR_NO_DET, TOTAL_PRICE = Monthly Delivery Cost), route rows, ielp.CRITERIA_SCORE_APPROVAL per level; Log no.2 (Info): 'PR bundle {YYYY-MM} sequence {n} submitted by {User}: {n} PR ({PR Nos}), total {IDR}; approval starts at {level}.'"
      ]
     },
@@ -139,7 +141,7 @@
       "Another user submits the same month meanwhile; confirm Submit PR."
      ],
      "expected": [
-      "Msg no.12 (Info): 'All planned routes of {LP} for this operational month are already included in PR {PR Nos}.' (grey) on every row; Msg no.16 (Warning): 'There is no trucking company with new routes to submit for this operational month.'",
+      "Submit PR dialog: Msg no.16 (Warning): 'There is no trucking company with new routes to submit for this operational month.'; list Msg no.12 (Info): 'All planned routes of {LP} for this operational month are already included in PR {PR Nos}.'",
       "PR Sequence 3: only the new route for each trucking company.",
       "Msg no.18 (Error): 'PR Sequence {n} for {YYYY-MM} already exists. Please click Create PR again.'; nothing created."
      ]

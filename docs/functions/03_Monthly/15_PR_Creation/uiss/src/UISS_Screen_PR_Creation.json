@@ -52,6 +52,13 @@
    "date": "26-Nov-26",
    "reviewed_by": "",
    "description": "PR Detail pop-up: columns Route Percentage and Number of Orders removed (user review); Item Desc of the pop-up renumbered (24-28), Operation Desc 5.3 / 5.7 and screenshot 5 updated. Calculation unchanged."
+  },
+  {
+   "revision": "0.7",
+   "author": "Susanto",
+   "date": "26-Nov-26",
+   "reviewed_by": "",
+   "description": "User review: Status empty, filled only when the Price per KM of the detail is not found or is 0 (message no. 10, price 0 added); info chips and abnormality alert removed (Item 'Info chips' deleted - items renumbered from 7); Submit PR enabled for authorized users and shows the problem list dialog (messages no. 6-9, 11, 12, 15, 16); Operation Desc 5.4 / 5.6, OP-12, screenshots retaken. Total Cost of the pop-up = Σ Planned Cost (OP-14 decided by user review); Delivery Cost (IDR/Day) = Total Cost; example values updated."
   }
  ],
  "general": {
@@ -91,7 +98,7 @@
    },
    {
     "name": "Submit PR",
-    "function": "To send the bundle of all trucking companies to approval after confirmation (formerly Create PR)."
+    "function": "To send the bundle of all trucking companies to approval after confirmation (formerly Create PR); when not possible, shows the list of problems."
    },
    {
     "name": "Export",
@@ -139,11 +146,11 @@
     "sections": [
      {
       "section": "Header / Parameters / List Summary",
-      "description": "Status shows the abnormality; refer below 2)",
+      "description": "Status shows a price problem; Submit PR opens the problem list (message no. 15)",
       "buttons": {
        "Operational Month": "E",
        "Create PR": "E",
-       "Submit PR": "D",
+       "Submit PR": "E",
        "Export": "E",
        "Cancel": "E",
        "Search / Column": "E",
@@ -213,7 +220,7 @@
   ],
   "screen_mode_remarks": [
    "1) Users not in the authorization configuration (PC-02) see message no. 14; Submit PR is disabled.",
-   "2) Submit PR is enabled only after Create PR, with a valid creation period, no abnormality in any trucking company and at least one trucking company with new routes (PC-12).",
+   "2) Submit PR is enabled for authorized users. It submits only after Create PR, with a valid creation period, no abnormality in any trucking company and at least one trucking company with new routes (PC-12); otherwise it shows message no. 20 / 2-5 or the problem list dialog (message no. 15 / 16).",
    "3) There is no row selection: all trucking companies of the operational month form one bundle."
   ]
  },
@@ -677,12 +684,16 @@
    "image": "img/UISS_Screen_PR_Creation/c05_loading.png"
   },
   {
-   "caption": "8. Bundle submitted: trucking companies show \"Already in PR\" (HTML mock-up)",
+   "caption": "8. Bundle submitted (message no. 19); Status stays empty; a further Submit PR lists all trucking companies as already in PR (HTML mock-up)",
    "image": "img/UISS_Screen_PR_Creation/c06_submitted.png"
   },
   {
-   "caption": "9. Abnormality (Price per KM missing for GIB): Status filled, Submit PR blocked (HTML mock-up)",
+   "caption": "9. Status filled only for the price problem (Price per KM missing for GIB); no info chips / alert (HTML mock-up)",
    "image": "img/UISS_Screen_PR_Creation/c07_abnormal_blocked.png"
+  },
+  {
+   "caption": "9b. Submit PR clicked: dialog 'Submit PR not possible' with the problem list (HTML mock-up)",
+   "image": "img/UISS_Screen_PR_Creation/c12_submit_blocked.png"
   },
   {
    "caption": "10. Validation - Operational Month mandatory (HTML mock-up)",
@@ -740,7 +751,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Formerly Create PR. Enabled for authorized users after Create PR, with a valid period, no abnormality and at least one trucking company with new routes (msg 14 / 15 / 16 / 20). Opens the confirmation (5.6)."
+   "description": "Formerly Create PR. Enabled for authorized users (msg 14 otherwise). Before Create PR: msg 20. Valid case: opens the confirmation (5.6). When not possible: dialog 'Submit PR not possible' with msg 15 / 16 and the problem list - price problems (msg 10), other data errors (msg 6-9, 11), trucking companies already in an active PR (msg 12)."
   },
   {
    "name": "Export",
@@ -792,21 +803,6 @@
    "description": "Read only: 'Sequence n - initial / additional bundle (all trucking companies)'. Next sequence of the operational month (5.5), the same for every trucking company."
   },
   {
-   "name": "Info chips",
-   "source": "--",
-   "field": "--",
-   "type": "",
-   "len": "",
-   "io": "O",
-   "control": "Label",
-   "justified": "Left",
-   "initial": "",
-   "required": "N",
-   "format": "",
-   "validation": "",
-   "description": "Creation period result; TMMIN Calendar working days; Route Percentage (active routes, total %); Total By Resource (Master KPI). The System Master parameter is read in the background and not shown (PC-03)."
-  },
-  {
    "name": "Alert",
    "source": "--",
    "field": "--",
@@ -819,7 +815,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "View-only notice for unauthorized users (msg 14); creation period error (msg 2-5); abnormality (msg 15)."
+   "description": "Only the view-only notice for unauthorized users (msg 14) and the creation period error (msg 2-5). No info chips and no abnormality alert (user review 26-Nov-26)."
   },
   {
    "name": "Cancel",
@@ -912,7 +908,7 @@
    "required": "",
    "format": "ZZZ,ZZZ,ZZ9",
    "validation": "",
-   "description": "Price per KM of the trucking company and period (E-Catalogue); '-' if not available (abnormality, tooltip = reason).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Revised - existing logic kept, see DCR] Component FIX / KM not identifiable."
+   "description": "Price per KM of the trucking company and period (E-Catalogue); '-' if not available; not found or 0 fills the Status (msg 10).\nDB: ielp.MS_ROUTE_PRICE.ROUTE_PRICE_VALUE float NULL [Revised - existing logic kept, see DCR] Component FIX / KM not identifiable."
   },
   {
    "name": "Fixed Cost (IDR/Month)",
@@ -987,7 +983,7 @@
    "required": "N",
    "format": "",
    "validation": "",
-   "description": "Empty when there is no abnormality. Abnormality message in red (msg 6-11, 5.4); grey 'Already in PR {PR No}' when all routes are in an active PR (msg 12, OP-12). 'Ready' and 'Created' are not shown any more."
+   "description": "Empty. Filled (red) only when the Price per KM used in the detail is not found in Master Price or is 0 (msg 10). Other data errors and 'already in PR' are not shown here; they are listed when Submit PR is clicked (5.6)."
   },
   {
    "name": "Detail",
@@ -1125,7 +1121,7 @@
    "required": "N",
    "format": "999,999,999",
    "validation": "",
-   "description": "'Total Cost (IDR/Day)' = Delivery Cost (IDR/Day) of the List Summary = Σ (Planned Cost × orders per day of the route). The orders per day (Order Sharing × Route % ÷ Σ active Route %) are used in the calculation (5.3) but not shown (OP-14).\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL float NULL (per route) - TBD - Not confirmed from existing schema/data/code"
+   "description": "'Total Cost (IDR/Day)' = Delivery Cost (IDR/Day) of the List Summary = Σ Planned Cost of the routes (user review 26-Nov-26, OP-14). Orders per day are not part of the cost.\nDB: ielp.CRITERIA_SCORE_DETAIL_ROUTE.TOTAL_PRICE_ALL float NULL (per route) - TBD - Not confirmed from existing schema/data/code"
   }
  ],
  "data_map": {
@@ -1259,7 +1255,7 @@
      {
       "source_field": "Total Cost",
       "dest_field": "TOTAL_PRICE_ALL",
-      "description": "Planned Cost × Number of Orders (IDR/Day) - TBD"
+      "description": "Planned Cost of the route (IDR/Day; Total Cost = Σ Planned Cost) - TBD"
      }
     ]
    },
@@ -1412,12 +1408,12 @@
    "marker": "1.",
    "level": 3,
    "items": [
-    "Number of Orders (route, per day) = Order Sharing × Route % ÷ Σ active Route % (2 decimals). Total below 100%: split proportionally (TBD, OP-07).",
+    "Number of Orders (route, per day) = Order Sharing × Route % ÷ Σ active Route % (2 decimals) - used only for the PR quantity (TOTAL_TRIP), not for the cost, not shown. Total below 100%: split proportionally (TBD, OP-07).",
     "Planned Cost (route) = Distance (Km) × Mileage Cost (IDR/Km).",
-    "Total Cost (route) = Planned Cost × Number of Orders (TBD, OP-14); only the sum is shown, as the Total Cost row of the pop-up (orders per day not displayed).",
+    "Total Cost = Σ Planned Cost of the routes (user review 26-Nov-26, OP-14 closed: Planned Cost only); shown as the Total Cost row of the pop-up. Orders per day are used only for the PR quantity.",
     "Delivery Cost (IDR/Day) = Σ Total Cost of the routes.",
     "Monthly Delivery Cost (IDR) = Delivery Cost (IDR/Day) × Working Days = PR amount of the trucking company (Fixed Cost not added, OP-16).",
-    "Example DNX, December 2026: 4 orders/day; route DPCMR_CYKRW 15% of 95% -> 0.63 orders; Planned Cost 57 × 2,700 = 153,900; Total Cost 96,957. Delivery Cost 432,405 / day × 22 = 9,512,910."
+    "Example DNX, December 2026: route DPCMR_CYKRW Planned Cost 57 Km × 2,700 = 153,900; Total Cost = Σ Planned Cost of the 11 routes (393 Km × 2,700) = 1,061,100 = Delivery Cost / day; Monthly Delivery Cost 1,061,100 × 22 = 23,344,200."
    ]
   },
   {
@@ -1428,13 +1424,13 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "The Status column shows only an abnormality of the detail (red): TMMIN Calendar missing (no. 6), no active Route Percentage (no. 7), no Order Sharing (no. 8) or Order Sharing = 0 (no. 9), Price per KM missing / expired / duplicated (no. 10), amount <= 0 (no. 11). Definition TBD (OP-12).",
+   "text": "Status column (user review 26-Nov-26): empty, filled in red only when the Price per KM of the detail is not found / expired / duplicated in Master Price, or is 0 (no. 10). The other abnormalities - TMMIN Calendar missing (no. 6), no active Route Percentage (no. 7), no Order Sharing (no. 8) or 0 (no. 9), amount <= 0 (no. 11) - are not shown on the list; they block Submit PR and are listed in its dialog (5.6). Definition TBD (OP-12).",
    "level": 2
   },
   {
    "type": "item",
    "marker": "b.",
-   "text": "No abnormality: Status empty ('Ready' removed). All routes already in an active PR of the month: grey 'Already in PR {PR No}' (no. 12, OP-12); the trucking company is not in the new bundle. 'Created {PR No}' is not shown.",
+   "text": "All routes already in an active PR of the month: the trucking company is not in the new bundle; it is listed in the Submit PR dialog (no. 12) and in the confirmation. 'Ready', 'Created {PR No}' and the grey status are not shown. No info chips above the list.",
    "level": 2
   },
   {
@@ -1486,7 +1482,7 @@
     [
      "-",
      "after sequence 2",
-     "All rows 'Already in PR'; Submit PR: message no. 16"
+     "Submit PR: dialog with message no. 16 (all trucking companies already in PR, no. 12)"
     ],
     [
      "3",
@@ -1508,7 +1504,7 @@
    "marker": "1.",
    "level": 3,
    "items": [
-    "Submit PR: if not authorized message no. 14; before Create PR no. 20; any abnormality no. 15 (whole bundle blocked, OP-13); no trucking company with new routes no. 16.",
+    "Submit PR (enabled for authorized users; otherwise message no. 14): before Create PR no. 20; period error no. 2-5. Any abnormality: dialog 'Submit PR not possible' with no. 15 and the problem list (price no. 10, data no. 6-9 / 11, already in PR no. 12) - whole bundle blocked (OP-13); no trucking company with new routes: no. 16 in the same dialog.",
     "Confirmation no. 17: operational month, PR Sequence, one line per trucking company (routes, amount), Total PR Cost, approval path and Current PIC.",
     "Loading indicator; recalculate the bundle and re-check the sequence and the abnormalities in the same transaction (PC-11). Sequence taken meanwhile: no. 18; new abnormality: no. 15. Nothing is created (all-or-nothing, PC-12).",
     "Insert the bundle header, one PR per trucking company, the routes, the approval levels and the history (Data Map). Message no. 19; the list is recalculated.",
@@ -1523,7 +1519,7 @@
   {
    "type": "item",
    "marker": "a.",
-   "text": "No header information. Table: Route, Distance (Km), Planned Cost (IDR), then the Total Cost (IDR/Day) row (= Delivery Cost of the List Summary). Route Percentage and Number of Orders are not shown (user review 26-Nov-26); they remain part of the calculation (5.3). Data from Master Route Percentage. Sticky header / footer; scrolls.",
+   "text": "No header information. Table: Route, Distance (Km), Planned Cost (IDR), then the Total Cost (IDR/Day) row (= Delivery Cost of the List Summary). Route Percentage and Number of Orders are not shown (user review 26-Nov-26); Total Cost = Σ Planned Cost (5.3). Data from Master Route Percentage. Sticky header / footer; scrolls.",
    "level": 2
   },
   {
@@ -1592,7 +1588,7 @@
     [
      "OP-12",
      "Definition of the abnormality that fills the Status column and its text. Are \"Created {PR No}\" / \"already in an earlier PR\" still shown?",
-     "Abnormality = missing TMMIN Calendar, Route Percentage, Order Sharing (or 0), Price per KM, or amount <= 0 (message text). \"Created\" is not shown; grey \"Already in PR {PR No}\" is kept."
+     "Status = price problem only (Price per KM not found or 0, user review). Other abnormalities (calendar, route percentage, Order Sharing, amount) block Submit PR and are listed in its dialog; \"Created\" / grey status not shown."
     ],
     [
      "OP-13",
@@ -1602,7 +1598,7 @@
     [
      "OP-14",
      "Total Cost per route: Planned Cost x Number of Orders, or Planned Cost only?",
-     "Planned Cost x Number of Orders, with Number of Orders per day (Order Sharing x Route % / total active Route %), so that the sum is the Delivery Cost (IDR/Day)."
+     "Decided by user review 26-Nov-26: Total Cost = Σ Planned Cost (Distance × Mileage Cost); Number of Orders not shown and not part of the cost."
     ],
     [
      "OP-15",
@@ -1862,7 +1858,7 @@
    "action": "Select the next month"
   },
   {
-   "event": "Create PR (Status per trucking company)",
+   "event": "Click [Submit PR] (problem list of the dialog)",
    "cause": "No working days in TMMIN Calendar (PC-05)",
    "type": "Error",
    "msg_id": "TBD",
@@ -1870,7 +1866,7 @@
    "action": "Maintain the TMMIN Calendar"
   },
   {
-   "event": "Create PR (Status per trucking company)",
+   "event": "Click [Submit PR] (problem list of the dialog)",
    "cause": "No active Route Percentage (PC-05)",
    "type": "Error",
    "msg_id": "TBD",
@@ -1878,7 +1874,7 @@
    "action": "Maintain Master Route Percentage"
   },
   {
-   "event": "Create PR (Status per trucking company)",
+   "event": "Click [Submit PR] (problem list of the dialog)",
    "cause": "No Order Sharing in Master KPI (PC-05)",
    "type": "Error",
    "msg_id": "TBD",
@@ -1886,7 +1882,7 @@
    "action": "Maintain Master KPI"
   },
   {
-   "event": "Create PR (Status per trucking company)",
+   "event": "Click [Submit PR] (problem list of the dialog)",
    "cause": "Order Sharing = 0",
    "type": "Error",
    "msg_id": "TBD",
@@ -1894,15 +1890,15 @@
    "action": "Maintain Master KPI"
   },
   {
-   "event": "Create PR (Status per trucking company)",
-   "cause": "Price per KM missing / expired / duplicated (PC-04)",
+   "event": "Create PR (Status column)",
+   "cause": "Price per KM not found / expired / duplicated, or 0 (PC-04)",
    "type": "Error",
    "msg_id": "TBD",
-   "message": "No Price per KM found in Master Price for {LP} period {YYYYMM}. (or expired / more than one valid price)",
+   "message": "No Price per KM found in Master Price for {LP} period {YYYYMM}. (or expired / more than one valid price) / Price per KM of {LP} for period {YYYYMM} is 0 in Master Price.",
    "action": "Maintain Master Price"
   },
   {
-   "event": "Create PR (Status per trucking company)",
+   "event": "Click [Submit PR] (problem list of the dialog)",
    "cause": "Calculated amount <= 0 (PC-09)",
    "type": "Error",
    "msg_id": "TBD",
@@ -1910,7 +1906,7 @@
    "action": "Check price and planning data"
   },
   {
-   "event": "Create PR (Status per trucking company, grey)",
+   "event": "Click [Submit PR] (problem list of the dialog)",
    "cause": "All routes already in active PRs (PC-08, OP-12)",
    "type": "Info",
    "msg_id": "TBD",
@@ -1938,14 +1934,14 @@
   },
   {
    "event": "Click [Submit PR]",
-   "cause": "At least one trucking company has an abnormality (PC-12, OP-13)",
+   "cause": "At least one trucking company has an abnormality (PC-12, OP-13): dialog Submit PR not possible",
    "type": "Error",
    "msg_id": "TBD",
-   "message": "Submit PR is not possible: {n} trucking company(ies) have an abnormality (see Status). Please correct the data first.",
+   "message": "Submit PR is not possible: {n} trucking company(ies) have an abnormality (see the list below and the Status column). Please correct the data first. (+ problem list)",
    "action": "Correct the master data, click Create PR"
   },
   {
-   "event": "Click [Submit PR]",
+   "event": "Click [Submit PR] (dialog)",
    "cause": "No trucking company with new routes",
    "type": "Warning",
    "msg_id": "TBD",

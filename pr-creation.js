@@ -59,9 +59,9 @@ $('pcCancel').addEventListener('click', () => {
 });
 
 // ---------- List Summary ----------
-// Status shows only an abnormality of the detail (red); grey when all routes are already in an active PR (OP-2); otherwise empty
-const statusCell = i => i.prep.abnormal ? `<span class="st bad" title="${esc(i.prep.error)}">${esc(i.prep.error)}</span>`
-  : i.prep.included ? `<span class="st done" title="${esc(i.prep.error)}">Already in PR ${esc(i.prep.error.replace(/.*included in PR /, '').replace(/\.$/, ''))}</span>` : '';
+// Status (user review 2, 26-Nov-26): empty; filled only when the Price per KM of the detail is not found or is 0 (red).
+// Other data errors and "already in PR" are shown in the alert above the list.
+const statusCell = i => { const e = PC.priceStatus(i.row); return e ? `<span class="st bad" title="${esc(e)}">${esc(e)}</span>` : ''; };
 function pcFiltered() {
   const q = pcs.search.trim().toLowerCase();
   return (pcs.plan?.items || []).filter(i => !q || `${i.row.partner} ${prName(i.row.partner)}`.toLowerCase().includes(q));
@@ -71,22 +71,14 @@ function submitBlock() {
 }
 function prcRender() {
   const a = state.actor, auth = authorized(), plan = pcs.plan;
-  const wd = pcs.ym ? PS.src.workingDays(pcs.ym) : null, rpt = PS.src.routePercentageTotal();
-  const per = pcs.ym ? PC.periodCheck(pcs.ym, new Date(), PS.SYSTEM_MASTER.prAllowCurrentMonth) : null;
-  $('pcChips').innerHTML = [
-    per ? `<span class="chip ${per.ok ? 'ok' : 'bad'}">Creation period: ${per.ok ? (per.rule === 'N-1' ? `Month N-1 (created ${monthName(PC.ymOf(new Date()))} for ${monthName(pcs.ym)})` : 'Month N (allowed by System Master)') : 'not allowed'}</span>` : '',
-    pcs.ym ? `<span class="chip ${wd == null ? 'bad' : ''}">TMMIN Calendar ${monthName(pcs.ym)}: ${wd == null ? 'not available' : `${wd} working days`}</span>` : '',
-    `<span class="chip ${rpt === 100 ? 'ok' : 'warn'}">Route Percentage: ${PS.src.routes().length} active routes, total ${rpt}%${rpt < 100 ? ' (orders split proportionally)' : ''}</span>`,
-    `<span class="chip">Total By Resource (Master KPI): ${PS.src.shareTotal()} orders/day</span>`,
-  ].join('');
+  // User review 2 (26-Nov-26): no info chips and no abnormality alert; only the view-only notice and the creation period error.
+  // Abnormalities: price in the Status column; the full list is shown when Submit PR is clicked (submitProblems).
   const alerts = [];
   if (!auth) alerts.push(`<div class="pc-alert info">Login as <b>${esc(M.roleLabel(a))}</b>: view only. PR Creation is available to VPLD Staff and VPLD Section Head (change "Login sebagai").</div>`);
   if (pcs.generated && !pcs.period.ok) alerts.push(`<div class="pc-alert bad">${esc(pcs.period.error)}</div>`);
-  else if (pcs.generated && plan.abnormal.length) alerts.push(`<div class="pc-alert bad">${esc(plan.error)}</div>`);
   $('pcAlert').innerHTML = alerts.join('');
-  const block = submitBlock();
-  $('pcCreate').disabled = pcs.busy || !!block;
-  $('pcCreate').title = block || '';
+  $('pcCreate').disabled = pcs.busy || !auth;
+  $('pcCreate').title = auth ? '' : PC.MSG.noAuth;
   // PR Sequence: one number for the whole bundle of the operational month (PC-07)
   $('pcSeq').textContent = !pcs.generated ? 'Click Create PR to see the sequence'
     : `Sequence ${plan.seq}${plan.seq > 1 ? ' - additional bundle' : ' - initial bundle'} (all trucking companies)`;
@@ -127,7 +119,7 @@ function openPcDetail(partner) {
   const i = pcs.plan?.items.find(x => x.row.partner === partner); if (!i) return;
   const x = i.row;
   $('pcmTitle').textContent = `PR Detail - ${partner} - ${prName(partner)}`;
-  // Revision 26-Nov-26 (user review 2): Route Percentage and Number of Orders are not shown; Total Cost is still Σ Planned Cost x orders per day (5.3)
+  // Revision 26-Nov-26 (user review 2): Route Percentage and Number of Orders are not shown; Total Cost = Σ Planned Cost (user review)
   $('pcmTable').innerHTML = `<thead><tr><th style="min-width:300px">Route</th><th>Distance<br>(Km)</th><th>Planned Cost<br>(IDR)</th></tr></thead>
     <tbody>${x.lines.length ? x.lines.map(l => `<tr><td class="left"><b>${l.code}</b><span>${esc(l.description)}</span></td>
       <td>${num(l.distance)}</td><td class="num">${num(l.planned)}</td></tr>`).join('')
@@ -145,9 +137,23 @@ function approvalPath() {
   const rest = M.LEVELS.filter(l => !skipped.includes(l));
   return `${rest.join(' → ')}${skipped.length ? ` (${skipped.join(', ')} skipped: submitted by ${state.actor.level})` : ''}`;
 }
+// Problems listed when Submit PR is not possible: price (Status), other data errors, trucking companies already in an active PR
+function submitProblems() {
+  const plan = pcs.plan, lines = [], data = new Map();
+  plan.items.forEach(i => { const pe = PC.priceStatus(i.row); if (pe) lines.push(pe); PC.dataErrors(i.row).forEach(e => data.set(e, [...(data.get(e) || []), i.row.partner])); });
+  data.forEach((lps, e) => lines.push(`${e}${lps.length > 1 ? ` (${lps.join(', ')})` : ''}`));
+  const inc = plan.items.filter(i => i.prep.included);
+  if (inc.length) lines.push(`Not in the new bundle - all routes already in an active PR: ${inc.map(i => i.row.partner).join(', ')}.`);
+  return lines;
+}
 $('pcCreate').addEventListener('click', () => {
   const block = submitBlock();
-  if (block) { toast(block); return; }
+  if (block && (!pcs.generated || !pcs.period?.ok || !authorized())) { toast(block); return; }
+  if (block) {
+    showPreview('Submit PR not possible', `<div class="form-alert">${esc(block)}</div><ul class="apv-list" style="padding-left:18px">${submitProblems().map(l => `<li>${esc(l)}</li>`).join('')}</ul>`,
+      '<button class="btn-outline" id="pcBlkOk">Close</button>');
+    $('pcBlkOk').onclick = closePreview; return;
+  }
   const plan = pcs.plan;
   showPreview(`Submit PR - ${monthName(pcs.ym)} - PR Sequence ${plan.seq}`, `<p style="margin:0 0 8px;font-size:11px">One bundle of <b>${plan.members.length} PR</b> (one per trucking company) is sent to approval and approved / rejected together:</p>
     <div class="apv-list">${plan.members.map(i => `<div>${i.row.partner} · ${i.prep.lines.length} route(s)${i.prep.skipped ? ` (${i.prep.skipped} already in an earlier PR)` : ''} · IDR ${num(i.prep.amount)}</div>`).join('')}</div>
@@ -179,7 +185,7 @@ $('pcExportMenu').addEventListener('click', e => {
   if (b.dataset.x === 'summary') {
     rows = head(['No.', 'Trucking Company', 'PR Sequence', 'Mileage Cost (IDR/Km)', 'Fixed Cost (IDR/Month)', 'Working Days', 'Delivery Cost (IDR/Day)', 'Monthly Delivery Cost (IDR)', 'Status'])
       + pcFiltered().map((i, k) => `<Row>${[k + 1, `${i.row.partner} - ${prName(i.row.partner)}`, pcs.plan.seq, i.row.mileage ?? '-', i.row.fixed ?? '-', i.row.workingDays ?? '-', i.row.perDay ?? '-', i.row.monthlyTotal ?? '-',
-        i.prep.abnormal || i.prep.included ? i.prep.error : ''].map(cell).join('')}</Row>`).join('');
+        PC.priceStatus(i.row) || ''].map(cell).join('')}</Row>`).join('');
   } else {
     rows = head(['Trucking Company', 'Operational Month', 'Route', 'Description', 'Route Percentage', 'Number of Orders (per day)', 'Distance (Km)', 'Mileage Cost (IDR/Km)', 'Planned Cost (IDR)', 'Total Cost (IDR/Day)'])
       + pcFiltered().flatMap(i => i.row.lines.map(l => `<Row>${[i.row.partner, pcs.ym, l.code, l.description, l.percentage, l.orders, l.distance, l.priceKm, l.planned, l.cost].map(cell).join('')}</Row>`)).join('');

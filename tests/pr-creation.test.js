@@ -46,16 +46,17 @@ test('list = all trucking companies paid By Resources; Mileage / Fixed Cost from
   assert.strictEqual(r.fixed, 28500000); assert.strictEqual(r.mileage, 2700);
 });
 
-test('detail: orders per day by Route %, Planned Cost = Distance x Mileage Cost, Total Cost = Planned Cost x Orders', () => {
+test('detail: Planned Cost = Distance x Mileage Cost; Total Cost = sum of Planned Cost (orders per day only for the quantity)', () => {
   const r = PC.calculate('DNX', '2026-12', src), totalPct = src.routes().reduce((s, x) => s + x.percentage, 0);
   assert.strictEqual(r.lines.length, src.routes().length);
   r.lines.forEach(l => {
     assert.strictEqual(l.orders, Math.round(4 * l.percentage / totalPct * 100) / 100);
     assert.strictEqual(l.planned, l.distance * 2700);
-    assert.strictEqual(l.cost, Math.round(l.planned * l.orders));
+    assert.strictEqual(l.cost, l.planned);
   });
   const dp = r.lines.find(l => l.code === 'DPCMR_CYKRW');   // 15 % of 95 %, 57 Km
-  assert.deepStrictEqual([dp.orders, dp.planned, dp.cost], [0.63, 153900, 96957]);
+  assert.deepStrictEqual([dp.orders, dp.planned, dp.cost], [0.63, 153900, 153900]);
+  assert.strictEqual(r.perDay, r.lines.reduce((s, l) => s + l.planned, 0)); assert.strictEqual(r.perDay, 393 * 2700);
 });
 
 test('List Summary: Delivery Cost/Day = sum of Total Cost; Monthly Delivery Cost = Delivery Cost x Working Days', () => {
@@ -66,9 +67,21 @@ test('List Summary: Delivery Cost/Day = sum of Total Cost; Monthly Delivery Cost
   assert.notStrictEqual(r.monthlyTotal, r.fixed + r.perDay * 22);   // Fixed Cost is not added any more (OP-6)
 });
 
-test('abnormality fills the Status: calendar, routes, order sharing, price per KM', () => {
+test('Status only for the price: Price per KM not found or 0; other data errors still block (alert)', () => {
+  const zero = { ...src, price: (p, c, per) => c === 'KM' && p === 'GIB' ? { ok: true, price: 0 } : src.price(p, c, per) };
+  const g = PC.calculate('GIB', '2026-12', zero);
+  assert.strictEqual(PC.priceStatus(g), PC.MSG.zeroPrice('GIB', '202612')); assert.strictEqual(g.perDay, null);
+  assert(PC.priceStatus(PC.calculate('DNX', '2027-01', src)).includes('No Price per KM'));
+  const noCal = PC.calculate('DNX', '2026-12', { ...src, workingDays: () => null });
+  assert.strictEqual(PC.priceStatus(noCal), null); assert.deepStrictEqual(PC.dataErrors(noCal), [PC.MSG.noCalendar('2026-12')]);
+  assert.strictEqual(PC.priceStatus(PC.calculate('DNX', '2026-12', src)), null);
+  const plan = PC.planBundle(rowsOf('2026-12', zero), [], WF.prStatus);
+  assert.strictEqual(plan.error, PC.MSG.abnormal(1)); assert(!plan.canSubmit);
+});
+
+test('abnormality (blocks Submit PR): calendar, routes, order sharing, price per KM', () => {
   assert.strictEqual(PC.abnormality(PC.calculate('DNX', '2026-12', src)), null);
-  assert.strictEqual(PC.abnormality(PC.calculate('DNX', '2027-02', src)), PC.MSG.noCalendar('2027-02'));
+  assert.strictEqual(PC.abnormality(PC.calculate('DNX', '2026-12', { ...src, workingDays: () => null })), PC.MSG.noCalendar('2026-12'));
   assert.strictEqual(PC.abnormality(PC.calculate('DNX', '2026-12', { ...src, routes: () => [] })), PC.MSG.noRoutes);
   assert.strictEqual(PC.abnormality(PC.calculate('PNJ', '2026-12', src)), PC.MSG.noSharing('PNJ'));
   assert(PC.abnormality(PC.calculate('DNX', '2027-01', src)).includes('No Price per KM'));   // no eCatalogue price for 202701

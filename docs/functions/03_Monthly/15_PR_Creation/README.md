@@ -6,7 +6,7 @@ Code: pr-creation.js, pr-creation-rules.js, pr-sources.js
 
 | UISS | Type | Revision | Source | Screenshots |
 |---|---|---|---|---|
-| [UISS_Screen_PR_Creation](uiss/UISS_Screen_PR_Creation.xlsx) | screen | 0.6 (26-Nov-26) | [uiss/src/UISS_Screen_PR_Creation.json](uiss/src/UISS_Screen_PR_Creation.json) | 11 |
+| [UISS_Screen_PR_Creation](uiss/UISS_Screen_PR_Creation.xlsx) | screen | 0.7 (26-Nov-26) | [uiss/src/UISS_Screen_PR_Creation.json](uiss/src/UISS_Screen_PR_Creation.json) | 12 |
 
 Rules / specification (`uiss/`):
 

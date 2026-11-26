@@ -86,38 +86,39 @@ def pr_creation(u):
     CSH = 'ielp.CRITERIA_SCORE_HEADER'
     g = [
      {'title': 'Initial', 'items': [
-      C('open', 'Open screen: Operational Month only, list of all trucking companies', 'UISS: Item 1-9, 5.1, Msg no.14',
+      C('open', 'Open screen: Operational Month only, list of all trucking companies', 'UISS: Item 1-8, 5.1, Msg no.14',
         [S, 'Login as IELP Admin, open the screen.'],
-        ['Only Operational Month (default next month) and PR Sequence (read only); no PR Creation Type, Logistics Partner or System Master setting; buttons Create PR, Submit PR, Export.',
+        ['Only Operational Month (default next month) and PR Sequence (read only); no PR Creation Type, Logistics Partner or System Master setting, no info chips; buttons Create PR, Submit PR, Export.',
          'List calculated on open for all trucking companies paid By Resources (AGR, DNX, GIB, JMP, PBM).', M(14) + '; Submit PR disabled (view only).'])]},
      {'title': 'Create PR (calculate)', 'items': [
       C('param', 'Mandatory and creation period', 'UISS: 5.1, Msg no.1, Msg no.2, Msg no.3, Msg no.4, Msg no.5, Msg no.20',
         ['[Submit PR] / [Export] before Create PR (clear the month first).', 'Clear Operational Month, [Create PR].', 'Operational Month = current month with System Master "N allowed" = No; = last month; = month N+2.', 'Remove the System Master parameter (test DB), current month.'],
         [M(20), M(1), M(3) + ' / ' + M(4) + ' / ' + M(5), M(2) + ' (parameter read in the background, not shown on the screen).']),
-      C('gen', 'List Summary calculated: new columns and formulas', 'UISS: Item 10-23, 5.2, 5.3, 5.5, Msg no.13, Log 1',
+      C('gen', 'List Summary calculated: new columns and formulas', 'UISS: Item 9-22, 5.2, 5.3, 5.5, Msg no.13, Log 1',
         ['Operational Month = 2026-12, [Create PR].', 'Check DNX row against SQL TD-11 and the detail pop-up.'],
         [M(13, {'Month YYYY': 'December 2026', 'n': '5'}) + '; PR Sequence "Sequence 2 - additional bundle" (bundle 1 rejected in sample data).',
          'Columns: Trucking Company, Mileage Cost, Fixed Cost (information), Working Days, Delivery Cost (IDR/Day), Monthly Delivery Cost, Status (empty), Detail; no check box, no PR Amount.',
-         'DNX: Delivery Cost = sum of Total Cost of the pop-up (432,405); Monthly Delivery Cost = 432,405 x 22 = 9,512,910 (no Fixed Cost added).',
+         'DNX: Delivery Cost = Total Cost of the pop-up = sum of Planned Cost (1,061,100); Monthly Delivery Cost = 1,061,100 x 22 = 23,344,200 (no Fixed Cost added).',
          "Total row: sum of Fixed Cost, Delivery Cost, Monthly Delivery Cost; footer 'Total PR Cost (bundle, 5 trucking companies)'. " + L(1)]),
-      C('detail', 'Detail pop-up read only and export', 'UISS: Item 24-28, 5.7, 5.8, Msg no.21',
+      C('detail', 'Detail pop-up read only and export', 'UISS: Item 23-27, 5.7, 5.8, Msg no.21',
         ['Click Detail of DNX.', 'Click x.', 'Click Export > List Summary and Route Plan Detail.'],
-        ['No header information; columns Route, Distance, Planned Cost (= Distance x Mileage Cost) only - no Route Percentage, no Number of Orders; Total Cost (IDR/Day) row = Delivery Cost of the row; no Close / Confirm buttons.',
+        ['No header information; columns Route, Distance, Planned Cost (= Distance x Mileage Cost) only - no Route Percentage, no Number of Orders; Total Cost (IDR/Day) row = sum of the Planned Cost column = Delivery Cost of the row; no Close / Confirm buttons.',
          'Pop-up closed.', M(21)])]},
      {'title': 'Status - Abnormality', 'items': [
-      C('abn', 'Abnormality shown in Status; Submit PR blocked for the whole bundle', 'UISS: Item 19, 5.4, 5.6, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.15, Log 4',
-        ['Create PR with, one at a time (test data): no TMMIN calendar; no active Route Percentage; trucking company without Order Sharing; Order Sharing 0; Price per KM of GIB removed; price 0.', 'Click [Submit PR].'],
-        ['Status of the affected trucking company (red): ' + M(6) + ' / ' + M(7) + ' / ' + M(8) + ' / ' + M(9) + ' / ' + M(10) + ' / ' + M(11) + '; Status of normal rows empty.',
-         M(15, {'n': '1'}) + ' (alert and button tooltip); nothing created. ' + L(4)], tbd='OP-12, OP-13')]},
+      C('abn', 'Status only for the price; other abnormalities in the Submit PR dialog; bundle blocked', 'UISS: Item 3, 7, 18, 5.4, 5.6, Msg no.6, Msg no.7, Msg no.8, Msg no.9, Msg no.10, Msg no.11, Msg no.15, Log 4',
+        ['Create PR with Price per KM of GIB removed, then with Price per KM of GIB = 0 (test data).', 'Click [Submit PR].', 'Repeat with, one at a time: no TMMIN calendar; no active Route Percentage; trucking company without Order Sharing; Order Sharing 0.'],
+        ['Status of GIB (red): ' + M(10) + '; Status of the other rows empty; no info chips and no abnormality alert above the list.',
+         "Dialog 'Submit PR not possible': " + M(15, {'n': '1'}) + ' with the problem list; nothing created. ' + L(4),
+         'Status stays empty for every row; the dialog lists ' + M(6) + ' / ' + M(7) + ' / ' + M(8) + ' / ' + M(9) + ' / ' + M(11) + '.'], tbd='OP-12, OP-13')]},
      {'title': 'Submit PR (bundle)', 'items': [
-      C('submit', 'Submit PR: one bundle, one PR Sequence, DB', 'UISS: Item 3, 23, 5.5, 5.6, Msg no.17, Msg no.19, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Log 2',
+      C('submit', 'Submit PR: one bundle, one PR Sequence, DB', 'UISS: Item 3, 22, 5.5, 5.6, Msg no.17, Msg no.19, Data Map blk 1, Data Map blk 2, Data Map blk 3, Data Map blk 4, Data Map blk 5, Log 2',
         ['Month 2026-12 without abnormality: [Submit PR], [Batal]; [Submit PR] again, [Submit PR] in the confirmation.'],
-        [M(17) + ': one line per trucking company (routes, amount), Total PR Cost, approval SH -> DpH -> DH, Current PIC.', M(19, {'n': '5'}) + '; status Waiting SH; rows show grey "Already in PR".',
+        [M(17) + ': one line per trucking company (routes, amount), Total PR Cost, approval SH -> DpH -> DH, Current PIC.', M(19, {'n': '5'}) + '; status Waiting SH; Status column stays empty.',
          f'DB (SQL TD-10): one {CSH} row (CRITERIA_PERIODE, PR_SEQ = 2), one {CSF} row per trucking company (PR_NO_DET, TOTAL_PRICE = Monthly Delivery Cost), route rows, {CSA} per level; ' + L(2)]),
       C('sh', 'Section Head submits (SH skip)', 'UISS: 5.6, Log 3', ['Login as VPLD Section Head; Create PR and Submit PR for the next bundle.'], [L(3), 'Every PR of the bundle starts at DpH.']),
       C('seq', 'Sequence per month, new routes only, sequence taken', 'UISS: 5.5, Msg no.12, Msg no.16, Msg no.18',
         ['After the bundle of 2026-12 is active: [Create PR], [Submit PR].', 'Add an active route in Master Route Percentage; [Create PR].', 'Another user submits the same month meanwhile; confirm Submit PR.'],
-        [M(12) + ' (grey) on every row; ' + M(16), 'PR Sequence 3: only the new route for each trucking company.', M(18) + '; nothing created.'])]}]
+        ['Submit PR dialog: ' + M(16) + '; list ' + M(12), 'PR Sequence 3: only the new route for each trucking company.', M(18) + '; nothing created.'])]}]
     ab = [C('syserr', 'System error', 'UISS: Msg no.22, Log 5', ['Stop DB; Create PR / Submit PR.'], [M(22), L(5)])]
     td = {'precondition': ['VPLD Staff / Section Head; Master KPI (By Resources), Route Percentage, Price, TMMIN calendar for 2026-12; bundle 12/2026-1 rejected (sample data).', DCRN],
           'sql_verify': [{'id': 'TD-10', 'tc': '{tc:submit}', 'title': 'Bundle created', 'sql': f"SELECT * FROM {CSH} WHERE CRITERIA_PERIODE = '2026-12' ORDER BY PR_SEQ;\nSELECT * FROM {CSF} WHERE CRITERIA_HEADER_ID = :header;\nSELECT * FROM ielp.CRITERIA_SCORE_DETAIL_ROUTE WHERE CRITERIA_HEADER_ID = :header;\nSELECT * FROM {CSA} WHERE CRITERIA_HEADER_ID = :header;"},

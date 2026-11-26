@@ -159,7 +159,7 @@ stateDiagram-v2
 | MV-40 | *(Revisi PR Creation 26-Nov-26)* **PR bundle:** semua PR dari satu Submit PR (operational month dan PR Sequence sama, satu PR per trucking company) di-approve / di-reject **sekaligus**, tidak bisa sebagian. Centang satu PR = seluruh bundle tercentang; Approve / Reject dari detail juga berlaku untuk seluruh bundle (`approveBundle` / `rejectBundle`) | <n> PR dipilih (<b> bundle; approval per bundle, semua PR dalam bundle di-approve / di-reject sekaligus) |
 | MV-41 | Bila satu PR dalam bundle tidak bisa diproses (MV-10 / MV-11 / MV-13), seluruh bundle tidak diproses | Bundle MM/YYYY-n (x PR): <alasan> |
 | MV-42 | Reject di level mana pun mengembalikan seluruh PR bundle ke PR Creation; submit berikutnya memakai PR Sequence baru (OP-15 PR Creation). PO tetap per trucking company; PO Rejected (MV-23) hanya mengembalikan PR-nya sendiri | - |
-| MV-43 | Detail PR dari PR Creation: Number of Orders per hari, Planned Cost = Distance × Mileage Cost, Total Cost = Planned Cost × Number of Orders (IDR/Day); footer Delivery Cost × Working Days = Total PR Cost; info baris berisi trucking company dalam bundle | - |
+| MV-43 | Detail PR dari PR Creation: Number of Orders per hari, Planned Cost = Distance × Mileage Cost, Total Cost (IDR/Day) = Planned Cost (Σ = Delivery Cost); footer Delivery Cost × Working Days = Total PR Cost; info baris berisi trucking company dalam bundle | - |
 
 ---
 
